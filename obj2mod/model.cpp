@@ -1,4 +1,5 @@
 #include <sstream>
+#include <cassert>
 #include <stdio.h>
 #include "model.h"
 
