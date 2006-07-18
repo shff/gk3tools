@@ -32,7 +32,7 @@ int parseArguments(int argc, char** argv)
 	
 	inputFile = argv[1];
 	
-	if (argc > 3)
+	if (argc > 2)
 		outputFile = argv[2];
 	else
 	{

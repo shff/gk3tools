@@ -67,14 +67,12 @@ void Model::Load(const std::string& filename)
 					
 					groups[param1] = newgroup;
 				}
-				
-				std::cout << "Adding group" << std::endl;
+
 				currentGroup = &groups[param1];
 			}
 		}
 		else if (command == "f" && currentGroup != NULL)
 		{
-			std::cout << "face!" << std::endl;
 			int v[3] = {getVertexIndex(param1), getVertexIndex(param2), getVertexIndex(param3)};
 			int n[3] = {getNormalIndex(param1), getNormalIndex(param2), getNormalIndex(param3)};
 			int t[3] = {getTexcoordIndex(param1), getTexcoordIndex(param2), getTexcoordIndex(param3)};
@@ -89,14 +87,12 @@ void Model::Load(const std::string& filename)
 						currentGroup->textureindices[i] == t[index] &&
 						currentGroup->normalindices[i] == n[index])
 					{
-						std::cout << "equal" << std::endl;
 						break;
 					}
 				}
 					
 				if (i == currentGroup->vertexindices.size())
 				{
-					std::cout << "Pushing " << v[index] << std::endl;
 					currentGroup->vertexindices.push_back(v[index]);
 					currentGroup->textureindices.push_back(t[index]);
 					currentGroup->normalindices.push_back(n[index]);
@@ -111,7 +107,6 @@ void Model::Load(const std::string& filename)
 			
 			if (itr != materials.end())
 			{
-				std::cout << "Setting texture!" << std::endl;
 				currentGroup->texture = (*itr).second;
 			}
 		}
@@ -124,7 +119,6 @@ void Model::Load(const std::string& filename)
 	for (groupmap::iterator itr = groups.begin(); itr != groups.end(); itr++)
 	{
 		group* currentgroup = &(*itr).second;
-		std::cout << "Changing group" << std::endl;
 			
 		for (int j = 0; j < currentgroup->vertexindices.size(); j++)
 		{
@@ -132,8 +126,6 @@ void Model::Load(const std::string& filename)
 			currentgroup->vertices.push_back(vertices[currentgroup->vertexindices[j] - 1]);
 			currentgroup->normals.push_back(normals[currentgroup->normalindices[j]-1]);
 			currentgroup->texcoords.push_back(texcoords[currentgroup->textureindices[j]-1]);
-				
-			std::cout << "Adding!" << std::endl;
 		}
 	}
 }
@@ -233,12 +225,13 @@ void Model::Save(const std::string& filename)
 		
 		for (unsigned int i = 0; i < currentgroup.vertices.size(); i++)
 		{
-			// reverse x
-			float x = -currentgroup.vertices[i].x;
+			// reverse z
+			float z = -currentgroup.vertices[i].z;
 			
 			WRITE4(fp, &currentgroup.vertices[i].x);
 			WRITE4(fp, &currentgroup.vertices[i].y);
 			WRITE4(fp, &currentgroup.vertices[i].z);
+			//WRITE4(fp, &z);
 		}
 		
 		for (unsigned int i = 0; i < currentgroup.vertices.size(); i++)
@@ -251,14 +244,11 @@ void Model::Save(const std::string& filename)
 		for (unsigned int i = 0; i < currentgroup.vertices.size(); i++)
 		{
 			// adjust u
-			float u = 1.0f - currentgroup.texcoords[i].u;
-			WRITE4(fp, &u);
+			WRITE4(fp, &currentgroup.texcoords[i].u);
 			
 			// reverse the v
-			float v = -currentgroup.texcoords[i].v;
+			float v =  -currentgroup.texcoords[i].v;
 			WRITE4(fp, &v);
-			
-			std::cout << "t: " << currentgroup.texcoords[i].u << " " << currentgroup.texcoords[i].v << std::endl;
 		}
 		
 		for (unsigned int i = 0; i < currentgroup.indices.size() / 3; i++)
