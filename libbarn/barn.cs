@@ -23,16 +23,23 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Barn
+namespace BarnLib
 {
-	class BarnException : System.Exception
+	public enum Compression : int
+	{
+		None = 0,
+		ZLib = 1,
+		LZO = 2
+	}
+	
+	public class BarnException : System.Exception
 	{
 		public BarnException(string message)
 			: base(message)
 		{}
 	};
 	
-	class Barn : System.IDisposable
+	public class Barn : System.IDisposable
 	{
 		public Barn(string name)
 		{
@@ -40,7 +47,7 @@ namespace Barn
 			
 			if (barn == (IntPtr)null)
 				throw new BarnException("Unable to open barn: " + name);
-			
+
 			barnHandle = new HandleRef(this, barn);
 			
 			numFiles = brn_GetNumFilesInBarn(barnHandle);
@@ -81,6 +88,45 @@ namespace Barn
 			throw new BarnException("Unable to get file name at index " + index);
 		}
 		
+		public uint GetFileSize(uint index)
+		{
+			int size = brn_GetFileSizeByIndex(barnHandle, index);
+			
+			if (size >= 0)
+				return (uint)size;
+			
+			throw new BarnException("Unable to get file size at index " + index);
+		}
+		
+		public Compression GetFileCompression(uint index)
+		{
+			int compression = brn_GetFileCompressionByIndex(barnHandle, index);
+			
+			if (compression == -1)
+				throw new BarnException("Unable to get file compression type at index " + index);
+			
+			return (Compression)compression;
+		}
+		
+		public string GetBarnName(uint index)
+		{
+			byte[] buffer = new byte[256];
+			int success = brn_GetFileBarn(barnHandle, index, buffer, 255);
+			
+			if (success == -1)
+				throw new BarnException("Unable to get barn name at index " + index);
+			
+			System.Text.UTF7Encoding enc = new System.Text.UTF7Encoding();
+			return enc.GetString(buffer);
+		}
+		
+		public uint GetOffset(uint index)
+		{
+			int offset = brn_GetFileOffsetByIndex(barnHandle, index);
+			
+			return (uint)offset;
+		}
+		
 		#region Private Members
 		
 		[DllImport("barn")]
@@ -94,6 +140,18 @@ namespace Barn
 		
 		[DllImport("barn")]
 		private static extern int brn_GetFileName(HandleRef barn, uint index, byte[] buffer, int size);
+		
+		[DllImport("barn")]
+		private static extern int brn_GetFileSizeByIndex(HandleRef barn, uint index);
+			
+		[DllImport("barn")]
+		private static extern int brn_GetFileCompressionByIndex(HandleRef barn, uint index);
+			
+		[DllImport("barn")]
+		private static extern int brn_GetFileOffsetByIndex(HandleRef barn, uint index);
+		
+		[DllImport("barn")]
+		private static extern int brn_GetFileBarn(HandleRef barn, uint index, byte[] buffer, int size);
 		
 		private uint numFiles;
 		private HandleRef barnHandle;

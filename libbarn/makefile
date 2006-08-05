@@ -1,6 +1,6 @@
 COMPILER = g++
 LINKER = g++
-COMPILER_FLAGS = -fPIC -Iinclude
+COMPILER_FLAGS = -fPIC -Iinclude -Wall
 LINKER_FLAGS = -shared
 EXECUTABLE = libbarn.so
 
