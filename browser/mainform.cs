@@ -117,21 +117,25 @@ namespace GK3BB
 		private void createMainList()
 		{
 			mainListBox = new TreeView();
-			mainListStore = new ListStore(typeof(string), typeof(string), typeof(string), typeof(string), typeof(string));
+			mainListStore = new ListStore(typeof(string), typeof(uint), typeof(string), typeof(string), typeof(string));
 			mainListBox.Model = mainListStore;
 			mainListBox.HeadersVisible = true;
+			mainListBox.RulesHint = true;
+			mainListBox.Selection.Mode = SelectionMode.Multiple;
 			
-			TreeViewColumn filename = mainListBox.AppendColumn("File name", new CellRendererText(), "text", 0);
-			TreeViewColumn size = mainListBox.AppendColumn("Size", new CellRendererText(), "text", 1);
+			filenameColumn = mainListBox.AppendColumn("File name", new CellRendererText(), "text", 0);
+			sizeColumn = mainListBox.AppendColumn("Size", new CellRendererText(), "text", 1);
 			TreeViewColumn type = mainListBox.AppendColumn("Type", new CellRendererText(), "text", 2);
 			TreeViewColumn barn = mainListBox.AppendColumn("Barn", new CellRendererText(), "text", 3);
 			TreeViewColumn compression = mainListBox.AppendColumn("Compression", new CellRendererText(), "text", 4);
 			
-			filename.Clickable = true;
-			filename.Resizable = true;
+			filenameColumn.Clickable = true;
+			filenameColumn.Resizable = true;
+			filenameColumn.Clicked += new EventHandler(filename_column_clicked);
 			
-			size.Clickable = true;
-			size.Resizable = true;
+			sizeColumn.Clickable = true;
+			sizeColumn.Resizable = true;
+			sizeColumn.Clicked += new EventHandler(size_column_clicked);
 			
 			type.Clickable = true;
 			type.Resizable = true;
@@ -142,7 +146,7 @@ namespace GK3BB
 			compression.Clickable = true;
 			compression.Resizable = true;
 			
-			//mainListBox.SetSortFunc(0, stringCompareFunc);
+			mainListStore.SetSortFunc(0, stringCompareFunc);
 		}
 		
 		#region Events
@@ -186,8 +190,9 @@ namespace GK3BB
 					mainListStore.Clear();
 					foreach(BarnFile file in files)
 					{
-						mainListStore.AppendValues(file.Name, UiUtils.FormatFileSize(file.InternalSize),
+						mainListStore.AppendValues(file.Name, file.InternalSize,
 							"WOO!", file.Barn, file.Compression.ToString());
+
 					}
 					
 					Console.WriteLine("There are " + files.Count + " files!");
@@ -274,11 +279,44 @@ namespace GK3BB
 			md.Destroy();
 		}
 		
+		private void filename_column_clicked(object sender, EventArgs args)
+		{
+			TreeViewColumn col = (TreeViewColumn)sender;
+			
+			setSortColumn(col, 0);
+		}
 		
-		/*private int stringCompareFunc(TreeModel model, TreeItr a, TreeItr b)
+		private void size_column_clicked(object sender, EventArgs args)
+		{
+			TreeViewColumn col = (TreeViewColumn)sender;
+			
+			setSortColumn(col, 1);
+		}
+		
+		private void setSortColumn(TreeViewColumn col, int id)
+		{
+			if (col.SortIndicator)
+			{
+				if (col.SortOrder == SortType.Ascending)
+					col.SortOrder = SortType.Descending;
+				else
+					col.SortOrder = SortType.Ascending;
+			}
+			else
+				col.SortOrder = SortType.Ascending;
+				
+			// disable all the columns' sort indicator
+			filenameColumn.SortIndicator = false;
+			sizeColumn.SortIndicator = false;
+			
+			col.SortIndicator = true;
+			mainListStore.SetSortColumnId(id, col.SortOrder);
+		}
+		
+		private int stringCompareFunc(TreeModel model, TreeIter a, TreeIter b)
 		{
 			return String.Compare((string)model.GetValue(a, 0), (string)model.GetValue(b, 0));
-		}*/
+		}
 		
 		#endregion Events
 		
@@ -307,6 +345,8 @@ namespace GK3BB
 			
 		private TreeView mainListBox;
 		private ListStore mainListStore;
+		private TreeViewColumn filenameColumn;
+		private TreeViewColumn sizeColumn;
 		
 		#endregion Private members
 	}
