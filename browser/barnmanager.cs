@@ -36,7 +36,7 @@ namespace GK3BB
 				string barn = _barn.GetBarnName(i);
 				uint offset = _barn.GetOffset(i);
 				
-				BarnFile file = new BarnFile(filename, size, c, barn, offset);
+				BarnFile file = new BarnFile(i, filename, size, c, barn, offset);
 				
 				files.Add(file);
 			}
@@ -49,14 +49,20 @@ namespace GK3BB
 	
 	public class BarnFile
 	{
-		public BarnFile(string name, uint size, Compression compression,
+		public BarnFile(uint index, string name, uint size, Compression compression,
 			string barn, uint offset)
 		{
+			_index = index;
 			_name = name;
 			_size = size;
 			_compression = compression;
 			_barn = barn;
 			_offset = offset;
+		}
+		
+		public uint Index
+		{
+			get { return _index; }
 		}
 		
 		public string Name
@@ -84,6 +90,7 @@ namespace GK3BB
 			get { return _offset; }
 		}
 		
+		private uint _index;
 		private string _name;
 		private uint _size;
 		private Compression _compression;

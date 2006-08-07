@@ -117,17 +117,20 @@ namespace GK3BB
 		private void createMainList()
 		{
 			mainListBox = new TreeView();
-			mainListStore = new ListStore(typeof(string), typeof(uint), typeof(string), typeof(string), typeof(string));
+			mainListStore = new ListStore(typeof(uint), typeof(string), typeof(uint), typeof(string), typeof(string), typeof(string));
 			mainListBox.Model = mainListStore;
 			mainListBox.HeadersVisible = true;
 			mainListBox.RulesHint = true;
 			mainListBox.Selection.Mode = SelectionMode.Multiple;
 			
-			filenameColumn = mainListBox.AppendColumn("File name", new CellRendererText(), "text", 0);
-			sizeColumn = mainListBox.AppendColumn("Size", new CellRendererText(), "text", 1);
-			TreeViewColumn type = mainListBox.AppendColumn("Type", new CellRendererText(), "text", 2);
-			TreeViewColumn barn = mainListBox.AppendColumn("Barn", new CellRendererText(), "text", 3);
-			TreeViewColumn compression = mainListBox.AppendColumn("Compression", new CellRendererText(), "text", 4);
+			TreeViewColumn index = new TreeViewColumn();
+			index.Visible = false;
+			mainListBox.AppendColumn(index);
+			filenameColumn = mainListBox.AppendColumn("File name", new CellRendererText(), "text", 1);
+			sizeColumn = mainListBox.AppendColumn("Size", new CellRendererText(), "text", 2);
+			TreeViewColumn type = mainListBox.AppendColumn("Type", new CellRendererText(), "text", 3);
+			TreeViewColumn barn = mainListBox.AppendColumn("Barn", new CellRendererText(), "text", 4);
+			TreeViewColumn compression = mainListBox.AppendColumn("Compression", new CellRendererText(), "text", 5);
 			
 			filenameColumn.Clickable = true;
 			filenameColumn.Resizable = true;
@@ -190,7 +193,7 @@ namespace GK3BB
 					mainListStore.Clear();
 					foreach(BarnFile file in files)
 					{
-						mainListStore.AppendValues(file.Name, file.InternalSize,
+						mainListStore.AppendValues(file.Index, file.Name, file.InternalSize,
 							"WOO!", file.Barn, file.Compression.ToString());
 
 					}
@@ -219,6 +222,21 @@ namespace GK3BB
 		
 		void mnuFile_Extract_Clicked(object o, EventArgs args)
 		{
+			TreePath[] paths;
+			TreeModel model;
+			
+			paths = mainListBox.Selection.GetSelectedRows(out model);
+			
+			foreach(TreePath path in paths)
+			{
+				TreeIter itr;
+				if (model.GetIter(out itr, path) == true)
+				{
+					uint index = (uint)model.GetValue(itr, 0);
+					
+					// TODO: extract the file
+				}
+			}
 		}
 		
 		void mnuFile_SetExtractPath_Clicked(object o, EventArgs args)
@@ -283,14 +301,14 @@ namespace GK3BB
 		{
 			TreeViewColumn col = (TreeViewColumn)sender;
 			
-			setSortColumn(col, 0);
+			setSortColumn(col, 1);
 		}
 		
 		private void size_column_clicked(object sender, EventArgs args)
 		{
 			TreeViewColumn col = (TreeViewColumn)sender;
 			
-			setSortColumn(col, 1);
+			setSortColumn(col, 2);
 		}
 		
 		private void setSortColumn(TreeViewColumn col, int id)
@@ -315,7 +333,7 @@ namespace GK3BB
 		
 		private int stringCompareFunc(TreeModel model, TreeIter a, TreeIter b)
 		{
-			return String.Compare((string)model.GetValue(a, 0), (string)model.GetValue(b, 0));
+			return String.Compare((string)model.GetValue(a, 1), (string)model.GetValue(b, 1));
 		}
 		
 		#endregion Events
