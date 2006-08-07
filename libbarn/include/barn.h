@@ -31,6 +31,8 @@ extern "C" {
 #define BARNERR_INVALID_BARN   -1
 #define BARNERR_FILE_NOT_FOUND -2
 #define BARNERR_INVALID_INDEX  -3
+#define BARNERR_UNABLE_TO_OPEN_CHILD_BARN -4
+#define BARNERR_UNABLE_TO_OPEN_OUTPUT_FILE -5
 #define BARNERR_UNKNOWN        -100
 
 typedef void* BarnHandle;
@@ -71,7 +73,15 @@ int brn_GetFileCompressionByName(BarnHandle barn, const char* name);
 
 int brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int index);
 
-int brn_GetLastError(BarnHandle barn);
+/// Extracts the file with the specified name. If openChildBarns = true then if the file
+/// resides in a barn other than this one then the child barn is opened and the file extracted.
+/// The function returns BARN_SUCCESS on success, or an error otherwise.
+int brn_ExtractFile(BarnHandle barn, const char* name, bool openChildBarns);
+
+
+/// Just like brn_ExtractFileByIndex(), except using an index instead of the name
+int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
+	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps);
 
 #ifdef __cplusplus
 }

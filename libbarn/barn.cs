@@ -127,6 +127,19 @@ namespace BarnLib
 			return (uint)offset;
 		}
 		
+		public void ExtractByIndex(uint index, string outputPath, 
+			bool openChildBarns, bool decompress, bool convertBitmaps)
+		{
+			int success = 0;
+		
+			if (decompress)
+				success = brn_ExtractFileByIndex(barnHandle, index,
+				outputPath, openChildBarns, decompress, convertBitmaps);
+				
+			if (success != 0)
+				throw new BarnException("Unable to extract file");
+		}
+		
 		#region Private Members
 		
 		[DllImport("barn")]
@@ -152,6 +165,10 @@ namespace BarnLib
 		
 		[DllImport("barn")]
 		private static extern int brn_GetFileBarn(HandleRef barn, uint index, byte[] buffer, int size);
+		
+		[DllImport("barn")]
+		private static extern int brn_ExtractFileByIndex(HandleRef barn,
+			uint index, string outputPath, bool openChildBarns, bool decompress, bool convertBitmaps);
 		
 		private uint numFiles;
 		private HandleRef barnHandle;

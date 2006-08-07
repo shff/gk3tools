@@ -107,34 +107,46 @@ int brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int index)
 	return brn->GetFileOffset(index);
 }
 
+int brn_ExtractFileCompressedByIndex(BarnHandle barn, unsigned int index, 
+	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps)
+{
+	Barn::Barn* brn = static_cast<Barn::Barn*>(barn);
+	
+	return brn->ExtractFileByIndex(index, outputPath, openChildBarns, false);
+}
+
 namespace Barn
 {
 	Barn::Barn(const std::string& filename)
 	{
-		std::ifstream file(filename.c_str(), std::ios::in | std::ios::binary);
+		m_file = new std::ifstream(filename.c_str(), std::ios::in | std::ios::binary);
 		
-		if (file.good() == false)
-			throw BarnException("Unable to open barn file", BARNERR_FILE_NOT_FOUND);
-		
-		if (readUInt32(file) != Magic1 || readUInt32(file) != Magic2)
+		if (m_file->good() == false)
 		{
-			file.close();
+			delete m_file;
+			throw BarnException("Unable to open barn file", BARNERR_FILE_NOT_FOUND);
+		}
+		
+		if (readUInt32(m_file) != Magic1 || readUInt32(m_file) != Magic2)
+		{
+			m_file->close();
+			delete m_file;
 			throw BarnException("Barn is not valid", BARNERR_INVALID_BARN);
 		}
 		
 		// read some boring stuff
-		readUInt16(file);
-		readUInt16(file);
-		readUInt16(file);
-		readUInt16(file);
-		readUInt32(file);
+		readUInt16(m_file);
+		readUInt16(m_file);
+		readUInt16(m_file);
+		readUInt16(m_file);
+		readUInt32(m_file);
 			
-		unsigned int dirOffset = readUInt32(file);
+		unsigned int dirOffset = readUInt32(m_file);
 		
 		// seek to the directory section
-		file.seekg(dirOffset);
+		m_file->seekg(dirOffset);
 		
-		unsigned int numDirectories = readUInt32(file);
+		unsigned int numDirectories = readUInt32(m_file);
 		
 		std::cout << "Num directories: " << numDirectories << std::endl;
 
@@ -144,16 +156,16 @@ namespace Barn
 		
 		for (unsigned int i = 0; i < numDirectories; i++)
 		{
-			unsigned int type = readUInt32(file);
+			unsigned int type = readUInt32(m_file);
 			
-			readUInt16(file);
-			readUInt16(file);
-			readUInt32(file);
-			readUInt32(file);
-			readUInt32(file);
+			readUInt16(m_file);
+			readUInt16(m_file);
+			readUInt32(m_file);
+			readUInt32(m_file);
+			readUInt32(m_file);
 			
-			unsigned int headerOffset = readUInt32(file);
-			unsigned int dataOffset = readUInt32(file);
+			unsigned int headerOffset = readUInt32(m_file);
+			unsigned int dataOffset = readUInt32(m_file);
 			
 			if (type == DDir)
 			{
@@ -166,27 +178,27 @@ namespace Barn
 		m_numFiles = 0;
 		for (unsigned int i = 0; i < headerOffsets.size(); i++)
 		{
-			file.seekg(headerOffsets[i]);
+			m_file->seekg(headerOffsets[i]);
 			
-			std::string barnName = readString(file, 32);
+			std::string barnName = readString(m_file, 32);
 			std::cout << "Barn name: " << barnName << std::endl;
-			readUInt32(file);
-			readString(file, 40);
-			readUInt32(file);
+			readUInt32(m_file);
+			readString(m_file, 40);
+			readUInt32(m_file);
 			
-			unsigned int numFiles = readUInt32(file);
+			unsigned int numFiles = readUInt32(m_file);
 			
-			file.seekg(dataOffsets[i]);
+			m_file->seekg(dataOffsets[i]);
 			
 			for (unsigned int j = 0; j < numFiles; j++)
 			{
-				unsigned int size = readUInt32(file);
-				unsigned int offset = readUInt32(file);
-				readUInt32(file);
-				readByte(file);
-				Compression compression = (Compression)readByte(file);
-				unsigned char len = readByte(file);
-				std::string fileName = readString(file, len + 1);
+				unsigned int size = readUInt32(m_file);
+				unsigned int offset = readUInt32(m_file);
+				readUInt32(m_file);
+				readByte(m_file);
+				Compression compression = (Compression)readByte(m_file);
+				unsigned char len = readByte(m_file);
+				std::string fileName = readString(m_file, len + 1);
 				
 				BarnFile barn(fileName, size, compression, barnName, offset);
 				m_fileMap.insert(std::pair<std::string, BarnFile>(fileName, barn));
@@ -194,12 +206,15 @@ namespace Barn
 				m_numFiles++;
 			}
 		}
-		
-		file.close();
 	}
 	
 	Barn::~Barn()
 	{
+		if (m_file)
+		{
+			m_file->close();
+			delete m_file;
+		}
 	}
 	
 	std::string Barn::GetFileName(unsigned int index)
@@ -227,26 +242,50 @@ namespace Barn
 		return m_fileList[index].compression;
 	}
 	
-	unsigned char Barn::readByte(std::ifstream& file)
+	int Barn::ExtractFileByIndex(unsigned int index, const std::string& outputPath, 
+		bool openChild, bool uncompress)
+	{
+		if (index >= m_fileList.size())
+			return BARNERR_INVALID_INDEX;
+		
+		unsigned int size = m_fileList[index].size;
+		
+		ExtractBuffer* buffer = new ExtractBuffer(size);
+		buffer->ReadFromFile(*m_file,  m_fileList[index].offset);
+		
+		if (m_fileList[index].barn != "")
+			buffer->WriteToFile(outputPath + "/" + m_fileList[index].name);
+		else
+		{
+			delete buffer;
+			return BARNERR_UNABLE_TO_OPEN_CHILD_BARN;
+		}
+		
+		delete buffer;
+		
+		return BARN_SUCCESS;
+	}
+	
+	unsigned char Barn::readByte(std::ifstream* file)
 	{
 		return readRaw<unsigned char>(file);
 	}
 	
-	unsigned short Barn::readUInt16(std::ifstream& file)
+	unsigned short Barn::readUInt16(std::ifstream* file)
 	{
 		return readRaw<unsigned short>(file);
 	}
 	
-	unsigned int Barn::readUInt32(std::ifstream& file)
+	unsigned int Barn::readUInt32(std::ifstream* file)
 	{
 		return readRaw<unsigned int>(file);
 	}
 	
-	std::string Barn::readString(std::ifstream&file, unsigned int length)
+	std::string Barn::readString(std::ifstream* file, unsigned int length)
 	{
 		char* cstr = new char[length];
 		
-		file.read(cstr, length);
+		file->read(cstr, length);
 		
 		std::string str = cstr;
 		

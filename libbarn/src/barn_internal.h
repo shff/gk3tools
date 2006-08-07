@@ -76,6 +76,48 @@ namespace Barn
 	const int Magic2 = 0x6E726142;
 	const int DDir = 0x44446972;
 	
+	class ExtractBuffer
+	{
+	public:
+		ExtractBuffer(unsigned int size)
+		{
+			m_buffer = new char[size];
+			m_size = size;
+		}
+		
+		ExtractBuffer(unsigned int size, const char* src)
+		{
+			m_buffer = new char[size];
+			memcpy(m_buffer, src, size);
+			
+			m_size = size;
+		}
+		
+		~ExtractBuffer()
+		{
+			if (m_buffer)
+				delete[] m_buffer;
+		}
+		
+		void ReadFromFile(std::ifstream& file, unsigned int offset)
+		{
+			file.seekg(offset);
+			
+			file.read(m_buffer, m_size);
+		}
+		
+		void Decompress(Compression compressionType);
+		void ConvertToBitmap();
+		void WriteToFile(const std::string& filename, unsigned int startOffset = 0);
+		
+		const char* GetBuffer() { return m_buffer; }
+		unsigned int GetSize() { return m_size; }
+		
+	private:
+		char* m_buffer;
+		unsigned int m_size;
+	};
+	
 	/// The barn archive
 	class Barn
 	{
@@ -92,15 +134,18 @@ namespace Barn
 		Compression GetFileCompression(unsigned int index);
 		unsigned int GetFileOffset(unsigned int index);
 		
-	private:
+		int ExtractFileByIndex(unsigned int index, const std::string& outputPath,
+			bool openChild, bool decompress);
 		
-		static unsigned char readByte(std::ifstream& file);
-		static unsigned short readUInt16(std::ifstream& file);
-		static unsigned int readUInt32(std::ifstream& file);
-		static std::string readString(std::ifstream& file, unsigned int length);
+	private:
+	
+		static unsigned char readByte(std::ifstream* file);
+		static unsigned short readUInt16(std::ifstream* file);
+		static unsigned int readUInt32(std::ifstream* file);
+		static std::string readString(std::ifstream* file, unsigned int length);
 		
 		template<typename T>
-		static T readRaw(std::ifstream& file)
+		static T readRaw(std::ifstream* file)
 		{
 			// TODO: endian switching!
 			
@@ -110,21 +155,21 @@ namespace Barn
 			
 			if (size == 1)
 			{
-				file.read((char*)&data, 1);
+				file->read((char*)&data, 1);
 			}
 			else if (size == 2)
 			{
-				file.read((char*)&data, 2);
+				file->read((char*)&data, 2);
 			}
 			else if (size == 4)
 			{
-				file.read((char*)&data, 4);
+				file->read((char*)&data, 4);
 			}
 			else
 			{
 				// BAD BAD BAD! No endian switching is being done!
 				// This better be throw away data!!
-				file.read((char*)&data, size);
+				file->read((char*)&data, size);
 			}
 
 			return data;
@@ -133,7 +178,10 @@ namespace Barn
 		unsigned int m_numFiles;
 		std::vector<BarnFile> m_fileList;
 		std::map<std::string, BarnFile> m_fileMap;
+		
+		std::ifstream* m_file;
 	};
+
 }
 
 #endif // BARN_INTERNAL_H
