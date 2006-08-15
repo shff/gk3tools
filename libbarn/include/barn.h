@@ -33,6 +33,7 @@ extern "C" {
 #define BARNERR_INVALID_INDEX  -3
 #define BARNERR_UNABLE_TO_OPEN_CHILD_BARN -4
 #define BARNERR_UNABLE_TO_OPEN_OUTPUT_FILE -5
+#define BARNERR_NOT_YET_IMPLEMENTED -6
 #define BARNERR_UNKNOWN        -100
 
 typedef void* BarnHandle;

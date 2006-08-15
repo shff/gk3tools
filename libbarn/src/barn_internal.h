@@ -126,16 +126,16 @@ namespace Barn
 		Barn(const std::string& filename);
 		~Barn();
 	
-		unsigned int GetNumberOfFiles() { return m_numFiles; }
-		std::string GetFileName(unsigned int index);
-		std::string GetFileBarn(unsigned int index);
+		unsigned int GetNumberOfFiles() const { return m_numFiles; }
+		std::string GetFileName(unsigned int index) const;
+		std::string GetFileBarn(unsigned int index) const;
 	
-		unsigned int GetFileSize(unsigned int index);
-		Compression GetFileCompression(unsigned int index);
-		unsigned int GetFileOffset(unsigned int index);
+		unsigned int GetFileSize(unsigned int index) const;
+		Compression GetFileCompression(unsigned int index) const;
+		unsigned int GetFileOffset(unsigned int index) const;
 		
 		int ExtractFileByIndex(unsigned int index, const std::string& outputPath,
-			bool openChild, bool decompress);
+			bool openChild, bool decompress) const;
 		
 	private:
 	

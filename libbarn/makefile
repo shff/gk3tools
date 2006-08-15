@@ -1,10 +1,10 @@
 COMPILER = g++
 LINKER = g++
-COMPILER_FLAGS = -fPIC -Iinclude -Wall
+COMPILER_FLAGS = -g -fPIC -Iinclude -Wall
 LINKER_FLAGS = -shared
 EXECUTABLE = libbarn.so
 
-SOURCES = src/barn.cpp
+SOURCES = src/barn.cpp src/extractbuffer.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(EXECUTABLE): $(OBJECTS)
@@ -15,3 +15,6 @@ $(EXECUTABLE): $(OBJECTS)
 	
 clean:
 	rm $(OBJECTS)
+
+test:
+	$(COMPILER) -Iinclude test.cpp -o test -L. -lbarn

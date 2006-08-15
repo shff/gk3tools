@@ -24,6 +24,7 @@
 #include "barn_internal.h"
 #include <vector>
 #include <iostream>
+#include <sstream>
 
 BarnHandle brn_OpenBarn(const char* filename)
 {
@@ -107,12 +108,22 @@ int brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int index)
 	return brn->GetFileOffset(index);
 }
 
-int brn_ExtractFileCompressedByIndex(BarnHandle barn, unsigned int index, 
+int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
 	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps)
 {
 	Barn::Barn* brn = static_cast<Barn::Barn*>(barn);
 	
-	return brn->ExtractFileByIndex(index, outputPath, openChildBarns, false);
+	if (outputPath == NULL)
+		std::cout << "it's null!" << std::endl;
+	else
+		std::cout << "outputpath = " << outputPath << " first char: " << (unsigned int)outputPath[0] << std::endl;
+	
+	std::string outputPathStr;
+	if (outputPath != NULL)
+		outputPathStr = outputPath;
+	
+	return brn->ExtractFileByIndex(index,outputPathStr,
+		openChildBarns, decompress);
 }
 
 namespace Barn
@@ -217,48 +228,61 @@ namespace Barn
 		}
 	}
 	
-	std::string Barn::GetFileName(unsigned int index)
+	std::string Barn::GetFileName(unsigned int index) const
 	{
 		return m_fileList[index].name;
 	}
 
-	unsigned int Barn::GetFileSize(unsigned int index)
+	unsigned int Barn::GetFileSize(unsigned int index) const
 	{
 		return m_fileList[index].size;
 	}
 
-	std::string Barn::GetFileBarn(unsigned int index)
+	std::string Barn::GetFileBarn(unsigned int index) const
 	{
 		return m_fileList[index].barn;
 	}
 
-	unsigned int Barn::GetFileOffset(unsigned int index)
+	unsigned int Barn::GetFileOffset(unsigned int index) const
 	{
 		return m_fileList[index].offset;
 	}
 
-	Compression Barn::GetFileCompression(unsigned int index)
+	Compression Barn::GetFileCompression(unsigned int index) const
 	{
 		return m_fileList[index].compression;
 	}
 	
 	int Barn::ExtractFileByIndex(unsigned int index, const std::string& outputPath, 
-		bool openChild, bool uncompress)
+		bool openChild, bool uncompress) const
 	{
 		if (index >= m_fileList.size())
 			return BARNERR_INVALID_INDEX;
-		
+			
 		unsigned int size = m_fileList[index].size;
-		
+			
 		ExtractBuffer* buffer = new ExtractBuffer(size);
-		buffer->ReadFromFile(*m_file,  m_fileList[index].offset);
 		
-		if (m_fileList[index].barn != "")
-			buffer->WriteToFile(outputPath + "/" + m_fileList[index].name);
-		else
+		try
+		{
+			buffer->ReadFromFile(*m_file,  m_fileList[index].offset);
+			
+			if (m_fileList[index].barn == "")
+			{
+				std::stringstream ss;
+				ss << outputPath << m_fileList[index].name;
+				buffer->WriteToFile(ss.str());
+			}
+			else
+			{
+				delete buffer;
+				return BARNERR_UNABLE_TO_OPEN_CHILD_BARN;
+			}
+		}
+		catch(BarnException& ex)
 		{
 			delete buffer;
-			return BARNERR_UNABLE_TO_OPEN_CHILD_BARN;
+			return ex.ErrorNumber;
 		}
 		
 		delete buffer;
