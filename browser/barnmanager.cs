@@ -22,6 +22,7 @@ namespace GK3BB
 		public static void Unload()
 		{
 			if (_barn != null) _barn.Dispose();
+			_barn = null;
 		}
 		
 		public static List<BarnFile> GetFiles()
@@ -44,7 +45,39 @@ namespace GK3BB
 			return files;
 		}
 		
+		public static string GetFileName(uint index)
+		{
+			return _barn.GetFileName(index);
+		}
+		
+		public static void Extract(uint index)
+		{
+			_barn.ExtractByIndex(index, _extractPath, true, 
+				_decompress, _convertBitmaps);
+		}
+		
+		public static string ExtractPath
+		{
+			get { return _extractPath; }
+			set { _extractPath = null; }
+		}
+		
+		public static bool ConvertBitmaps
+		{
+			get { return _convertBitmaps; }
+			set { _convertBitmaps = value; }
+		}
+		
+		public static bool Decompress
+		{
+			get { return _decompress; }
+			set { _decompress = value; }
+		}
+		
 		private static Barn _barn = null;
+		private static string _extractPath = "~";
+		private static bool _convertBitmaps = true;
+		private static bool _decompress = true;
 	}
 	
 	public class BarnFile

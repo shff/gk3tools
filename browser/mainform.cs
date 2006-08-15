@@ -63,8 +63,8 @@ namespace GK3BB
 			mnuFile_Exit = new MenuItem("Exit");
 			
 			// set the default checks
-			mnuFile_ConvertBitmaps.Active = true;
-			mnuFile_DecompressFiles.Active = true;
+			mnuFile_ConvertBitmaps.Active = BarnManager.ConvertBitmaps;
+			mnuFile_DecompressFiles.Active = BarnManager.Decompress;
 			
 			mnuTools_ExtractBitmaps = new MenuItem("Extract all bitmaps");
 			mnuTools_ExtractWavs = new MenuItem("Extract all wavs");
@@ -234,13 +234,34 @@ namespace GK3BB
 				{
 					uint index = (uint)model.GetValue(itr, 0);
 					
-					// TODO: extract the file
+					Console.Write("Extracting... ");
+					BarnManager.Extract(index);
+					Console.WriteLine("Done!");
 				}
 			}
 		}
 		
 		void mnuFile_SetExtractPath_Clicked(object o, EventArgs args)
 		{
+			FileChooserDialog chooser = new FileChooserDialog ("Select Folder",
+									   this,
+									   FileChooserAction.SelectFolder);
+			
+			chooser.LocalOnly = true;
+
+			chooser.AddButton(Stock.Cancel, ResponseType.Cancel);
+			chooser.AddButton(Stock.Open, ResponseType.Ok);
+			
+			chooser.SetCurrentFolder(BarnManager.ExtractPath);
+			
+			int response = chooser.Run();
+			
+			if ((ResponseType)response == ResponseType.Ok)
+			{
+				BarnManager.ExtractPath = chooser.CurrentFolder;
+			}
+			
+			chooser.Destroy();
 		}
 		
 		void mnuFile_Preview_Clicked(object o, EventArgs args)
@@ -249,10 +270,12 @@ namespace GK3BB
 		
 		void mnuFile_ConvertBitmaps_Toggled(object o, EventArgs args)
 		{
+			BarnManager.ConvertBitmaps = mnuFile_ConvertBitmaps.Active;
 		}
 		
 		void mnuFile_DecompressFiles_Toggled(object o, EventArgs args)
 		{
+			BarnManager.Decompress = mnuFile_DecompressFiles.Active;
 		}
 		
 		void mnuHelp_About_Clicked(object o, EventArgs args)
