@@ -194,7 +194,8 @@ namespace GK3BB
 					foreach(BarnFile file in files)
 					{
 						mainListStore.AppendValues(file.Index, file.Name, file.InternalSize,
-							"WOO!", file.Barn, file.Compression.ToString());
+							BarnManager.MapExtensionToType(file.Extension),
+							file.Barn, file.Compression.ToString());
 
 					}
 					

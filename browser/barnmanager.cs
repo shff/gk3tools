@@ -9,6 +9,26 @@ namespace GK3BB
 {
 	public static class BarnManager
 	{
+		static BarnManager()
+		{
+			// create the typemap
+			_typeMap = new Dictionary<string, string>();
+		
+			// fill the extension/type map
+			_typeMap.Add("BSP", "Room geometry");
+			_typeMap.Add("MUL", "Room lightmap");
+			_typeMap.Add("WAV", "WAV audio");
+			_typeMap.Add("MOD", "Model geometry");
+			_typeMap.Add("BMP", "Bitmap");
+			_typeMap.Add("HTM", "HTML document");
+			_typeMap.Add("HTML", "HTML document");
+			_typeMap.Add("SCN", "Scene definition");
+			_typeMap.Add("ACT", "ACT file?");
+			_typeMap.Add("ANM", "ANM file?");
+			_typeMap.Add("GAS", "GAS file?");
+			_typeMap.Add("YAK", "YAK file");
+		}
+	
 		public static void OpenBarn(string filename)
 		{
 			Console.WriteLine("Opening barn...");
@@ -74,10 +94,22 @@ namespace GK3BB
 			set { _decompress = value; }
 		}
 		
+		public static string MapExtensionToType(string extension)
+		{
+			string type;
+			
+			if (_typeMap.TryGetValue(extension, out type) == true)
+				return type;
+				
+			return type;
+		}
+		
 		private static Barn _barn = null;
 		private static string _extractPath = "~";
 		private static bool _convertBitmaps = true;
 		private static bool _decompress = true;
+		
+		private static Dictionary<string, string> _typeMap;
 	}
 	
 	public class BarnFile
@@ -101,6 +133,18 @@ namespace GK3BB
 		public string Name
 		{
 			get { return _name; }
+		}
+		
+		public string Extension
+		{
+			get
+			{
+				int dotIndex = _name.LastIndexOf(".");
+				
+				if (dotIndex == -1) return "";
+				
+				return _name.Substring(dotIndex+1).ToUpper();
+			}
 		}
 		
 		public uint InternalSize
