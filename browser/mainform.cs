@@ -142,6 +142,7 @@ namespace GK3BB
 			
 			type.Clickable = true;
 			type.Resizable = true;
+			type.Clicked += new EventHandler(type_column_clicked);
 			
 			barn.Clickable = true;
 			barn.Resizable = true;
@@ -190,13 +191,14 @@ namespace GK3BB
 					
 					List<BarnFile> files = BarnManager.GetFiles();
 					
+					Console.WriteLine("Starting...");
+
 					mainListStore.Clear();
 					foreach(BarnFile file in files)
 					{
 						mainListStore.AppendValues(file.Index, file.Name, file.InternalSize,
 							BarnManager.MapExtensionToType(file.Extension),
 							file.Barn, file.Compression.ToString());
-
 					}
 					
 					Console.WriteLine("There are " + files.Count + " files!");
@@ -217,8 +219,8 @@ namespace GK3BB
 						+ " because it is not a valid Barn file.");
 				}
 			}
-
-			chooser.Destroy ();
+			
+			chooser.Destroy();
 		}
 		
 		void mnuFile_Extract_Clicked(object o, EventArgs args)
@@ -291,7 +293,9 @@ namespace GK3BB
 				+ "http://www.fwheel.net" + Environment.NewLine
 				+ "Licensed under the GNU GPL" + Environment.NewLine
 				+ Environment.NewLine
-				+ "Version " + Info.Version);
+				+ "Version " + Info.Version + Environment.NewLine
+				+ Environment.NewLine
+				+ "Using " + BarnLib.Barn.GetLibBarnInfo());
 			
 			md.Run();
 			md.Destroy();
@@ -333,6 +337,12 @@ namespace GK3BB
 			TreeViewColumn col = (TreeViewColumn)sender;
 			
 			setSortColumn(col, 2);
+		}
+		
+		private void type_column_clicked(object sender, EventArgs args)
+		{
+			TreeViewColumn col = (TreeViewColumn)sender;
+			setSortColumn(col, 3);
 		}
 		
 		private void setSortColumn(TreeViewColumn col, int id)
