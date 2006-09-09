@@ -126,6 +126,15 @@ int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
 		openChildBarns, decompress);
 }
 
+void brn_GetLibInfo(char* buffer, int size)
+{
+	std::stringstream ss;
+	ss << "LibBarn v0.1.0" << std::endl
+		<< "Compiled on " << __DATE__ << " at " << __TIME__;
+	
+	strncpy(buffer, ss.str().c_str(), size);
+}
+
 namespace Barn
 {
 	Barn::Barn(const std::string& filename)
@@ -182,6 +191,10 @@ namespace Barn
 			{
 				headerOffsets.push_back(headerOffset);
 				dataOffsets.push_back(dataOffset);
+			}
+			else if (type == Data)
+			{
+				m_dataOffset = headerOffset;
 			}
 		}
 		
@@ -260,15 +273,25 @@ namespace Barn
 			return BARNERR_INVALID_INDEX;
 			
 		unsigned int size = m_fileList[index].size;
+		
+		if (m_fileList[index].compression == LZO ||
+			m_fileList[index].compression == ZLib)
+			size += 8;
 			
 		ExtractBuffer* buffer = new ExtractBuffer(size);
 		
 		try
 		{
-			buffer->ReadFromFile(*m_file,  m_fileList[index].offset);
-			
 			if (m_fileList[index].barn == "")
 			{
+				buffer->ReadFromFile(*m_file,  m_fileList[index].offset + m_dataOffset);
+				
+				if (m_fileList[index].compression == LZO ||
+					m_fileList[index].compression == ZLib)
+				{
+					buffer->Decompress(m_fileList[index].compression);
+				}
+				
 				std::stringstream ss;
 				ss << outputPath << m_fileList[index].name;
 				buffer->WriteToFile(ss.str());

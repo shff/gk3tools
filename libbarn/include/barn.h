@@ -34,6 +34,8 @@ extern "C" {
 #define BARNERR_UNABLE_TO_OPEN_CHILD_BARN -4
 #define BARNERR_UNABLE_TO_OPEN_OUTPUT_FILE -5
 #define BARNERR_NOT_YET_IMPLEMENTED -6
+#define BARNERR_UNABLE_TO_INIT_LZO -7
+#define BARNERR_UNABLE_TO_INIT_ZLIB -8
 #define BARNERR_UNKNOWN        -100
 
 typedef void* BarnHandle;
@@ -83,6 +85,9 @@ int brn_ExtractFile(BarnHandle barn, const char* name, bool openChildBarns);
 /// Just like brn_ExtractFileByIndex(), except using an index instead of the name
 int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
 	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps);
+
+/// Gets information about the library
+void brn_GetLibInfo(char* buffer, int size);
 
 #ifdef __cplusplus
 }

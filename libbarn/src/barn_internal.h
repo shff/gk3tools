@@ -75,6 +75,7 @@ namespace Barn
 	const int Magic1 = 0x21334B47;
 	const int Magic2 = 0x6E726142;
 	const int DDir = 0x44446972;
+	const int Data = 0x44617461;
 	
 	class ExtractBuffer
 	{
@@ -178,6 +179,7 @@ namespace Barn
 		unsigned int m_numFiles;
 		std::vector<BarnFile> m_fileList;
 		std::map<std::string, BarnFile> m_fileMap;
+		unsigned int m_dataOffset;
 		
 		std::ifstream* m_file;
 	};
