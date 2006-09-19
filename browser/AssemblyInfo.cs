@@ -1,6 +1,10 @@
 using System;
 using System.Reflection;
 
+[assembly: AssemblyTitle("gk3browser.exe")]
+[assembly: AssemblyDescription("Gabriel Knight 3 Barn Browser")]
+[assembly: AssemblyVersion(GK3BB.Info.Version)]
+
 namespace GK3BB
 {
 	public class Info
@@ -8,8 +12,3 @@ namespace GK3BB
 		public const string Version = "2.0.0.0";
 	}
 }
-
-[assembly: AssemblyTitle("gk3browser.exe")]
-[assembly: AssemblyDescription("Gabriel Knight 3 Barn Browser")]
-
-[assembly: AssemblyVersion(GK3BB.Info.Version)]
