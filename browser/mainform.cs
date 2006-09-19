@@ -192,7 +192,7 @@ namespace GK3BB
 					List<BarnFile> files = BarnManager.GetFiles();
 					
 					Console.WriteLine("Starting...");
-
+					
 					mainListStore.Clear();
 					foreach(BarnFile file in files)
 					{
@@ -287,15 +287,7 @@ namespace GK3BB
 				DialogFlags.DestroyWithParent,
 				MessageType.Info,
 				ButtonsType.Ok,
-				"Gabriel Knight 3 Barn Browser" + Environment.NewLine
-				+ Environment.NewLine
-				+ "Copyright 2006 Brad Farris" + Environment.NewLine
-				+ "http://www.fwheel.net" + Environment.NewLine
-				+ "Licensed under the GNU GPL" + Environment.NewLine
-				+ Environment.NewLine
-				+ "Version " + Info.Version + Environment.NewLine
-				+ Environment.NewLine
-				+ "Using " + BarnLib.Barn.GetLibBarnInfo());
+				UiUtils.GetAboutDialogText());
 			
 			md.Run();
 			md.Destroy();

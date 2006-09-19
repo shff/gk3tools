@@ -21,6 +21,19 @@ namespace GK3BB
 			
 			return fsize + " bytes";
 		}
+		
+		public static string GetAboutDialogText()
+		{
+			return "Gabriel Knight 3 Barn Browser" + Environment.NewLine
+				+ Environment.NewLine
+				+ "Copyright 2006 Brad Farris" + Environment.NewLine
+				+ "http://www.fwheel.net" + Environment.NewLine
+				+ "Licensed under the GNU GPL" + Environment.NewLine
+				+ Environment.NewLine
+				+ "Version " + Info.Version + Environment.NewLine
+				+ Environment.NewLine
+				+ "Using " + BarnLib.Barn.GetLibBarnInfo();
+		}
 	}
 	
 }
