@@ -48,5 +48,26 @@ namespace GK3BB
 		{
 			Application.Exit();
 		}
+		
+		void OpenBarnToolStripMenuItemClick(object sender, System.EventArgs e)
+		{
+			OpenFileDialog dialog = new OpenFileDialog();
+			
+			dialog.Filter = "Barn files (*.brn)|*.brn";
+			
+			if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+			{
+				BarnManager.OpenBarn(dialog.FileName);
+				
+				List<BarnFile> files = BarnManager.GetFiles();
+				
+				foreach(BarnFile file in files)
+				{
+					mainListView.Items.Add(file.Index, file.Name, file.InternalSize,
+						BarnManager.MapExtensionToType(file.Extension),
+						file.Barn, file.Compression.ToString());
+				}
+			}
+		}
 	}
 }

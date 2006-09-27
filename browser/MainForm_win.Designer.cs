@@ -54,7 +54,7 @@ namespace GK3BB
 			this.extractAllHtmlFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.listView1 = new System.Windows.Forms.ListView();
+			this.mainListView = new System.Windows.Forms.ListView();
 			this.filenameColumn = new System.Windows.Forms.ColumnHeader();
 			this.sizeColumn = new System.Windows.Forms.ColumnHeader();
 			this.typeColumn = new System.Windows.Forms.ColumnHeader();
@@ -96,6 +96,7 @@ namespace GK3BB
 			this.openBarnToolStripMenuItem.Name = "openBarnToolStripMenuItem";
 			this.openBarnToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
 			this.openBarnToolStripMenuItem.Text = "Open barn...";
+			this.openBarnToolStripMenuItem.Click += new System.EventHandler(this.OpenBarnToolStripMenuItemClick);
 			// 
 			// extractSelectedFilesToolStripMenuItem
 			// 
@@ -198,20 +199,20 @@ namespace GK3BB
 			this.aboutToolStripMenuItem.Text = "About";
 			this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItemClick);
 			// 
-			// listView1
+			// mainListView
 			// 
-			this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+			this.mainListView.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
 									this.filenameColumn,
 									this.sizeColumn,
 									this.typeColumn,
 									this.barnColumn,
 									this.compressionColumn});
-			this.listView1.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.listView1.Location = new System.Drawing.Point(0, 24);
-			this.listView1.Name = "listView1";
-			this.listView1.Size = new System.Drawing.Size(560, 349);
-			this.listView1.TabIndex = 1;
-			this.listView1.UseCompatibleStateImageBehavior = false;
+			this.mainListView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.mainListView.Location = new System.Drawing.Point(0, 24);
+			this.mainListView.Name = "mainListView";
+			this.mainListView.Size = new System.Drawing.Size(560, 349);
+			this.mainListView.TabIndex = 1;
+			this.mainListView.UseCompatibleStateImageBehavior = false;
 			// 
 			// filenameColumn
 			// 
@@ -238,7 +239,7 @@ namespace GK3BB
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(560, 373);
-			this.Controls.Add(this.listView1);
+			this.Controls.Add(this.mainListView);
 			this.Controls.Add(this.menuStrip1);
 			this.MainMenuStrip = this.menuStrip1;
 			this.Name = "MainForm";
@@ -248,12 +249,12 @@ namespace GK3BB
 			this.ResumeLayout(false);
 			this.PerformLayout();
 		}
+		private System.Windows.Forms.ListView mainListView;
 		private System.Windows.Forms.ColumnHeader compressionColumn;
 		private System.Windows.Forms.ColumnHeader barnColumn;
 		private System.Windows.Forms.ColumnHeader typeColumn;
 		private System.Windows.Forms.ColumnHeader sizeColumn;
 		private System.Windows.Forms.ColumnHeader filenameColumn;
-		private System.Windows.Forms.ListView listView1;
 		private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem extractAllHtmlFilesToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem extractAllDocsToolStripMenuItem;
