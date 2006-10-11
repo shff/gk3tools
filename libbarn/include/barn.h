@@ -27,6 +27,14 @@
 extern "C" {
 #endif
 
+#ifdef WIN32
+#define DECLSPEC __declspec(dllexport)
+#define BARN_CALL __cdecl
+#else
+#define DECLSPEC
+#define BARN_CALL
+#endif
+
 #define BARN_SUCCESS            0
 #define BARNERR_INVALID_BARN   -1
 #define BARNERR_FILE_NOT_FOUND -2
@@ -41,21 +49,21 @@ extern "C" {
 typedef void* BarnHandle;
 
 /// Opens a barn and returns a handle
-BarnHandle brn_OpenBarn(const char* filename);
+DECLSPEC BarnHandle BARN_CALL brn_OpenBarn(const char* filename);
 
 /// Closes the barn
-void brn_CloseBarn(BarnHandle barn);
+DECLSPEC void BARN_CALL brn_CloseBarn(BarnHandle barn);
 
 /// Returns the number of files (including referenced barns) inside the barn
-unsigned int brn_GetNumFilesInBarn(BarnHandle barn);
+DECLSPEC unsigned int BARN_CALL brn_GetNumFilesInBarn(BarnHandle barn);
 
 /// Fills 'buffer' with the name of the file with the given index. Returns 0
 /// on success or -1 on error
-int brn_GetFileName(BarnHandle barn, unsigned int index, char* buffer, int size);
+DECLSPEC int BARN_CALL brn_GetFileName(BarnHandle barn, unsigned int index, char* buffer, int size);
 
 /// Fills 'buffer' with the name of the barn that the file with the given index is inside.
 /// Returns 0 on success or -1 on error
-int brn_GetFileBarn(BarnHandle barn, unsigned int index, char* buffer, int size);
+DECLSPEC int BARN_CALL brn_GetFileBarn(BarnHandle barn, unsigned int index, char* buffer, int size);
 
 #define BARN_COMPRESSION_NONE 0
 #define BARN_COMPRESSION_ZLIB 1
@@ -63,31 +71,31 @@ int brn_GetFileBarn(BarnHandle barn, unsigned int index, char* buffer, int size)
 
 /// Returns the size of the file specified by its index (the order inside the .brn)
 /// Returns -1 if the index is invalid
-int brn_GetFileSizeByIndex(BarnHandle barn, unsigned int index);
+DECLSPEC int BARN_CALL brn_GetFileSizeByIndex(BarnHandle barn, unsigned int index);
 
 /// Returns the size of the file specified by its name.
 /// Returns -1 if the file does not exist inside the barn
-int brn_GetFileSizeByName(BarnHandle barn, const char* name);
+DECLSPEC int BARN_CALL brn_GetFileSizeByName(BarnHandle barn, const char* name);
 
 /// Returns the compression type of the file with the specified index.
 /// 0 = no compression, 1 = ZLib compression, 2 = LZO compression.
-int brn_GetFileCompressionByIndex(BarnHandle barn, unsigned int index);
-int brn_GetFileCompressionByName(BarnHandle barn, const char* name);
+DECLSPEC int BARN_CALL brn_GetFileCompressionByIndex(BarnHandle barn, unsigned int index);
+DECLSPEC int BARN_CALL brn_GetFileCompressionByName(BarnHandle barn, const char* name);
 
-int brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int index);
+DECLSPEC int BARN_CALL brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int index);
 
 /// Extracts the file with the specified name. If openChildBarns = true then if the file
 /// resides in a barn other than this one then the child barn is opened and the file extracted.
 /// The function returns BARN_SUCCESS on success, or an error otherwise.
-int brn_ExtractFile(BarnHandle barn, const char* name, bool openChildBarns);
+DECLSPEC int BARN_CALL brn_ExtractFile(BarnHandle barn, const char* name, bool openChildBarns);
 
 
 /// Just like brn_ExtractFileByIndex(), except using an index instead of the name
-int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
+DECLSPEC int BARN_CALL brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
 	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps);
 
 /// Gets information about the library
-void brn_GetLibInfo(char* buffer, int size);
+DECLSPEC void BARN_CALL brn_GetLibInfo(char* buffer, int size);
 
 #ifdef __cplusplus
 }
