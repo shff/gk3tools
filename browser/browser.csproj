@@ -31,7 +31,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MainForm_win.cs" />
+    <Compile Include="MainForm_win.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="MainForm_win.Designer.cs">
       <DependentUpon>MainForm_win.cs</DependentUpon>
     </Compile>

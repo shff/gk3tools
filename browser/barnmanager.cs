@@ -79,7 +79,7 @@ namespace GK3BB
 		public static string ExtractPath
 		{
 			get { return _extractPath; }
-			set { _extractPath = null; }
+			set { _extractPath = value; }
 		}
 		
 		public static bool ConvertBitmaps

@@ -63,11 +63,33 @@ namespace GK3BB
 				
 				foreach(BarnFile file in files)
 				{
-					mainListView.Items.Add(file.Index, file.Name, file.InternalSize,
-						BarnManager.MapExtensionToType(file.Extension),
-						file.Barn, file.Compression.ToString());
+                    ListViewItem item = new ListViewItem(new string[] {file.Name,
+                        file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
+                        file.Barn, file.Compression.ToString()});
+                    item.Tag = file.Index;
+
+                    mainListView.Items.Add(item);
 				}
 			}
 		}
+
+        private void extractSelectedFilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in mainListView.SelectedItems)
+            {
+                BarnManager.Extract((uint)item.Tag);
+            }
+        }
+
+        private void setExtractToPathToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog dialog = new FolderBrowserDialog();
+            dialog.Description = "Select the directory where files will be extracted";
+            dialog.SelectedPath = BarnManager.ExtractPath;
+            DialogResult result = dialog.ShowDialog();
+
+            if (result == DialogResult.OK)
+                BarnManager.ExtractPath = dialog.SelectedPath;
+        }
 	}
 }
