@@ -24,14 +24,19 @@
 #include "barn.h"
 #include "barn_internal.h"
 
+
+#ifndef DISABLE_LZO
 #include <lzo1x.h>
+#endif
+#ifndef DISABLE_ZLIB
 #include <zlib.h>
+#endif
 
 namespace Barn
 {
 	void ExtractBuffer::WriteToFile(const std::string& filename, unsigned int startOffset)
 	{
-		std::ofstream output(filename.c_str());
+		std::ofstream output(filename.c_str(), std::ios_base::binary | std::ios_base::out);
 		
 		if (output.good() == false)
 		{
@@ -50,6 +55,9 @@ namespace Barn
 		
 		if (compressionType == LZO)
 		{
+#ifdef DISABLE_LZO
+			throw BarnException("This version of LibBarn does not have support for LZO", BARNERR_UNABLE_TO_INIT_LZO);
+#else
 			// init liblzo
 			if (lzo_init() != LZO_E_OK)
 			{
@@ -58,7 +66,7 @@ namespace Barn
 			
 			// get the uncompressed file size
 			// TODO: make this work for big-endian machines!
-			unsigned int size;
+			lzo_uint size;
 			memcpy(&size, m_buffer, 4);
 			
 			std::cout << "uncompressed size: " << size << std::endl;
@@ -73,6 +81,7 @@ namespace Barn
 			delete[] m_buffer;
 			m_buffer = newBuffer;
 			m_size = size;
+#endif
 		}
 		else if (compressionType == ZLib)
 		{

@@ -125,9 +125,11 @@ namespace Barn
 	public:
 		
 		Barn(const std::string& filename);
+		Barn(const std::string& name, const std::string& filename);
 		~Barn();
 	
 		unsigned int GetNumberOfFiles() const { return m_numFiles; }
+		std::string GetBarnName() { return m_name; }
 		std::string GetFileName(unsigned int index) const;
 		std::string GetFileBarn(unsigned int index) const;
 	
@@ -136,10 +138,15 @@ namespace Barn
 		unsigned int GetFileOffset(unsigned int index) const;
 		
 		int ExtractFileByIndex(unsigned int index, const std::string& outputPath,
-			bool openChild, bool decompress) const;
+			bool openChild, bool decompress);
+
+		int ExtractFile(unsigned int offset, unsigned int size, const std::string& filename,
+			const std::string& outputPath, Compression compression, bool decompress);
 		
 	private:
 	
+		void load(const std::string& filename);
+
 		static unsigned char readByte(std::ifstream* file);
 		static unsigned short readUInt16(std::ifstream* file);
 		static unsigned int readUInt32(std::ifstream* file);
@@ -176,9 +183,11 @@ namespace Barn
 			return data;
 		}
 	
+		std::string m_name;
 		unsigned int m_numFiles;
 		std::vector<BarnFile> m_fileList;
 		std::map<std::string, BarnFile> m_fileMap;
+		std::vector<Barn*> m_openChildBarns;
 		unsigned int m_dataOffset;
 		
 		std::ifstream* m_file;

@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#ifdef WIN32
+#ifdef _MSC_VER
 #define DECLSPEC __declspec(dllexport)
 #define BARN_CALL __cdecl
 #else

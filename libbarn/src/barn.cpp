@@ -137,8 +137,153 @@ void brn_GetLibInfo(char* buffer, int size)
 
 namespace Barn
 {
+	Barn::Barn(const std::string& name, const std::string& filename)
+	{
+		m_name = name;
+
+		load(filename);
+	}
+
 	Barn::Barn(const std::string& filename)
 	{
+		m_name = filename;
+
+		load(filename);
+	}
+	
+	Barn::~Barn()
+	{
+		// close any child barns
+		while(m_openChildBarns.empty() == false)
+		{
+			delete m_openChildBarns.back();
+			m_openChildBarns.pop_back();
+		}
+
+		if (m_file)
+		{
+			m_file->close();
+			delete m_file;
+		}
+	}
+	
+	std::string Barn::GetFileName(unsigned int index) const
+	{
+		return m_fileList[index].name;
+	}
+
+	unsigned int Barn::GetFileSize(unsigned int index) const
+	{
+		return m_fileList[index].size;
+	}
+
+	std::string Barn::GetFileBarn(unsigned int index) const
+	{
+		return m_fileList[index].barn;
+	}
+
+	unsigned int Barn::GetFileOffset(unsigned int index) const
+	{
+		return m_fileList[index].offset;
+	}
+
+	Compression Barn::GetFileCompression(unsigned int index) const
+	{
+		return m_fileList[index].compression;
+	}
+	
+	int Barn::ExtractFileByIndex(unsigned int index, const std::string& outputPath, 
+		bool openChild, bool uncompress)
+	{
+		if (index >= m_fileList.size())
+			return BARNERR_INVALID_INDEX;
+
+		try
+		{
+			if (m_fileList[index].barn == "")
+			{
+				ExtractFile(m_fileList[index].offset, m_fileList[index].size, m_fileList[index].name,
+					outputPath,	m_fileList[index].compression, uncompress);
+			}
+			else
+			{
+				// look for the barn in the open list
+				Barn* barn = NULL;
+				for (std::vector<Barn*>::iterator itr = m_openChildBarns.begin();
+					itr != m_openChildBarns.end(); itr++)
+				{
+					if ((*itr)->GetBarnName() == m_fileList[index].barn)
+					{
+						barn = (*itr);
+						break;
+					}
+				}
+
+				// if we didn't find the barn then open it and add it to the 
+				// list of open barns
+				if (barn == NULL)
+				{
+					std::string barnFileName = m_fileList[index].barn;
+					barn = new Barn(m_fileList[index].barn, barnFileName);
+
+					m_openChildBarns.push_back(barn);
+				}
+
+				// extract the file
+				return barn->ExtractFile(m_fileList[index].offset, m_fileList[index].size,
+					m_fileList[index].name, outputPath, m_fileList[index].compression, uncompress);
+			}
+		}
+		catch(BarnException& ex)
+		{
+			return ex.ErrorNumber;
+		}
+		
+		return BARN_SUCCESS;
+	}
+
+	int Barn::ExtractFile(unsigned int offset, unsigned int size, const std::string& filename,
+			const std::string& outputPath, Compression compression, bool decompress)
+	{
+		ExtractBuffer* buffer = NULL;
+
+		try
+		{
+			bool compressed = false;
+			
+			if (compression == LZO || compression == ZLib)
+				compressed = true;
+
+			if (compressed && decompress)
+				size += 8;
+				
+			buffer = new ExtractBuffer(size);
+
+			buffer->ReadFromFile(*m_file, offset + m_dataOffset + (compressed && !decompress ? 8 : 0));
+					
+			if (decompress && compressed)
+			{
+				buffer->Decompress(compression);
+			}
+					
+			std::stringstream ss;
+			ss << outputPath << filename;
+			buffer->WriteToFile(ss.str());
+		}
+		catch(BarnException& ex)
+		{
+			if (buffer)	delete buffer;
+			return ex.ErrorNumber;
+		}
+
+		delete buffer;
+
+		return BARN_SUCCESS;
+	}
+	
+	void Barn::load(const std::string& filename)
+	{
+		// TODO: attempt various case versions (all caps, etc) if this fails
 		m_file = new std::ifstream(filename.c_str(), std::ios::in | std::ios::binary);
 		
 		if (m_file->good() == false)
@@ -231,88 +376,7 @@ namespace Barn
 			}
 		}
 	}
-	
-	Barn::~Barn()
-	{
-		if (m_file)
-		{
-			m_file->close();
-			delete m_file;
-		}
-	}
-	
-	std::string Barn::GetFileName(unsigned int index) const
-	{
-		return m_fileList[index].name;
-	}
 
-	unsigned int Barn::GetFileSize(unsigned int index) const
-	{
-		return m_fileList[index].size;
-	}
-
-	std::string Barn::GetFileBarn(unsigned int index) const
-	{
-		return m_fileList[index].barn;
-	}
-
-	unsigned int Barn::GetFileOffset(unsigned int index) const
-	{
-		return m_fileList[index].offset;
-	}
-
-	Compression Barn::GetFileCompression(unsigned int index) const
-	{
-		return m_fileList[index].compression;
-	}
-	
-	int Barn::ExtractFileByIndex(unsigned int index, const std::string& outputPath, 
-		bool openChild, bool uncompress) const
-	{
-		if (index >= m_fileList.size())
-			return BARNERR_INVALID_INDEX;
-			
-		unsigned int size = m_fileList[index].size;
-		
-		if (m_fileList[index].compression == LZO ||
-			m_fileList[index].compression == ZLib)
-			size += 8;
-			
-		ExtractBuffer* buffer = new ExtractBuffer(size);
-		
-		try
-		{
-			if (m_fileList[index].barn == "")
-			{
-				buffer->ReadFromFile(*m_file,  m_fileList[index].offset + m_dataOffset);
-				
-				if (m_fileList[index].compression == LZO ||
-					m_fileList[index].compression == ZLib)
-				{
-					buffer->Decompress(m_fileList[index].compression);
-				}
-				
-				std::stringstream ss;
-				ss << outputPath << m_fileList[index].name;
-				buffer->WriteToFile(ss.str());
-			}
-			else
-			{
-				delete buffer;
-				return BARNERR_UNABLE_TO_OPEN_CHILD_BARN;
-			}
-		}
-		catch(BarnException& ex)
-		{
-			delete buffer;
-			return ex.ErrorNumber;
-		}
-		
-		delete buffer;
-		
-		return BARN_SUCCESS;
-	}
-	
 	unsigned char Barn::readByte(std::ifstream* file)
 	{
 		return readRaw<unsigned char>(file);
