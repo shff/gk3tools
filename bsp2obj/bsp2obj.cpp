@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <cstdio>
+#include <cmath>
+#include <set>
 #include "bspfile.h"
 
 #define READ4(f,b) fread(b, 4, 1, f)
@@ -15,6 +17,7 @@ bool verbose = false;
 void displayUsage(const std::string& currentExecutableName);
 bspfile extractInfo(FILE* fp);
 void writeOBJFile(bspfile, const std::string& outputFilename);
+void writeMaterialFile(const std::string& filename, const std::set<std::string>& textures);
 
 int main(int argc, char** argv)
 {
@@ -78,7 +81,7 @@ int main(int argc, char** argv)
 
 void displayUsage(const std::string& currentExecutableName)
 {
-	std::cout << "GK3 BSP 2 OBJ Converter v" << VERSION_MAJOR << "." << VERSION_MINOR << std::endl;
+	std::cout << "GK3 BSP 2 OBJ Converter v" << VERSION_MAJOR << "." << VERSION_MINOR << " built " __DATE__ << std::endl;
 	std::cout << "Usage: " << std::endl;
 	std::cout << "\t" << currentExecutableName << " filename [output filename]" << std::endl;
 	std::cout << "where 'filename' is a valid Gabriel Knight 3 BSP file" << std::endl << std::endl;
@@ -294,8 +297,6 @@ bspfile extractInfo(FILE* fp)
 		}
 	}
 
-
-
 	std::cout << "final position: " << ftell(fp) << " counter: " << std::endl;
 
 	return bsp;
@@ -305,21 +306,78 @@ bspfile extractInfo(FILE* fp)
 
 void writeOBJFile(bspfile bsp, const std::string& outputFileName)
 {
+	const bool swapAxes = true; // if true, swap the X and Z axes
+	const bool reverseWinding = true; // if true. reverse the triangle winding order
+	const bool mirrorTexCoords = true; // if true, mirror the V tex coord
+
+
+	std::string materialFilename = outputFileName.substr(0, outputFileName.find_last_of(".")) + ".mtl";
+
 	FILE* fp = fopen(outputFileName.c_str(), "w");
 
 	fprintf(fp, "# This is a converted version of a GK3 .BSP file!\n\n");
+	fprintf(fp, "mtlfile %s\n\n", materialFilename.c_str());
 	
 	// write all the vertices
 	for (int i = 0; i < bsp.h.numVertices; i++)
 	{
-		fprintf(fp, "v %f %f %f\n", bsp.vertices[i].x, bsp.vertices[i].y, bsp.vertices[i].z);
+		if (swapAxes)
+			fprintf(fp, "v %f %f %f\n", bsp.vertices[i].z, bsp.vertices[i].y, bsp.vertices[i].x);
+		else
+			fprintf(fp, "v %f %f %f\n", bsp.vertices[i].x, bsp.vertices[i].y, bsp.vertices[i].z);
+
 	}
 
 	// write all the texture coords
 	fprintf(fp, "\n");
 	for (int i = 0; i < bsp.h.numTexCoords; i++)
 	{
-		fprintf(fp, "vt %f %f\n", bsp.textureCoords[i].u, bsp.textureCoords[i].v);
+		if (mirrorTexCoords)
+			fprintf(fp, "vt %f %f\n", bsp.textureCoords[i].u, -bsp.textureCoords[i].v);
+		else
+			fprintf(fp, "vt %f %f\n", bsp.textureCoords[i].u, bsp.textureCoords[i].v);
+	}
+
+	// write all the normals
+	fprintf(fp, "\n");
+	for (int i = 0; i < bsp.h.numSurfaces; i++)
+	{
+		for (int j = 0; j < bsp.surfaces[i].secondaryTriangles.size() / 3; j++)
+		{
+			vertex vertex1;
+			vertex vertex2;
+			vertex vertex3;
+			
+			if (swapAxes)
+			{
+				vertex1 = bsp.vertices[bsp.surfaces[i].secondaryTriangles[j*3 + 2]];
+				vertex2 = bsp.vertices[bsp.surfaces[i].secondaryTriangles[j*3 + 1]];
+				vertex3 = bsp.vertices[bsp.surfaces[i].secondaryTriangles[j*3 + 0]];
+			}
+			else
+			{
+				vertex1 = bsp.vertices[bsp.surfaces[i].secondaryTriangles[j*3 + 0]];
+				vertex2 = bsp.vertices[bsp.surfaces[i].secondaryTriangles[j*3 + 1]];
+				vertex3 = bsp.vertices[bsp.surfaces[i].secondaryTriangles[j*3 + 2]];
+			}
+			
+			// calculate the cross product
+			vertex c1 = vertex1 - vertex2;
+			vertex c2 = vertex3 - vertex2;
+
+			vertex normal = vertex(c1.y * c2.z - c1.z * c2.y, c1.z * c2.x - c1.x * c2.z, c1.x * c2.y - c1.y * c2.x);
+
+			// normalize the normal
+			float length = sqrtf(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+			normal.x /= length;
+			normal.y /= length;
+			normal.z /= length;
+
+			if (swapAxes)
+				fprintf(fp, "vn %f %f %f\n", normal.z, normal.y, normal.x);
+			else
+				fprintf(fp, "vn %f %f %f\n", normal.x, normal.y, normal.z);
+		}
 	}
 
 	// write all the polygons
@@ -341,19 +399,65 @@ void writeOBJFile(bspfile bsp, const std::string& outputFileName)
 			std::cout << "Skipping polygon with " << p.numVertices << " vertices" << std::endl;
 	}*/
 
+	fprintf(fp, "\n");
+	int counter = 1;
+	std::set<std::string> textures;
 	for (int i = 0; i < bsp.h.numSurfaces; i++)
 	{
 		fprintf(fp, "\ng surface%u\n", i);
 		fprintf(fp, "usemtl %s\n", bsp.surfaces[i].texture);
+
+		textures.insert(bsp.surfaces[i].texture);
+
 		for (int j = 0; j < bsp.surfaces[i].secondaryTriangles.size() / 3; j++)
 		{
-			fprintf(fp, "f %u/%u %u/%u %u/%u\n", bsp.surfaces[i].secondaryTriangles[j * 3 + 0] + 1,
-				bsp.surfaces[i].secondaryTriangles[j * 3 + 0] + 1,
-				bsp.surfaces[i].secondaryTriangles[j * 3 + 1] + 1,
-				bsp.surfaces[i].secondaryTriangles[j * 3 + 1] + 1,
-				bsp.surfaces[i].secondaryTriangles[j * 3 + 2] + 1,
-				bsp.surfaces[i].secondaryTriangles[j * 3 + 2] + 1);
+			if (reverseWinding)
+			{
+					fprintf(fp, "f %u/%u/%u %u/%u/%u %u/%u/%u\n",
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 2] + 1,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 2] + 1,
+					counter,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 1] + 1,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 1] + 1,
+					counter,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 0] + 1,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 0] + 1,
+					counter);
+			}
+			else
+			{
+				fprintf(fp, "f %u/%u/%u %u/%u/%u %u/%u/%u\n",
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 0] + 1,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 0] + 1,
+					counter,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 1] + 1,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 1] + 1,
+					counter,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 2] + 1,
+					bsp.surfaces[i].secondaryTriangles[j * 3 + 2] + 1,
+					counter);
+			}
+
+			counter++;
 		}
+	}
+
+	fclose(fp);
+
+	
+	writeMaterialFile(materialFilename, textures);
+}
+
+void writeMaterialFile(const std::string& filename, const std::set<std::string>& textures)
+{
+	FILE* fp = fopen(filename.c_str(), "w");
+
+	if (!fp) throw "Unable to open material file for output";
+
+	for (std::set<std::string>::const_iterator itr = textures.begin(); itr != textures.end(); itr++)
+	{
+		fprintf(fp, "newmtl %s\n", (*itr).c_str());
+		fprintf(fp, "map_Kd %s.bmp\n\n", (*itr).c_str());
 	}
 
 	fclose(fp);

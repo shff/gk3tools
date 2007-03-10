@@ -62,6 +62,10 @@ struct plane
 struct vertex
 {
 	float x, y, z;
+
+	vertex() { x = 0; y = 0; z = 0; }
+	vertex(float x, float y, float z) { this->x = x; this->y = y; this->z = z; }
+	vertex operator-(const vertex& v) { return vertex(x - v.x, y - v.y, z - v.z); }
 };
 
 struct texCoord
