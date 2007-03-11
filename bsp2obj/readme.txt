@@ -1,5 +1,5 @@
 GK3 BSP To OBJ Converter
-v0.0.1
+v0.1
 http://gk3tools.sourceforge.net/
 ------------------------
 
