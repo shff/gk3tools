@@ -104,6 +104,7 @@ namespace GK3BB
             this.extractSelectedFilesToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.extractSelectedFilesToolStripMenuItem.Text = "Extract selected files";
             this.extractSelectedFilesToolStripMenuItem.Click += new System.EventHandler(this.extractSelectedFilesToolStripMenuItem_Click);
+            this.extractSelectedFilesToolStripMenuItem.Enabled = false;
             // 
             // setExtractToPathToolStripMenuItem
             // 
@@ -117,6 +118,7 @@ namespace GK3BB
             this.previewFileToolStripMenuItem.Name = "previewFileToolStripMenuItem";
             this.previewFileToolStripMenuItem.Size = new System.Drawing.Size(174, 22);
             this.previewFileToolStripMenuItem.Text = "Preview file";
+            this.previewFileToolStripMenuItem.Enabled = false;
             // 
             // toolStripMenuItem2
             // 
@@ -167,24 +169,28 @@ namespace GK3BB
             this.extractAllBitmapsToolStripMenuItem.Name = "extractAllBitmapsToolStripMenuItem";
             this.extractAllBitmapsToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.extractAllBitmapsToolStripMenuItem.Text = "Extract all bitmaps";
+            this.extractAllBitmapsToolStripMenuItem.Enabled = false;
             // 
             // extractAllWavsToolStripMenuItem
             // 
             this.extractAllWavsToolStripMenuItem.Name = "extractAllWavsToolStripMenuItem";
             this.extractAllWavsToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.extractAllWavsToolStripMenuItem.Text = "Extract all wavs";
+            this.extractAllWavsToolStripMenuItem.Enabled = false;
             // 
             // extractAllDocsToolStripMenuItem
             // 
             this.extractAllDocsToolStripMenuItem.Name = "extractAllDocsToolStripMenuItem";
             this.extractAllDocsToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.extractAllDocsToolStripMenuItem.Text = "Extract all docs";
+            this.extractAllDocsToolStripMenuItem.Enabled = false;
             // 
             // extractAllHtmlFilesToolStripMenuItem
             // 
             this.extractAllHtmlFilesToolStripMenuItem.Name = "extractAllHtmlFilesToolStripMenuItem";
             this.extractAllHtmlFilesToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.extractAllHtmlFilesToolStripMenuItem.Text = "Extract all html files";
+            this.extractAllHtmlFilesToolStripMenuItem.Enabled = false;
             // 
             // helpToolStripMenuItem
             // 
@@ -246,7 +252,7 @@ namespace GK3BB
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
-            this.Text = "browser";
+            this.Text = "Gabriel Knight 3 Browser";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);

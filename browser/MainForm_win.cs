@@ -57,19 +57,44 @@ namespace GK3BB
 			
 			if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
 			{
-				BarnManager.OpenBarn(dialog.FileName);
-				
-				List<BarnFile> files = BarnManager.GetFiles();
-				
-				foreach(BarnFile file in files)
-				{
-                    ListViewItem item = new ListViewItem(new string[] {file.Name,
+                try
+                {
+                    Cursor.Current = Cursors.WaitCursor;
+
+                    BarnManager.OpenBarn(dialog.FileName);
+
+                    List<BarnFile> files = BarnManager.GetFiles();
+
+                    foreach (BarnFile file in files)
+                    {
+                        ListViewItem item = new ListViewItem(new string[] {file.Name,
                         file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
                         file.Barn, file.Compression.ToString()});
-                    item.Tag = file.Index;
+                        item.Tag = file.Index;
 
-                    mainListView.Items.Add(item);
-				}
+                        mainListView.Items.Add(item);
+                    }
+                }
+                catch (BarnLib.BarnException)
+                {
+                    Cursor.Current = Cursors.Default;
+                    MessageBox.Show("Unable to open " + dialog.FileName + "." + Environment.NewLine
+                        + "Please make sure it is a valid GK3 .brn file and try again.",
+                        "Unable to open barn", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    Cursor.Current = Cursors.Default;
+                }
+
+                // enable the menu items
+                extractSelectedFilesToolStripMenuItem.Enabled = true;
+                // TODO: uncomment the following line once previewing is implemented
+                //previewFileToolStripMenuItem.Enabled = true;
+                extractAllBitmapsToolStripMenuItem.Enabled = true;
+                extractAllDocsToolStripMenuItem.Enabled = true;
+                extractAllHtmlFilesToolStripMenuItem.Enabled = true;
+                extractAllWavsToolStripMenuItem.Enabled = true;
 			}
 		}
 
