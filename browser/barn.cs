@@ -95,6 +95,16 @@ namespace BarnLib
 			
 			throw new BarnException("Unable to get file size at index " + index);
 		}
+        
+        public uint GetFileSize(string name)
+        {
+            int size = brn_GetFileSizeByName(barnHandle, name);
+            
+            if (size > 0)
+                return (uint)size;
+            
+            throw new BarnException("Unable to get file size of file " + name);
+        }
 		
 		public Compression GetFileCompression(uint index)
 		{
@@ -132,8 +142,8 @@ namespace BarnLib
 			if (decompress)
 			//	success = brn_ExtractFileByIndex(barnHandle, index,
 			//	outputPath, openChildBarns, decompress, convertBitmaps);
-			success = brn_ExtractFileByIndex(barnHandle, index, "",
-				true, true, true);
+			success = brn_ExtractFileByIndex(barnHandle, index, outputPath,
+				true, true);
 				
 			if (success == -3)
 				throw new BarnException("invalid index");
@@ -144,6 +154,11 @@ namespace BarnLib
 			else if (success != 0)
 				throw new BarnException("Unable to extract file");
 		}
+
+        public void ReadFile(string filename, byte[] buffer, bool openChildBarns)
+        {
+            brn_ReadFile(barnHandle, filename, buffer, buffer.Length, openChildBarns);
+        }
 		
 		public static string GetLibBarnInfo()
 		{
@@ -171,7 +186,10 @@ namespace BarnLib
 		
 		[DllImport("barn")]
 		private static extern int brn_GetFileSizeByIndex(HandleRef barn, uint index);
-			
+        
+        [DllImport("barn")]
+        private static extern int brn_GetFileSizeByName(HandleRef barn, string name);
+        
 		[DllImport("barn")]
 		private static extern int brn_GetFileCompressionByIndex(HandleRef barn, uint index);
 		
@@ -184,7 +202,11 @@ namespace BarnLib
 		
 		[DllImport("barn")]
 		private static extern int brn_ExtractFileByIndex(HandleRef barn,
-			uint index, string outputPath, bool openChildBarns, bool decompress, bool convertBitmaps);
+			uint index, string outputPath, bool openChildBarns, bool decompress);
+
+        [DllImport("barn")]
+        private static extern int brn_ReadFile(HandleRef barn, string name,
+            byte[] buffer, int bufferSize, bool openChildBarns);
 		
 		[DllImport("barn")]
 		private static extern int brn_GetLibInfo(

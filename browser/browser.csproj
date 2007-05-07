@@ -43,6 +43,7 @@
     <Compile Include="barnmanager.cs" />
     <EmbeddedResource Include="MainForm_win.resx">
       <DependentUpon>MainForm_win.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.Targets" />
