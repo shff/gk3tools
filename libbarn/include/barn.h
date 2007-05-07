@@ -73,6 +73,8 @@ DECLSPEC int BARN_CALL brn_GetFileBarn(BarnHandle barn, unsigned int index, char
 /// Returns -1 if the index is invalid
 DECLSPEC int BARN_CALL brn_GetFileSizeByIndex(BarnHandle barn, unsigned int index);
 
+DECLSPEC int BARN_CALL brn_GetFileSizeByName(BarnHandle barn, const char* name);
+
 /// Returns the size of the file specified by its name.
 /// Returns -1 if the file does not exist inside the barn
 DECLSPEC int BARN_CALL brn_GetFileSizeByName(BarnHandle barn, const char* name);
@@ -89,10 +91,16 @@ DECLSPEC int BARN_CALL brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int in
 /// The function returns BARN_SUCCESS on success, or an error otherwise.
 DECLSPEC int BARN_CALL brn_ExtractFile(BarnHandle barn, const char* name, bool openChildBarns);
 
+/// Reads the file with the specified name into the given buffer. If openChildBarns is true then if the
+/// file resides in a barn other than this one then the child barn is opened and the file is read from
+/// there. bufferSize is the maximum size to read. The function returns the number of bytes read, or
+/// -1 on error.
+DECLSPEC int BARN_CALL brn_ReadFile(BarnHandle barn, const char* name, char* buffer, int bufferSize, bool openChildBarns);
+
 
 /// Just like brn_ExtractFileByIndex(), except using an index instead of the name
 DECLSPEC int BARN_CALL brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
-	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps);
+	const char* outputPath, bool openChildBarns, bool decompress);
 
 /// Gets information about the library
 DECLSPEC void BARN_CALL brn_GetLibInfo(char* buffer, int size);

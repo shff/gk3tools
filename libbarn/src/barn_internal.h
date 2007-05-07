@@ -134,14 +134,24 @@ namespace Barn
 		std::string GetFileBarn(unsigned int index) const;
 	
 		unsigned int GetFileSize(unsigned int index) const;
+		unsigned int Barn::GetFileSize(const std::string& name) const;
+
 		Compression GetFileCompression(unsigned int index) const;
 		unsigned int GetFileOffset(unsigned int index) const;
 		
 		int ExtractFileByIndex(unsigned int index, const std::string& outputPath,
 			bool openChild, bool decompress);
 
-		int ExtractFile(unsigned int offset, unsigned int size, const std::string& filename,
-			const std::string& outputPath, Compression compression, bool decompress);
+		/// Reads the givenfile and copies it into a new ExtractBuffer.
+		/// @param filename The name of the file to extract
+		/// @param decompress Whether or not to decompress the file before reading
+		/// @param openChildBarns Whether to allow opening files that exist within child barns
+		/// @remarks There's no performance advantage to reading an LZO file in parts
+		///		while decompressing it, since the entire file must be loaded and
+		///     decompressed.
+		ExtractBuffer* ReadFile(const std::string& filename, bool decompress, bool openChildBarns);
+
+		ExtractBuffer* ReadRaw(unsigned int offset, unsigned int size, Compression compression, bool decompress);
 		
 	private:
 	
@@ -186,7 +196,9 @@ namespace Barn
 		std::string m_name;
 		unsigned int m_numFiles;
 		std::vector<BarnFile> m_fileList;
-		std::map<std::string, BarnFile> m_fileMap;
+
+		typedef std::map<std::string, BarnFile> FileMap;
+		FileMap m_fileMap;
 		std::vector<Barn*> m_openChildBarns;
 		unsigned int m_dataOffset;
 		

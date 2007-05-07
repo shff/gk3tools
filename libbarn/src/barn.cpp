@@ -26,6 +26,10 @@
 #include <iostream>
 #include <sstream>
 
+#ifndef MIN
+#define MIN(a,b) (a < b ? a : b)
+#endif
+
 BarnHandle brn_OpenBarn(const char* filename)
 {
 	try
@@ -80,6 +84,13 @@ int brn_GetFileSizeByIndex(BarnHandle barn, unsigned int index)
 	return brn->GetFileSize(index);
 }
 
+int brn_GetFileSizeByName(BarnHandle barn, const char* name)
+{
+	Barn::Barn* brn = static_cast<Barn::Barn*>(barn);
+
+	return brn->GetFileSize(name);
+}
+
 int brn_GetFileBarn(BarnHandle barn, unsigned int index, char* buffer, int size)
 {
 	Barn::Barn* brn = static_cast<Barn::Barn*>(barn);
@@ -108,15 +119,25 @@ int brn_GetFileOffsetByIndex(BarnHandle barn, unsigned int index)
 	return brn->GetFileOffset(index);
 }
 
+int brn_ReadFile(BarnHandle barn, const char* name, char* buffer, int bufferSize, bool openChildBarns)
+{
+	assert(name != NULL);
+	assert(buffer != NULL);
+	assert(bufferSize > 0);
+
+	Barn::Barn* brn = static_cast<Barn::Barn*>(barn);
+
+	std::auto_ptr<Barn::ExtractBuffer> extractbuffer(brn->ReadFile(name, true, openChildBarns));
+	
+	memcpy(buffer, extractbuffer->GetBuffer(), MIN(extractbuffer->GetSize(), bufferSize));
+
+	return MIN(extractbuffer->GetSize(), bufferSize);
+}
+
 int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
-	const char* outputPath, bool openChildBarns, bool decompress, bool convertBitmaps)
+	const char* outputPath, bool openChildBarns, bool decompress)
 {
 	Barn::Barn* brn = static_cast<Barn::Barn*>(barn);
-	
-	if (outputPath == NULL)
-		std::cout << "it's null!" << std::endl;
-	else
-		std::cout << "outputpath = " << outputPath << " first char: " << (unsigned int)outputPath[0] << std::endl;
 	
 	std::string outputPathStr;
 	if (outputPath != NULL)
@@ -177,6 +198,16 @@ namespace Barn
 		return m_fileList[index].size;
 	}
 
+	unsigned int Barn::GetFileSize(const std::string& name) const
+	{
+		FileMap::const_iterator itr = m_fileMap.find(name);
+
+		if (itr == m_fileMap.end())
+			throw BarnException("The specified file does not exist", BARNERR_FILE_NOT_FOUND);
+
+		return (*itr).second.size;
+	}
+
 	std::string Barn::GetFileBarn(unsigned int index) const
 	{
 		return m_fileList[index].barn;
@@ -200,10 +231,12 @@ namespace Barn
 
 		try
 		{
+			ExtractBuffer* buffer = NULL;
+
 			if (m_fileList[index].barn == "")
 			{
-				ExtractFile(m_fileList[index].offset, m_fileList[index].size, m_fileList[index].name,
-					outputPath,	m_fileList[index].compression, uncompress);
+				buffer = ReadRaw(m_fileList[index].offset, m_fileList[index].size,
+					m_fileList[index].compression, uncompress);
 			}
 			else
 			{
@@ -230,9 +263,18 @@ namespace Barn
 				}
 
 				// extract the file
-				return barn->ExtractFile(m_fileList[index].offset, m_fileList[index].size,
-					m_fileList[index].name, outputPath, m_fileList[index].compression, uncompress);
+				buffer = barn->ReadRaw(m_fileList[index].offset, m_fileList[index].size,
+					m_fileList[index].compression, uncompress);
 			}
+
+			// make sure the path ends with a slash
+			std::string tweakedOutputPath = outputPath;
+			if (outputPath.length() > 0 && (outputPath[outputPath.length()-1] != '/' && outputPath[outputPath.length()-1] != '\\'))
+				tweakedOutputPath = outputPath + '/';
+
+			std::cout << "Writing to " << tweakedOutputPath << m_fileList[index].name <<std::endl;
+			buffer->WriteToFile(tweakedOutputPath + m_fileList[index].name);
+			delete buffer;
 		}
 		catch(BarnException& ex)
 		{
@@ -242,45 +284,66 @@ namespace Barn
 		return BARN_SUCCESS;
 	}
 
-	int Barn::ExtractFile(unsigned int offset, unsigned int size, const std::string& filename,
-			const std::string& outputPath, Compression compression, bool decompress)
+	ExtractBuffer* Barn::ReadFile(const std::string& filename, bool decompress, bool openChildBarns)
 	{
-		ExtractBuffer* buffer = NULL;
+		FileMap::iterator itr = m_fileMap.find(filename);
 
-		try
+		if (itr == m_fileMap.end())
+			throw BarnException("The specified filename does not exist", BARNERR_FILE_NOT_FOUND);
+
+		BarnFile file = (*itr).second;
+
+		if (file.barn == "")
+			return ReadRaw(file.offset, file.size, file.compression, decompress);
+
+		// look for the barn in the open list
+		Barn* barn = NULL;
+		for (std::vector<Barn*>::iterator itr = m_openChildBarns.begin();
+			itr != m_openChildBarns.end(); itr++)
 		{
-			bool compressed = false;
-			
-			if (compression == LZO || compression == ZLib)
-				compressed = true;
-
-			if (compressed && decompress)
-				size += 8;
-				
-			buffer = new ExtractBuffer(size);
-
-			buffer->ReadFromFile(*m_file, offset + m_dataOffset + (compressed && !decompress ? 8 : 0));
-					
-			if (decompress && compressed)
+			if ((*itr)->GetBarnName() == file.barn)
 			{
-				buffer->Decompress(compression);
+				barn = (*itr);
+				break;
 			}
-					
-			std::stringstream ss;
-			ss << outputPath << filename;
-			buffer->WriteToFile(ss.str());
 		}
-		catch(BarnException& ex)
+
+		// if we didn't find the barn then open it and add it to the 
+		// list of open barns
+		if (barn == NULL)
 		{
-			if (buffer)	delete buffer;
-			return ex.ErrorNumber;
+			std::string barnFileName = file.barn;
+			barn = new Barn(barnFileName, barnFileName);
+
+			m_openChildBarns.push_back(barn);
 		}
 
-		delete buffer;
-
-		return BARN_SUCCESS;
+		// extract the file
+		return barn->ReadRaw(file.offset, file.size, file.compression, decompress);
 	}
 	
+	ExtractBuffer* Barn::ReadRaw(unsigned int offset, unsigned int size, Compression compression, bool decompress)
+	{
+		bool compressed = false;
+			
+		if (compression == LZO || compression == ZLib)
+			compressed = true;
+
+		if (compressed && decompress)
+			size += 8;
+
+		std::auto_ptr<ExtractBuffer> buffer(new ExtractBuffer(size));
+
+		buffer->ReadFromFile(*m_file, offset + m_dataOffset + (compressed && !decompress ? 8 : 0));
+					
+		if (decompress && compressed)
+		{
+			buffer->Decompress(compression);
+		}
+
+		return buffer.release();
+	}
+
 	void Barn::load(const std::string& filename)
 	{
 		// TODO: attempt various case versions (all caps, etc) if this fails
