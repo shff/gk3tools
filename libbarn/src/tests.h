@@ -61,7 +61,7 @@ public:
 
 	void setUp()
 	{
-		_barn = new Barn::Barn("core.brn", "core.brn");
+		_barn = new Barn::Barn("core.brn");
 	}
 
 	void tearDown()
@@ -72,6 +72,12 @@ public:
 	void TestGetNumberOfFiles()
 	{
 		TS_ASSERT_EQUALS(_barn->GetNumberOfFiles(), 36957);
+	}
+
+	void TestFileSize()
+	{
+		TS_ASSERT_EQUALS(_barn->GetFileSize("AGRIPPA.HTM", false), 1052);
+		TS_ASSERT_EQUALS(_barn->GetFileSize("AGRIPPA.HTM", true), 1523);
 	}
 
 	void TestExtractByIndex()

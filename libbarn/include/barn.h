@@ -73,11 +73,12 @@ DECLSPEC int BARN_CALL brn_GetFileBarn(BarnHandle barn, unsigned int index, char
 /// Returns -1 if the index is invalid
 DECLSPEC int BARN_CALL brn_GetFileSizeByIndex(BarnHandle barn, unsigned int index);
 
-DECLSPEC int BARN_CALL brn_GetFileSizeByName(BarnHandle barn, const char* name);
-
 /// Returns the size of the file specified by its name.
 /// Returns -1 if the file does not exist inside the barn
 DECLSPEC int BARN_CALL brn_GetFileSizeByName(BarnHandle barn, const char* name);
+
+DECLSPEC int BARN_CALL brn_GetDecompressedFileSizeByIndex(BarnHandle barn, unsigned int index);
+DECLSPEC int BARN_CALL brn_GetDecompressedFileSizeByName(BarnHandle barn, const char* name);
 
 /// Returns the compression type of the file with the specified index.
 /// 0 = no compression, 1 = ZLib compression, 2 = LZO compression.

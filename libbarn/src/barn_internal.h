@@ -133,8 +133,8 @@ namespace Barn
 		std::string GetFileName(unsigned int index) const;
 		std::string GetFileBarn(unsigned int index) const;
 	
-		unsigned int GetFileSize(unsigned int index) const;
-		unsigned int Barn::GetFileSize(const std::string& name) const;
+		unsigned int GetFileSize(unsigned int index, bool decompressedSize);
+		unsigned int Barn::GetFileSize(const std::string& name, bool decompressedSize);
 
 		Compression GetFileCompression(unsigned int index) const;
 		unsigned int GetFileOffset(unsigned int index) const;
@@ -155,7 +155,8 @@ namespace Barn
 		
 	private:
 	
-		void load(const std::string& filename);
+		void load(const std::string& filename, const std::string& path);
+		Barn* openBarn(const std::string& filename);
 
 		static unsigned char readByte(std::ifstream* file);
 		static unsigned short readUInt16(std::ifstream* file);
@@ -194,6 +195,7 @@ namespace Barn
 		}
 	
 		std::string m_name;
+		std::string m_path;
 		unsigned int m_numFiles;
 		std::vector<BarnFile> m_fileList;
 
