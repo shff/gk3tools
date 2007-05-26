@@ -47,6 +47,9 @@ namespace gk3levelviewer.Graphics
 
         // used as an "extension"
         public ushort[] indices;
+
+        // not loaded from the file, just used for color-coding surfaces (if needed)
+        public float r, g, b;
     }
 
     struct BspModel
@@ -93,6 +96,7 @@ namespace gk3levelviewer.Graphics
             }
 
             // read the surfaces
+            Random randomGenerator = new Random();
             _surfaces = new BspSurface[header.numSurfaces];
             for (uint i = 0; i < header.numSurfaces; i++)
             {
@@ -106,6 +110,10 @@ namespace gk3levelviewer.Graphics
                 _surfaces[i].vScale = reader.ReadSingle();
                 _surfaces[i].size = reader.ReadUInt32();
                 _surfaces[i].flags = reader.ReadUInt32();
+
+                _surfaces[i].r = (float)randomGenerator.NextDouble();
+                _surfaces[i].g = (float)randomGenerator.NextDouble();
+                _surfaces[i].b = (float)randomGenerator.NextDouble();
             }
 
             // read the BSP nodes (for now throw them away)
@@ -145,7 +153,7 @@ namespace gk3levelviewer.Graphics
             _texcoords = new float[header.numTexCoords * 2];
             for (uint i = 0; i < header.numTexCoords; i++)
             {
-                _texcoords[i * 2 + 0] = -reader.ReadSingle();
+                _texcoords[i * 2 + 0] = reader.ReadSingle();
                 _texcoords[i * 2 + 1] = reader.ReadSingle();
             }
 
@@ -203,6 +211,100 @@ namespace gk3levelviewer.Graphics
             loadTextures();
         }
 
+        public void Render(LightmapResource lightmaps)
+        {
+            Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+
+            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, _vertices);
+            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _texcoords);
+
+            if (SceneManager.LightmapsEnabled && lightmaps != null)
+            {
+                Gl.glActiveTextureARB(Gl.GL_TEXTURE1);
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _lightmapcoords);
+                
+                Gl.glActiveTexture(Gl.GL_TEXTURE0);
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+            }
+
+            for (int i = 0; i < _surfaces.Length; i++)
+           // int surfaceToDraw = 1;
+            //for (int i = surfaceToDraw; i < surfaceToDraw+1; i++)
+            {
+                Gl.glPushMatrix();
+               // Gl.glLoadIdentity();
+                //Gl.glTranslatef(0, 0, -100.0f);
+
+                BspSurface surface = _surfaces[i];
+                TextureResource lightmap = lightmaps[i];
+
+                TextureResource texture =
+                    Resource.ResourceManager.Get(surface.texture.ToUpper() + ".BMP") as TextureResource;
+
+                if (SceneManager.TexturesEnabled && texture != null)
+                {
+                    Gl.glEnable(Gl.GL_TEXTURE_2D);
+                    texture.Bind();
+                }
+                else
+                {
+                    Gl.glDisable(Gl.GL_TEXTURE_2D);
+                    Gl.glEnable(Gl.GL_COLOR);
+                    Gl.glColor3f(_surfaces[i].r, _surfaces[i].g, _surfaces[i].b);
+                    //Gl.glBindTexture(Gl.GL_TEXTURE_2D, 0);
+                }
+                
+                if (SceneManager.LightmapsEnabled && lightmap != null)
+                {
+                    Gl.glActiveTexture(Gl.GL_TEXTURE1);
+                    lightmap.Bind();
+                    Gl.glActiveTexture(Gl.GL_TEXTURE0);
+                }
+
+                Gl.glDrawElements(Gl.GL_TRIANGLES, surface.indices.Length, Gl.GL_UNSIGNED_SHORT,
+                    surface.indices);
+
+                Gl.glPopMatrix();
+            }
+
+            if (SceneManager.LightmapsEnabled && lightmaps != null)
+            {
+                Gl.glActiveTexture(Gl.GL_TEXTURE1);
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                Gl.glDisable(Gl.GL_TEXTURE_2D);
+                Gl.glActiveTexture(Gl.GL_TEXTURE0);
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+            }
+
+            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+        }
+
+        public override void Dispose()
+        {
+            // nothing
+        }
+
+        private void loadTextures()
+        {
+            foreach (BspSurface surface in _surfaces)
+            {
+                try
+                {
+                    Resource.ResourceManager.Load(surface.texture.ToUpper() + ".BMP");
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                }
+            }
+        }
+
         private void setupLightmapCoords()
         {
             _lightmapcoords = new float[_texcoords.Length];
@@ -236,94 +338,15 @@ namespace gk3levelviewer.Graphics
                 //float vScale = (float)System.Math.Sqrt(diffZ * diffZ + diffY * diffY);
 
                 float uScale = diffX;
-                float vScale = diffY;
-
-                //float uScale = 1.0f / _surfaces[i].uScale;
-                //float vScale = 1.0f / _surfaces[i].vScale;
+                float vScale = diffZ;
 
                 for (int j = 0; j < _surfaces[i].indices.Length; j++)
                 {
-                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] =
-                        (_vertices[_surfaces[i].indices[j] * 3 + 0] - min.X) * uScale;
-                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = 
-                        (_vertices[_surfaces[i].indices[j] * 3 + 1] - min.Y) * vScale;
-                }
-            }
-        }
+                    float u = (_surfaces[i].uCoord + _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
+                    float v = (_surfaces[i].vCoord + _texcoords[_surfaces[i].indices[j] * 2 + 1]) * _surfaces[i].vScale;
 
-        public void Render(LightmapResource lightmaps)
-        {
-            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-
-            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, _vertices);
-            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _texcoords);
-
-            if (lightmaps != null)
-            {
-                Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glEnable(Gl.GL_TEXTURE_2D);
-                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _lightmapcoords);
-                
-                Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-            }
-
-            for (int i = 0; i < _surfaces.Length; i++)
-            {
-                BspSurface surface = _surfaces[i];
-                TextureResource lightmap = lightmaps[i];
-
-                TextureResource texture =
-                    Resource.ResourceManager.Get(surface.texture.ToUpper() + ".BMP") as TextureResource;
-
-                /*if (texture != null)
-                    texture.Bind();
-                else
-                    Gl.glBindTexture(Gl.GL_TEXTURE_2D, 0);
-                */
-                if (lightmap != null)
-                {
-                    Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                    lightmap.Bind();
-                    Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                }
-
-                Gl.glDrawElements(Gl.GL_TRIANGLES, surface.indices.Length, Gl.GL_UNSIGNED_SHORT,
-                    surface.indices);
-            }
-
-            if (lightmaps != null)
-            {
-                Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                Gl.glDisable(Gl.GL_TEXTURE_2D);
-                Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-            }
-
-            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
-        }
-
-        public override void Dispose()
-        {
-            // nothing
-        }
-
-        private void loadTextures()
-        {
-            foreach (BspSurface surface in _surfaces)
-            {
-                try
-                {
-                    Resource.ResourceManager.Load(surface.texture.ToUpper() + ".BMP");
-                }
-                catch (System.IO.FileNotFoundException)
-                {
+                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
+                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
                 }
             }
         }

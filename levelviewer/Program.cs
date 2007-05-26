@@ -19,6 +19,7 @@ namespace gk3levelviewer
             Graphics.Video.SetScreenMode(800, 600, 16, false);
             //SceneManager.LoadScene("CEM_N.SCN");
             SceneManager.LoadScene("R25_M.SCN");
+            //SceneManager.LoadScene("B25.SCN");
 
             Camera camera = new Camera();
 
@@ -33,6 +34,24 @@ namespace gk3levelviewer
                     x -= 1.0f;
                 if (Input.IsKeyPressed(Sdl.SDLK_RIGHT))
                     x += 1.0f;
+
+                if (Input.IsKeyPressed(Sdl.SDLK_l))
+                {
+                    if (SceneManager.LightmapsEnabled)
+                        SceneManager.LightmapsEnabled = false;
+                    else
+                        SceneManager.LightmapsEnabled = true;
+                }
+
+                if (Input.IsKeyPressed(Sdl.SDLK_t))
+                {
+                    if (SceneManager.TexturesEnabled)
+                        SceneManager.TexturesEnabled = false;
+                    else
+                        SceneManager.TexturesEnabled = true;
+                }
+
+
 
                 camera.AddRelativePositionOffset(new Math.Vector(x, y, z));
 

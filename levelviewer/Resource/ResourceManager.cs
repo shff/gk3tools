@@ -54,8 +54,6 @@ namespace gk3levelviewer.Resource
     {
         public static Resource Load(string filename)
         {
-            Console.WriteLine("Loading " + filename);
-
             Resource resource;
             if (_resources.TryGetValue(filename, out resource) == false)
             {

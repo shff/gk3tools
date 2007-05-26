@@ -10,7 +10,7 @@ namespace gk3levelviewer
         {
             ScnFileReader reader = new ScnFileReader(scn);
 
-            string bspFile = "";
+            string bspFile = Utils.GetFilenameWithoutExtension(scn) + ".BSP";
             foreach (ScnLine line in reader.Lines)
             {
                 if (line.Type == ScnLineType.KeyValue)
@@ -46,8 +46,23 @@ namespace gk3levelviewer
             Graphics.Video.Present();
         }
 
+        public static bool LightmapsEnabled
+        {
+            get { return _lightmapsEnabled; }
+            set { _lightmapsEnabled = value; }
+        }
+
+        public static bool TexturesEnabled
+        {
+            get { return _texturesEnabled; }
+            set { _texturesEnabled = value; }
+        }
+
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
+
+        private static bool _texturesEnabled = true;
+        private static bool _lightmapsEnabled = true;
     }
 
     #region SCN file stuff

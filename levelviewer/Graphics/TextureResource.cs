@@ -33,7 +33,11 @@ namespace gk3levelviewer.Graphics
         private void convertToOpenGlTexture(bool resizeToPowerOfTwo)
         {
             Gl.glEnable(Gl.GL_TEXTURE_2D);
-            Gl.glGenTextures(1, out _glTexture);
+
+            int[] textures = new int[1];
+            textures[0] = 0;
+            Gl.glGenTextures(1, textures);
+            _glTexture = textures[0];
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
             Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _width, _height,
@@ -134,7 +138,7 @@ namespace gk3levelviewer.Graphics
             reader.BaseStream.Seek(startingPosition + pixelOffset, System.IO.SeekOrigin.Begin);
             _pixels = new byte[_width * _height * 4];
 
-            for (int y = 0; y < _height; y++)
+            for (int y = _height-1; y >= 0; y--)
             {
                 for (int x = 0; x < _width; x++)
                 {

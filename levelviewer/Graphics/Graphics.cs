@@ -62,8 +62,13 @@ namespace gk3levelviewer.Graphics
             Gl.glEnable(Gl.GL_DEPTH_TEST);
             Gl.glEnable(Gl.GL_ALPHA_TEST);
             Gl.glAlphaFunc(Gl.GL_LESS, 0.1f);
+            
+            Gl.glEnable(Gl.GL_CULL_FACE);
+            Gl.glFrontFace(Gl.GL_CW);
+            Gl.glCullFace(Gl.GL_BACK);
+            
 
-            Tao.OpenGl.GlExtensionLoader.LoadAllExtensions();
+            //Tao.OpenGl.GlExtensionLoader.LoadAllExtensions();
         }
     }
 }
