@@ -1,9 +1,34 @@
+// Copyright (c) 2007 Brad Farris
+// This file is part of the GK3 Scene Viewer.
+
+// The GK3 Scene Viewer is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+
+// The GK3 Scene Viewer is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Foobar; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace gk3levelviewer
 {
+    enum ShadeMode
+    {
+        Wireframe,
+        Flat,
+        Colored,
+        Textured
+    }
+
     static class SceneManager
     {
         public static void LoadScene(string scn)
@@ -36,6 +61,9 @@ namespace gk3levelviewer
 
         public static void Render()
         {
+            if (_currentCamera != null)
+                _currentCamera.Update();
+
             // render the room
             if (_currentRoom != null)
                 _currentRoom.Render(_currentLightmaps);
@@ -52,17 +80,25 @@ namespace gk3levelviewer
             set { _lightmapsEnabled = value; }
         }
 
-        public static bool TexturesEnabled
+        public static ShadeMode CurrentShadeMode
         {
-            get { return _texturesEnabled; }
-            set { _texturesEnabled = value; }
+            get { return _shadeMode; }
+            set { _shadeMode = value; }
+        }
+
+        public static Camera CurrentCamera
+        {
+            get { return _currentCamera; }
+            set { _currentCamera = value; }
         }
 
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
 
-        private static bool _texturesEnabled = true;
-        private static bool _lightmapsEnabled = true;
+        private static ShadeMode _shadeMode = ShadeMode.Textured;
+        private static bool _lightmapsEnabled = false;
+
+        private static Camera _currentCamera;
     }
 
     #region SCN file stuff
