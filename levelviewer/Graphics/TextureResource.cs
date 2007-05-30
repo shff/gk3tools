@@ -35,6 +35,26 @@ namespace gk3levelviewer.Graphics
 
             // determine whether this is a GK3 bitmap or a Windows bitmap
             uint header = reader.ReadUInt32();
+
+            // rewind the stream to where it was when we first got it
+            reader.BaseStream.Seek(currentStreamPosition, System.IO.SeekOrigin.Begin);
+
+            if (header == Gk3BitmapHeader)
+                loadGk3Bitmap(reader);
+            else
+                loadWindowsBitmap(reader);
+
+            convertToOpenGlTexture(false, false);
+        }
+
+        public TextureResource(string name, System.IO.Stream stream, bool clamp)
+            : base(name)
+        {
+            int currentStreamPosition = (int)stream.Position;
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
+
+            // determine whether this is a GK3 bitmap or a Windows bitmap
+            uint header = reader.ReadUInt32();
             
             // rewind the stream to where it was when we first got it
             reader.BaseStream.Seek(currentStreamPosition, System.IO.SeekOrigin.Begin);
@@ -44,10 +64,10 @@ namespace gk3levelviewer.Graphics
             else
                 loadWindowsBitmap(reader);
 
-            convertToOpenGlTexture(false);
+            convertToOpenGlTexture(false, clamp);
         }
 
-        private void convertToOpenGlTexture(bool resizeToPowerOfTwo)
+        private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp)
         {
             Gl.glEnable(Gl.GL_TEXTURE_2D);
 
@@ -62,10 +82,12 @@ namespace gk3levelviewer.Graphics
 
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_NEAREST);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
-            
-           // Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP);
-           // Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP);
 
+            if (clamp)
+            {
+                Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
+                Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
+            }
         }
 
         public override void Dispose()

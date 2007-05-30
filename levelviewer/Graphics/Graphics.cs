@@ -71,7 +71,7 @@ namespace gk3levelviewer.Graphics
             Gl.glMatrixMode(Gl.GL_PROJECTION);
             Gl.glLoadIdentity();
 
-            Glu.gluPerspective(60.0f, ratio, 0.5f, 5000.0f);
+            Glu.gluPerspective(60.0f, ratio, 1.0f, 5000.0f);
 
             Gl.glMatrixMode(Gl.GL_MODELVIEW);
             Glu.gluLookAt(0, 0, 0, 0, 0, 1.0f, 0, 1.0f, 0);

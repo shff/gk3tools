@@ -34,7 +34,7 @@ namespace gk3levelviewer.Graphics
             _maps = new TextureResource[numMaps];
 
             for (int i = 0; i < numMaps; i++)
-                _maps[i] = new TextureResource(name + "_map_" + i.ToString(), stream);
+                _maps[i] = new TextureResource(name + "_map_" + i.ToString(), stream, true);
         }
 
         public override void Dispose()

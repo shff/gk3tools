@@ -59,7 +59,7 @@ namespace gk3levelviewer
 
             if (sceneToLoad == "") return;
 
-            Graphics.Video.SetScreenMode(800, 600, 16, false);
+            Graphics.Video.SetScreenMode(800, 600, 32, false);
 
             try
             {
@@ -145,7 +145,7 @@ namespace gk3levelviewer
 
         private static string getCoreBarnPath()
         {
-#if !DEBUG
+//#if !DEBUG
             System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
             dialog.Filter = "Barn files (*.brn)|*.brn|All files (*.*)|*.*";
             dialog.Title = "Open barn file";
@@ -155,9 +155,9 @@ namespace gk3levelviewer
                 return dialog.FileName;
 
             return "";
-#else
-            return @"E:\gk3backup\Data\core.brn";
-#endif
+//#else
+          // return @"E:\gk3backup\Data\core.brn";
+//#endif
         }
     }
 }

@@ -85,7 +85,7 @@ namespace gk3levelviewer
             this.Controls.Add(this.panel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "SceneChooser";
-            this.Text = "SceneChooser";
+            this.Text = "Choose a scene to load";
             this.panel1.ResumeLayout(false);
             this.ResumeLayout(false);
 

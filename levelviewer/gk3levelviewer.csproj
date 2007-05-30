@@ -9,6 +9,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>gk3levelviewer</RootNamespace>
     <AssemblyName>gk3levelviewer</AssemblyName>
+    <StartupObject>
+    </StartupObject>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -46,6 +48,7 @@
     <Compile Include="FileSystem.cs" />
     <Compile Include="Graphics\Graphics.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Math\Quaternion.cs" />
     <Compile Include="Math\Vector.cs" />
     <Compile Include="Program.cs" />

@@ -65,12 +65,13 @@ namespace gk3levelviewer.Graphics
 
         // used as an "extension"
         public ushort[] indices;
-        public ushort[] indices2;
 
         // not loaded from the file, just used for color-coding surfaces (if needed)
         public float r, g, b;
         public uint index;
-        public bool errorDetected;
+        public float[] vertices;
+        public float[] lightmapCoords;
+        public float[] textureCoords;
     }
 
     struct BspModel
@@ -216,6 +217,8 @@ namespace gk3levelviewer.Graphics
                 }
 
                 _surfaces[i].indices = new ushort[numTriangles * 3];
+                _surfaces[i].vertices = new float[numTriangles * 3 * 3];
+                _surfaces[i].textureCoords = new float[numTriangles * 3 * 2];
                 for (uint j = 0; j < numTriangles; j++)
                 {
                     ushort x = reader.ReadUInt16();
@@ -223,8 +226,35 @@ namespace gk3levelviewer.Graphics
                     ushort z = reader.ReadUInt16();
 
                     _surfaces[i].indices[j * 3 + 0] = myindices[x];
-                    _surfaces[i].indices[j * 3 + 1] = myindices[y];
+                    _surfaces[i].indices[j * 3 + 1] = myindices[y]; 
                     _surfaces[i].indices[j * 3 + 2] = myindices[z];
+
+                    // TODO: since we aren't using indices the hardware can't cache vertices,
+                    // so there's some performance loss. Figure out a good way to still use indices.
+
+                    // vertex 1
+                    _surfaces[i].vertices[(j * 3 + 0) * 3 + 0] = _vertices[myindices[x] * 3 + 0];
+                    _surfaces[i].vertices[(j * 3 + 0) * 3 + 1] = _vertices[myindices[x] * 3 + 1];
+                    _surfaces[i].vertices[(j * 3 + 0) * 3 + 2] = _vertices[myindices[x] * 3 + 2];
+
+                    _surfaces[i].textureCoords[(j * 3 + 0) * 2 + 0] = _texcoords[myindices[x] * 2 + 0];
+                    _surfaces[i].textureCoords[(j * 3 + 0) * 2 + 1] = _texcoords[myindices[x] * 2 + 1];
+
+                    // vertex 2
+                    _surfaces[i].vertices[(j * 3 + 1) * 3 + 0] = _vertices[myindices[y] * 3 + 0];
+                    _surfaces[i].vertices[(j * 3 + 1) * 3 + 1] = _vertices[myindices[y] * 3 + 1];
+                    _surfaces[i].vertices[(j * 3 + 1) * 3 + 2] = _vertices[myindices[y] * 3 + 2];
+
+                    _surfaces[i].textureCoords[(j * 3 + 1) * 2 + 0] = _texcoords[myindices[y] * 2 + 0];
+                    _surfaces[i].textureCoords[(j * 3 + 1) * 2 + 1] = _texcoords[myindices[y] * 2 + 1];
+
+                    // vertex 3
+                    _surfaces[i].vertices[(j * 3 + 2) * 3 + 0] = _vertices[myindices[z] * 3 + 0];
+                    _surfaces[i].vertices[(j * 3 + 2) * 3 + 1] = _vertices[myindices[z] * 3 + 1];
+                    _surfaces[i].vertices[(j * 3 + 2) * 3 + 2] = _vertices[myindices[z] * 3 + 2];
+
+                    _surfaces[i].textureCoords[(j * 3 + 2) * 2 + 0] = _texcoords[myindices[z] * 2 + 0];
+                    _surfaces[i].textureCoords[(j * 3 + 2) * 2 + 1] = _texcoords[myindices[z] * 2 + 1];
                 }
             }
 
@@ -236,42 +266,27 @@ namespace gk3levelviewer.Graphics
 
         public void Render(LightmapResource lightmaps)
         {
-            /*Math.Vector cameraPosition = SceneManager.CurrentCamera.Position;
+            Math.Vector cameraPosition = SceneManager.CurrentCamera.Position;
             Math.Vector cameraForward = SceneManager.CurrentCamera.Orientation * new Math.Vector(0, 0, -1.0f);
             BspSurface? collidedSurface;
             this.CollideRayWithSurfaces(cameraPosition, cameraForward, 1000.0f, out collidedSurface);
 
-            if (collidedSurface.HasValue)
-            {
-                Console.WriteLine("scale: " + collidedSurface.Value.uScale + ", "
-                    + collidedSurface.Value.vScale + " | coord: " +
-                    collidedSurface.Value.uCoord + ", " + collidedSurface.Value.vCoord
-                    + " | size: " + collidedSurface.Value.size1 + ", "
-                    + collidedSurface.Value.size2 + 
-                    " " + collidedSurface.Value.indices.Length
-                    + " error: " + collidedSurface.Value.errorDetected.ToString());
-
-                for (int i = 0; i < collidedSurface.Value.indices.Length; i++)
-                {
-                    Console.WriteLine("uv: " + _lightmapcoords[collidedSurface.Value.indices[i] * 2 + 0].ToString() + 
-                        ", " + _lightmapcoords[collidedSurface.Value.indices[i] * 2 + 1].ToString());
-                }
-            }*/
-
-
             Gl.glColor3f(1.0f, 1.0f, 1.0f);
             Gl.glEnable(Gl.GL_TEXTURE_2D);
+
             Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
-            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, _vertices);
-            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _texcoords);
+           // Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, _vertices);
+            //Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _texcoords);
 
             if (SceneManager.LightmapsEnabled && lightmaps != null)
             {
                 Gl.glActiveTextureARB(Gl.GL_TEXTURE1);
                 Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
+                Gl.glEnable(Gl.GL_ALPHA_TEST);
+                Gl.glAlphaFunc(Gl.GL_LESS, 0.1f);
                 Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
                 Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _lightmapcoords);
                 
@@ -290,19 +305,22 @@ namespace gk3levelviewer.Graphics
                 TextureResource texture =
                     Resource.ResourceManager.Get(surface.texture.ToUpper() + ".BMP") as TextureResource;
 
+                Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
+
                 if (SceneManager.CurrentShadeMode == ShadeMode.Textured && texture != null)
                //     && collidedSurface.HasValue && collidedSurface.Value.index != _surfaces[i].index)
                 {
-                    Gl.glDisable(Gl.GL_COLOR);
+                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
+
                     Gl.glEnable(Gl.GL_TEXTURE_2D);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, Gl.GL_REPLACE);
                     texture.Bind();
                 }
                 else
                 {
                     Gl.glDisable(Gl.GL_ALPHA_TEST);
                     Gl.glDisable(Gl.GL_TEXTURE_2D);
-                    Gl.glEnable(Gl.GL_COLOR);
-
+                   
                     if (SceneManager.CurrentShadeMode == ShadeMode.Colored)
                     {
                         Gl.glColor3f(_surfaces[i].r, _surfaces[i].g, _surfaces[i].b);
@@ -312,19 +330,37 @@ namespace gk3levelviewer.Graphics
                         Gl.glColor3f(1.0f, 1.0f, 1.0f);
                     }
                 }
-                
+
                 if (SceneManager.LightmapsEnabled && lightmap != null)
                 {
                     Gl.glActiveTexture(Gl.GL_TEXTURE1);
+                    Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
+                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
                     lightmap.Bind();
+                    //Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_EXT, Gl.GL_MODULATE);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, Gl.GL_COMBINE);
+                    Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
                     Gl.glActiveTexture(Gl.GL_TEXTURE0);
                 }
 
-                Gl.glDrawElements(Gl.GL_TRIANGLES, surface.indices.Length, Gl.GL_UNSIGNED_SHORT,
-                    surface.indices);
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
+                //Gl.glDrawElements(Gl.GL_TRIANGLES, surface.indices.Length, Gl.GL_UNSIGNED_SHORT,
+                //    surface.indices);
+
+                /*lightmap.Bind(); 
+                Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
+                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords );
+
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length /3 );
+                */
 
                 Gl.glPopAttrib();
                 Gl.glPopMatrix();
+
+                int err = Gl.glGetError();
+
+                if (err != Gl.GL_NO_ERROR)
+                    Console.Write("error: " + err);
             }
 
             if (SceneManager.LightmapsEnabled && lightmaps != null)
@@ -383,77 +419,21 @@ namespace gk3levelviewer.Graphics
 
         private void setupLightmapCoords()
         {
-            //int currentIndex = 0;
             _lightmapcoords = new float[_texcoords.Length];
 
             for (int i = 0; i < _surfaces.Length; i++)
             {
-               /* // get the maximum and minumum of each surface
-                Math.Vector min = new Math.Vector(float.MaxValue, float.MaxValue, float.MaxValue);
-                Math.Vector max = new Math.Vector(float.MinValue, float.MinValue, float.MinValue);
-
+                _surfaces[i].lightmapCoords = new float[_surfaces[i].indices.Length * 2];
                 for (int j = 0; j < _surfaces[i].indices.Length; j++)
                 {
-                    float x = _vertices[_surfaces[i].indices[j] * 3 + 0];
-                    float y = _vertices[_surfaces[i].indices[j] * 3 + 1];
-                    float z = _vertices[_surfaces[i].indices[j] * 3 + 2];
-
-                    if (x < min.X) min.X = x;
-                    if (y < min.Y) min.Y = y;
-                    if (z < min.Z) min.Z = z;
-
-                    if (x > max.X) max.X = x;
-                    if (y > max.Y) max.Y = y;
-                    if (z > max.Z) max.Z = z;
-                }
-
-                float diffX = max.X - min.X;
-                float diffY = max.Y - min.Y;
-                float diffZ = max.Z - min.Z;
-
-                //float uScale = (float)System.Math.Sqrt(diffX * diffX + diffY * diffY);
-                //float vScale = (float)System.Math.Sqrt(diffZ * diffZ + diffY * diffY);
-
-                float uScale = diffX;
-                float vScale = diffZ;
-
-                Dictionary<int, int> blah = new Dictionary<int, int>();*/
-
-                for (int j = 0; j < _surfaces[i].indices.Length; j++)
-                {
-                    //float u = _texcoords[_surfaces[i].indices[j] * 2 + 0];
-                    //float v = _texcoords[_surfaces[i].indices[j] * 2 + 1];
-
                     float u = (_surfaces[i].uCoord + _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
                     float v = (_surfaces[i].vCoord + _texcoords[_surfaces[i].indices[j] * 2 + 1]) * _surfaces[i].vScale;
-
-                   // float u = ( _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
-                   // float v = ( _texcoords[_surfaces[i].indices[j] * 2 + 1]) * _surfaces[i].vScale;
-
-                   // if (u < -1.0f)
-                    //    u = u + 1.0f;
-
-                    
-                    //if (currentIndex >= _lightmapcoords.Length) break;
-                    //_lightmapcoords[currentIndex++] = u;
-                   // _lightmapcoords[currentIndex++] = v;
-
-                   /* if (blah.ContainsKey(_surfaces[i].indices[j]))
-                    {
-                        Console.WriteLine("Warning! Already wrote to " + _surfaces[i].indices[j]
-                            + " old: " + _texcoords[_surfaces[i].indices[j]*2+0].ToString()
-                            + ", " + _texcoords[_surfaces[i].indices[j]*2+1]
-                            + " new: " + u.ToString() + ", " + v.ToString());
-                        _surfaces[i].errorDetected = true;
-
-                        //continue;
-                    }
-                    else blah.Add(_surfaces[i].indices[j], _surfaces[i].indices[j]);*/
 
                     _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
                     _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
 
-
+                    _surfaces[i].lightmapCoords[j * 2 + 0] = u;
+                    _surfaces[i].lightmapCoords[j * 2 + 1] = v;
                 }
             }
         }
