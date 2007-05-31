@@ -23,7 +23,7 @@ using Tao.OpenGl;
 
 namespace gk3levelviewer.Graphics
 {
-    class TextureResource : Resource.Resource
+    public class TextureResource : Resource.Resource
     {
         private const uint Gk3BitmapHeader = 0x4D6E3136;
 
@@ -219,7 +219,7 @@ namespace gk3levelviewer.Graphics
         #endregion
     }
 
-    class TextureResourceLoader : Resource.IResourceLoader
+    public class TextureResourceLoader : Resource.IResourceLoader
     {
         public Resource.Resource Load(string name)
         {

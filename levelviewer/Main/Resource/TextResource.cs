@@ -19,51 +19,48 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer.Graphics
+namespace gk3levelviewer.Resource
 {
-    class LightmapResource : Resource.Resource
+    public class TextResource : Resource
     {
-        public LightmapResource(string name, System.IO.Stream stream)
+        public TextResource(string name, System.IO.Stream stream)
             : base(name, true)
         {
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
+            if (stream == null) throw new ArgumentNullException("stream");
 
-            uint header = reader.ReadUInt32();
-            uint numMaps = reader.ReadUInt32();
-
-            _maps = new TextureResource[numMaps];
-
-            for (int i = 0; i < numMaps; i++)
-                _maps[i] = new TextureResource(name + "_map_" + i.ToString(), stream, true);
+            System.IO.StreamReader reader = new System.IO.StreamReader(stream);
+            _text = reader.ReadToEnd();
+            reader.Close();
         }
 
         public override void Dispose()
         {
-            // nothing
+            // nothing to do
         }
 
-        public TextureResource this[int index]
-        {
-            get { return _maps[index]; }
-        }
+        public string Text { get { return _text; } }
 
-        private TextureResource[] _maps;
+        private string _text;
     }
 
-    class LightmapResourceLoader : Resource.IResourceLoader
+    public class TextResourceLoader : IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public string[] SupportedExtensions
+        {
+            get { return new string[] { "TXT", "HTM", "HTML" }; }
+        }
+
+        public bool EmptyResourceIfNotFound { get { return false; } }
+
+        public Resource Load(string name)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
-            LightmapResource resource = new LightmapResource(name, stream);
+            TextResource resource = new TextResource(name, stream);
 
             stream.Close();
 
             return resource;
         }
-
-        public string[] SupportedExtensions { get { return new string[] { "MUL" }; } }
-        public bool EmptyResourceIfNotFound { get { return true; } }
     }
 }

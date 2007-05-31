@@ -42,38 +42,28 @@
     <Reference Include="Tao.Sdl, Version=1.2.11.1, Culture=neutral, PublicKeyToken=9c7a200e36c0094e, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="barn.cs" />
-    <Compile Include="Game\SifResource.cs" />
-    <Compile Include="Graphics\BspResource.cs" />
-    <Compile Include="Camera.cs" />
-    <Compile Include="FileSystem.cs" />
     <Compile Include="Graphics\Graphics.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="Logger.cs" />
-    <Compile Include="Math\Quaternion.cs" />
-    <Compile Include="Math\Vector.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Graphics\LightmapResource.cs" />
-    <Compile Include="Resource\InfoResource.cs" />
-    <Compile Include="Resource\ResourceManager.cs" />
-    <Compile Include="Resource\TextResource.cs" />
-    <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="SceneChooser.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SceneChooser.Designer.cs">
       <DependentUpon>SceneChooser.cs</DependentUpon>
     </Compile>
-    <Compile Include="SceneManager.cs" />
-    <Compile Include="Sheep\Sheep.cs" />
-    <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SceneChooser.resx">
       <SubType>Designer</SubType>
       <DependentUpon>SceneChooser.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Main\Main.csproj">
+      <Project>{CC878405-3C13-4940-A18C-9C035E91311C}</Project>
+      <Name>Main</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -21,7 +21,7 @@ using System.Text;
 
 namespace gk3levelviewer.Math
 {
-    class Quaternion
+    public class Quaternion
     {
         public Quaternion()
         {

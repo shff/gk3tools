@@ -4,7 +4,7 @@ using System.Text;
 
 namespace gk3levelviewer
 {
-    static class Logger
+    public static class Logger
     {
         static Logger()
         {

@@ -21,7 +21,7 @@ using System.Text;
 
 namespace gk3levelviewer.Math
 {
-    class Vector
+    public class Vector
     {
         public Vector()
         {

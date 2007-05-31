@@ -4,20 +4,20 @@ using System.Text.RegularExpressions;
 
 namespace gk3levelviewer.Game
 {
-    class SifResource : Resource.InfoResource
+    public class SifResource : Resource.InfoResource
     {
         public SifResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             // nothing
         }
     }
 
-    class SifResourceLoader : Resource.IResourceLoader
+    public class SifResourceLoader : Resource.IResourceLoader
     {
         public Resource.Resource Load(string name)
         {

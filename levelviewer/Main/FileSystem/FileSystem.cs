@@ -22,7 +22,7 @@ using System.IO;
 
 namespace gk3levelviewer
 {
-    static class FileSystem
+    public static class FileSystem
     {
         public static void AddPathToSearchPath(string path)
         {

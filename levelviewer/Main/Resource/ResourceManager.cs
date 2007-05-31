@@ -21,7 +21,7 @@ using System.Text;
 
 namespace gk3levelviewer.Resource
 {
-    interface IResourceLoader
+    public interface IResourceLoader
     {
         string[] SupportedExtensions { get; }
         bool EmptyResourceIfNotFound { get; }
@@ -35,7 +35,7 @@ namespace gk3levelviewer.Resource
     /// <remarks>Resources can be either "loaded" or "unloaded." A loaded resource
     /// has valid data, an unloaded resource doesn't. Only certain Resources are
     /// allowed to be in an unloaded state.</remarks>
-    abstract class Resource : IDisposable
+    public abstract class Resource : IDisposable
     {
         /// <summary>
         /// Base constructor for a Resource
@@ -71,19 +71,19 @@ namespace gk3levelviewer.Resource
         private string _name;
     }
 
-    class CannotFindResourceLoaderException : Exception
+    public class CannotFindResourceLoaderException : Exception
     {
         public CannotFindResourceLoaderException(string message)
             : base(message) { }
     }
 
-    class InvalidResourceFileFormat : Exception
+    public class InvalidResourceFileFormat : Exception
     {
         public InvalidResourceFileFormat(string message)
             : base(message) { }
     }
 
-    class ResourceManager
+    public class ResourceManager
     {
         public static Resource Load(string filename)
         {

@@ -43,7 +43,7 @@ namespace gk3levelviewer.Graphics
         public uint numPolygons;
     }
 
-    struct BspPolygon
+    public struct BspPolygon
     {
         public ushort vertexIndex;
         public ushort flags;
@@ -51,7 +51,7 @@ namespace gk3levelviewer.Graphics
         public ushort surfaceIndex;
     }
 
-    class BspSurface
+    public class BspSurface
     {
         public uint modelIndex;
         public string texture;
@@ -83,7 +83,7 @@ namespace gk3levelviewer.Graphics
 
     #endregion
 
-    class BspResource : Resource.Resource
+    public class BspResource : Resource.Resource
     {
         public BspResource(string name, System.IO.Stream stream)
             : base(name, true)
@@ -267,11 +267,6 @@ namespace gk3levelviewer.Graphics
 
         public void Render(LightmapResource lightmaps)
         {
-            Math.Vector cameraPosition = SceneManager.CurrentCamera.Position;
-            Math.Vector cameraForward = SceneManager.CurrentCamera.Orientation * new Math.Vector(0, 0, -1.0f);
-            BspSurface collidedSurface;
-            this.CollideRayWithSurfaces(cameraPosition, cameraForward, 1000.0f, out collidedSurface);
-
             Gl.glColor3f(1.0f, 1.0f, 1.0f);
             Gl.glEnable(Gl.GL_TEXTURE_2D);
 
@@ -474,7 +469,7 @@ namespace gk3levelviewer.Graphics
         private BspSurface[] _surfaces;
     }
 
-    class BspResourceLoader : Resource.IResourceLoader
+    public class BspResourceLoader : Resource.IResourceLoader
     {
         public Resource.Resource Load(string name)
         {

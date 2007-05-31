@@ -19,48 +19,51 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer.Resource
+namespace gk3levelviewer.Graphics
 {
-    class TextResource : Resource
+    public class LightmapResource : Resource.Resource
     {
-        public TextResource(string name, System.IO.Stream stream)
+        public LightmapResource(string name, System.IO.Stream stream)
             : base(name, true)
         {
-            if (stream == null) throw new ArgumentNullException("stream");
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
 
-            System.IO.StreamReader reader = new System.IO.StreamReader(stream);
-            _text = reader.ReadToEnd();
-            reader.Close();
+            uint header = reader.ReadUInt32();
+            uint numMaps = reader.ReadUInt32();
+
+            _maps = new TextureResource[numMaps];
+
+            for (int i = 0; i < numMaps; i++)
+                _maps[i] = new TextureResource(name + "_map_" + i.ToString(), stream, true);
         }
 
         public override void Dispose()
         {
-            // nothing to do
+            // nothing
         }
 
-        public string Text { get { return _text; } }
+        public TextureResource this[int index]
+        {
+            get { return _maps[index]; }
+        }
 
-        private string _text;
+        private TextureResource[] _maps;
     }
 
-    class TextResourceLoader : IResourceLoader
+    public class LightmapResourceLoader : Resource.IResourceLoader
     {
-        public string[] SupportedExtensions
-        {
-            get { return new string[] { "TXT", "HTM", "HTML", "SCN"}; }
-        }
-
-        public bool EmptyResourceIfNotFound { get { return false; } }
-
-        public Resource Load(string name)
+        public Resource.Resource Load(string name)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
-            TextResource resource = new TextResource(name, stream);
+            LightmapResource resource = new LightmapResource(name, stream);
 
             stream.Close();
 
             return resource;
         }
+
+        public string[] SupportedExtensions { get { return new string[] { "MUL" }; } }
+        public bool EmptyResourceIfNotFound { get { return true; } }
     }
 }

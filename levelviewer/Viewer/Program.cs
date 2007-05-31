@@ -55,6 +55,7 @@ namespace gk3levelviewer
             Resource.ResourceManager.AddResourceLoader(new Graphics.BspResourceLoader());
             Resource.ResourceManager.AddResourceLoader(new Graphics.LightmapResourceLoader());
             Resource.ResourceManager.AddResourceLoader(new Game.SifResourceLoader());
+            Resource.ResourceManager.AddResourceLoader(new Game.ScnResourceLoader());
 
             string sceneToLoad = getSceneToLoad(barn);
 
@@ -77,8 +78,8 @@ namespace gk3levelviewer
 
                 return;
             }
-       
-            SceneManager.CurrentCamera = new Camera();
+
+            _currentCamera = new Camera();
 
             while (Input.Tick())
             {
@@ -113,14 +114,16 @@ namespace gk3levelviewer
                     SceneManager.CurrentShadeMode = ShadeMode.Colored;
                 }
 
-                SceneManager.CurrentCamera.AddRelativePositionOffset(new Math.Vector(x, y, z));
+                _currentCamera.AddRelativePositionOffset(new Math.Vector(x, y, z));
 
                 int mx, my;
                 Input.GetRelMouseCoords(out mx, out my);
-                SceneManager.CurrentCamera.AdjustYaw(mx * -0.01f);
-                SceneManager.CurrentCamera.AdjustPitch(my * -0.01f);
+                _currentCamera.AdjustYaw(mx * -0.01f);
+                _currentCamera.AdjustPitch(my * -0.01f);
 
-                SceneManager.Render();
+                SceneManager.Render(_currentCamera);
+
+                Graphics.Video.Present();
             }
 
             Logger.Close();
@@ -162,5 +165,7 @@ namespace gk3levelviewer
           // return @"E:\gk3backup\Data\core.brn";
 //#endif
         }
+
+        private static Camera _currentCamera;
     }
 }

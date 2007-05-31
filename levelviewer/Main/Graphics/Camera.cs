@@ -23,7 +23,7 @@ using Tao.OpenGl;
 
 namespace gk3levelviewer
 {
-    class Camera
+    public class Camera
     {
         public Camera()
         {

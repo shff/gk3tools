@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace gk3levelviewer.Resource
 {
-    class InfoResourceException : Exception
+    public class InfoResourceException : Exception
     {
         public InfoResourceException(string filename)
             : base(filename + " is not valid")
@@ -21,7 +21,7 @@ namespace gk3levelviewer.Resource
     /// <summary>
     /// Base class for loading "info" files, like .scn, .sif, etc. files
     /// </summary>
-    abstract class InfoResource : TextResource
+    public abstract class InfoResource : TextResource
     {
         public InfoResource(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -48,7 +48,7 @@ namespace gk3levelviewer.Resource
         protected List<InfoSection> _sections = new List<InfoSection>();
     }
 
-    class InfoSection
+    public class InfoSection
     {
         public InfoSection(string[] lines, ref int startIndex, bool global)
         {
@@ -88,13 +88,17 @@ namespace gk3levelviewer.Resource
 
         }
 
+        public string Name { get { return _name; } }
+        public string Condition { get { return _condition; } }
+        public List<InfoLine> Lines { get { return _lines; } }
+
         private string _name;
         private string _condition;
 
         private List<InfoLine> _lines = new List<InfoLine>();
     }
 
-    class InfoLine
+    public class InfoLine
     {
         public InfoLine(string line, InfoSection section)
         {
@@ -145,6 +149,9 @@ namespace gk3levelviewer.Resource
                 }
             }
         }
+
+        public string Value { get { return _value; } }
+        public List<KeyValuePair<string, string>> Attributes { get { return _attributes; } }
 
         private List<KeyValuePair<string, string>> _attributes = new List<KeyValuePair<string, string>>();
         private string _value;
