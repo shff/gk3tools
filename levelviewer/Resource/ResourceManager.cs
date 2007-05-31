@@ -24,15 +24,28 @@ namespace gk3levelviewer.Resource
     interface IResourceLoader
     {
         string[] SupportedExtensions { get; }
+        bool EmptyResourceIfNotFound { get; }
 
         Resource Load(string filename);
     }
 
+    /// <summary>
+    /// Resource is the base class for all resources, like textures, text files, etc.
+    /// </summary>
+    /// <remarks>Resources can be either "loaded" or "unloaded." A loaded resource
+    /// has valid data, an unloaded resource doesn't. Only certain Resources are
+    /// allowed to be in an unloaded state.</remarks>
     abstract class Resource : IDisposable
     {
-        public Resource(string name)
+        /// <summary>
+        /// Base constructor for a Resource
+        /// </summary>
+        /// <param name="name">The name of the resource</param>
+        /// <param name="loaded">Whether or not the resource is considered "loaded"</param>
+        public Resource(string name, bool loaded)
         {
             _name = name;
+            _loaded = loaded;
         }
 
         public abstract void Dispose();
@@ -51,6 +64,9 @@ namespace gk3levelviewer.Resource
             get { return _name; }
         }
 
+        public bool Loaded { get { return _loaded; } }
+
+        protected bool _loaded;
         private int _referenceCount = 0;
         private string _name;
     }

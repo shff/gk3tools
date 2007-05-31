@@ -1,0 +1,153 @@
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+
+namespace gk3levelviewer.Resource
+{
+    class InfoResourceException : Exception
+    {
+        public InfoResourceException(string filename)
+            : base(filename + " is not valid")
+        {
+        }
+
+        public InfoResourceException(string filename, string message)
+            : base(filename + " is not valid because: " + message)
+        {
+
+        }
+    }
+
+    /// <summary>
+    /// Base class for loading "info" files, like .scn, .sif, etc. files
+    /// </summary>
+    abstract class InfoResource : TextResource
+    {
+        public InfoResource(string name, System.IO.Stream stream)
+            : base(name, stream)
+        {
+            int currentIndex = 0;
+            string[] lines = Text.Split('\n');
+
+            // parse the global section
+            _globalSection = new InfoSection(lines, ref currentIndex, true);
+
+            // parse the rest
+            while (currentIndex < lines.Length - 1)
+            {
+                InfoSection section = new InfoSection(lines, ref currentIndex, false);
+
+                _sections.Add(section);
+            }
+        }
+
+        public InfoSection GlobalSection { get { return _globalSection; } }
+        public List<InfoSection> Sections { get { return _sections; } }
+
+        protected InfoSection _globalSection;
+        protected List<InfoSection> _sections = new List<InfoSection>();
+    }
+
+    class InfoSection
+    {
+        public InfoSection(string[] lines, ref int startIndex, bool global)
+        {
+            if (global == false)
+            {
+                // skip to the next section header
+                while (lines[startIndex].StartsWith("[") == false) startIndex++;
+
+                // now we should be at a section header, so parse it
+                Match match = Regex.Match(lines[startIndex], @"^\[(\w+)(?:=(.+))?]");
+
+                if (match.Success == false)
+                    throw new InfoResourceException("??", lines[startIndex] + " fails regex");
+
+                _name = match.Groups[1].Value;
+                _condition = match.Groups[2].Value;
+
+                startIndex++;
+            }
+
+            while (startIndex < lines.Length - 1 &&
+                lines[startIndex].StartsWith("[") == false)
+            {
+                string line = lines[startIndex].Trim();
+                if (line.StartsWith("//") || line == "")
+                {
+                    startIndex++;
+                    continue;
+                }
+
+                InfoLine infoline = new InfoLine(line, this);
+
+                _lines.Add(infoline);
+
+                startIndex++;
+            }
+
+        }
+
+        private string _name;
+        private string _condition;
+
+        private List<InfoLine> _lines = new List<InfoLine>();
+    }
+
+    class InfoLine
+    {
+        public InfoLine(string line, InfoSection section)
+        {
+            _section = section;
+
+            // line should look like either
+            //    foo=bar
+            //    foo,bar=baz
+            
+            // break apart the line
+            //MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+}?)|[^,]+");
+            MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+})|([\w]+=[^,]+)|([\w]+)");
+
+            // each match represents a piece of data, either a single 'key'
+            // or something like 'key=value' (where value could be something
+            // like '{1,2,3}')
+            foreach (Match match in matches)
+            {
+                if (match.Success == false)
+                    throw new InfoResourceException("??", line + " failed regex");
+
+                int equals = match.Value.IndexOf('=');
+
+                // check for a value sitting at the beginning of the line without a '='
+                if (equals == -1 && _attributes.Count == 0)
+                {
+                    _value = match.Value;
+                }
+                else
+                {
+                    KeyValuePair<string, string> keyvalue;
+
+                    if (equals == -1)
+                    {
+                        // assume it's a boolean flag thingy
+                        keyvalue = new KeyValuePair<string, string>(match.Value, "true");
+                    }
+                    else
+                    {
+                        keyvalue = new KeyValuePair<string, string>
+                        (
+                            match.Value.Substring(0, equals),
+                            match.Value.Substring(equals + 1)
+                        );
+                    }
+
+                    _attributes.Add(keyvalue);
+                }
+            }
+        }
+
+        private List<KeyValuePair<string, string>> _attributes = new List<KeyValuePair<string, string>>();
+        private string _value;
+        private InfoSection _section;
+    }
+}

@@ -54,6 +54,7 @@ namespace gk3levelviewer
             Resource.ResourceManager.AddResourceLoader(new Graphics.TextureResourceLoader());
             Resource.ResourceManager.AddResourceLoader(new Graphics.BspResourceLoader());
             Resource.ResourceManager.AddResourceLoader(new Graphics.LightmapResourceLoader());
+            Resource.ResourceManager.AddResourceLoader(new Game.SifResourceLoader());
 
             string sceneToLoad = getSceneToLoad(barn);
 
@@ -121,6 +122,8 @@ namespace gk3levelviewer
 
                 SceneManager.Render();
             }
+
+            Logger.Close();
         }
 
         private static string getSceneToLoad(BarnLib.Barn barn)

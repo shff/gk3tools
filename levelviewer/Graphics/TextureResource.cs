@@ -27,8 +27,20 @@ namespace gk3levelviewer.Graphics
     {
         private const uint Gk3BitmapHeader = 0x4D6E3136;
 
+        /// <summary>
+        /// Creates a empty texture
+        /// </summary>
+        /// <param name="name"></param>
+        public TextureResource(string name)
+            : base(name, false)
+        {
+            _width = 1;
+            _height = 1;
+            _glTexture = 0;
+        }
+
         public TextureResource(string name, System.IO.Stream stream)
-            : base(name)
+            : base(name, true)
         {
             int currentStreamPosition = (int)stream.Position;
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
@@ -48,7 +60,7 @@ namespace gk3levelviewer.Graphics
         }
 
         public TextureResource(string name, System.IO.Stream stream, bool clamp)
-            : base(name)
+            : base(name, true)
         {
             int currentStreamPosition = (int)stream.Position;
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
@@ -211,15 +223,25 @@ namespace gk3levelviewer.Graphics
     {
         public Resource.Resource Load(string name)
         {
-            System.IO.Stream stream = FileSystem.Open(name);
+            try
+            {
+                System.IO.Stream stream = FileSystem.Open(name);
 
-            TextureResource resource = new TextureResource(name, stream);
+                TextureResource resource = new TextureResource(name, stream);
 
-            stream.Close();
+                stream.Close();
 
-            return resource;
+                return resource;
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                Logger.WriteError("Unable to find texture: {0}", name);
+
+                return new TextureResource(name);
+            }
         }
 
         public string[] SupportedExtensions { get { return new string[] { "BMP" }; } }
+        public bool EmptyResourceIfNotFound { get { return true; } }
     }
 }

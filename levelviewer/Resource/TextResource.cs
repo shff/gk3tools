@@ -24,7 +24,7 @@ namespace gk3levelviewer.Resource
     class TextResource : Resource
     {
         public TextResource(string name, System.IO.Stream stream)
-            : base(name)
+            : base(name, true)
         {
             if (stream == null) throw new ArgumentNullException("stream");
 
@@ -49,6 +49,8 @@ namespace gk3levelviewer.Resource
         {
             get { return new string[] { "TXT", "HTM", "HTML", "SCN"}; }
         }
+
+        public bool EmptyResourceIfNotFound { get { return false; } }
 
         public Resource Load(string name)
         {

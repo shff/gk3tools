@@ -11,6 +11,12 @@ namespace gk3levelviewer
             _writer = new System.IO.StreamWriter("log.txt");
         }
 
+        public static void Close()
+        {
+            _writer.Close();
+            _writer = null;
+        }
+
         public static void WriteError(string error, params object[] args)
         {
             if (_localEcho) Console.WriteLine(error, args);
@@ -38,7 +44,7 @@ namespace gk3levelviewer
             set { _localEcho = value; }
         }
 
-        private static bool _localEcho;
+        private static bool _localEcho = true;
         private static System.IO.StreamWriter _writer;
     }
 }

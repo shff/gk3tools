@@ -24,7 +24,7 @@ namespace gk3levelviewer.Graphics
     class LightmapResource : Resource.Resource
     {
         public LightmapResource(string name, System.IO.Stream stream)
-            : base(name)
+            : base(name, true)
         {
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
 
@@ -64,5 +64,6 @@ namespace gk3levelviewer.Graphics
         }
 
         public string[] SupportedExtensions { get { return new string[] { "MUL" }; } }
+        public bool EmptyResourceIfNotFound { get { return true; } }
     }
 }

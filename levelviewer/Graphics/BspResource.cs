@@ -51,7 +51,7 @@ namespace gk3levelviewer.Graphics
         public ushort surfaceIndex;
     }
 
-    struct BspSurface
+    class BspSurface
     {
         public uint modelIndex;
         public string texture;
@@ -72,6 +72,7 @@ namespace gk3levelviewer.Graphics
         public float[] vertices;
         public float[] lightmapCoords;
         public float[] textureCoords;
+        public TextureResource textureResource;
     }
 
     struct BspModel
@@ -85,7 +86,7 @@ namespace gk3levelviewer.Graphics
     class BspResource : Resource.Resource
     {
         public BspResource(string name, System.IO.Stream stream)
-            : base(name)
+            : base(name, true)
         {
             System.IO.BinaryReader reader = 
                 new System.IO.BinaryReader(stream);
@@ -268,7 +269,7 @@ namespace gk3levelviewer.Graphics
         {
             Math.Vector cameraPosition = SceneManager.CurrentCamera.Position;
             Math.Vector cameraForward = SceneManager.CurrentCamera.Orientation * new Math.Vector(0, 0, -1.0f);
-            BspSurface? collidedSurface;
+            BspSurface collidedSurface;
             this.CollideRayWithSurfaces(cameraPosition, cameraForward, 1000.0f, out collidedSurface);
 
             Gl.glColor3f(1.0f, 1.0f, 1.0f);
@@ -302,19 +303,16 @@ namespace gk3levelviewer.Graphics
                 BspSurface surface = _surfaces[i];
                 TextureResource lightmap = lightmaps[i];
 
-                TextureResource texture =
-                    Resource.ResourceManager.Get(surface.texture.ToUpper() + ".BMP") as TextureResource;
-
                 Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
 
-                if (SceneManager.CurrentShadeMode == ShadeMode.Textured && texture != null)
+                if (SceneManager.CurrentShadeMode == ShadeMode.Textured)
                //     && collidedSurface.HasValue && collidedSurface.Value.index != _surfaces[i].index)
                 {
                     Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
 
                     Gl.glEnable(Gl.GL_TEXTURE_2D);
                     Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, Gl.GL_REPLACE);
-                    texture.Bind();
+                    surface.textureResource.Bind();
                 }
                 else
                 {
@@ -377,7 +375,7 @@ namespace gk3levelviewer.Graphics
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
         }
 
-        public bool CollideRayWithSurfaces(Math.Vector origin, Math.Vector direction, float length, out Nullable<BspSurface> surface)
+        public bool CollideRayWithSurfaces(Math.Vector origin, Math.Vector direction, float length, out BspSurface surface)
         {
             if (_surfaces == null)
             {
@@ -407,13 +405,7 @@ namespace gk3levelviewer.Graphics
         {
             foreach (BspSurface surface in _surfaces)
             {
-                try
-                {
-                    Resource.ResourceManager.Load(surface.texture.ToUpper() + ".BMP");
-                }
-                catch (System.IO.FileNotFoundException)
-                {
-                }
+                surface.textureResource = (TextureResource)Resource.ResourceManager.Load(surface.texture.ToUpper() + ".BMP");
             }
         }
 
@@ -499,5 +491,7 @@ namespace gk3levelviewer.Graphics
         {
             get { return new string[] { "BSP" }; }
         }
+
+        public bool EmptyResourceIfNotFound { get { return false; } }
     }
 }
