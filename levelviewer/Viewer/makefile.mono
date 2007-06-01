@@ -1,0 +1,12 @@
+COMPILER = gmcs
+COMPILER_FLAGS = -r:System.Windows.Forms -r:System.Drawing -r:Tao.OpenGl -r:Tao.Sdl -r:main.dll
+EXECUTABLE = viewer.exe
+
+SOURCES = Program.cs Input.cs SceneChooser.cs SceneChooser.Designer.cs Graphics/Graphics.cs
+
+$(EXECUTABLE):
+	cp ../Main/main.dll .
+	$(COMPILER) $(COMPILER_FLAGS) $(SOURCES) -out:$(EXECUTABLE)
+	
+clean:
+	rm $(EXECUTABLE)
