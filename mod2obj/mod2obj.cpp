@@ -5,7 +5,9 @@
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 1
 
+#include <algorithm>
 #include <iostream>
+#include <string>
 #include <vector>
 #include <stdio.h>
 #include <cassert>
