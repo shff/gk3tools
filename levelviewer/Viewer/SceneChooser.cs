@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Viewer2
+namespace Viewer
 {
     public partial class SceneChooser : Form
     {

@@ -29,26 +29,47 @@ namespace Gk3Main
         Textured
     }
 
+    public class SceneManagerException : Exception
+    {
+        public SceneManagerException(string message)
+            : base(message)
+        {
+
+        }
+
+        public SceneManagerException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+    }
+
     public static class SceneManager
     {
         public static void LoadScene(string scn)
         {
-            Game.ScnResource scnFile = (Game.ScnResource)Resource.ResourceManager.Load(scn);
+            try
+            {
+                Game.ScnResource scnFile = (Game.ScnResource)Resource.ResourceManager.Load(scn);
 
-            string bspFile = scnFile.BspFile.ToUpper() + ".BSP";
+                string bspFile = scnFile.BspFile.ToUpper() + ".BSP";
 
-            // load the BSP
-            if (_currentRoom != null)
-                Resource.ResourceManager.Unload(_currentRoom);
+                // load the BSP
+                if (_currentRoom != null)
+                    Resource.ResourceManager.Unload(_currentRoom);
 
-            _currentRoom = (Graphics.BspResource)Resource.ResourceManager.Load(bspFile);
+                _currentRoom = (Graphics.BspResource)Resource.ResourceManager.Load(bspFile);
 
-            // load the lightmaps
-            if (_currentLightmaps != null)
-                Resource.ResourceManager.Unload(_currentLightmaps);
+                // load the lightmaps
+                if (_currentLightmaps != null)
+                    Resource.ResourceManager.Unload(_currentLightmaps);
 
-            string lightmapFile = Utils.GetFilenameWithoutExtension(scn) + ".MUL";
-            _currentLightmaps = (Graphics.LightmapResource)Resource.ResourceManager.Load(lightmapFile);
+                string lightmapFile = Utils.GetFilenameWithoutExtension(scn) + ".MUL";
+                _currentLightmaps = (Graphics.LightmapResource)Resource.ResourceManager.Load(lightmapFile);
+            }
+            catch (System.IO.FileNotFoundException ex)
+            {
+                throw new SceneManagerException("Unable to load the scene", ex);
+            }
         }
 
         public static void Render(Graphics.Camera camera)

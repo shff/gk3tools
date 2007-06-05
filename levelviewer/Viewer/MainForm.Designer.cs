@@ -1,4 +1,4 @@
-namespace Viewer2
+namespace Viewer
 {
     partial class MainForm
     {
@@ -103,6 +103,7 @@ namespace Viewer2
             // 
             // openMODToolStripMenuItem
             // 
+            this.openMODToolStripMenuItem.Enabled = false;
             this.openMODToolStripMenuItem.Name = "openMODToolStripMenuItem";
             this.openMODToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openMODToolStripMenuItem.Text = "Open .MOD...";

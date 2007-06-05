@@ -1,4 +1,4 @@
-namespace Viewer2
+namespace Viewer
 {
     partial class SearchPathEditor
     {

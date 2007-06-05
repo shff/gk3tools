@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Viewer2
+namespace Viewer
 {
     public partial class MainForm : Form
     {
@@ -203,7 +203,7 @@ namespace Viewer2
         {
             string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
-            MessageBox.Show(string.Format("GK3 Level Viewer\nVersion {0}", version), "About GK3 Level Viewer",
+            MessageBox.Show(string.Format("GK3 Level Viewer\nVersion {0}\n\nhttp://gk3tools.sourceforge.net", version), "About GK3 Level Viewer",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 

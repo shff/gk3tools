@@ -1,14 +1,16 @@
 GK3 Scene Viewer
 ----------------
-Version 0.1.0
-Released May 27, 2007
+Version 0.2.0
+Released June 4, 2007
 Licensed under the GNU GPL (see license.txt)
 http://gk3tools.sourceforge.net
 
 === INSTRUCTIONS ===
-When you run the viewer it will ask for a path to a .brn file. This should probably be core.brn, but you could give it another barn if you wanted. Next the viewer will read the barn file and show a list of scene files to load.
+The first thing you should do is make sure the search paths are set up correctly. You do that by clicking "File->Edit search paths." By default the directory that the viewer is run from will automatically be added as a search path, but unless the files you want to view are within this directory you'll need to add to the search path. To add a .brn file click the "Add barn" button. To add a directory click the "Add path" button.
 
-Now that the scene is loaded you can use the arrow keys to move the camera and the mouse to look around. Press "L" to toggle lightmaps, press "T" to enable texture mapping, "F" to enable flat 
+Now you're ready to load a scene. Click "File->Open .scn," and the viewer will show a list of .scn files it can find (.scn files must be in one of the folders or .brn files listed as a search path).
+
+Now that the scene is loaded you can use the mouse to look around and move. To look left and right just hold the left mouse button and move the mouse horizontally. To move forwards and backwards hold the left mouse button and move the mouse up and down. To adjust the camera's pitch hold the Shift key while moving the mouse up and down. Holding the left and right mouse buttons together while moving the mouse can adjust the height of the camera and move the camera from side to side.
 
 
 === TROUBLESHOOTING ===
@@ -27,12 +29,16 @@ Now that the scene is loaded you can use the arrow keys to move the camera and t
 
 === KNOWN ISSUES ===
 1. Alpha testing doesn't work when lightmaps are enabled
-2. Lightmap coordinates aren't 100% figured out yet
 
 === TODO ===
-1. Load models
-2. Add optional camera bounds
+1. Remember search path settings
+2. Load models
+3. Add optional camera bounds
 
 === CHANGE LOG ===
-0.0.1 - May 27, 2007
+0.1.0 - May 27, 2007
     - Initial release
+
+0.2.0
+   - Got lightmapping to work
+   - UI improvements

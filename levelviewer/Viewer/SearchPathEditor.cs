@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace Viewer2
+namespace Viewer
 {
     public partial class SearchPathEditor : Form
     {
@@ -53,19 +53,28 @@ namespace Viewer2
 
         private void btnAddBarn_Click(object sender, EventArgs e)
         {
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "Barn files (*.brn)|*.brn|All files (*.*)|*.*";
-            dialog.Title = "Open barn file";
-            DialogResult result = dialog.ShowDialog();
-
-            if (result == DialogResult.OK)
+            try
             {
-                Cursor.Current = Cursors.WaitCursor;
+                OpenFileDialog dialog = new OpenFileDialog();
+                dialog.Filter = "Barn files (*.brn)|*.brn|All files (*.*)|*.*";
+                dialog.Title = "Open barn file";
+                DialogResult result = dialog.ShowDialog();
 
-                Gk3Main.FileSystem.AddBarnToSearchPath(dialog.FileName);
-                Refresh();
+                if (result == DialogResult.OK)
+                {
+                    Cursor.Current = Cursors.WaitCursor;
 
+                    Gk3Main.FileSystem.AddBarnToSearchPath(dialog.FileName);
+                    Refresh();
+
+                    Cursor.Current = Cursors.Default;
+                }
+            }
+            catch (BarnLib.BarnException)
+            {
                 Cursor.Current = Cursors.Default;
+                MessageBox.Show("You must provide a valid barn file.", "Unable to add barn to search path",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

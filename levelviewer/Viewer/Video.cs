@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Tao.OpenGl;
 
-namespace Viewer2
+namespace Viewer
 {
     static class Video
     {
