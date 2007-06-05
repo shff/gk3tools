@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 
-namespace gk3levelviewer
+namespace Gk3Main
 {
     public static class FileSystem
     {
@@ -49,6 +49,8 @@ namespace gk3levelviewer
             return path.Barn;
         }
 
+        public static PathInfo[] SearchPath { get { return _searchPath.ToArray(); } }
+
         public static Stream Open(string filename)
         {
             foreach (PathInfo path in _searchPath)
@@ -74,7 +76,51 @@ namespace gk3levelviewer
             throw new FileNotFoundException("Unable to find file " + filename);
         }
 
-        private struct PathInfo
+        public static string[] GetFilesWithExtension(string extension)
+        {
+            string dotExtension = "." + extension;
+            Dictionary<string, string> files = new Dictionary<string, string>();
+
+            foreach (PathInfo path in _searchPath)
+            {
+                if (path.Barn != null)
+                {
+                    for (uint i = 0; i < path.Barn.NumberOfFiles; i++)
+                    {
+                        try
+                        {
+                            string name = path.Barn.GetFileName(i);
+
+                            if (name.EndsWith(dotExtension))
+                                files.Add(name, name);
+                        }
+                        catch (ArgumentException)
+                        {
+                            // ignore
+                        }
+                    }
+                }
+                else
+                {
+                    string[] dirFiles = Directory.GetFiles(path.Name, "*." + extension);
+
+                    foreach (string file in dirFiles)
+                    {
+                        try { files.Add(file, file); }
+                        catch (ArgumentException)
+                        {
+                            // ignore }
+                        }
+                    }
+                }
+            }
+
+            string[] fileArray = new string[files.Count];
+            files.Values.CopyTo(fileArray, 0);
+            return fileArray;
+        }
+
+        public struct PathInfo
         {
             public string Name;
             public BarnLib.Barn Barn;

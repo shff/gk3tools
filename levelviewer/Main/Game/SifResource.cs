@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace gk3levelviewer.Game
+namespace Gk3Main.Game
 {
     public class SifResource : Resource.InfoResource
     {

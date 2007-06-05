@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer.Graphics
+namespace Gk3Main.Graphics
 {
     public class LightmapResource : Resource.Resource
     {

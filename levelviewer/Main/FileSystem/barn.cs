@@ -43,6 +43,8 @@ namespace BarnLib
 	{
 		public Barn(string name)
 		{
+            this.name = name;
+
 			IntPtr barn = brn_OpenBarn(name);
 			
 			if (barn == (IntPtr)null)
@@ -57,13 +59,11 @@ namespace BarnLib
 		
 		~Barn()
 		{
-			
 			Dispose();
 		}
 		
 		public void Dispose()
 		{
-			Console.WriteLine("Dispositng");
 			if (disposed == false)
 				brn_CloseBarn(barnHandle);
 			
@@ -74,6 +74,8 @@ namespace BarnLib
 		{
 			get { return numFiles; }
 		}
+
+        public string Name { get { return name; } }
 		
 		public string GetFileName(uint index)
 		{
@@ -262,7 +264,8 @@ namespace BarnLib
 		[DllImport("barn")]
 		private static extern int brn_GetLibInfo(
 			[MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
-		
+
+        private string name;
 		private uint numFiles;
 		private HandleRef barnHandle;
 		private bool disposed;

@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer
+namespace Gk3Main
 {
     public enum ShadeMode
     {
@@ -51,13 +51,13 @@ namespace gk3levelviewer
             _currentLightmaps = (Graphics.LightmapResource)Resource.ResourceManager.Load(lightmapFile);
         }
 
-        public static void Render(Camera camera)
+        public static void Render(Graphics.Camera camera)
         {
             if (camera != null)
                 camera.Update();
 
             // render the room
-            if (camera != null)
+            if (camera != null && _currentRoom != null)
                 _currentRoom.Render(_currentLightmaps);
 
             // TODO: render the models

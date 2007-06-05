@@ -21,14 +21,14 @@ using System.Text;
 
 using Tao.OpenGl;
 
-namespace gk3levelviewer
+namespace Gk3Main.Graphics
 {
     public class Camera
     {
         public Camera()
         {
-            _orientation = new gk3levelviewer.Math.Quaternion();
-            _position = new gk3levelviewer.Math.Vector();
+            _orientation = new Gk3Main.Math.Quaternion();
+            _position = new Gk3Main.Math.Vector();
         }
 
         public void AddRelativePositionOffset(Math.Vector offset)
@@ -36,6 +36,18 @@ namespace gk3levelviewer
             offset = _orientation * offset;
 
             _position += offset;
+        }
+
+        public void AddPositionOffset(Math.Vector offset)
+        {
+            _position += offset;
+        }
+
+        public void AddPositionOffset(float x, float y, float z)
+        {
+            _position.X += x;
+            _position.Y += y;
+            _position.Z += z;
         }
 
         public Math.Vector Position

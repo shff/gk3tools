@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer
+namespace Gk3Main
 {
     static class Utils
     {

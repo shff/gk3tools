@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer.Math
+namespace Gk3Main.Math
 {
     public class Quaternion
     {

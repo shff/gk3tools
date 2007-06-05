@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 
-namespace gk3levelviewer
+namespace Viewer2
 {
     public partial class SceneChooser : Form
     {

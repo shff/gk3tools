@@ -19,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer.Resource
+namespace Gk3Main.Resource
 {
     public class TextResource : Resource
     {

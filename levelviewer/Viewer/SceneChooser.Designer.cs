@@ -1,4 +1,4 @@
-namespace gk3levelviewer
+namespace Viewer2
 {
     partial class SceneChooser
     {

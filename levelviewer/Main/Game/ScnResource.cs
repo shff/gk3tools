@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3levelviewer.Game
+namespace Gk3Main.Game
 {
     public class ScnResource : Resource.InfoResource
     {
         public ScnResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
+            _bsp = Utils.GetFilenameWithoutExtension(name);
+
             foreach (Resource.InfoLine line in GlobalSection.Lines)
             {
                 foreach (KeyValuePair<string, string> attribute in line.Attributes)

@@ -21,7 +21,7 @@ using System.Text;
 
 using Tao.OpenGl;
 
-namespace gk3levelviewer.Graphics
+namespace Gk3Main.Graphics
 {
     public class TextureResource : Resource.Resource
     {

@@ -22,11 +22,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("gk3levelviewer")]
+[assembly: AssemblyTitle("Viewer2")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("gk3levelviewer")]
+[assembly: AssemblyProduct("Viewer2")]
 [assembly: AssemblyCopyright("Copyright ©  2007")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -37,7 +37,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("05f5cc2c-bb6a-4cc7-8961-a3c79340544b")]
+[assembly: Guid("6eab9971-c1ff-41d8-a867-cc3e96bba2cc")]
 
 // Version information for an assembly consists of the following four values:
 //
