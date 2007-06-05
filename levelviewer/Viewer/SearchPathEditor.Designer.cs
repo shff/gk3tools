@@ -54,7 +54,7 @@ namespace Viewer2
             // btnRemove
             // 
             this.btnRemove.Enabled = false;
-            this.btnRemove.Location = new System.Drawing.Point(3, 61);
+            this.btnRemove.Location = new System.Drawing.Point(6, 61);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(75, 23);
             this.btnRemove.TabIndex = 4;
