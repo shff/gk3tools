@@ -1,7 +1,7 @@
 GK3 Scene Viewer
 ----------------
 Version 0.2.0
-Released June 4, 2007
+Released June 5, 2007
 Licensed under the GNU GPL (see license.txt)
 http://gk3tools.sourceforge.net
 
@@ -22,9 +22,9 @@ Now that the scene is loaded you can use the mouse to look around and move. To l
 
 -- This means that you opened core.brn and either the scene file or the .bsp file that goes with the scene file was located in a barn that the viewer couldn't find. Try a different scene, or try adding additional .brn files into the same directory as core.brn.
 
-3. Pressing "F" to enable flat shading everything goes white.
+3. Turning off lightmapping and texturing makes everything go white.
 
--- There's no shading being done on the polygons of the room. You'll either need to enable lightmaps (with "L") or switch to color shading (with "C") to actually make out anything in the room.
+-- There's no shading being done on the polygons of the room. You'll need to enable either lightmaps or texturing to make anything out in the scene.
 
 
 === KNOWN ISSUES ===
@@ -39,6 +39,6 @@ Now that the scene is loaded you can use the mouse to look around and move. To l
 0.1.0 - May 27, 2007
     - Initial release
 
-0.2.0
+0.2.0 - June 5, 2007
    - Got lightmapping to work
    - UI improvements
