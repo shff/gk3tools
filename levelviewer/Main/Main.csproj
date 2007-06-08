@@ -34,8 +34,10 @@
     <Reference Include="Tao.OpenGl, Version=2.1.0.4, Culture=neutral, PublicKeyToken=1ca010269a4501ef, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Console.cs" />
     <Compile Include="FileSystem\barn.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
+    <Compile Include="Game\CommonStrings.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
@@ -50,6 +52,10 @@
     <Compile Include="Resource\InfoResource.cs" />
     <Compile Include="Resource\ResourceManager.cs" />
     <Compile Include="Resource\TextResource.cs" />
+    <Compile Include="Sheep\BasicSheepFunctions.cs" />
+    <Compile Include="Sheep\Sheep.cs" />
+    <Compile Include="Sheep\SheepScript.cs" />
+    <Compile Include="Sheep\SheepStateManager.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

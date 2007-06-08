@@ -19,21 +19,21 @@ namespace Gk3Main
 
         public static void WriteError(string error, params object[] args)
         {
-            if (_localEcho) Console.WriteLine(error, args);
+            if (_localEcho) Console.CurrentConsole.WriteLine(error, args);
 
             _writer.WriteLine(error, args);
         }
 
         public static void WriteInfo(string info, params object[] args)
         {
-            if (_localEcho) Console.WriteLine(info, args);
+            if (_localEcho) Console.CurrentConsole.WriteLine(info, args);
 
             _writer.WriteLine(info, args);
         }
 
         public static void WriteDebug(string msg, params object[] args)
         {
-            if (_localEcho) Console.WriteLine(msg, args);
+            if (_localEcho) Console.CurrentConsole.WriteLine(msg, args);
 
             _writer.WriteLine(msg, args);
         }

@@ -18,6 +18,11 @@ namespace Viewer
             _pathEditor = new SearchPathEditor();
             _pathEditor.Hide();
 
+            _consoleForm = new ConsoleForm();
+            _consoleForm.Show();
+
+            Gk3Main.Console.CurrentConsole = new FormConsole(_consoleForm);
+            Gk3Main.Console.CurrentConsole.AddCommand("run", new Gk3Main.ConsoleCommand(run));
             Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
 
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
@@ -31,6 +36,16 @@ namespace Viewer
             Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
 
             Video.Init(simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);
+        }
+
+        bool run(string[] args, Gk3Main.Console console)
+        {
+            if (args.Length != 3)
+                return false;
+
+            Gk3Main.Sheep.SheepMachine.CallSheep(args[1], args[2]);
+
+            return true;
         }
 
         #region Event handlers
@@ -61,7 +76,7 @@ namespace Viewer
 
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)
         {
-            Console.WriteLine("Drawing!");
+            Gk3Main.Console.CurrentConsole.WriteLine("Drawing!");
             Tao.OpenGl.Gl.glClear(Tao.OpenGl.Gl.GL_COLOR_BUFFER_BIT | Tao.OpenGl.Gl.GL_DEPTH_BUFFER_BIT);
             Gk3Main.SceneManager.Render(_camera);
 
@@ -211,6 +226,7 @@ namespace Viewer
 
         private Gk3Main.Graphics.Camera _camera;
         private SearchPathEditor _pathEditor;
+        private ConsoleForm _consoleForm;
         private bool _leftMouseButton, _rightMouseButton;
         private bool[] _keys = new bool[MaxKeyValue+1];
 

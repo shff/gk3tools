@@ -353,7 +353,7 @@ namespace Gk3Main.Graphics
                 int err = Gl.glGetError();
 
                 if (err != Gl.GL_NO_ERROR)
-                    Console.Write("error: " + err);
+                    Console.CurrentConsole.Write("error: " + err);
             }
 
             if (SceneManager.LightmapsEnabled && lightmaps != null)
