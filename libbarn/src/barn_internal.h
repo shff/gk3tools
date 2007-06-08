@@ -134,7 +134,7 @@ namespace Barn
 		std::string GetFileBarn(unsigned int index) const;
 	
 		unsigned int GetFileSize(unsigned int index, bool decompressedSize);
-		unsigned int Barn::GetFileSize(const std::string& name, bool decompressedSize);
+		unsigned int GetFileSize(const std::string& name, bool decompressedSize);
 
 		Compression GetFileCompression(unsigned int index) const;
 		unsigned int GetFileOffset(unsigned int index) const;
