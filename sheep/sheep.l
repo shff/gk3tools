@@ -43,9 +43,9 @@
 "+"		return PLUS;
 "-"		return MINUS;
 
-[a-zA-Z][a-zA-Z0-9]* return IDENTIFIER;
-[a-zA-Z][a-zA-Z0-9]*"$" { yylval.id = (char*)strdup(yytext); return LOCALIDENTIFIER; }
 
+[a-zA-Z][a-zA-Z0-9]*[$] { yylval.id = (char*)strdup(yytext); return LOCALIDENTIFIER; }
+[a-zA-Z][a-zA-Z0-9]* { yylval.id = (char*)strdup(yytext); return IDENTIFIER; }
 
 
 %%

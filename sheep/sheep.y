@@ -88,7 +88,7 @@ if_statement:
 	;
 
 function_call:
-	IDENTIFIER LPAREN expr_list RPAREN
+	IDENTIFIER LPAREN expr_list RPAREN { AddFunctionCall($1); printf("woo: %s\n", $1); }
 	;
 	
 block_statement:
@@ -98,11 +98,13 @@ block_statement:
 	
 expr:
 	INTEGER
+	| STRING { AddStringToStack($1); }
 	| function_call
 	| expr PLUS expr 
 	;
 
 expr_list:
 	/* empty */
+	| expr
 	| expr_list COMMA expr
 	;

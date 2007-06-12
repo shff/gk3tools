@@ -37,9 +37,11 @@ void AddIntSymbol(char* name, int value);
 void AddFloatSymbol(char* name, float value);
 void AddStringSymbol(char* name, char* value);
 
+void AddStringToStack(char* string);
+
 void AddLocalFunction(char* name, int makeCurrent);
 
-void AddCallGlobalFunctionInstruction(char* functionName);
+void AddFunctionCall(char* functionName);
 
 #ifdef __cplusplus
 }

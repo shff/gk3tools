@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include "symbols.h"
+#include "compiler.h"
 
 extern "C"
 {
@@ -59,6 +60,18 @@ void AddLocalFunction(char* name, int makeCurrent)
 
 	if (addSymbol(name, symbol) == false)
 		yyerror("symbol already defined");
+
+	Compiler::AddFunction(name);
+}
+
+void AddStringToStack(char* string)
+{
+	Compiler::AddStringToStack(string);
+}
+
+void AddFunctionCall(char* function)
+{
+	Compiler::AddFunctionCall(function);
 }
 
 int GetTotalSymbolCount()
