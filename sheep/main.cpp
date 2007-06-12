@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 		std::cout << std::endl;
 	}
 	
-	Compiler::PrintDebugInfo();
+	Compiler::WriteCompiledSheep("output.shp");
 
 	return 0;
 }

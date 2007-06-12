@@ -46,6 +46,7 @@ public:
 	static void AddStringToStack(const std::string& string);
 	static void AddFunctionCall(const std::string& function);
 
+	static void WriteCompiledSheep(const std::string& outputFile);
 	static void PrintDebugInfo();
 
 private:

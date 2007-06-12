@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "compiler.h"
 
 std::vector<Compiler::Function> Compiler::m_functions;
@@ -48,6 +49,8 @@ void Compiler::AddFunctionCall(const std::string& str)
 	addByteToInstructions(CallSysFunctionV);
 	addIntToInstructions(function.Index);
 }
+
+
 
 void Compiler::PrintDebugInfo()
 {
