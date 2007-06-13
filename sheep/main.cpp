@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	if (argc > 1)
 		freopen(argv[1], "r", stdin);
 
-	Compiler::Init();
+	SheepCompiler::Compiler::Init();
 
 	yyparse();
 
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 		std::cout << std::endl;
 	}
 	
-	Compiler::WriteCompiledSheep("output.shp");
+	SheepCompiler::Compiler::WriteCompiledSheep("output.shp");
 
 	return 0;
 }

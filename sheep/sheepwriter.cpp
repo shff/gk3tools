@@ -1,6 +1,9 @@
 #include <fstream>
 #include "compiler.h"
 
+namespace SheepCompiler
+{
+
 struct SheepHeader
 {
 	unsigned int Magic1;
@@ -118,6 +121,8 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	{
 		constantHeader.OffsetArray[counter] = currentOffset;
 		currentOffset += (*itr).second.String.length()+1;
+
+		counter++;
 	}
 
 	constantHeader.DataSize = currentOffset;
@@ -135,7 +140,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 
 	currentFileOffset += SectionHeader::SectionHeaderSize + functionHeader.DataCount * 4;
 
-	::Function* functions = new ::Function[functionHeader.DataCount];
+	Function* functions = new Function[functionHeader.DataCount];
 	currentOffset = 0;
 	counter = 0;
 	for (unsigned int i = 0; i < m_functions.size(); i++)
@@ -273,4 +278,6 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	file.close();
 
 	// TODO: cleanup
+}
+
 }

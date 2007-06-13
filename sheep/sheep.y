@@ -88,7 +88,7 @@ if_statement:
 	;
 
 function_call:
-	IDENTIFIER LPAREN expr_list RPAREN { AddFunctionCall($1); printf("woo: %s\n", $1); }
+	IDENTIFIER LPAREN expr_list RPAREN { AddFunctionCall($1); }
 	;
 	
 block_statement:

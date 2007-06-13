@@ -61,17 +61,17 @@ void AddLocalFunction(char* name, int makeCurrent)
 	if (addSymbol(name, symbol) == false)
 		yyerror("symbol already defined");
 
-	Compiler::AddFunction(name);
+	SheepCompiler::Compiler::AddFunction(name);
 }
 
 void AddStringToStack(char* string)
 {
-	Compiler::AddStringToStack(string);
+	SheepCompiler::Compiler::AddStringToStack(string);
 }
 
 void AddFunctionCall(char* function)
 {
-	Compiler::AddFunctionCall(function);
+	SheepCompiler::Compiler::AddFunctionCall(function);
 }
 
 int GetTotalSymbolCount()

@@ -7,6 +7,9 @@
 #include <map>
 #include <string>
 
+namespace SheepCompiler
+{
+
 typedef unsigned char byte;
 
 enum Instruction
@@ -19,9 +22,9 @@ enum Instruction
 	
 	BeginWait,
 	EndWait,
-	ReturnV,
+	ReturnV              = 0x0b,
 
-	PushI,
+	PushI                = 0x13,
 	PushS                = 0x15,
 	Pop,
 
@@ -31,9 +34,16 @@ enum Instruction
 	IToF,
 	And,
 	Or,
-	GetString
+	GetString            = 0x33
 };
 
+enum ParameterType
+{
+	Void,
+	Integer,
+	String,
+	Float
+};
 
 class Compiler
 {
@@ -63,7 +73,7 @@ private:
 		unsigned int Index;
 	};
 
-	struct Function
+	struct LocalFunction
 	{
 		std::string Name;
 		unsigned int Offset;
@@ -120,8 +130,8 @@ private:
 	static void addIntToInstructions(int i);
 	static void addFloatToInstructions(float f);
 
-	static Function m_currentFunction;
-	static std::vector<Function> m_functions;
+	static LocalFunction m_currentFunction;
+	static std::vector<LocalFunction> m_functions;
 
 	static unsigned int m_currentStringConstantOffset;
 	static std::map<std::string, StringConstant> m_stringConstants;
@@ -130,6 +140,18 @@ private:
 
 	static unsigned int m_currentFunctionOffset;
 	static std::vector<byte> m_instructions;
+
+	struct SheepFunction
+	{
+		std::string Name;
+		ParameterType ReturnType;
+		std::vector<ParameterType> Parameters;
+	};
+
+	static void loadSheepFunctions();
+	static std::map<std::string, SheepFunction> m_validSheepFunctions;
 };
+
+}
 
 #endif // COMPILER_H
