@@ -3,32 +3,6 @@
 
 #ifdef __cplusplus
 
-enum SymbolType
-{
-	GlobalFunction,
-	LocalFunction,	
-	Integer,
-	Float,
-	String
-};
-
-struct SymbolValue
-{
-	float FloatValue;
-	int IntValue;
-	std::string StringValue;
-};
-
-struct Symbol
-{
-	std::string Name;
-	SymbolType Type;
-	SymbolValue Value;
-};
-
-int GetTotalSymbolCount();
-std::vector<Symbol> GetSymbols();
-
 extern "C"
 {
 #endif
@@ -37,11 +11,16 @@ void AddIntSymbol(char* name, int value);
 void AddFloatSymbol(char* name, float value);
 void AddStringSymbol(char* name, char* value);
 
+void AssignSymbolValue(char* name);
+
+void AddIntegerToStack(int i);
 void AddStringToStack(char* string);
 
 void AddLocalFunction(char* name, int makeCurrent);
 
 void AddFunctionCall(char* functionName);
+
+void AddLocalValueToStack(char* valueName);
 
 #ifdef __cplusplus
 }

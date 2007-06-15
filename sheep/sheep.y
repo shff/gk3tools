@@ -35,13 +35,14 @@ int yywrap()
 %token EQUALS BECOMES PLUS MINUS
 
 %left PLUS
+%left BECOMES
 
 %%
 
 sheep:
 	/* empty */
-	| symbs
 	| symbs cde
+	| symbs
 	| cde
 	;
 
@@ -76,6 +77,7 @@ statement_list:
 	
 statement:
 	if_statement
+	| LOCALIDENTIFIER BECOMES expr { AssignSymbolValue($1); }
 	| expr SEMICOLON
 	| RETURN SEMICOLON
 	| block_statement
@@ -97,10 +99,11 @@ block_statement:
 	;
 	
 expr:
-	INTEGER
+	INTEGER { AddIntegerToStack($1); }
 	| STRING { AddStringToStack($1); }
 	| function_call
-	| expr PLUS expr 
+	| LOCALIDENTIFIER { AddLocalValueToStack($1); }
+	| expr PLUS expr
 	;
 
 expr_list:

@@ -54,9 +54,28 @@ struct Function
 	unsigned int CodeOffset;
 };
 
+struct Variable
+{
+	unsigned short LengthOfName;
+	std::string Name;
+	int Type;
+	int Value;
+};
+
 void Compiler::WriteCompiledSheep(const std::string& outputFile)
 {
+	bool includeVariablesSection = false;
+
+	if (m_symbolList.empty() == false)
+		includeVariablesSection = true;
+
+	addByteToInstructions(SitnSpin);
+	addByteToInstructions(SitnSpin);
+	addByteToInstructions(SitnSpin);
+	addByteToInstructions(SitnSpin);
+
 	unsigned int currentFileOffset = 0;
+	unsigned int currentSectionIndex = 0;
 
 	// header
 	SheepHeader header;
@@ -64,14 +83,31 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	header.Magic1 = 0x53334b47;
 	header.Magic2 = 0x70656568;
 	header.Unknown = 0;
-	header.ExtraOffset = 0x2c;
-	header.DataOffset = 0x2c;
-	header.DataCount = 4;
-	header.OffsetArray = new unsigned int[4];
+	if (includeVariablesSection)
+	{
+		header.ExtraOffset = 0x30;
+		header.DataOffset = 0x30;
+	}
+	else
+	{
+		header.ExtraOffset = 0x2c;
+		header.DataOffset = 0x2c;
+	}
+
+	if (includeVariablesSection == false)
+	{
+		header.DataCount = 4;
+		header.OffsetArray = new unsigned int[4];
+	}
+	else
+	{
+		header.DataCount = 5;
+		header.OffsetArray = new unsigned int[5];
+	}
 
 	currentFileOffset = SheepHeader::SheepHeaderSize + header.DataCount * 4;
 	
-	header.OffsetArray[0] = 0; // import section offset
+	header.OffsetArray[currentSectionIndex++] = 0; // import section offset
 
 	// imports
 	SectionHeader importHeader;
@@ -91,8 +127,14 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	{
 		imports[counter].LengthOfName = (*itr).second.Name.length();
 		imports[counter].Name = (*itr).second.Name;
-		imports[counter].NumReturns = 0;
-		imports[counter].NumParameters = 0;
+		imports[counter].NumReturns = (*itr).second.ReturnType == Param_Void ? 0 : 1;
+		imports[counter].NumParameters = (*itr).second.Parameters.size();
+
+		imports[counter].ParametersTypes = new byte[imports[counter].NumParameters];
+		for (int i = 0; i < imports[counter].NumParameters; i++)
+		{
+			imports[counter].ParametersTypes[i] = (*itr).second.Parameters[i];
+		}
 
 		importHeader.OffsetArray[counter] = currentOffset;
 
@@ -100,9 +142,10 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 		currentFileOffset += currentOffset;
 		counter++;
 	}
+
 	importHeader.DataSize = currentOffset;
 
-	header.OffsetArray[1] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
+	header.OffsetArray[currentSectionIndex++] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
 
 	// string constants
 	SectionHeader constantHeader;
@@ -116,11 +159,10 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 
 	currentOffset = 0;
 	counter = 0;
-	for (std::map<std::string, StringConstant>::iterator itr = m_stringConstants.begin();
-		itr != m_stringConstants.end(); itr++)
+	for (unsigned int i = 0; i < m_stringConstantsList.size(); i++)
 	{
 		constantHeader.OffsetArray[counter] = currentOffset;
-		currentOffset += (*itr).second.String.length()+1;
+		currentOffset += m_stringConstantsList[i].String.length()+1;
 
 		counter++;
 	}
@@ -128,7 +170,51 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	constantHeader.DataSize = currentOffset;
 	currentFileOffset += currentOffset;
 
-	header.OffsetArray[2] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
+	header.OffsetArray[currentSectionIndex++] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
+
+	// Variables
+	SectionHeader variablesHeader;
+	Variable* variables = NULL;
+	if (includeVariablesSection)
+	{
+		strncpy(variablesHeader.Label, "Variables", 12);
+		variablesHeader.DataCount = m_symbolList.size();
+		variablesHeader.ExtraOffset = SectionHeader::SectionHeaderSize + variablesHeader.DataCount * 4;
+		variablesHeader.DataOffset = variablesHeader.ExtraOffset;
+		variablesHeader.OffsetArray = new unsigned int[variablesHeader.DataCount];
+
+		currentFileOffset += SectionHeader::SectionHeaderSize + variablesHeader.DataCount * 4;
+
+		variables = new Variable[variablesHeader.DataCount];
+		currentOffset = 0;
+		
+		for (unsigned int i = 0; i < m_symbolList.size(); i++)
+		{
+			variables[i].LengthOfName = m_symbolList[i].Name.length();
+			variables[i].Name = m_symbolList[i].Name;
+			variables[i].Type = m_symbolList[i].Type;
+
+			if (m_symbolList[i].Type == Symbol_Integer)
+				variables[i].Value = m_symbolList[i].Value.IntValue;
+			else if (m_symbolList[i].Type == Symbol_Float)
+				memcpy(&variables[i].Value, &m_symbolList[i].Value.FloatValue, 4);
+			else if (m_symbolList[i].Type == Symbol_String)
+			{
+				StringConstant constant;
+				getStringConstant(m_symbolList[i].Value.StringValue, &constant);
+
+				variables[i].Value = constant.Offset;
+			}
+
+			variablesHeader.OffsetArray[i] = currentOffset;
+			currentOffset += 2 + m_symbolList[i].Name.length()+1 + 4 + 4;
+		}
+		
+		variablesHeader.DataSize = currentOffset;
+		currentFileOffset += currentOffset;
+
+		header.OffsetArray[currentSectionIndex++] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
+	}
 
 	// functions section
 	SectionHeader functionHeader;
@@ -158,7 +244,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	functionHeader.DataSize = currentOffset;
 	currentFileOffset += currentOffset;
 
-	header.OffsetArray[3] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
+	header.OffsetArray[currentSectionIndex++] = currentFileOffset - SheepHeader::SheepHeaderSize - header.DataCount * 4;
 
 	// code section
 	SectionHeader codeHeader;
@@ -169,7 +255,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	codeHeader.DataSize = m_instructions.size();
 
 	currentFileOffset += SectionHeader::SectionHeaderSize + 4;
-	header.OffsetArray[4] = currentFileOffset;
+	header.OffsetArray[currentSectionIndex++] = currentFileOffset;
 	header.DataSize = currentFileOffset + m_instructions.size() - SheepHeader::SheepHeaderSize - header.DataCount * 4;
 
 
@@ -235,6 +321,29 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 		itr != m_stringConstants.end(); itr++)
 	{
 		file.write((*itr).second.String.c_str(), (*itr).second.String.length()+1);
+	}
+
+	// write the variables section
+	if (includeVariablesSection)
+	{
+		file.write(variablesHeader.Label, 12);
+		WRITE4(&variablesHeader.ExtraOffset);
+		WRITE4(&variablesHeader.DataOffset);
+		WRITE4(&variablesHeader.DataSize);
+		WRITE4(&variablesHeader.DataCount);
+
+		for (unsigned int i = 0; i < variablesHeader.DataCount; i++)
+		{
+			WRITE4(&variablesHeader.OffsetArray[i]);
+		}
+
+		for (unsigned int i = 0; i < variablesHeader.DataCount; i++)
+		{
+			WRITE2(&variables[i].LengthOfName);
+			file.write(variables[i].Name.c_str(), variables[i].LengthOfName+1);
+			WRITE4(&variables[i].Type);
+			WRITE4(&variables[i].Value);
+		}
 	}
 
 	// write the function section
