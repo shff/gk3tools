@@ -1,48 +1,10 @@
 #include <fstream>
 #include "compiler.h"
+#include "sheepfile.h"
 
 namespace SheepCompiler
 {
 
-struct SheepHeader
-{
-	unsigned int Magic1;
-	unsigned int Magic2;
-	unsigned int Unknown;
-	unsigned int ExtraOffset;
-	unsigned int DataOffset;
-	unsigned int DataSize;
-	unsigned int DataCount;
-
-	unsigned int* OffsetArray;
-
-	static const unsigned int SheepHeaderSize = 28;
-};
-
-struct SectionHeader
-{
-	SectionHeader() { memset(Label, 0, 12); }
-
-	char Label[12];
-	unsigned int ExtraOffset;
-	unsigned int DataOffset;
-	unsigned int DataSize;
-	unsigned int DataCount;
-
-	unsigned int* OffsetArray;
-
-	static const unsigned int SectionHeaderSize = 28;
-};
-
-struct Import
-{
-	unsigned short LengthOfName;
-	std::string Name;
-	byte NumReturns;
-	byte NumParameters;
-
-	byte* ParametersTypes;
-};
 
 struct Function
 {
@@ -80,8 +42,8 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	// header
 	SheepHeader header;
 
-	header.Magic1 = 0x53334b47;
-	header.Magic2 = 0x70656568;
+	header.Magic1 = Magic1;
+	header.Magic2 = Magic2;
 	header.Unknown = 0;
 	if (includeVariablesSection)
 	{
@@ -127,7 +89,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	{
 		imports[counter].LengthOfName = (*itr).second.Name.length();
 		imports[counter].Name = (*itr).second.Name;
-		imports[counter].NumReturns = (*itr).second.ReturnType == Param_Void ? 0 : 1;
+		imports[counter].NumReturns = (*itr).second.ReturnType == Symbol_Void ? 0 : 1;
 		imports[counter].NumParameters = (*itr).second.Parameters.size();
 
 		imports[counter].ParametersTypes = new byte[imports[counter].NumParameters];
@@ -317,10 +279,9 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 		WRITE4(&constantHeader.OffsetArray[i]);
 	}
 
-	for (std::map<std::string, StringConstant>::iterator itr = m_stringConstants.begin();
-		itr != m_stringConstants.end(); itr++)
+	for (unsigned int i = 0; i < m_stringConstantsList.size(); i++)
 	{
-		file.write((*itr).second.String.c_str(), (*itr).second.String.length()+1);
+		file.write(m_stringConstantsList[i].String.c_str(), m_stringConstantsList[i].String.length()+1);
 	}
 
 	// write the variables section

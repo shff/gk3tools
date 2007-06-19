@@ -32,9 +32,11 @@ int yywrap()
 %token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS
 %token RETURN IF ELSE
 %token SEMICOLON DOLLAR LPAREN RPAREN LBRACE RBRACE QUOTE COMMA
-%token EQUALS BECOMES PLUS MINUS
+%token EQUALS BECOMES PLUS MINUS MULTIPLY DIVIDE LESSTHAN GREATERTHAN
 
-%left PLUS
+%left LESSTHAN GREATERTHAN
+%left PLUS MINUS
+%left MULTIPLY DIVIDE
 %left BECOMES
 
 %%
@@ -84,10 +86,24 @@ statement:
 	;
 	
 if_statement:
-	IF LPAREN expr RPAREN block_statement
-	| IF LPAREN expr RPAREN block_statement ELSE block_statement
-	| IF LPAREN expr RPAREN block_statement ELSE if_statement
+	open
+	| if_clause block_statement ELSE { AddElse(); } closed { EndIf(); }
 	;
+	
+if_clause:
+	IF LPAREN expr RPAREN { AddIf(); }
+	;
+	
+open:
+	if_clause block_statement { EndIf(); }
+	| if_clause block_statement ELSE { AddElse(); } open { EndIf(); }
+	;
+
+closed:
+	block_statement
+	| if_clause block_statement ELSE { AddElse(); } closed { EndIf(); }
+	;
+	
 
 function_call:
 	IDENTIFIER LPAREN expr_list RPAREN { AddFunctionCall($1); }
@@ -100,10 +116,17 @@ block_statement:
 	
 expr:
 	INTEGER { AddIntegerToStack($1); }
+	| FLOAT { AddFloatToStack($1); }
 	| STRING { AddStringToStack($1); }
 	| function_call
 	| LOCALIDENTIFIER { AddLocalValueToStack($1); }
-	| expr PLUS expr
+	| LPAREN expr RPAREN
+	| expr PLUS expr { Addition(); }
+	| expr MINUS expr { Subtraction(); }
+	| expr MULTIPLY expr { Multiplication(); }
+	| expr DIVIDE expr { Division(); }
+	| expr LESSTHAN expr { LessThan(); }
+	| expr GREATERTHAN expr { GreaterThan(); }
 	;
 
 expr_list:

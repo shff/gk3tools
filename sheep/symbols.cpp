@@ -43,6 +43,11 @@ void AddIntegerToStack(int i)
 	SheepCompiler::Compiler::AddIntegerToStack(i);
 }
 
+void AddFloatToStack(float f)
+{
+	SheepCompiler::Compiler::AddFloatToStack(f);
+}
+
 void AddStringToStack(char* string)
 {
 	SheepCompiler::Compiler::AddStringToStack(string);
@@ -58,3 +63,47 @@ void AddLocalValueToStack(char* valueName)
 	SheepCompiler::Compiler::AddLocalValueToStack(valueName);
 }
 
+void Addition()
+{
+	SheepCompiler::Compiler::AddAddition();
+}
+
+void Subtraction()
+{
+	SheepCompiler::Compiler::AddSubtraction();
+}
+
+void Multiplication()
+{
+	SheepCompiler::Compiler::AddMultiplication();
+}
+
+void Division()
+{
+	SheepCompiler::Compiler::AddDivision();
+}
+
+void GreaterThan()
+{
+	SheepCompiler::Compiler::GreaterThan();
+}
+
+void LessThan()
+{
+	SheepCompiler::Compiler::LessThan();
+}
+
+void AddIf()
+{
+	SheepCompiler::Compiler::AddIf();
+}
+
+void AddElse()
+{
+	SheepCompiler::Compiler::AddElse();
+}
+
+void EndIf()
+{
+	SheepCompiler::Compiler::EndIf();
+}

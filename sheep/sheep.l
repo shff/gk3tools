@@ -1,6 +1,7 @@
 %{
 	#include <stdio.h>
 	#include <string.h>
+	#include <stdlib.h>
 	#include "y.tab.h"
 
 	char* removeQuotes(char* str)
@@ -14,9 +15,6 @@
 
 [ \n\t]+	{ }
 
-[0-9]+		{ yylval.intVal = atoi(yytext); return INTEGER; }
-[0-9]+.[0-9]+	{ yylval.floatVal = atof(yytext); return FLOAT; }
-\"[^\"]*\"	{ yylval.stringVal = removeQuotes(yytext); return STRING; }
 
 "int"		return INTSYM;
 "float"		return FLOATSYM;
@@ -43,7 +41,16 @@
 
 "+"		return PLUS;
 "-"		return MINUS;
+"*"		return MULTIPLY;
+"/"		return DIVIDE;
 
+">"		return GREATERTHAN;
+"<"		return LESSTHAN;
+
+[0-9]+.[0-9]+	{ yylval.floatVal = atof(yytext); return FLOAT; }
+[0-9]+		{ yylval.intVal = atoi(yytext); return INTEGER; }
+
+\"[^\"]*\"	{ yylval.stringVal = removeQuotes(yytext); return STRING; }
 
 [a-zA-Z][a-zA-Z0-9]*[$] { yylval.id = (char*)strdup(yytext); return LOCALIDENTIFIER; }
 [a-zA-Z][a-zA-Z0-9]* { yylval.id = (char*)strdup(yytext); return IDENTIFIER; }
