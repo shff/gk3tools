@@ -163,7 +163,7 @@ namespace SheepCompiler
 			constant.String = str;
 			constant.Offset = m_currentStringConstantOffset;
 
-			if (m_stringConstants.insert(std::map<std::string, StringConstant>::value_type(str, constant)).first == false)
+			if (m_stringConstants.insert(std::map<std::string, StringConstant>::value_type(str, constant)).second == false)
 				throw CompilerException("String constant already defined");
 			m_stringConstantsList.push_back(constant);
 			

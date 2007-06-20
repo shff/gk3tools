@@ -10,7 +10,7 @@ namespace SheepCompiler
 	class Disassembler
 	{
 	public:
-		static std::string Disassembler::GetDisassembly(const std::string& inputFile);
+		static std::string GetDisassembly(const std::string& inputFile);
 	
 	private:
 
@@ -19,7 +19,7 @@ namespace SheepCompiler
 		static std::string readString(std::ifstream& file);
 		static std::string readString(std::ifstream& file, unsigned int length);
 
-		static unsigned int printNextInstruction(std::ifstream& file, std::ostream& output, Import* imports, std::vector<StringConstant>& constants);
+		static unsigned int printNextInstruction(std::ifstream& file, std::ostream& output, std::vector<Import>& imports, std::vector<StringConstant>& constants);
 		
 		static void printDisassembly(std::ostream& output, int op, const std::string& name);
 		static void printDisassembly(std::ostream& output, int op,

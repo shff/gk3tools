@@ -464,7 +464,7 @@ namespace SheepCompiler
 
 	void Compiler::addToSymbolList(const std::string& name, Symbol symbol)
 	{
-		if (m_symbols.insert(std::map<std::string, Symbol>::value_type(name, symbol)).first == false)
+		if (m_symbols.insert(std::map<std::string, Symbol>::value_type(name, symbol)).second == false)
 			throw CompilerException(name + " already defined");
 
 		m_symbolList.push_back(symbol);

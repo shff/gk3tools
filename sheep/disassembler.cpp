@@ -48,7 +48,7 @@ namespace SheepCompiler
 			READ4(&header.OffsetArray[i]);
 
 		SectionHeader importHeader, constantsHeader, functionsHeader, codeHeader;
-		Import* imports = NULL;
+		std::vector<Import> imports;
 		std::vector<StringConstant> constants;
 		std::vector<LocalFunction> functions;
 
@@ -71,20 +71,20 @@ namespace SheepCompiler
 				importHeader = readSectionHeader(file, label);
 				unsigned int currentOffset = file.tellg();
 
-				imports = new Import[importHeader.DataCount];
-
 				for (unsigned int j = 0; j < importHeader.DataCount; j++)
 				{
+					Import import;
+					
 					file.seekg(currentOffset + importHeader.OffsetArray[j], std::ios_base::beg);
 
-					READ2(&imports[j].LengthOfName);
-					imports[j].Name = readString(file, imports[j].LengthOfName);
-					READ1(&imports[j].NumReturns);
-					READ1(&imports[j].NumParameters);
+					READ2(&import.LengthOfName);
+					imports[j].Name = readString(file, import.LengthOfName);
+					READ1(&import.NumReturns);
+					READ1(&import.NumParameters);
 
 					output << "\t" << j << "\t- " << imports[j].Name << "(";
 
-					for (byte k = 0; k < imports[j].NumParameters; k++)
+					for (byte k = 0; k < import.NumParameters; k++)
 					{
 						byte parameterType;
 						READ1(&parameterType);
@@ -104,6 +104,8 @@ namespace SheepCompiler
 					}
 
 					output << ")" << std::endl;
+					
+					imports.push_back(import);
 				}
 			}
 			else if (std::string(label) == "StringConsts")
@@ -196,6 +198,13 @@ namespace SheepCompiler
 
 		file.close();
 
+		// clean up
+		delete[] header.OffsetArray;
+		if (importHeader.OffsetArray) delete[] importHeader.OffsetArray;
+		if (constantsHeader.OffsetArray) delete[] constantsHeader.OffsetArray;
+		if (functionsHeader.OffsetArray) delete[] functionsHeader.OffsetArray;
+		if (codeHeader.OffsetArray) delete[] codeHeader.OffsetArray;
+		
 		return output.str();
 	}
 
@@ -248,7 +257,7 @@ namespace SheepCompiler
 		return str;
 	}
 
-	unsigned int Disassembler::printNextInstruction(std::ifstream& file, std::ostream& output, Import* imports, std::vector<StringConstant>& constants)
+	unsigned int Disassembler::printNextInstruction(std::ifstream& file, std::ostream& output, std::vector<Import>& imports, std::vector<StringConstant>& constants)
 	{
 #define PRINT_INT_OP(o,b1,b2,b3,b4,s) output << std::setw(2) << std::setbase(16) << o << " " << b1 << " " << b2 << " " << b3 << " " << b4 << "\t " << s << std::endl;
 
