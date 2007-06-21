@@ -179,7 +179,8 @@ namespace SheepCompiler
 					file.seekg(currentOffset + functions[j].Offset, std::ios_base::beg);
 
 					unsigned int currentCodeOffset = 0;
-					while((j < functions.size()-1 && currentCodeOffset + functions[j].Offset < functions[j+1].Offset))
+					while((j < functions.size()-1 && currentCodeOffset + functions[j].Offset < functions[j+1].Offset)
+						|| (j == functions.size()-1 && currentCodeOffset + functions[j].Offset < codeHeader.DataSize))
 					{	
 						output << "\t" << currentCodeOffset << ":\t";
 
@@ -404,13 +405,15 @@ namespace SheepCompiler
 		}
 		else if (op == IToF)
 		{
-			printDisassembly(output, op, "IToF");
-			return 1;
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "IToF");
+			return 4;
 		}
 		else if (op == FToI)
 		{
-			printDisassembly(output, op, "FToI");
-			return 1;
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "FToI");
+			return 4;
 		}
 		else if (op == And)
 		{
