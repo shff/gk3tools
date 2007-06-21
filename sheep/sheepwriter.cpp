@@ -1,4 +1,5 @@
 #include <fstream>
+#include <cassert>
 #include "compiler.h"
 #include "sheepfile.h"
 
@@ -217,10 +218,8 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	codeHeader.DataSize = m_instructions.size();
 
 	currentFileOffset += SectionHeader::SectionHeaderSize + 4;
-	header.OffsetArray[currentSectionIndex++] = currentFileOffset;
 	header.DataSize = currentFileOffset + m_instructions.size() - SheepHeader::SheepHeaderSize - header.DataCount * 4;
-
-
+	
 	// TODO: set the data size header field!
 
 	// whew! all that's done! let's write it out!
@@ -347,7 +346,15 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 
 	file.close();
 
-	// TODO: cleanup
+	// cleanup
+	delete[] header.OffsetArray;
+	delete[] importHeader.OffsetArray;
+	delete[] constantHeader.OffsetArray;
+	delete[] functionHeader.OffsetArray;
+	delete[] functions;
+	if (variablesHeader.OffsetArray) delete[] variablesHeader.OffsetArray;
+	delete[] imports;
+	delete[] variables;
 }
 
 }
