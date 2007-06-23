@@ -8,7 +8,11 @@ namespace Gk3Main
     {
         static Logger()
         {
-            _writer = new System.IO.StreamWriter("log.txt");
+            string mypath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            mypath = System.IO.Path.GetDirectoryName(mypath);
+
+            _writer = new System.IO.StreamWriter(mypath 
+                + System.IO.Path.DirectorySeparatorChar + "log.txt");
         }
 
         public static void Close()

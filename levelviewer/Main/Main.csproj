@@ -44,8 +44,10 @@
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
     <Compile Include="Graphics\LightmapResource.cs" />
+    <Compile Include="Graphics\ModelResource.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="Math\Matrix.cs" />
     <Compile Include="Math\Quaternion.cs" />
     <Compile Include="Math\Vector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

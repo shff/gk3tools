@@ -29,6 +29,7 @@ namespace Viewer
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
 
             _camera = new Gk3Main.Graphics.Camera();
 
@@ -72,6 +73,20 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
                 Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
+        }
+
+        private void openMODToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string[] modFiles = Gk3Main.FileSystem.GetFilesWithExtension("MOD");
+
+            SceneChooser dialog = new SceneChooser();
+
+            foreach (string model in modFiles)
+                dialog.AddFile(model);
+
+            DialogResult result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+                Gk3Main.SceneManager.AddModel(dialog.SelectedScene, new Gk3Main.Math.Vector());
         }
 
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)

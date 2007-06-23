@@ -32,6 +32,13 @@ namespace Gk3Main
             return filename.Substring(0, dot);
         }
 
+        public static string ConvertAsciiToString(byte[] ascii)
+        {
+            string text = System.Text.Encoding.ASCII.GetString(ascii);
+
+            return text.Trim((char)0);
+        }
+
         public static bool TestRayTriangleCollision(Math.Vector origin,
 			Math.Vector direction,  Math.Vector v1,
 		    Math.Vector v2, Math.Vector v3,

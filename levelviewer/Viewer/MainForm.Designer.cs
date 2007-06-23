@@ -103,10 +103,10 @@ namespace Viewer
             // 
             // openMODToolStripMenuItem
             // 
-            this.openMODToolStripMenuItem.Enabled = false;
             this.openMODToolStripMenuItem.Name = "openMODToolStripMenuItem";
             this.openMODToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openMODToolStripMenuItem.Text = "Open .MOD...";
+            this.openMODToolStripMenuItem.Click += new System.EventHandler(this.openMODToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 

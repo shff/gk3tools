@@ -72,6 +72,14 @@ namespace Gk3Main
             }
         }
 
+        public static void AddModel(string modelname, Math.Vector position)
+        {
+            Graphics.ModelResource model = 
+                (Graphics.ModelResource)Resource.ResourceManager.Load(modelname);
+
+            _models.Add(model);
+        }
+
         public static void Render(Graphics.Camera camera)
         {
             if (camera != null)
@@ -81,7 +89,9 @@ namespace Gk3Main
             if (camera != null && _currentRoom != null)
                 _currentRoom.Render(_currentLightmaps);
 
-            // TODO: render the models
+            // render the models
+            foreach (Graphics.ModelResource model in _models)
+                model.Render();
         }
 
         public static bool LightmapsEnabled
@@ -98,6 +108,7 @@ namespace Gk3Main
 
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
+        private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;

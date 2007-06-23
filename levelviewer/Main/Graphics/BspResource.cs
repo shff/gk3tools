@@ -115,7 +115,7 @@ namespace Gk3Main.Graphics
             {
                 models[i] = new BspModel();
 
-                models[i].name = convertAsciiToString(reader.ReadBytes(32));
+                models[i].name = Utils.ConvertAsciiToString(reader.ReadBytes(32));
             }
 
             // read the surfaces
@@ -126,7 +126,7 @@ namespace Gk3Main.Graphics
                 _surfaces[i] = new BspSurface();
 
                 _surfaces[i].modelIndex = reader.ReadUInt32();
-                _surfaces[i].texture = convertAsciiToString(reader.ReadBytes(32));
+                _surfaces[i].texture = Utils.ConvertAsciiToString(reader.ReadBytes(32));
                 _surfaces[i].uCoord = reader.ReadSingle();
                 _surfaces[i].vCoord = reader.ReadSingle();
                 _surfaces[i].uScale = reader.ReadSingle();
@@ -423,13 +423,6 @@ namespace Gk3Main.Graphics
                     _surfaces[i].lightmapCoords[j * 2 + 1] = v;
                 }
             }
-        }
-
-        private static string convertAsciiToString(byte[] bytes)
-        {
-            string text = System.Text.Encoding.ASCII.GetString(bytes);
-
-            return text.Trim((char)0);
         }
 
         private bool collideRayWithSurface(BspSurface surface, 
