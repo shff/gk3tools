@@ -9,12 +9,38 @@ namespace Gk3Main.Game
         public SifResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
+            _scene = Utils.GetFilenameWithoutExtension(name).ToUpper() + ".SCN";
+
+            foreach (Resource.InfoLine line in GlobalSection.Lines)
+            {
+                if (line.Value == "" && line.Attributes[0].Key == "scene")
+                    _scene = line.Attributes[0].Value.ToUpper() + ".SCN";
+            }
+
+            foreach (Resource.InfoSection section in Sections)
+            {
+                if (section.Name == "GENERAL" && section.Condition == "")
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        if (line.Value == null && line.Attributes[0].Key == "scene")
+                            _scene = line.Attributes[0].Value.ToUpper() + ".SCN";
+                    }
+                }
+            }
         }
 
         public override void Dispose()
         {
-            // nothing
+            // do nothing
         }
+
+        public string Scene
+        {
+            get { return _scene; }
+        }
+
+        private string _scene;
     }
 
     public class SifResourceLoader : Resource.IResourceLoader

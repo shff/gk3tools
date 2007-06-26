@@ -42,6 +42,7 @@ namespace Viewer
             this.texturingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openSifMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -85,6 +86,7 @@ namespace Viewer
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openSCNToolStripMenuItem,
+            this.openSifMenuItem,
             this.openMODToolStripMenuItem,
             this.toolStripMenuItem2,
             this.editSearchPathsToolStripMenuItem,
@@ -174,6 +176,13 @@ namespace Viewer
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
+            // openSifMenuItem
+            // 
+            this.openSifMenuItem.Name = "openSifMenuItem";
+            this.openSifMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openSifMenuItem.Text = "Open .SIF...";
+            this.openSifMenuItem.Click += new System.EventHandler(this.openSifMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -207,6 +216,7 @@ namespace Viewer
         private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem lightmappingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem texturingToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openSifMenuItem;
     }
 }
 

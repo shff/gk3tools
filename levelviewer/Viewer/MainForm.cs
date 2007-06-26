@@ -26,6 +26,7 @@ namespace Viewer
             Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
 
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
@@ -63,6 +64,8 @@ namespace Viewer
 
         private void openSCNToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Gk3Main.Game.SifResource sif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load("R25.SIF");
+
             string[] scnFiles = Gk3Main.FileSystem.GetFilesWithExtension("SCN");
 
             SceneChooser dialog = new SceneChooser();
@@ -73,6 +76,24 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
                 Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
+        }
+
+        private void openSifMenuItem_Click(object sender, EventArgs e)
+        {
+            string[] sifFiles = Gk3Main.FileSystem.GetFilesWithExtension("SIF");
+
+            SceneChooser dialog = new SceneChooser();
+
+            foreach (string sif in sifFiles)
+                dialog.AddFile(sif);
+
+            DialogResult result = dialog.ShowDialog();
+            if (result == DialogResult.OK)
+            {
+                Gk3Main.Game.SifResource sif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
+
+                Gk3Main.SceneManager.LoadScene(sif.Scene);
+            }
         }
 
         private void openMODToolStripMenuItem_Click(object sender, EventArgs e)
