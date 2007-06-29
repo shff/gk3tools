@@ -22,11 +22,22 @@ namespace GK3BB
 			_typeMap.Add("BMP", "Bitmap");
 			_typeMap.Add("HTM", "HTML document");
 			_typeMap.Add("HTML", "HTML document");
+            _typeMap.Add("TXT", "Text document");
+            _typeMap.Add("DOC", "Word document");
 			_typeMap.Add("SCN", "Scene definition");
+            _typeMap.Add("SIF", "Scene initialization");
 			_typeMap.Add("ACT", "ACT file?");
 			_typeMap.Add("ANM", "ANM file?");
 			_typeMap.Add("GAS", "GAS file?");
 			_typeMap.Add("YAK", "YAK file");
+            _typeMap.Add("EXE", "Executable");
+            _typeMap.Add("SHP", "Sheep script");
+            _typeMap.Add("NVC", "Noun-verb-case file");
+            _typeMap.Add("FON", "Font");
+
+            _typeMap.Add("SEQ", "SEQ file");
+            _typeMap.Add("STK", "Sound track file");
+            
 		}
 	
 		public static void OpenBarn(string filename)
