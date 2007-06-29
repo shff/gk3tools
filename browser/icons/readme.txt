@@ -1,0 +1,1 @@
+All the icons in this directory are licensed under the Creative Commons Attribution Share-Alike license (http://creativecommons.org/licenses/by-sa/2.5/) and are part of the Tango! base icon set (http://tango.freedesktop.org/Tango_Icon_Gallery).

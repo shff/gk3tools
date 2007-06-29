@@ -222,11 +222,12 @@ namespace GK3BB
             this.mainListView.TabIndex = 1;
             this.mainListView.UseCompatibleStateImageBehavior = false;
             this.mainListView.View = System.Windows.Forms.View.Details;
+            this.mainListView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.mainListView_ColumnClick);
             // 
             // filenameColumn
             // 
             this.filenameColumn.Text = "File name";
-            this.filenameColumn.Width = 144;
+            this.filenameColumn.Width = 218;
             // 
             // sizeColumn
             // 

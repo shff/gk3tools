@@ -33,13 +33,24 @@ namespace GK3BB
 			// The InitializeComponent() call is required for Windows Forms designer support.
 			//
 			InitializeComponent();
-			
-			//
-			// TODO: Add constructor code after the InitializeComponent() call.
-			//
-		}
-		
-		void AboutToolStripMenuItemClick(object sender, System.EventArgs e)
+
+            // load the icons
+            _imageList = new ImageList();
+            _imageList.Images.Add("audio", Image.FromFile("icons/audio.png"));
+            _imageList.Images.Add("executable", Image.FromFile("icons/executable.png"));
+            _imageList.Images.Add("image", Image.FromFile("icons/image.png"));
+            _imageList.Images.Add("html", Image.FromFile("icons/html.png"));
+            _imageList.Images.Add("text", Image.FromFile("icons/text.png"));
+            _imageList.Images.Add("binary", Image.FromFile("icons/binary.png"));
+            _imageList.Images.Add("script", Image.FromFile("icons/script.png"));
+            mainListView.SmallImageList = _imageList;
+
+            _sorter = new ListViewColumnSorter();
+        }
+
+        #region Event handlers
+
+        void AboutToolStripMenuItemClick(object sender, System.EventArgs e)
 		{
 			MessageBox.Show(UiUtils.GetAboutDialogText(), "About GK3BB", MessageBoxButtons.OK, MessageBoxIcon.Information);
 		}
@@ -67,10 +78,31 @@ namespace GK3BB
 
                     foreach (BarnFile file in files)
                     {
+                        string iconKey = "";
+                        if (file.Extension == "WAV")
+                            iconKey = "audio";
+                        else if (file.Extension == "EXE")
+                            iconKey = "executable";
+                        else if (file.Extension == "BMP")
+                            iconKey = "image";
+                        else if (file.Extension == "TXT")
+                            iconKey = "text";
+                        else if (file.Extension == "HTML" || file.Extension == "HTM")
+                            iconKey = "html";
+                        else if (file.Extension == "MUL" || file.Extension == "MOD" ||
+                            file.Extension == "BSP")
+                            iconKey = "binary";
+                        else if (file.Extension == "YAK" || file.Extension == "ANM" ||
+                            file.Extension == "NVC" || file.Extension == "SIF" ||
+                            file.Extension == "STK" || file.Extension == "GAS" ||
+                            file.Extension == "SCN")
+                            iconKey = "script";
+
                         ListViewItem item = new ListViewItem(new string[] {file.Name,
                         file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
-                        file.Barn, file.Compression.ToString()});
-                        item.Tag = file.Index;
+                        file.Barn, file.Compression.ToString()}, iconKey);
+
+                        item.Tag = file;
 
                         mainListView.Items.Add(item);
                     }
@@ -100,21 +132,120 @@ namespace GK3BB
 
         private void extractSelectedFilesToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Cursor.Current = Cursors.WaitCursor;
+
             foreach (ListViewItem item in mainListView.SelectedItems)
             {
-                BarnManager.Extract((uint)item.Tag);
+                try
+                {
+                    BarnFile bf = item.Tag as BarnFile;
+
+                    uint index = bf.Index;
+
+                    if (bf.Extension == "BMP")
+                    {
+                        byte[] data = BarnManager.ExtractData(bf.Name);
+                        GK3Bitmap bmp = new GK3Bitmap(data);
+
+                        bmp.Save(BarnManager.ExtractPath + bf.Name);
+                        bmp.Dispose();
+                    }
+                    else
+                    {
+                        BarnManager.Extract(index);
+                    }
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // FileNotFoundException most likely means the barn the file
+                    // is in could not be found.
+
+                    string filename = BarnManager.GetFileName((uint)item.Tag);
+
+                    DialogResult result = MessageBox.Show("Unable to extract " + filename + Environment.NewLine
+                         + "Continue extracting the rest of the files?", "Error extracting file",
+                         MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+
+                    if (result == DialogResult.No)
+                        break;
+                }
             }
+
+            Cursor.Current = Cursors.Default;
         }
 
         private void setExtractToPathToolStripMenuItem_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             dialog.Description = "Select the directory where files will be extracted";
-            dialog.SelectedPath = BarnManager.ExtractPath;
-            DialogResult result = dialog.ShowDialog();
+            if (BarnManager.ExtractPath == "~")
+                dialog.SelectedPath = Environment.CurrentDirectory;
+            else
+                dialog.SelectedPath = BarnManager.ExtractPath;
 
-            if (result == DialogResult.OK)
-                BarnManager.ExtractPath = dialog.SelectedPath;
+            if (dialog.ShowDialog() == DialogResult.OK)
+                BarnManager.ExtractPath = dialog.SelectedPath + System.IO.Path.DirectorySeparatorChar;
         }
-	}
+
+        private void mainListView_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            mainListView.ListViewItemSorter = _sorter;
+
+            if (_sorter.SortColumn == e.Column)
+            {
+                if (_sorter.Order == SortOrder.Ascending)
+                    _sorter.Order = SortOrder.Descending;
+                else
+                    _sorter.Order = SortOrder.Ascending;
+            }
+
+            _sorter.SortColumn = e.Column;
+            mainListView.Sort();
+        }
+
+        #endregion
+
+        private ImageList _imageList;
+        private ListViewColumnSorter _sorter;
+    }
+
+    class ListViewColumnSorter : System.Collections.IComparer
+    {
+        public int Compare(object item1, object item2)
+        {
+            ListViewItem listItem1 = item1 as ListViewItem;
+            ListViewItem listItem2 = item2 as ListViewItem;
+
+            int result;
+
+            if (_columnToSort == 1)
+            {
+                uint i1 = uint.Parse(listItem1.SubItems[_columnToSort].Text);
+                uint i2 = uint.Parse(listItem2.SubItems[_columnToSort].Text);
+                result = Comparer<uint>.Default.Compare(i1, i2);
+            }
+            else
+                result = string.Compare(listItem1.SubItems[_columnToSort].Text, listItem2.SubItems[_columnToSort].Text);
+
+            if (_sortOrder == SortOrder.Ascending)
+                return result;
+
+            return -result;
+        }
+
+        public int SortColumn
+        {
+            get { return _columnToSort; }
+            set { _columnToSort = value; }
+        }
+
+        public SortOrder Order
+        {
+            get { return _sortOrder; }
+            set { _sortOrder = value; }
+        }
+
+        private SortOrder _sortOrder = SortOrder.Ascending;
+        private int _columnToSort;
+    }
 }

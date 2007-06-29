@@ -34,6 +34,8 @@ namespace GK3BB
             _typeMap.Add("SHP", "Sheep script");
             _typeMap.Add("NVC", "Noun-verb-case file");
             _typeMap.Add("FON", "Font");
+            _typeMap.Add("CUR", "Cursor?");
+            _typeMap.Add("MOM", "Mom file?");
 
             _typeMap.Add("SEQ", "SEQ file");
             _typeMap.Add("STK", "Sound track file");
@@ -86,6 +88,15 @@ namespace GK3BB
 			_barn.ExtractByIndex(index, _extractPath, true, 
 				_decompress, _convertBitmaps);
 		}
+
+        public static byte[] ExtractData(string name)
+        {
+            byte[] buffer = new byte[_barn.GetDecompressedFileSize(name)];
+
+            _barn.ReadFile(name, buffer, true);
+
+            return buffer;
+        }
 		
 		public static string ExtractPath
 		{
