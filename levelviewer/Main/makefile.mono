@@ -4,10 +4,10 @@ EXECUTABLE = main.dll
 
 FILESYSTEM_SOURCES = FileSystem/barn.cs FileSystem/FileSystem.cs
 RESOURCE_SOURCES = Resource/InfoResource.cs Resource/TextResource.cs Resource/ResourceManager.cs
-MATH_SOURCES = Math/Quaternion.cs Math/Vector.cs
+MATH_SOURCES = Math/Quaternion.cs Math/Vector.cs Math/Matrix.cs
 GAME_SOURCES = Game/SceneManager.cs Game/ScnResource.cs Game/SifResource.cs
-GRAPHICS_SOURCES = Graphics/BspResource.cs Graphics/Camera.cs Graphics/LightmapResource.cs Graphics/TextureResource.cs
-SOURCES = Utils.cs Logger.cs $(FILESYSTEM_SOURCES) $(RESOURCE_SOURCES) $(MATH_SOURCES) $(GAME_SOURCES) $(GRAPHICS_SOURCES)
+GRAPHICS_SOURCES = Graphics/BspResource.cs Graphics/Camera.cs Graphics/LightmapResource.cs Graphics/TextureResource.cs Graphics/ModelResource.cs
+SOURCES = Utils.cs Logger.cs Console.cs $(FILESYSTEM_SOURCES) $(RESOURCE_SOURCES) $(MATH_SOURCES) $(GAME_SOURCES) $(GRAPHICS_SOURCES)
 
 $(EXECUTABLE):
 	$(COMPILER) $(COMPILER_FLAGS) $(SOURCES) -out:$(EXECUTABLE)
