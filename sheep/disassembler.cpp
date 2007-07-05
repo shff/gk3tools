@@ -47,7 +47,7 @@ namespace SheepCompiler
 		for (unsigned int i = 0; i < header.DataCount; i++)
 			READ4(&header.OffsetArray[i]);
 
-		SectionHeader importHeader, constantsHeader, functionsHeader, codeHeader;
+		SectionHeader importHeader, constantsHeader, functionsHeader, variablesHeader, codeHeader;
 		std::vector<Import> imports;
 		std::vector<StringConstant> constants;
 		std::vector<LocalFunction> functions;
@@ -78,11 +78,11 @@ namespace SheepCompiler
 					file.seekg(currentOffset + importHeader.OffsetArray[j], std::ios_base::beg);
 
 					READ2(&import.LengthOfName);
-					imports[j].Name = readString(file, import.LengthOfName);
+					import.Name = readString(file, import.LengthOfName);
 					READ1(&import.NumReturns);
 					READ1(&import.NumParameters);
 
-					output << "\t" << j << "\t- " << imports[j].Name << "(";
+					output << "\t" << j << "\t- " << import.Name << "(";
 
 					for (byte k = 0; k < import.NumParameters; k++)
 					{
@@ -130,6 +130,42 @@ namespace SheepCompiler
 						<< "\t-\"" << constant.String << "\"" << std::endl;
 				}
 
+			}
+			else if (std::string(label) == "Variables")
+			{
+				output << std::endl << "Variables" << std::endl;
+				
+				variablesHeader = readSectionHeader(file, "Variables");
+				
+				unsigned int currentOffset = file.tellg();
+				
+				for (unsigned int j = 0; j < variablesHeader.DataCount; j++)
+				{
+					file.seekg(currentOffset + variablesHeader.OffsetArray[j], std::ios_base::beg);
+					
+					unsigned short len;
+					READ2(&len);
+					
+					std::string name = readString(file, len+1);
+					unsigned int type, value;
+					READ4(&type);
+					READ4(&value);
+					
+					output << "\t" << j << "\t";
+					
+					if (type == Symbol_Void)
+						output << "void";
+					else if (type == Symbol_Integer)
+						output << "int";
+					else if (type == Symbol_Float)
+						output << "float";
+					else if (type == Symbol_String)
+						output << "string";
+					else
+						output << "??";
+					
+					output << " " << name << " = " << value << std::endl;
+				}
 			}
 			else if (std::string(label) == "Functions")
 			{
@@ -203,6 +239,7 @@ namespace SheepCompiler
 		delete[] header.OffsetArray;
 		if (importHeader.OffsetArray) delete[] importHeader.OffsetArray;
 		if (constantsHeader.OffsetArray) delete[] constantsHeader.OffsetArray;
+		if (variablesHeader.OffsetArray) delete[] variablesHeader.OffsetArray;
 		if (functionsHeader.OffsetArray) delete[] functionsHeader.OffsetArray;
 		if (codeHeader.OffsetArray) delete[] codeHeader.OffsetArray;
 		
@@ -251,7 +288,7 @@ namespace SheepCompiler
 		{
 			file.read(&c, 1);
 			if (c == 0) break;
-
+				
 			str.push_back(c);
 		}
 
