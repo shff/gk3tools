@@ -9,11 +9,15 @@
 		str[strlen(str)-1] = 0;
 		return str+1;
 	}
+	
+	int currentLine = 1;
 %}
 
 %%
 
-[ \n\t]+	{ }
+
+[\n] { currentLine++; }
+[ \t]+	{ }
 
 
 "int"		return INTSYM;
@@ -47,8 +51,8 @@
 ">"		return GREATERTHAN;
 "<"		return LESSTHAN;
 
-[0-9]+.[0-9]+	{ yylval.floatVal = atof(yytext); return FLOAT; }
-[0-9]+		{ yylval.intVal = atoi(yytext); return INTEGER; }
+([0-9])+\.([0-9])+	{ yylval.floatVal = atof(yytext); return FLOAT; }
+([0-9])+		{ yylval.intVal = atoi(yytext); return INTEGER; }
 
 \"[^\"]*\"	{ yylval.stringVal = removeQuotes(yytext); return STRING; }
 

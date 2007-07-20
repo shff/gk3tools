@@ -7,9 +7,11 @@
 #define TRUE 1
 #define FALSE 0
 
+extern int currentLine;
+
 void yyerror(const char* str)
 {
-	printf("error: %s\n", str);
+	printf("error at line %d: %s\n", currentLine, str);
 }
 
 int yywrap()

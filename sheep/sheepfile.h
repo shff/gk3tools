@@ -27,7 +27,7 @@ namespace SheepCompiler
 
 	struct SectionHeader
 	{
-		SectionHeader() { memset(Label, 0, 12); }
+		SectionHeader() { memset(Label, 0, 12); OffsetArray = NULL; }
 
 		char Label[12];
 		unsigned int ExtraOffset;
