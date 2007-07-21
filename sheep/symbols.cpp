@@ -93,6 +93,16 @@ void LessThan()
 	SheepCompiler::Compiler::LessThan();
 }
 
+void And()
+{
+	SheepCompiler::Compiler::And();
+}
+
+void Or()
+{
+	SheepCompiler::Compiler::Or();
+}
+
 void AddIf()
 {
 	SheepCompiler::Compiler::AddIf();
@@ -107,3 +117,9 @@ void EndIf()
 {
 	SheepCompiler::Compiler::EndIf();
 }
+
+void CreateSnippet()
+{
+	SheepCompiler::Compiler::CreateSnippet();
+}
+

@@ -31,14 +31,16 @@ int yywrap()
 }
 
 %token <id> IDENTIFIER <id> LOCALIDENTIFIER <intVal> INTEGER <floatVal> FLOAT <stringVal> STRING
-%token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS
+%token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS SNIP
 %token RETURN IF ELSE
 %token SEMICOLON DOLLAR LPAREN RPAREN LBRACE RBRACE QUOTE COMMA
-%token EQUALS BECOMES PLUS MINUS MULTIPLY DIVIDE LESSTHAN GREATERTHAN
+%token EQUALS BECOMES PLUS MINUS MULTIPLY DIVIDE LESSTHAN GREATERTHAN OR AND
 
 %left LESSTHAN GREATERTHAN
 %left PLUS MINUS
 %left MULTIPLY DIVIDE
+%left AND
+%left OR
 %left BECOMES
 
 %%
@@ -48,6 +50,7 @@ sheep:
 	| symbs cde
 	| symbs
 	| cde
+	| snippet
 	;
 
 symbs:
@@ -66,6 +69,10 @@ symbol_list:
 	
 cde:
 	CODE LBRACE function_list RBRACE
+	;
+	
+snippet:
+	SNIP LBRACE expr RBRACE { CreateSnippet(); }
 	;
 	
 function_list:
@@ -129,6 +136,8 @@ expr:
 	| expr DIVIDE expr { Division(); }
 	| expr LESSTHAN expr { LessThan(); }
 	| expr GREATERTHAN expr { GreaterThan(); }
+	| expr OR expr { Or(); }
+	| expr AND expr { And(); }
 	;
 
 expr_list:

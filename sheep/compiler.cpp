@@ -5,7 +5,12 @@
 
 extern "C"
 {
+	struct yy_buffer_state;
+	typedef struct yy_buffer_state *YY_BUFFER_STATE;
+
 int yyparse();
+void yy_delete_buffer( YY_BUFFER_STATE b );
+YY_BUFFER_STATE yy_scan_string(const char* str);
 }
 
 namespace SheepCompiler
@@ -24,12 +29,16 @@ namespace SheepCompiler
 	unsigned int Compiler::m_currentFunctionOffset = 0;
 	std::vector<byte> Compiler::m_instructions;
 
-	void Compiler::Init()
+	bool Compiler::m_snippetsEnabled = false;
+		
+	void Compiler::Init(bool snippetsEnabled)
 	{
 		loadSheepFunctions();
 
 		// add an empty string to the list of string constants
 		addStringToConstantsList("");
+
+		m_snippetsEnabled = snippetsEnabled;
 	}
 
 	int Compiler::Compile(const std::string& inputFile)
@@ -41,6 +50,17 @@ namespace SheepCompiler
 		}
 
 		yyparse();
+
+		return 0;
+	}
+
+	int Compiler::CompileScript(const std::string& script)
+	{
+		YY_BUFFER_STATE buffer = yy_scan_string(script.c_str());
+
+		yyparse();
+
+		yy_delete_buffer(buffer);
 
 		return 0;
 	}
@@ -284,6 +304,44 @@ namespace SheepCompiler
 	void Compiler::LessThan()
 	{
 		addComparisonOperator(IsLessI, IsLessF);
+	}
+
+	void Compiler::And()
+	{
+		SymbolType type2 = m_stackTypes.top();
+		SymbolType type1 = m_stackTypes.top();
+
+		m_stackTypes.pop();
+		m_stackTypes.pop();
+
+		if (type1 != Symbol_Integer ||
+			type2 != Symbol_Integer)
+			throw CompilerException("Syntax error: && operator between two non-integer values");
+
+		addByteToInstructions(SheepCompiler::And);
+		m_stackTypes.push(Symbol_Integer);
+	}
+
+	void Compiler::Or()
+	{
+		SymbolType type2 = m_stackTypes.top();
+		SymbolType type1 = m_stackTypes.top();
+
+		m_stackTypes.pop();
+		m_stackTypes.pop();
+
+		if (type1 != Symbol_Integer ||
+			type2 != Symbol_Integer)
+			throw CompilerException("Syntax error: || operator between two non-integer values");
+
+		addByteToInstructions(SheepCompiler::Or);
+		m_stackTypes.push(Symbol_Integer);
+	}
+
+	void Compiler::CreateSnippet()
+	{
+		if (m_snippetsEnabled == false)
+			throw CompilerException("Syntax error: snippets not enabled");
 	}
 
 	void Compiler::PrintDebugInfo()

@@ -29,11 +29,13 @@ int main(int argc, char** argv)
 
 	try
 	{
-		SheepCompiler::Compiler::Init();
+		SheepCompiler::Compiler::Init(false);
 
 		SheepCompiler::Compiler::Compile(argv[1]);
 		
 		SheepCompiler::Compiler::WriteCompiledSheep("output.shp");
+
+		//SheepCompiler::Compiler::CompileScript("csnippet { 1 && 2 && 0 }");
 	}
 	catch(SheepCompiler::CompilerException& e)
 	{

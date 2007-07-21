@@ -2,6 +2,7 @@
 #include <cassert>
 #include "compiler.h"
 #include "sheepfile.h"
+#include "rbuffer.h"
 
 namespace SheepCompiler
 {
@@ -27,6 +28,17 @@ struct Variable
 
 void Compiler::WriteCompiledSheep(const std::string& outputFile)
 {
+	::ResizableBuffer* buffer = WriteCompiledSheep();
+
+	buffer->SaveToFile(outputFile);
+
+	delete buffer;
+}
+
+ResizableBuffer* Compiler::WriteCompiledSheep()
+{
+	ResizableBuffer* buffer = new ResizableBuffer;
+
 	bool includeVariablesSection = false;
 
 	if (m_symbolList.empty() == false)
@@ -223,11 +235,9 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	// TODO: set the data size header field!
 
 	// whew! all that's done! let's write it out!
-	#define WRITE4(p) file.write((char*)p, 4);
-	#define WRITE2(p) file.write((char*)p, 2);
-	#define WRITE1(p) file.write((char*)p, 1);
-
-	std::ofstream file(outputFile.c_str(), std::ios_base::binary);
+	#define WRITE4(p) buffer->Write((char*)p, 4);
+	#define WRITE2(p) buffer->Write((char*)p, 2);
+	#define WRITE1(p) buffer->Write((char*)p, 1);
 
 	// write the header
 	WRITE4(&header.Magic1);
@@ -244,7 +254,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	}
 
 	// write the SysImports section
-	file.write(importHeader.Label, 12);
+	buffer->Write(importHeader.Label, 12);
 	WRITE4(&importHeader.ExtraOffset);
 	WRITE4(&importHeader.DataOffset);
 	WRITE4(&importHeader.DataSize);
@@ -258,7 +268,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	for (unsigned int i = 0; i < importHeader.DataCount; i++)
 	{
 		WRITE2(&imports[i].LengthOfName);
-		file.write(imports[i].Name.c_str(), imports[i].LengthOfName+1);
+		buffer->Write(imports[i].Name.c_str(), imports[i].LengthOfName+1);
 		WRITE1(&imports[i].NumReturns);
 		WRITE1(&imports[i].NumParameters);
 
@@ -267,7 +277,7 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	}
 
 	// write the string constants section
-	file.write(constantHeader.Label, 12);
+	buffer->Write(constantHeader.Label, 12);
 	WRITE4(&constantHeader.ExtraOffset);
 	WRITE4(&constantHeader.DataOffset);
 	WRITE4(&constantHeader.DataSize);
@@ -280,13 +290,13 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 
 	for (unsigned int i = 0; i < m_stringConstantsList.size(); i++)
 	{
-		file.write(m_stringConstantsList[i].String.c_str(), m_stringConstantsList[i].String.length()+1);
+		buffer->Write(m_stringConstantsList[i].String.c_str(), m_stringConstantsList[i].String.length()+1);
 	}
 
 	// write the variables section
 	if (includeVariablesSection)
 	{
-		file.write(variablesHeader.Label, 12);
+		buffer->Write(variablesHeader.Label, 12);
 		WRITE4(&variablesHeader.ExtraOffset);
 		WRITE4(&variablesHeader.DataOffset);
 		WRITE4(&variablesHeader.DataSize);
@@ -300,14 +310,14 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 		for (unsigned int i = 0; i < variablesHeader.DataCount; i++)
 		{
 			WRITE2(&variables[i].LengthOfName);
-			file.write(variables[i].Name.c_str(), variables[i].LengthOfName+1);
+			buffer->Write(variables[i].Name.c_str(), variables[i].LengthOfName+1);
 			WRITE4(&variables[i].Type);
 			WRITE4(&variables[i].Value);
 		}
 	}
 
 	// write the function section
-	file.write(functionHeader.Label, 12);
+	buffer->Write(functionHeader.Label, 12);
 	WRITE4(&functionHeader.ExtraOffset);
 	WRITE4(&functionHeader.DataOffset);
 	WRITE4(&functionHeader.DataSize);
@@ -321,14 +331,14 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	for (unsigned int i = 0; i < functionHeader.DataCount; i++)
 	{
 		WRITE2(&functions[i].LengthOfName);
-		file.write(functions[i].Name.c_str(), functions[i].LengthOfName+1);
+		buffer->Write(functions[i].Name.c_str(), functions[i].LengthOfName+1);
 		WRITE1(&functions[i].NumReturns);
 		WRITE1(&functions[i].NumParameters);
 		WRITE4(&functions[i].CodeOffset);
 	}
 
 	// write the code section
-	file.write(codeHeader.Label, 12);
+	buffer->Write(codeHeader.Label, 12);
 	WRITE4(&codeHeader.ExtraOffset);
 	WRITE4(&codeHeader.DataOffset);
 	WRITE4(&codeHeader.DataSize);
@@ -344,8 +354,6 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 		WRITE1(&b);
 	}
 
-	file.close();
-
 	// cleanup
 	delete[] header.OffsetArray;
 	delete[] importHeader.OffsetArray;
@@ -355,6 +363,8 @@ void Compiler::WriteCompiledSheep(const std::string& outputFile)
 	if (variablesHeader.OffsetArray) delete[] variablesHeader.OffsetArray;
 	delete[] imports;
 	delete[] variables;
+
+	return buffer;
 }
 
 }

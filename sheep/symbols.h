@@ -31,9 +31,14 @@ void Division();
 void GreaterThan();
 void LessThan();
 
+void And();
+void Or();
+
 void AddIf();
 void AddElse();
 void EndIf();
+
+void CreateSnippet();
 
 #ifdef __cplusplus
 }

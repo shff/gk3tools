@@ -8,6 +8,9 @@
 #include <stack>
 #include <string>
 #include "sheepfile.h"
+#include "sheepc.h"
+
+class ResizableBuffer;
 
 namespace SheepCompiler
 {
@@ -102,9 +105,12 @@ namespace SheepCompiler
 	{
 	public:
 
-		static void Init();
+		static void Init(bool snippetsEnabled);
 		static int Compile(const std::string& inputFile);
+		static int CompileScript(const std::string& script);
+
 		static void WriteCompiledSheep(const std::string& outputFile);
+		static ResizableBuffer* WriteCompiledSheep();
 		static void PrintDebugInfo();
 
 		static void AddIntSymbol(const std::string& name, int value);
@@ -129,9 +135,14 @@ namespace SheepCompiler
 		static void GreaterThan();
 		static void LessThan();
 
+		static void And();
+		static void Or();
+
 		static void AddIf();
 		static void AddElse();
 		static void EndIf();
+
+		static void CreateSnippet();
 
 	private:
 		
@@ -234,6 +245,8 @@ namespace SheepCompiler
 		static std::stack<SymbolType> m_stackTypes;
 
 		static std::stack<int> m_ifOffsetStack;
+
+		static bool m_snippetsEnabled;
 	};
 
 }
