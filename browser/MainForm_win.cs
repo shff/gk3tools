@@ -43,9 +43,25 @@ namespace GK3BB
             _imageList.Images.Add("text", Image.FromFile("icons/text.png"));
             _imageList.Images.Add("binary", Image.FromFile("icons/binary.png"));
             _imageList.Images.Add("script", Image.FromFile("icons/script.png"));
+            _imageList.Images.Add("font", Image.FromFile("icons/font.png"));
             mainListView.SmallImageList = _imageList;
 
             _sorter = new ListViewColumnSorter();
+
+            // build the preview extensions map
+            _previewExtensionsMap = new Dictionary<string, string>();
+            _previewExtensionsMap.Add("TXT", "TXT");
+            _previewExtensionsMap.Add("ANM", "TXT");
+            _previewExtensionsMap.Add("GAS", "TXT");
+            _previewExtensionsMap.Add("NVC", "TXT");
+            _previewExtensionsMap.Add("SCN", "TXT");
+            _previewExtensionsMap.Add("SIF", "TXT");
+            _previewExtensionsMap.Add("STK", "TXT");
+            _previewExtensionsMap.Add("YAK", "TXT");
+            _previewExtensionsMap.Add("BMP", "BMP");
+            _previewExtensionsMap.Add("HTML", "HTML");
+            _previewExtensionsMap.Add("HTM", "HTML");
+            _previewExtensionsMap.Add("WAV", "WAV");
         }
 
         #region Event handlers
@@ -97,6 +113,8 @@ namespace GK3BB
                             file.Extension == "STK" || file.Extension == "GAS" ||
                             file.Extension == "SCN")
                             iconKey = "script";
+                        else if (file.Extension == "FON")
+                            iconKey = "font";
 
                         ListViewItem item = new ListViewItem(new string[] {file.Name,
                         file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
@@ -121,12 +139,12 @@ namespace GK3BB
 
                 // enable the menu items
                 extractSelectedFilesToolStripMenuItem.Enabled = true;
-                // TODO: uncomment the following line once previewing is implemented
-                //previewFileToolStripMenuItem.Enabled = true;
-                extractAllBitmapsToolStripMenuItem.Enabled = true;
-                extractAllDocsToolStripMenuItem.Enabled = true;
-                extractAllHtmlFilesToolStripMenuItem.Enabled = true;
-                extractAllWavsToolStripMenuItem.Enabled = true;
+                // TODO: uncomment the following lines once previewing and stuff is implemented
+                previewFileToolStripMenuItem.Enabled = true;
+                //extractAllBitmapsToolStripMenuItem.Enabled = true;
+                //extractAllDocsToolStripMenuItem.Enabled = true;
+                //extractAllHtmlFilesToolStripMenuItem.Enabled = true;
+                //extractAllWavsToolStripMenuItem.Enabled = true;
 			}
 		}
 
@@ -186,6 +204,58 @@ namespace GK3BB
             if (dialog.ShowDialog() == DialogResult.OK)
                 BarnManager.ExtractPath = dialog.SelectedPath + System.IO.Path.DirectorySeparatorChar;
         }
+        
+        private void previewFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in mainListView.SelectedItems)
+            {
+                try
+                {
+                    BarnFile bf = item.Tag as BarnFile;
+
+                    if (isPreviewSupported(bf.Extension))
+                    {
+                        string filename = System.IO.Path.GetTempFileName() + "." + getPreviewExtension(bf.Extension);
+
+                        byte[] data = BarnManager.ExtractData(bf.Name);
+
+                        // if it's a bitmap then convert it
+                        if (bf.Extension == "BMP")
+                        {
+                            GK3Bitmap bmp = new GK3Bitmap(data);
+                            bmp.Save(filename);
+                        }
+                        else
+                        {
+                            System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Create);
+                            fs.Write(data, 0, data.Length);
+                            fs.Close();
+                        }
+
+                        System.Diagnostics.Process.Start(filename);
+                    }
+                }
+                catch(System.IO.FileNotFoundException)
+                {
+                }
+            }
+        }
+
+        private void mainListView_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // default to not enabled
+            previewFileToolStripMenuItem.Enabled = false;
+
+            // if only 1 item is selected and it's a supported type then enable previewing
+            if (mainListView.SelectedItems.Count == 1)
+            {
+                BarnFile bf = mainListView.SelectedItems[0].Tag as BarnFile;
+
+                if (isPreviewSupported(bf.Extension))
+                    previewFileToolStripMenuItem.Enabled = true;
+            }
+            
+        }
 
         private void mainListView_ColumnClick(object sender, ColumnClickEventArgs e)
         {
@@ -205,8 +275,22 @@ namespace GK3BB
 
         #endregion
 
+        private bool isPreviewSupported(string extension)
+        {
+            return _previewExtensionsMap.ContainsKey(extension.ToUpper());
+        }
+
+        private string getPreviewExtension(string extension)
+        {
+            return _previewExtensionsMap[extension.ToUpper()];
+        }
+
         private ImageList _imageList;
         private ListViewColumnSorter _sorter;
+        private Dictionary<string, string> _previewExtensionsMap;
+
+        
+        
     }
 
     class ListViewColumnSorter : System.Collections.IComparer

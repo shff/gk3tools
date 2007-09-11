@@ -119,6 +119,7 @@ namespace GK3BB
             this.previewFileToolStripMenuItem.Name = "previewFileToolStripMenuItem";
             this.previewFileToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
             this.previewFileToolStripMenuItem.Text = "Preview file";
+            this.previewFileToolStripMenuItem.Click += new System.EventHandler(this.previewFileToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
@@ -222,6 +223,7 @@ namespace GK3BB
             this.mainListView.TabIndex = 1;
             this.mainListView.UseCompatibleStateImageBehavior = false;
             this.mainListView.View = System.Windows.Forms.View.Details;
+            this.mainListView.SelectedIndexChanged += new System.EventHandler(this.mainListView_SelectedIndexChanged);
             this.mainListView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.mainListView_ColumnClick);
             // 
             // filenameColumn

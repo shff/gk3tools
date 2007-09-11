@@ -23,16 +23,17 @@ namespace GK3BB
             ushort width = BitConverter.ToUInt16(data, currentIndex);
             currentIndex += 2;
 
-            ushort paddedWidth;
-            if (width % 4 == 0) paddedWidth = width;
-            else paddedWidth = (ushort)(width + 4 - width % 4);
+            int numPaddingBytes = 0;
+
+            if ((width * 3) % 4 != 0)
+                numPaddingBytes = 4 - (width * 3) % 4;
 
             _data = new MemoryStream();
             BinaryWriter writer = new BinaryWriter(_data);
 
             // write the file header
             writer.Write((UInt16)19778);
-            writer.Write((UInt32)(54 + height * paddedWidth * 3));
+            writer.Write((UInt32)(54 + height * (width * 3 + numPaddingBytes)));
             writer.Write((UInt16)0);
             writer.Write((UInt16)0);
             writer.Write((UInt32)54);
@@ -67,6 +68,14 @@ namespace GK3BB
                     writer.Write(r);
                     writer.Write(g);
                     writer.Write(b);
+                }
+
+                // add any padding
+                for (int i = 0; i < numPaddingBytes; i++)
+                {
+                    byte zero = 0;
+
+                    writer.Write(zero);
                 }
             }
             //writer.Write(data, currentIndex, data.Length - 8);
