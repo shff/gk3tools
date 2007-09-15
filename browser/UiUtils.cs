@@ -30,7 +30,7 @@ namespace GK3BB
 				+ "http://www.fwheel.net" + Environment.NewLine
 				+ "Licensed under the GNU GPL" + Environment.NewLine
 				+ Environment.NewLine
-				+ "Version " + Info.Version + Environment.NewLine
+				+ "Version " + Info.Version + " (Alpha)" + Environment.NewLine
 				+ Environment.NewLine
 				+ "Using " + BarnLib.Barn.GetLibBarnInfo();
 		}
