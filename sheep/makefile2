@@ -1,0 +1,12 @@
+CC=gcc
+CPPC=g++
+FLAGS= -g
+EXECUTABLE=parser
+
+$(EXECUTABLE):
+	bison -o sheepParser.cpp -d sheepParser.y
+	flex -o sheepScanner.cpp sheepScanner.l
+	$(CPPC) $(FLAGS) sheepMain.cpp sheepCodeTree.cpp sheepParser.cpp sheepScanner.cpp -o $(EXECUTABLE)
+	
+clean:
+	rm $(EXECUTABLE)
