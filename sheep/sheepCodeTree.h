@@ -42,6 +42,21 @@ enum CodeTreeDeclarationNodeType
 	DECLARATIONTYPE_FUNCTION
 };
 
+enum CodeTreeOperationType
+{
+	OP_ADD,
+	OP_MINUS,
+	OP_TIMES,
+	OP_DIVIDE,
+	OP_GT,
+	OP_LT,
+	OP_GTE,
+	OP_LTE,
+	OP_EQ,
+	OP_NE,
+	OP_ASSIGN
+};
+
 class SheepCodeTreeNode
 {
 public:
@@ -51,8 +66,11 @@ public:
 
 	static SheepCodeTreeNode* CreateIntegerConstant(int value, int lineNumber);
 	static SheepCodeTreeNode* CreateFloatConstant(float value, int lineNumber);
+	static SheepCodeTreeNode* CreateStringConstant(const std::string& value, int lineNumber);
 
 	static SheepCodeTreeNode* CreateIdentifierReference(const std::string& name, bool global, int lineNumber);
+
+	static SheepCodeTreeNode* CreateOperation(CodeTreeOperationType type, int lineNumber);
 
 	void AttachSibling(SheepCodeTreeNode* sibling);
 	void SetChild(int index, SheepCodeTreeNode* node);
@@ -163,6 +181,28 @@ private:
 	float m_value;
 };
 
+class SheepCodeTreeStringConstantNode : public SheepCodeTreeExpressionNode
+{
+public:
+	
+	SheepCodeTreeStringConstantNode(const std::string& value, int lineNumber)
+		: SheepCodeTreeExpressionNode(lineNumber)
+	{
+		m_value = value;
+	}
+
+protected:
+	
+	void PrintData()
+	{
+		printf("String constant with value \"%s\"\n", m_value.c_str());
+	}
+	
+private:
+	
+	std::string m_value;
+};
+
 class SheepCodeTreeIdentifierReferenceNode : public SheepCodeTreeExpressionNode
 {
 public:
@@ -184,6 +224,52 @@ private:
 	
 	bool m_global;
 	std::string m_name;
+};
+
+class SheepCodeTreeOperationNode : public SheepCodeTreeExpressionNode
+{
+public:
+	SheepCodeTreeOperationNode(CodeTreeOperationType type, int lineNumber)
+		: SheepCodeTreeExpressionNode(lineNumber)
+	{
+		m_type = type;
+	}
+	
+protected:
+	
+	void PrintData()
+	{
+		std::string operationText = "????";
+		
+		if (m_type == OP_ADD)
+			operationText = "ADD";
+		else if (m_type == OP_MINUS)
+			operationText = "MINUS";
+		else if (m_type == OP_TIMES)
+			operationText = "TIMES";
+		else if (m_type == OP_DIVIDE)
+			operationText = "DIVIDE";
+		else if (m_type == OP_ASSIGN)
+			operationText = "ASSIGN";
+		else if (m_type == OP_LT)
+			operationText = "LESS THAN";
+		else if (m_type == OP_GT)
+			operationText = "GREATER THAN";
+		else if (m_type == OP_LTE)
+			operationText = "LESS THAN OR EQUAL";
+		else if (m_type == OP_GTE)
+			operationText = "GREATER THAN OR EQUAL";
+		else if (m_type == OP_EQ)
+			operationText = "EQUALS";
+		else if (m_type == OP_NE)
+			operationText = "NOT EQUAL";
+		
+		printf("Operation: %s\n", operationText.c_str());
+	}
+	
+private:
+	
+	CodeTreeOperationType m_type;
 };
 
 class SheepException : public std::exception

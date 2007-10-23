@@ -3,12 +3,6 @@
 	#include <string.h>
 	#include <stdlib.h>
 	#include "sheepParser.hpp"
-
-	char* removeQuotes(char* str)
-	{
-		str[strlen(str)-1] = 0;
-		return str+1;
-	}
 	
 	int currentLine = 1;
 %}
@@ -44,11 +38,12 @@
 "\""		return QUOTE;
 
 "=="		return EQUALS;
+"!="		return NOTEQUAL;
 "="		return BECOMES;
 
 "+"		return PLUS;
 "-"		return MINUS;
-"*"		return MULTIPLY;
+"*"		return TIMES;
 "/"		return DIVIDE;
 
 ">"		return GREATERTHAN;

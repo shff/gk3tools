@@ -68,9 +68,19 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateFloatConstant(float value, int lineN
 	return new SheepCodeTreeFloatConstantNode(value, lineNumber);
 }
 
+SheepCodeTreeNode* SheepCodeTreeNode::CreateStringConstant(const std::string& value, int lineNumber)
+{
+	return new SheepCodeTreeStringConstantNode(value, lineNumber);
+}
+
 SheepCodeTreeNode* SheepCodeTreeNode::CreateIdentifierReference(const std::string& name, bool global, int lineNumber)
 {
 	return new SheepCodeTreeIdentifierReferenceNode(name, global, lineNumber);
+}
+
+SheepCodeTreeNode* SheepCodeTreeNode::CreateOperation(CodeTreeOperationType type, int lineNumber)
+{
+	return new SheepCodeTreeOperationNode(type, lineNumber);
 }
 
 void SheepCodeTreeNode::AttachSibling(SheepCodeTreeNode* sibling)
