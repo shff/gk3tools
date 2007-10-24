@@ -22,6 +22,7 @@
 "code"		return CODE;
 "symbols"	return SYMBOLS;
 "return" 	return RETURN;
+"wait"		return WAIT;
 "if"		return IF;
 "else"		return ELSE;
 

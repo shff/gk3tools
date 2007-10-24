@@ -83,6 +83,11 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateOperation(CodeTreeOperationType type
 	return new SheepCodeTreeOperationNode(type, lineNumber);
 }
 
+SheepCodeTreeNode* SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType type, int lineNumber)
+{
+	return new SheepCodeTreeStatementNode(type, lineNumber);
+}
+
 void SheepCodeTreeNode::AttachSibling(SheepCodeTreeNode* sibling)
 {
 	SheepCodeTreeNode* t = this;
@@ -117,7 +122,9 @@ void SheepCodeTreeNode::Print(int indent)
 	
 	// tell the sibling to print
 	if (m_sibling)
+	{
 		m_sibling->Print(indent);
+	}
 }
 
 void SheepCodeTreeNode::PrintIndents(int indent)

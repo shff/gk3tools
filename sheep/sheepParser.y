@@ -26,7 +26,7 @@ char* removeQuotes(char* str)
 %}
 
 %token <id> IDENTIFIER <id> LOCALIDENTIFIER <intVal> INTEGER <floatVal> FLOAT <stringVal> STRING
-%token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS SNIP
+%token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS SNIP WAIT
 %token RETURN IF ELSE
 %token SEMICOLON DOLLAR LPAREN RPAREN LBRACE RBRACE QUOTE COMMA
 %token EQUALS NOTEQUAL BECOMES PLUS MINUS TIMES DIVIDE LESSTHAN GREATERTHAN OR AND
@@ -89,7 +89,15 @@ statement_list:
 statement:
 	SEMICOLON
 	| expr SEMICOLON { $$ = $1 }
+	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
+	| wait_statement { $$ = $1 }
 	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateOperation(OP_ASSIGN, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	;
+
+wait_statement:
+	WAIT SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); }
+	| WAIT global_function_call SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); $$->SetChild(0, $2); }
+	| WAIT LBRACE global_function_call_list SEMICOLON RBRACE { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); $$->SetChild(0, $3); }
 	;
 	
 local_identifier:
@@ -109,6 +117,11 @@ constant:
 global_function_call:
 	global_identifier LPAREN RPAREN { $$ = $1 }
 	| global_identifier LPAREN parameter_list RPAREN { $$ = $1; $$->SetChild(0, $3); }
+	;
+	
+global_function_call_list:
+	global_function_call { $$ = $1 }
+	| global_function_call_list SEMICOLON global_function_call { $$ = $1; $$->AttachSibling($3); }
 	;
 
 parameter_list:

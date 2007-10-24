@@ -57,6 +57,13 @@ enum CodeTreeOperationType
 	OP_ASSIGN
 };
 
+enum CodeTreeKeywordStatementType
+{
+	SMT_RETURN,
+	SMT_WAIT,
+	SMT_GOTO,
+};
+
 class SheepCodeTreeNode
 {
 public:
@@ -71,6 +78,8 @@ public:
 	static SheepCodeTreeNode* CreateIdentifierReference(const std::string& name, bool global, int lineNumber);
 
 	static SheepCodeTreeNode* CreateOperation(CodeTreeOperationType type, int lineNumber);
+
+	static SheepCodeTreeNode* CreateKeywordStatement(CodeTreeKeywordStatementType type, int lineNumber);
 
 	void AttachSibling(SheepCodeTreeNode* sibling);
 	void SetChild(int index, SheepCodeTreeNode* node);
@@ -126,6 +135,27 @@ private:
 
 class SheepCodeTreeStatementNode : public SheepCodeTreeNode
 {
+public:
+	SheepCodeTreeStatementNode(CodeTreeKeywordStatementType type, int lineNumber)
+		: SheepCodeTreeNode(NODETYPE_STATEMENT, lineNumber)
+	{
+		m_type = type;
+	}
+	
+protected:
+	
+	void PrintData()
+	{
+		if (m_type == SMT_RETURN)
+			printf("RETURN\n");
+		else if (m_type == SMT_WAIT)
+			printf("WAIT\n");
+		else
+			printf("UNKNOWN KEYWORD STATEMENT!\n");
+	}
+	
+private:
+	CodeTreeKeywordStatementType m_type;
 };
 
 class SheepCodeTreeExpressionNode : public SheepCodeTreeNode
