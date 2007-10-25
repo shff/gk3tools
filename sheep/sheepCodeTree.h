@@ -62,6 +62,7 @@ enum CodeTreeKeywordStatementType
 	SMT_RETURN,
 	SMT_WAIT,
 	SMT_GOTO,
+	SMT_IF
 };
 
 class SheepCodeTreeNode
@@ -150,6 +151,8 @@ protected:
 			printf("RETURN\n");
 		else if (m_type == SMT_WAIT)
 			printf("WAIT\n");
+		else if (m_type == SMT_IF)
+			printf("IF\n");
 		else
 			printf("UNKNOWN KEYWORD STATEMENT!\n");
 	}

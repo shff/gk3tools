@@ -81,12 +81,13 @@ function:
 	| local_identifier LPAREN RPAREN LBRACE statement_list RBRACE { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FUNCTION, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $5); }
 	;
 	
+	
 statement_list:
 	statement { $$ = $1 }
 	| statement_list statement { $1->AttachSibling($2); $$ = $1; }
 	;
 	
-statement:
+simple_statement:
 	SEMICOLON
 	| expr SEMICOLON { $$ = $1 }
 	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
@@ -98,6 +99,24 @@ wait_statement:
 	WAIT SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); }
 	| WAIT global_function_call SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); $$->SetChild(0, $2); }
 	| WAIT LBRACE global_function_call_list SEMICOLON RBRACE { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); $$->SetChild(0, $3); }
+	;
+
+/* this "open" and "closed" stuff can be found here:
+http://www.parsifalsoft.com/ifelse.html */
+statement:
+	open_statement { $$ = $1 }
+	| closed_statement { $$ = $1 }
+	;
+	
+open_statement:
+	IF LPAREN expr RPAREN statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); }
+	| IF LPAREN expr RPAREN closed_statement ELSE open_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
+	;
+	
+closed_statement:
+	simple_statement { $$ = $1 }
+	| LBRACE statement_list RBRACE { $$ = $2 }
+	| IF LPAREN expr RPAREN closed_statement ELSE closed_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
 	;
 	
 local_identifier:
