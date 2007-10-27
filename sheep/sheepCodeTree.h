@@ -39,7 +39,8 @@ enum CodeTreeDeclarationNodeType
 	DECLARATIONTYPE_INT,
 	DECLARATIONTYPE_FLOAT,
 	DECLARATIONTYPE_STRING,
-	DECLARATIONTYPE_FUNCTION
+	DECLARATIONTYPE_FUNCTION,
+	DECLARATIONTYPE_LABEL
 };
 
 enum CodeTreeOperationType
@@ -67,7 +68,8 @@ enum CodeTreeKeywordStatementType
 
 class SheepCodeTreeNode
 {
-public:
+public:	
+
 	static SheepCodeTreeNode* CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber);
 	static SheepCodeTreeNode* CreateStatement(int lineNumber);
 	static SheepCodeTreeNode* CreateLocalFunction(int lineNumber);
@@ -81,6 +83,8 @@ public:
 	static SheepCodeTreeNode* CreateOperation(CodeTreeOperationType type, int lineNumber);
 
 	static SheepCodeTreeNode* CreateKeywordStatement(CodeTreeKeywordStatementType type, int lineNumber);
+
+	virtual ~SheepCodeTreeNode();
 
 	void AttachSibling(SheepCodeTreeNode* sibling);
 	void SetChild(int index, SheepCodeTreeNode* node);
@@ -128,6 +132,8 @@ protected:
 			printf("Declaration of string\n");
 		else if (m_declarationType == DECLARATIONTYPE_FUNCTION)
 			printf("Declaration of local function\n");
+		else if (m_declarationType == DECLARATIONTYPE_LABEL)
+			printf("Declaration of label\n");
 	}
 
 private:
@@ -151,6 +157,8 @@ protected:
 			printf("RETURN\n");
 		else if (m_type == SMT_WAIT)
 			printf("WAIT\n");
+		else if (m_type == SMT_GOTO)
+			printf("GOTO\n");
 		else if (m_type == SMT_IF)
 			printf("IF\n");
 		else

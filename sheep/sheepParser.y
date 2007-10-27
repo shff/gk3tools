@@ -19,16 +19,24 @@ void yyerror(const char* str)
 
 char* removeQuotes(char* str)
 {
-	str[strlen(str)-1] = 0;
-	return str+1;
+	if (str[0] == '"')
+	{
+		str[strlen(str)-1] = 0;
+		return str+1;
+	}
+	else // assume "|< >|" strings
+	{
+		str[strlen(str)-2] = 0;
+		return str+2;
+	}
 }
 
 %}
 
 %token <id> IDENTIFIER <id> LOCALIDENTIFIER <intVal> INTEGER <floatVal> FLOAT <stringVal> STRING
 %token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS SNIP WAIT
-%token RETURN IF ELSE
-%token SEMICOLON DOLLAR LPAREN RPAREN LBRACE RBRACE QUOTE COMMA
+%token RETURN IF ELSE GOTO
+%token COLON SEMICOLON DOLLAR LPAREN RPAREN LBRACE RBRACE QUOTE COMMA
 %token EQUALS NOTEQUAL BECOMES PLUS MINUS TIMES DIVIDE LESSTHAN GREATERTHAN OR AND
 
 %left EQUALS NOTEQUAL
@@ -89,6 +97,8 @@ statement_list:
 	
 simple_statement:
 	SEMICOLON
+	| local_identifier COLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_LABEL, currentLine); $$->SetChild(0, $1); }
+	| GOTO local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_GOTO, currentLine); $$->SetChild(0, $2); }
 	| expr SEMICOLON { $$ = $1 }
 	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
 	| wait_statement { $$ = $1 }

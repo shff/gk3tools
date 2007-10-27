@@ -7,8 +7,8 @@ extern "C"
 {
 #endif
 
-void AddIntSymbol(char* name, int value);
-void AddFloatSymbol(char* name, float value);
+int AddIntSymbol(char* name, int value);
+int AddFloatSymbol(char* name, float value);
 void AddStringSymbol(char* name, char* value);
 
 void AssignSymbolValue(char* name);

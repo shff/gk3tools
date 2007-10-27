@@ -2,7 +2,7 @@
 	#include <stdio.h>
 	#include <string.h>
 	#include <stdlib.h>
-	#include "y.tab.h"
+	#include "sheepParser.hpp"
 
 	char* removeQuotes(char* str)
 	{

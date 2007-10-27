@@ -9,15 +9,42 @@ extern "C"
 	void yyerror(const char* str); // defined by sheep.y
 }
 
-
-void AddIntSymbol(char* name, int value)
+struct _LastError
 {
-	SheepCompiler::Compiler::AddIntSymbol(name, value);
+	int line;
+	std::string message;
+} LastError;
+
+int AddIntSymbol(char* name, int value)
+{
+	try
+	{
+		SheepCompiler::Compiler::AddIntSymbol(name, value);
+	}
+	catch(SheepCompiler::CompilerException& e)
+	{
+		LastError.line = 0;
+		LastError.message = e.GetError();
+		return -1;
+	}
+	
+	return 0;
 }
 
-void AddFloatSymbol(char* name, float value)
+int AddFloatSymbol(char* name, float value)
 {
-	SheepCompiler::Compiler::AddFloatSymbol(name, value);
+	try
+	{
+		SheepCompiler::Compiler::AddFloatSymbol(name, value);
+	}
+	catch(SheepCompiler::CompilerException& e)
+	{
+		LastError.line = 0;
+		LastError.message = e.GetError();
+		return -1;
+	}
+	
+	return 0;
 }
 
 void AddStringSymbol(char* name, char* value)

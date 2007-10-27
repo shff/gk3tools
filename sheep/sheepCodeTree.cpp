@@ -31,6 +31,8 @@ void SheepCodeTree::Unlock()
 {
 	m_locked = false;
 	m_log = NULL;
+	delete g_codeTree;
+	g_codeTree = NULL;
 }
 
 void SheepCodeTree::Print()
@@ -49,6 +51,18 @@ SheepCodeTreeNode::SheepCodeTreeNode(CodeTreeNodeType type, int lineNumber)
 
 	for (int i = 0; i < NUM_CHILD_NODES; i++)
 		m_children[i] = NULL;
+}
+
+SheepCodeTreeNode::~SheepCodeTreeNode()
+{
+	// delete my siblings (be careful that previous siblings get deleted too!)
+	if (m_sibling != NULL)
+		delete m_sibling;
+	
+	// delete my children
+	for (int i = 0; i < NUM_CHILD_NODES; i++)
+		if (m_children[i] != NULL)
+			delete m_children[i];
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber)

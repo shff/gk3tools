@@ -37,10 +37,14 @@ int main(int argc, char** argv)
 
 		//SheepCompiler::Compiler::CompileScript("csnippet { 1 && 2 && 0 }");
 	}
-	catch(SheepCompiler::CompilerException& e)
+	catch(SheepCompiler::CompilerException e)
 	{
 		std::cout << "Error: " << e.GetError() << std::endl;
 		return -1;
+	}
+	catch(...)
+	{
+		std::cout << "zomg!" << std::endl;
 	}
 
 	return 0;

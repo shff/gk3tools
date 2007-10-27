@@ -25,9 +25,11 @@
 "wait"		return WAIT;
 "if"		return IF;
 "else"		return ELSE;
+"goto"		return GOTO;
 
 "snippet"	return SNIP;
 
+":"		return COLON;
 ";"		return SEMICOLON;
 ","		return COMMA;
 "$"		return DOLLAR;
@@ -55,7 +57,9 @@
 
 ([0-9])+\.([0-9])+	{ return FLOAT; }
 ([0-9])+		{ return INTEGER; }
-\"[^\"]*\"	{ return STRING; }
+\"([^\"\\]|\\\")*\"	{ return STRING; }
+\|\<[^\>\|]*\>\|	{ return STRING; }
+
 
 [a-zA-Z][a-zA-Z0-9]*[$] { return LOCALIDENTIFIER; }
 [a-zA-Z][a-zA-Z0-9]* { return IDENTIFIER; }
