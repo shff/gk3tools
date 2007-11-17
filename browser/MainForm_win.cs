@@ -215,7 +215,9 @@ namespace GK3BB
 
                     if (isPreviewSupported(bf.Extension))
                     {
-                        string filename = System.IO.Path.GetTempFileName() + "." + getPreviewExtension(bf.Extension);
+                        // get the name of a temporary file we can use
+                        System.IO.FileInfo newFileInfo = new System.IO.FileInfo(System.IO.Path.GetTempFileName());
+                        newFileInfo.MoveTo(newFileInfo.FullName + "." + getPreviewExtension(bf.Extension));
 
                         byte[] data = BarnManager.ExtractData(bf.Name);
 
@@ -223,16 +225,18 @@ namespace GK3BB
                         if (bf.Extension == "BMP")
                         {
                             GK3Bitmap bmp = new GK3Bitmap(data);
-                            bmp.Save(filename);
+                            bmp.Save(newFileInfo.FullName);
                         }
                         else
                         {
-                            System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Create);
+                            System.IO.FileStream fs = new System.IO.FileStream(newFileInfo.FullName, System.IO.FileMode.Create);
                             fs.Write(data, 0, data.Length);
                             fs.Close();
                         }
 
-                        System.Diagnostics.Process.Start(filename);
+                        System.Diagnostics.Process.Start(newFileInfo.FullName);
+
+                        // TODO: delete the file when the process is done!
                     }
                 }
                 catch(System.IO.FileNotFoundException)
