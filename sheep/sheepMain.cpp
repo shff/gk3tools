@@ -1,19 +1,49 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include "sheepCodeTree.h"
+#include "sheepCodeGenerator.h"
+#include "sheepImportTable.h"
+#include "sheepTypes.h"
 
 int main(int argc, char** argv)
 {
 	if (argc < 2)
 	{
-		printf("Sorry, need something to compile\n");
-		
+		std::cout << "Sorry, need something to compile" << std::endl;
 		return -1;
 	}
 	
 	SheepCodeTree tree;
 	
-	printf("Parsing \"%s\"\n\n", argv[1]);
+	std::ifstream file(argv[1]);
+	if (file.good() == false)
+	{
+		std::cout << "Unable to open " << argv[1] << std::endl;
+		return -1;
+	}
+
+	std::stringstream ss;
+	std::string line;
+	while(std::getline(file, line))
+	{
+		ss << line << std::endl;
+	}
+
+	file.close();
+
+	std::cout << "Parsing:" << std::endl << ss.str() << std::endl;
 	
-	tree.Lock(argv[1], NULL);
+	tree.Lock(ss.str(), NULL);
 	tree.Print();
+
+	SheepImportTable imports;
+	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING);
+
+	SheepCodeGenerator generator(&tree, &imports);
+	IntermediateOutput* output = generator.BuildIntermediateOutput();
+	output->Print();
+	delete output;
+
 	tree.Unlock();
 }

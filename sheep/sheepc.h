@@ -17,26 +17,102 @@ extern "C"
 #define SHEEP_SUCCESS 0
 #define SHEEP_ERROR -1
 
-struct SheepCode
+typedef unsigned char byte;
+
+enum SHP_SymbolType
 {
-	char* code;
-	unsigned int size;
+	Void = 0,
+	Int = 1,
+	Float = 2,
+	String = 3
 };
 
-/// Compiles the sheep script and returns a new SheepCode object.
-/// The code returned inside the SheepCode object is suitable for
+struct SHP_Symbol
+{
+	char* Name;
+	SHP_SymbolType Type;
+
+	int InitialIntValue;
+	float InitialFloatValue;
+	int InitialStringIndexValue;
+};
+
+struct SHP_StringConstant
+{
+	char* Name;
+	char* Value;
+};
+
+struct SHP_Import
+{
+	char* Name;
+	SHP_SymbolType ReturnType;
+	int NumParameters;
+	SHP_SymbolType* ParameterTypes;
+};
+
+struct SHP_Function
+{
+	char* Name;
+	byte Reserved1;
+	byte Reserved2;
+
+	byte* Code;
+	int CodeLength;
+};
+
+struct SHP_CompilerOutput
+{
+	char* Output;
+	int LineNumber;
+};
+
+struct SHP_IntermediateOutput
+{
+	int NumImports;
+	SHP_Import* Imports;
+
+	int NumConstants;
+	SHP_StringConstant* Constants;
+
+	int NumSymbols;
+	SHP_Symbol* Symbols;
+
+	int NumFunctions;
+	SHP_Function* Functions;
+
+	int NumWarnings;
+	SHP_CompilerOutput* Warnings;
+
+	int NumErrors;
+	SHP_CompilerOutput* Errors;
+};
+
+struct SHP_FullOutput
+{
+	byte* Code;
+	int CodeLength;
+
+	int NumWarnings;
+	SHP_CompilerOutput* Warnings;
+
+	int NumErrors;
+	SHP_CompilerOutput* Errors;
+};
+
+/// Compiles the sheep script and returns a new SHP_FullOutput object.
+/// The code returned inside the SHP_FullOutput object is suitable for
 /// saving to a file as a compiled .shp file. Also, the SheepCode
-/// object must be destroyed with shp_DestroySheep().
-/// Returns NULL on error.
-DECLSPEC SheepCode* LIB_CALL shp_Compile(const char* script);
+/// object must be destroyed with SHP_DestroyFullOutput().
+DECLSPEC SHP_FullOutput* LIB_CALL SHP_Compile(const char* script);
 
 /// Compiles the "snippet" of sheep. Don't try to save the returned
 /// code as a compiled .shp file, because it won't work! Use this
 /// function for executing small "snippets" of sheep.
-/// Returns NULL on error.
-DECLSPEC SheepCode* LIB_CALL shp_CompileSnippet(const char* script);
+DECLSPEC SHP_IntermediateOutput* LIB_CALL SHP_CompileSnippet(const char* script);
 
-DECLSPEC void LIB_CALL shp_DestroySheep(SheepCode* sheep);
+DECLSPEC void LIB_CALL SHP_DestroyFullOutput(SHP_FullOutput* sheep);
+DECLSPEC void LIB_CALL SHP_DestroyIntermediateOutput(SHP_IntermediateOutput* sheep);
 
 // TODO: add a way to fetch errors
 

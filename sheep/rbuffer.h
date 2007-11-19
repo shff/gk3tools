@@ -49,7 +49,24 @@ public:
 		
 		return size;
 	}
+
+	size_t WriteAt(const char* buffer, size_t size, size_t offset)
+	{
+		// don't write past where we've already written
+		if (size + offset >= m_currentOffset)
+			return 0;
+
+		size_t oldOffset = m_currentOffset;
+		m_currentOffset = offset;
+
+		size_t bytesWritten = Write(buffer, size);
+
+		m_currentOffset = oldOffset;
+
+		return bytesWritten;
+	}
 	
+	size_t Tell() { return m_currentOffset; }
 	const char* GetData() { return m_buffer; }
 	size_t GetSize() { return m_size; }
 	

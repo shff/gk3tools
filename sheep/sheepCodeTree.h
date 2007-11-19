@@ -1,7 +1,9 @@
 #ifndef SHEEPCODETREE_H
 #define SHEEPCODETREE_H
 
+#include <cassert>
 #include <string>
+#include <map>
 #include "sheepScanner.h"
 
 class SheepCodeTreeNode;
@@ -17,21 +19,49 @@ public:
 	
 	void Unlock();
 	
-	const SheepCodeTreeNode* GetCodeTree();
+	const SheepCodeTreeNode* GetCodeTree() const;
+	SheepCodeTreeNode* GetCodeTree();
 
 	/// For debugging. Writes out the parse tree.
 	void Print();
+
+	/// Adds the string to the list of string constants.
+	/// Returns the offset of the string. If the string has
+	/// already been added then it returns the offset of the
+	/// existing string, and no new string is added.
+	int AddStringConstant(const std::string& value);
+
+	struct StringConst
+	{
+		int Offset;
+		std::string Value;
+	};
+
+	std::map<std::string, StringConst>::const_iterator GetFirstConstant() const { return m_stringConstants.begin(); }
+	std::map<std::string, StringConst>::const_iterator GetEndOfConstants() const { return m_stringConstants.end(); }
+
 private:
 	bool m_locked;
 	SheepLog* m_log;
+
+	int m_nextStringConstantOffset;
+	std::map<std::string, StringConst> m_stringConstants;
 };
 
 enum CodeTreeNodeType
 {
 	NODETYPE_INVALID = 0,
+	NODETYPE_SECTION,
 	NODETYPE_DECLARATION,
 	NODETYPE_STATEMENT,
 	NODETYPE_EXPRESSION
+};
+
+enum CodeTreeSectionType
+{
+	SECTIONTYPE_SYMBOLS,
+	SECTIONTYPE_CODE,
+	SECTIONTYPE_SNIPPET
 };
 
 enum CodeTreeDeclarationNodeType
@@ -41,6 +71,22 @@ enum CodeTreeDeclarationNodeType
 	DECLARATIONTYPE_STRING,
 	DECLARATIONTYPE_FUNCTION,
 	DECLARATIONTYPE_LABEL
+};
+
+enum CodeTreeExpressionType
+{
+	EXPRTYPE_OPERATION,
+	EXPRTYPE_IDENTIFIER,
+	EXPRTYPE_CONSTANT
+};
+
+enum CodeTreeExpressionValueType
+{
+	EXPRVAL_UNKNOWN,
+	EXPRVAL_VOID,
+	EXPRVAL_INT,
+	EXPRVAL_FLOAT,
+	EXPRVAL_STRING
 };
 
 enum CodeTreeOperationType
@@ -70,6 +116,10 @@ class SheepCodeTreeNode
 {
 public:	
 
+	static SheepCodeTreeNode* CreateSymbolSection(int lineNumber);
+	static SheepCodeTreeNode* CreateCodeSection(int lineNumber);
+	static SheepCodeTreeNode* CreateSnippet(int lineNumber);
+
 	static SheepCodeTreeNode* CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber);
 	static SheepCodeTreeNode* CreateStatement(int lineNumber);
 	static SheepCodeTreeNode* CreateLocalFunction(int lineNumber);
@@ -89,7 +139,14 @@ public:
 	void AttachSibling(SheepCodeTreeNode* sibling);
 	void SetChild(int index, SheepCodeTreeNode* node);
 
-	CodeTreeNodeType GetType() { return m_type; }
+	SheepCodeTreeNode* GetChild(int index) { assert(index >= 0 && index < NUM_CHILD_NODES); return m_children[index]; }
+	const SheepCodeTreeNode* GetChild(int index) const { assert(index >= 0 && index < NUM_CHILD_NODES); return m_children[index]; }
+	
+	SheepCodeTreeNode* GetNextSibling() { return m_sibling; }
+	const SheepCodeTreeNode* GetNextSibling() const { return m_sibling; }
+
+	CodeTreeNodeType GetType() const { return m_type; }
+	int GetLineNumber() const { return m_lineNumber; }
 	
 	void Print(int indent);
 	
@@ -111,6 +168,34 @@ private:
 	int m_lineNumber;
 };
 
+class SheepCodeTreeSectionNode : public SheepCodeTreeNode
+{
+public:
+	SheepCodeTreeSectionNode(CodeTreeSectionType type, int lineNumber)
+		: SheepCodeTreeNode(NODETYPE_SECTION, lineNumber)
+	{
+		m_sectionType = type;
+	}
+
+	CodeTreeSectionType GetSectionType() const { return m_sectionType; }
+
+protected:
+
+	void PrintData()
+	{
+		if (m_sectionType == SECTIONTYPE_SYMBOLS)
+			printf("Symbols section\n");
+		else if (m_sectionType == SECTIONTYPE_CODE)
+			printf("Code section\n");
+		else if (m_sectionType == SECTIONTYPE_SNIPPET)
+			printf("Snippet\n");
+		else
+			printf("UNKNOWN SECTION TYPE!\n");
+	}
+
+	CodeTreeSectionType m_sectionType;
+};
+
 class SheepCodeTreeDeclarationNode : public SheepCodeTreeNode
 {
 public:
@@ -119,6 +204,9 @@ public:
 	{
 		m_declarationType = type;
 	}
+
+	CodeTreeDeclarationNodeType GetDeclarationType() const { return m_declarationType; }
+	std::string GetDeclarationName() const;
 	
 protected:
 	
@@ -149,6 +237,8 @@ public:
 		m_type = type;
 	}
 	
+	CodeTreeKeywordStatementType GetStatementType() const { return m_type; }
+
 protected:
 	
 	void PrintData()
@@ -164,6 +254,8 @@ protected:
 		else
 			printf("UNKNOWN KEYWORD STATEMENT!\n");
 	}
+
+	
 	
 private:
 	CodeTreeKeywordStatementType m_type;
@@ -172,88 +264,86 @@ private:
 class SheepCodeTreeExpressionNode : public SheepCodeTreeNode
 {
 public:
-	SheepCodeTreeExpressionNode(int lineNumber)
+	SheepCodeTreeExpressionNode(CodeTreeExpressionType expressionType, int lineNumber)
 		: SheepCodeTreeNode(NODETYPE_EXPRESSION, lineNumber)
 	{
+		m_expressionType = expressionType;
+		m_valueType = EXPRVAL_UNKNOWN;
 	}
-};
 
-class SheepCodeTreeIntegerConstantNode : public SheepCodeTreeExpressionNode
-{
-public:
-	
-	SheepCodeTreeIntegerConstantNode(int value, int lineNumber)
-		: SheepCodeTreeExpressionNode(lineNumber)
-	{
-		m_value = value;
-	}
+	CodeTreeExpressionType GetExpressionType() const { return m_expressionType; }
+	CodeTreeExpressionValueType GetValueType() const { return m_valueType; }
 
 protected:
-	
-	void PrintData()
-	{
-		printf("Integer constant with value %d!\n", m_value);
-	}
-	
+
+	CodeTreeExpressionValueType m_valueType;
+
 private:
+
+	CodeTreeExpressionType m_expressionType;
 	
-	int m_value;
 };
 
-class SheepCodeTreeFloatConstantNode : public SheepCodeTreeExpressionNode
+
+class SheepCodeTreeConstantNode : public SheepCodeTreeExpressionNode
 {
 public:
-	
-	SheepCodeTreeFloatConstantNode(float value, int lineNumber)
-		: SheepCodeTreeExpressionNode(lineNumber)
+
+	SheepCodeTreeConstantNode(CodeTreeExpressionValueType valueType, int lineNumber)
+		: SheepCodeTreeExpressionNode(EXPRTYPE_CONSTANT, lineNumber)
 	{
-		m_value = value;
+		m_valueType = valueType;
+
+		m_intValue = 0;
+		m_floatValue = 0;
+		m_stringValue = 0;
 	}
+
+	int GetIntValue() { return m_intValue; }
+	float GetFloatValue() { return m_floatValue; }
+	int GetStringValue() { return m_stringValue; }
+
+	void SetIntValue(int value) { m_intValue = value; }
+	void SetFloatValue(float value) { m_floatValue = value; }
+	void SetStringValue(int value) { m_stringValue = value; }
 
 protected:
-	
+
 	void PrintData()
 	{
-		printf("Float constant with value %f!\n", m_value);
-	}
-	
-private:
-	
-	float m_value;
-};
-
-class SheepCodeTreeStringConstantNode : public SheepCodeTreeExpressionNode
-{
-public:
-	
-	SheepCodeTreeStringConstantNode(const std::string& value, int lineNumber)
-		: SheepCodeTreeExpressionNode(lineNumber)
-	{
-		m_value = value;
+		if (m_valueType == EXPRVAL_INT)
+			printf("Integer constant with value %d\n", m_intValue);
+		else if (m_valueType == EXPRVAL_FLOAT)
+			printf("Float constant with value %f\n", m_floatValue);
+		else if (m_valueType == EXPRVAL_STRING)
+			printf("String constant with offset %d\n", m_stringValue);
+		else
+			printf("UNKNOWN CONSTANT TYPE!\n");
 	}
 
-protected:
-	
-	void PrintData()
-	{
-		printf("String constant with value \"%s\"\n", m_value.c_str());
-	}
-	
 private:
-	
-	std::string m_value;
+
+	int m_intValue;
+	float m_floatValue;
+	int m_stringValue;
+
 };
 
 class SheepCodeTreeIdentifierReferenceNode : public SheepCodeTreeExpressionNode
 {
 public:
 	SheepCodeTreeIdentifierReferenceNode(const std::string& name, bool global, int lineNumber)
-		: SheepCodeTreeExpressionNode(lineNumber)
+		: SheepCodeTreeExpressionNode(EXPRTYPE_IDENTIFIER, lineNumber)
 	{
 		m_name = name;
 		m_global = global;
 	}
 	
+	std::string GetName() const { return m_name; }
+	bool IsGlobal() const { return m_global; }
+
+	void SetValueType(CodeTreeExpressionValueType type) { m_valueType = type; }
+
 protected:
 	
 	void PrintData()
@@ -271,10 +361,14 @@ class SheepCodeTreeOperationNode : public SheepCodeTreeExpressionNode
 {
 public:
 	SheepCodeTreeOperationNode(CodeTreeOperationType type, int lineNumber)
-		: SheepCodeTreeExpressionNode(lineNumber)
+		: SheepCodeTreeExpressionNode(EXPRTYPE_OPERATION, lineNumber)
 	{
 		m_type = type;
 	}
+
+	CodeTreeOperationType GetOperationType() const { return m_type; }
+
+	void SetValueType(CodeTreeExpressionValueType type) { m_valueType = type; }
 	
 protected:
 	
@@ -311,24 +405,6 @@ protected:
 private:
 	
 	CodeTreeOperationType m_type;
-};
-
-class SheepException : public std::exception
-{
-public:
-	SheepException(const std::string& message) throw()
-	{
-		m_message = message;
-	}
-	
-	virtual ~SheepException() throw() {}
-
-	std::string GetMessage() { return m_message; }
-	const char* what() const throw() { return m_message.c_str(); }
-
-private:
-	std::string m_message;
-
 };
 
 int yyparse(void);

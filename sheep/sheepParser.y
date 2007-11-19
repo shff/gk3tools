@@ -9,7 +9,7 @@
 #define TRUE 1
 #define FALSE 0
 
-extern SheepCodeTreeNode* g_codeTree;
+extern SheepCodeTreeNode* g_codeTreeRoot;
 extern int currentLine;
 
 void yyerror(const char* str)
@@ -51,14 +51,14 @@ char* removeQuotes(char* str)
 
 sheep:
 	/* empty */
-	| symbol_section code_section { g_codeTree = $1; if ($1 && $2) $1->AttachSibling($2); }
-	| symbol_section { g_codeTree = $1; }
-	| code_section { g_codeTree = $1; }
+	| symbol_section code_section { g_codeTreeRoot = $1; if ($1 && $2) $1->AttachSibling($2); }
+	| symbol_section { g_codeTreeRoot = $1; }
+	| code_section { g_codeTreeRoot = $1; }
 	;
 
 symbol_section:
-	SYMBOLS LBRACE RBRACE
-	| SYMBOLS LBRACE symbol_list RBRACE { $$ = $3; }
+	SYMBOLS LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateSymbolSection(currentLine); }
+	| SYMBOLS LBRACE symbol_list RBRACE { $$ = SheepCodeTreeNode::CreateSymbolSection(currentLine); $$->SetChild(0, $3); }
 	;
 	
 
@@ -72,11 +72,13 @@ symbol_declaration:
 	| INTSYM local_identifier BECOMES constant SEMICOLON{ $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_INT, currentLine); $$->SetChild(0, $2); $$->SetChild(1, $4); }
 	| FLOATSYM local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FLOAT, currentLine); $$->SetChild(0, $2); }
 	| FLOATSYM local_identifier BECOMES constant SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FLOAT, currentLine); $$->SetChild(0, $2); $$->SetChild(1, $4); }
+	| STRINGSYM local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_STRING, currentLine); $$->SetChild(0, $2); }
+	| STRINGSYM local_identifier BECOMES constant SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_STRING, currentLine); $$->SetChild(0, $2); $$->SetChild(1, $4); }
 	;
 	
 code_section:
-	CODE LBRACE RBRACE
-	| CODE LBRACE function_list RBRACE { $$ = $3 }
+	CODE LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateCodeSection(currentLine); }
+	| CODE LBRACE function_list RBRACE { $$ = SheepCodeTreeNode::CreateCodeSection(currentLine); $$->SetChild(0, $3); }
 	;
 	
 function_list:

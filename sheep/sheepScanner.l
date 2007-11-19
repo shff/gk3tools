@@ -7,6 +7,8 @@
 	int currentLine = 1;
 %}
 
+%option never-interactive
+
 
 %%
 
