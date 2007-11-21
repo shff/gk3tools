@@ -34,6 +34,35 @@ public:
 		
 		m_currentOffset = 0;
 	}
+
+	size_t WriteInt(int i)
+	{
+		// TODO: do endian conversion on big-endian machines!
+		return Write((char*)&i, 4);
+	}
+
+	size_t WriteUInt(unsigned int i)
+	{
+		// TODO: do endian conversion on big-endian machines!
+		return Write((char*)&i, 4);
+	}
+
+	size_t WriteUIntAt(unsigned int i, size_t offset)
+	{
+		return WriteAt((char*)&i, 4, offset);
+	}
+
+	size_t WriteUShort(unsigned short i)
+	{
+		// TODO: do endian conversion on big-endian machines!
+		return Write((char*)&i, 2);
+	}
+
+	void WriteFloat(float value)
+	{
+		// TODO: adjust for endianness!
+		Write((char*)&value, 4);
+	}
 	
 	size_t Write(const char* buffer, size_t size)
 	{
@@ -45,7 +74,9 @@ public:
 		
 		memcpy(&m_buffer[m_currentOffset], buffer, size);
 		m_currentOffset += size;
-		m_size += size;
+
+		if (m_currentOffset > m_size)
+			m_size = m_currentOffset;
 		
 		return size;
 	}
@@ -53,7 +84,7 @@ public:
 	size_t WriteAt(const char* buffer, size_t size, size_t offset)
 	{
 		// don't write past where we've already written
-		if (size + offset >= m_currentOffset)
+		if (size + offset > m_currentOffset)
 			return 0;
 
 		size_t oldOffset = m_currentOffset;

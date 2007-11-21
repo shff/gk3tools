@@ -30,9 +30,61 @@ SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* im
 	m_imports = imports;
 }
 
+void SheepCodeGenerator::WriteOutputToFile(const std::string& filename, IntermediateOutput* output)
+{
+/*	std::auto_ptr<ResizableBuffer> buffer(new ResizableBuffer());
+
+	char magic[] = {"GK3Sheep"};
+	unsigned int dummy = 0;
+	unsigned int baddummy = 0xdddddddd;
+
+	const int extraOffsetOffset = 12;
+	const int dataOffsetOffset = 16;
+	const int dataSizeOffset = 20;
+	const int dataOffsetArrayOffset = 28;
+	const int dataSectionHeaderSize = 28;
+
+	int dataCount = 3; // we'll always have constants, functions, and code sections
+	if (output->Symbols.empty() == false)
+		dataCount++;
+	if (output->Imports.empty() == false)
+		dataCount++;
+
+	writeShpFileSectionHeader(buffer, "GK3Sheep", dataSectionHeaderSize + dataCount * 4, dataCount);
+	
+	// write the data section offset placeholders
+	for (int i = 0; i < dataCount; i++)
+		buffer->WriteUInt(baddummy);
+
+	int currentDataSectionIndex = 0;
+	
+	if (output->Symbols.empty() == false)
+	{
+		// go back and write the offset
+		buffer->WriteUIntAt(buffer->Tell(), dataOffsetArrayOffset + currentDataSection * 4);
+		currentDataSection++;
+
+		// write the symbol header
+		writeShpFileSectionHeader(buffer, "Symbols", dataSectionHeaderSize
+
+	}
+
+	int variableSectionOffsetOffset = 0;
+	int importsSectionOffsetOffset = 0;
+	int constantSectionOffsetOffset = 0;
+	int functionsSectionOffsetOffset = 0;
+	int codeSectionOffsetOffset = 0;
+
+
+
+	buffer->SaveToFile(filename);*/
+}
+
 IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 {
 	std::auto_ptr<IntermediateOutput> output(new IntermediateOutput());
+
+	std::map<std::string, SheepImport> usedImports;
 
 	try
 	{
@@ -64,6 +116,15 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 					SheepFunction func = writeFunction(function);
 					output->Functions.push_back(func);
 
+					// copy any new imports to the list of imports
+					for (std::vector<std::string>::iterator itr = func.ImportList.begin();
+						itr != func.ImportList.end(); itr++)
+					{
+						SheepImport import;
+						m_imports->TryFindImport(*itr, import);
+						usedImports.insert(std::pair<std::string, SheepImport>(import.Name, import));
+					}
+
 					function = static_cast<SheepCodeTreeDeclarationNode*>(function->GetNextSibling());
 				}
 			}
@@ -80,8 +141,17 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		{
 			SheepSymbol symbol = (*itr).second;
 
-			output->Symbols.push_back((*itr).second);
+			if (symbol.Type == SYM_INT || symbol.Type == SYM_FLOAT || symbol.Type == SYM_STRING)
+				output->Symbols.push_back((*itr).second);
 		}
+
+		// copy the imports into the output
+		for (std::map<std::string, SheepImport>::iterator itr = usedImports.begin();
+			itr != usedImports.end(); itr++)
+		{
+			output->Imports.push_back((*itr).second);
+		}
+
 	}
 	catch(SheepCompilerException& ex)
 	{
@@ -223,23 +293,6 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 							operation->SetValueType(EXPRVAL_FLOAT);
 						}
 						break;
-					case OP_ASSIGN:
-						if (child1->GetValueType() == child2->GetValueType())
-						{
-							operation->SetValueType(child1->GetValueType());
-						}
-						else if (child1->GetValueType() == EXPRVAL_STRING ||
-							child2->GetValueType() == EXPRVAL_STRING)
-						{
-							// cannot mix strings with other types
-							throw SheepCompilerException(operation->GetLineNumber(), "Cannot assign string and non-string");
-						}
-						else
-						{
-							// one must be an int and one must be a float
-							operation->SetValueType(EXPRVAL_FLOAT);
-						}
-						break;
 					case OP_GT:
 					case OP_LT:
 					case OP_GTE:
@@ -321,6 +374,15 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 			{
 				determineExpressionTypes(statement->GetChild(0));
 			}
+			else if (statement->GetStatementType() == SMT_ASSIGN)
+			{
+				determineExpressionTypes(statement->GetChild(0));
+				determineExpressionTypes(statement->GetChild(1));
+			}
+			else if (statement->GetStatementType() == SMT_EXPR)
+			{
+				determineExpressionTypes(statement->GetChild(0));
+			}
 		}
 
 		node = node->GetNextSibling();
@@ -339,6 +401,13 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	SheepCodeTreeNode* child = function->GetChild(1);
 
 	writeCode(func, child);
+
+	// add one last bit (the GK3 compiler seems to always do this)
+	func.Code->WriteSheepInstruction(ReturnV);
+	func.Code->WriteSheepInstruction(SitnSpin);
+	func.Code->WriteSheepInstruction(SitnSpin);
+	func.Code->WriteSheepInstruction(SitnSpin);
+	func.Code->WriteSheepInstruction(SitnSpin);
 
 	return func;
 }
@@ -364,7 +433,15 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 {
 	assert(statement != NULL);
 
-	if (statement->GetStatementType() == SMT_RETURN)
+	if (statement->GetStatementType() == SMT_EXPR)
+	{
+		int itemsOnStack = writeExpression(function, static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0)));
+
+		assert(itemsOnStack >= 0);
+		for (int i = 0; i < itemsOnStack; i++)
+			function.Code->WriteSheepInstruction(Pop);
+	}
+	else if (statement->GetStatementType() == SMT_RETURN)
 	{
 		function.Code->WriteSheepInstruction(ReturnV);
 	}
@@ -412,16 +489,65 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			function.Code->WriteIntAt(function.Code->Tell(), ifBranchOffset);
 		}
 	}
+	else if (statement->GetStatementType() == SMT_ASSIGN)
+	{
+		SheepCodeTreeExpressionNode* child1 = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
+		SheepCodeTreeExpressionNode* child2 = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(1));
+
+		assert(child2 != NULL);
+		writeExpression(function, child2);
+		if (child1->GetValueType() != child2->GetValueType())
+		{
+			assert(child1->GetValueType() != SYM_STRING);
+
+			// should only be assigning a float to int or int to float at this point!
+			if (child1->GetValueType() == SYM_INT &&
+				child2->GetValueType() == SYM_FLOAT)
+				function.Code->WriteSheepInstruction(FToI);
+			else
+				function.Code->WriteSheepInstruction(IToF);
+		}
+
+		assert(child1 != NULL);
+		assert(child1->GetExpressionType() == EXPRTYPE_IDENTIFIER);
+
+		SheepCodeTreeIdentifierReferenceNode* reference =
+			static_cast<SheepCodeTreeIdentifierReferenceNode*>(child1);
+
+		assert(reference->IsGlobal() == false);
+		SheepSymbol variable = (*m_symbolMap.find(reference->GetName())).second;
+		size_t index = getIndexOfVariable(variable);
+		
+		if (child1->GetValueType() == SYM_INT)
+		{
+			function.Code->WriteSheepInstruction(StoreI);
+			function.Code->WriteInt(index);
+		}
+		else if (child1->GetValueType() == SYM_FLOAT)
+		{
+			function.Code->WriteSheepInstruction(StoreF);
+			function.Code->WriteInt(index);
+		}
+		else
+		{
+			assert(child1->GetValueType() == SYM_STRING);
+
+			function.Code->WriteSheepInstruction(StoreS);
+			function.Code->WriteInt(index);
+		}
+	}
 }
 
-void SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression)
+int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression)
 {
 	assert(expression != NULL);
 
+	int itemsOnStack = 0;
 	if (expression->GetExpressionType() == EXPRTYPE_CONSTANT)
 	{
 		SheepCodeTreeConstantNode* constant = static_cast<SheepCodeTreeConstantNode*>(expression);
 
+		itemsOnStack++;
 		if (constant->GetValueType() == EXPRVAL_INT)
 		{
 			function.Code->WriteSheepInstruction(PushI);
@@ -477,6 +603,10 @@ void SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeE
 			if (counter != import.Parameters.size())
 				throw SheepCompilerException(identifier->GetLineNumber(), "Not enough parameters");
 
+			// write the number of parameters
+			function.Code->WriteSheepInstruction(PushI);
+			function.Code->WriteInt(counter);
+
 			if (import.ReturnType == SYM_VOID)
 				function.Code->WriteSheepInstruction(CallSysFunctionV);
 			else if (import.ReturnType == SYM_INT)
@@ -485,6 +615,11 @@ void SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeE
 				throw SheepCompilerException(identifier->GetLineNumber(), "Unsupported import return type");
 			
 			function.Code->WriteInt(getIndexOfImport(import));
+
+			if (import.ReturnType != SYM_VOID)
+				itemsOnStack++;
+
+			function.ImportList.push_back(import.Name);
 		}
 		else
 		{
@@ -493,6 +628,7 @@ void SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeE
 			// expression is just a regular ol' identifier, so get its index
 			int index = getIndexOfVariable(variable);
 
+			itemsOnStack++;
 			if (variable.Type == SYM_INT)
 			{
 				function.Code->WriteSheepInstruction(LoadI);
@@ -503,8 +639,9 @@ void SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeE
 				function.Code->WriteSheepInstruction(LoadF);
 				function.Code->WriteInt(index);
 			}
-			else if (variable.Type == SYM_STRING)
+			else
 			{
+				assert(variable.Type == SYM_STRING);
 				function.Code->WriteSheepInstruction(LoadS);
 				function.Code->WriteInt(index);
 				function.Code->WriteSheepInstruction(GetString);
@@ -520,8 +657,91 @@ void SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeE
 		SheepCodeTreeExpressionNode* child1 = static_cast<SheepCodeTreeExpressionNode*>(operation->GetChild(0));
 		SheepCodeTreeExpressionNode* child2 = static_cast<SheepCodeTreeExpressionNode*>(operation->GetChild(1));
 
-		// TODO: write the operation
+		if (operation->GetOperationType() == OP_NEGATE)
+		{
+			if (operation->GetValueType() == SYM_INT)
+			{
+				function.Code->WriteSheepInstruction(NegateI);
+			}
+			else // assume float
+			{
+				assert(operation->GetValueType() == SYM_FLOAT);
+				function.Code->WriteSheepInstruction(NegateF);
+			}
+		}
+		else
+		{
+			// just a regular ol' binary operator
+			SheepInstruction intOp, floatOp, stringOp;
+
+			itemsOnStack--; // everything pops twice and pushes once
+			switch(operation->GetOperationType())
+			{
+			case OP_ADD:
+				intOp = AddI;
+				floatOp = AddF;
+				break;
+			case OP_MINUS:
+				intOp = SubtractI;
+				floatOp = SubtractF;
+				break;
+			case OP_TIMES:
+				intOp = MultiplyI;
+				floatOp = MultiplyF;
+				break;
+			case OP_DIVIDE:
+				intOp = DivideI;
+				floatOp = DivideF;
+				break;
+			case OP_GT:
+				intOp = IsGreaterI;
+				floatOp = IsGreaterF;
+				break;
+			case OP_LT:
+				intOp = IsLessI;
+				floatOp = IsLessF;
+				break;
+			case OP_GTE:
+				intOp = IsGreaterEqualI;
+				floatOp = IsGreaterEqualF;
+				break;
+			case OP_LTE:
+				intOp = IsLessEqualI;
+				floatOp = IsLessEqualF;
+				break;
+			case OP_EQ:
+				intOp = IsEqualI;
+				floatOp = IsEqualF;
+				break;
+			case OP_NE:
+				throw SheepCompilerException(operation->GetLineNumber(), "Sorry, != operator not supported yet");
+			default:
+				throw SheepException("Unknown operator type!");
+			}
+
+			if (operation->GetValueType() == SYM_STRING)
+				throw SheepCompilerException(operation->GetLineNumber(), "Operator not supported with strings (yet?)");
+			
+			itemsOnStack += writeExpression(function, child1);
+			if (operation->GetValueType() == SYM_INT && child1->GetValueType() == SYM_FLOAT)
+				function.Code->WriteSheepInstruction(FToI);
+			else if (operation->GetValueType() == SYM_FLOAT && child1->GetValueType() == SYM_INT)
+				function.Code->WriteSheepInstruction(IToF);
+
+			itemsOnStack += writeExpression(function, child2);
+			if (operation->GetValueType() == SYM_INT && child2->GetValueType() == SYM_FLOAT)
+				function.Code->WriteSheepInstruction(FToI);
+			else if (operation->GetValueType() == SYM_FLOAT && child2->GetValueType() == SYM_INT)
+				function.Code->WriteSheepInstruction(IToF);
+
+			if (operation->GetValueType() == SYM_INT)
+				function.Code->WriteSheepInstruction(intOp);
+			else
+				function.Code->WriteSheepInstruction(floatOp);
+		}
 	}
+
+	return itemsOnStack;
 }
 
 SheepSymbolType SheepCodeGenerator::getSymbolType(int lineNumber, const std::string& name)

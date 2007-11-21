@@ -3,6 +3,7 @@
 #include <sstream>
 #include "sheepCodeTree.h"
 #include "sheepCodeGenerator.h"
+#include "sheepFileWriter.h"
 #include "sheepImportTable.h"
 #include "sheepTypes.h"
 
@@ -43,6 +44,11 @@ int main(int argc, char** argv)
 	SheepCodeGenerator generator(&tree, &imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
 	output->Print();
+
+	SheepFileWriter writer(output);
+	writer.Write("output.shp");
+
+	//generator.WriteOutputToFile("output.shp", output);
 	delete output;
 
 	tree.Unlock();

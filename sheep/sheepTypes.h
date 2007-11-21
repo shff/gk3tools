@@ -52,6 +52,8 @@ struct SheepFunction
 
 	std::string Name;
 	SheepCodeBuffer* Code;
+
+	std::vector<std::string> ImportList;
 };
 
 struct SheepImport

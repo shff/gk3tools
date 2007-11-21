@@ -101,11 +101,14 @@ enum CodeTreeOperationType
 	OP_LTE,
 	OP_EQ,
 	OP_NE,
-	OP_ASSIGN
+
+	OP_NEGATE
 };
 
 enum CodeTreeKeywordStatementType
 {
+	SMT_EXPR,
+	SMT_ASSIGN,
 	SMT_RETURN,
 	SMT_WAIT,
 	SMT_GOTO,
@@ -243,7 +246,11 @@ protected:
 	
 	void PrintData()
 	{
-		if (m_type == SMT_RETURN)
+		if (m_type == SMT_EXPR)
+			printf("Expression statement\n");
+		else if (m_type == SMT_ASSIGN)
+			printf("ASSIGN\n");
+		else if (m_type == SMT_RETURN)
 			printf("RETURN\n");
 		else if (m_type == SMT_WAIT)
 			printf("WAIT\n");
@@ -384,8 +391,6 @@ protected:
 			operationText = "TIMES";
 		else if (m_type == OP_DIVIDE)
 			operationText = "DIVIDE";
-		else if (m_type == OP_ASSIGN)
-			operationText = "ASSIGN";
 		else if (m_type == OP_LT)
 			operationText = "LESS THAN";
 		else if (m_type == OP_GT)

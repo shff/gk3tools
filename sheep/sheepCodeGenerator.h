@@ -6,6 +6,9 @@
 #include "sheepTypes.h"
 #include "sheepCodeTree.h"
 
+/// Class used to represent immediate output of the compiler.
+/// This can be used for a dynamic interpreter that doesn't
+/// want to have to parse full .shp files when interpreting.
 class IntermediateOutput
 {
 public:
@@ -15,6 +18,9 @@ public:
 	std::vector<SheepFunction> Functions;
 
 	std::vector<CompilerOutput> Warnings;
+
+	/// A list of compile errors. If there are any errors then the
+	/// state of everything else in this class is undefined.
 	std::vector<CompilerOutput> Errors;
 
 	/// for debugging
@@ -32,6 +38,8 @@ public:
 
 	IntermediateOutput* BuildIntermediateOutput();
 
+	void WriteOutputToFile(const std::string& filename, IntermediateOutput* output);
+
 private:
 	void loadStringConstants(IntermediateOutput* output);
 	void buildSymbolMap(SheepCodeTreeNode* node);
@@ -39,7 +47,7 @@ private:
 	SheepFunction writeFunction(SheepCodeTreeDeclarationNode* node);
 	void writeCode(SheepFunction& function, SheepCodeTreeNode* node);
 	void writeStatement(SheepFunction& function, SheepCodeTreeStatementNode* statement);
-	void writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);
+	int writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);
 	void writeBinaryOperator(SheepFunction& function, SheepCodeTreeOperationNode* operation);
 
 	static SheepSymbolType convertToSymbolType(CodeTreeDeclarationNodeType type);

@@ -17,6 +17,7 @@ enum SheepInstruction
 
 	StoreI               = 0x0D,
 	StoreF               = 0x0E,
+	StoreS				 = 0x0F,
 	LoadI                = 0x10,
 	LoadF				 = 0x11,
 	LoadS                = 0x12,
@@ -33,8 +34,11 @@ enum SheepInstruction
 	MultiplyF            = 0x1C,
 	DivideI              = 0x1D,
 	DivideF              = 0x1E,
+	NegateI				 = 0x1F,
+	NegateF				 = 0x20,
 
 	IsEqualI             = 0x21,
+	IsEqualF			 = 0x22,
 	IsGreaterI           = 0x25,
 	IsGreaterF           = 0x26,
 	IsLessI              = 0x27,
@@ -62,22 +66,12 @@ public:
 		Write(&op, 1);
 	}
 
-	void WriteInt(int value)
-	{
-		// TODO: adjust for endianness!
-		Write((char*)&value, 4);
-	}
-
 	void WriteIntAt(int value, size_t offset)
 	{
 		WriteAt((char*)&value, 4, offset);
 	}
 
-	void WriteFloat(float value)
-	{
-		// TODO: adjust for endianness!
-		Write((char*)&value, 4);
-	}
+	
 };
 
 #endif // SHEEPCODEBUFFER_H

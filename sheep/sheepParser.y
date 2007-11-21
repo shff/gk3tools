@@ -101,10 +101,10 @@ simple_statement:
 	SEMICOLON
 	| local_identifier COLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_LABEL, currentLine); $$->SetChild(0, $1); }
 	| GOTO local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_GOTO, currentLine); $$->SetChild(0, $2); }
-	| expr SEMICOLON { $$ = $1 }
+	| expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_EXPR, currentLine); $$->SetChild(0, $1); }
 	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
 	| wait_statement { $$ = $1 }
-	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateOperation(OP_ASSIGN, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_ASSIGN, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
 	;
 
 wait_statement:
