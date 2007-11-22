@@ -459,11 +459,11 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		writeExpression(function, child2);
 		if (child1->GetValueType() != child2->GetValueType())
 		{
-			assert(child1->GetValueType() != SYM_STRING);
+			assert(child1->GetValueType() != EXPRVAL_STRING);
 
 			// should only be assigning a float to int or int to float at this point!
-			if (child1->GetValueType() == SYM_INT &&
-				child2->GetValueType() == SYM_FLOAT)
+			if (child1->GetValueType() == EXPRVAL_INT &&
+				child2->GetValueType() == EXPRVAL_FLOAT)
 				function.Code->WriteSheepInstruction(FToI);
 			else
 				function.Code->WriteSheepInstruction(IToF);
@@ -619,13 +619,13 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 
 		if (operation->GetOperationType() == OP_NEGATE)
 		{
-			if (operation->GetValueType() == SYM_INT)
+			if (operation->GetValueType() == EXPRVAL_INT)
 			{
 				function.Code->WriteSheepInstruction(NegateI);
 			}
 			else // assume float
 			{
-				assert(operation->GetValueType() == SYM_FLOAT);
+				assert(operation->GetValueType() == EXPRVAL_FLOAT);
 				function.Code->WriteSheepInstruction(NegateF);
 			}
 		}
@@ -679,22 +679,22 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				throw SheepException("Unknown operator type!");
 			}
 
-			if (operation->GetValueType() == SYM_STRING)
+			if (operation->GetValueType() == EXPRVAL_STRING)
 				throw SheepCompilerException(operation->GetLineNumber(), "Operator not supported with strings (yet?)");
 			
 			itemsOnStack += writeExpression(function, child1);
-			if (operation->GetValueType() == SYM_INT && child1->GetValueType() == SYM_FLOAT)
+			if (operation->GetValueType() == EXPRVAL_INT && child1->GetValueType() == EXPRVAL_FLOAT)
 				function.Code->WriteSheepInstruction(FToI);
-			else if (operation->GetValueType() == SYM_FLOAT && child1->GetValueType() == SYM_INT)
+			else if (operation->GetValueType() == EXPRVAL_FLOAT && child1->GetValueType() == EXPRVAL_INT)
 				function.Code->WriteSheepInstruction(IToF);
 
 			itemsOnStack += writeExpression(function, child2);
-			if (operation->GetValueType() == SYM_INT && child2->GetValueType() == SYM_FLOAT)
+			if (operation->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_FLOAT)
 				function.Code->WriteSheepInstruction(FToI);
-			else if (operation->GetValueType() == SYM_FLOAT && child2->GetValueType() == SYM_INT)
+			else if (operation->GetValueType() == EXPRVAL_FLOAT && child2->GetValueType() == EXPRVAL_INT)
 				function.Code->WriteSheepInstruction(IToF);
 
-			if (operation->GetValueType() == SYM_INT)
+			if (operation->GetValueType() == EXPRVAL_INT)
 				function.Code->WriteSheepInstruction(intOp);
 			else
 				function.Code->WriteSheepInstruction(floatOp);
