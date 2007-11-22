@@ -95,7 +95,7 @@ void SheepFileWriter::writeSection(const std::string& label, std::vector<T> coll
 	size_t offsetAfterHeader = m_buffer->Tell();
 
 	int counter = 0;
-	for (std::vector<T>::iterator itr = collection.begin(); itr != collection.end(); itr++)
+	for (typename std::vector<T>::iterator itr = collection.begin(); itr != collection.end(); itr++)
 	{
 		// go back and write the offset to this position
 		m_buffer->WriteUIntAt(m_buffer->Tell() - offsetAfterHeader, offsetAtStart + DataSectionHeaderSize + counter * 4);
