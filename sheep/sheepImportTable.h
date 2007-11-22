@@ -35,6 +35,20 @@ public:
 		return m_imports.insert(std::pair<std::string, SheepImport>(name, import)).second;
 	}
 
+	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter1, SheepSymbolType parameter2)
+	{
+		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)
+			return false;
+
+		SheepImport import;
+		import.Name = name;
+		import.ReturnType = returnType;
+		import.Parameters.push_back(parameter1);
+		import.Parameters.push_back(parameter2);
+
+		return m_imports.insert(std::pair<std::string, SheepImport>(name, import)).second;
+	}
+
 	bool TryAddImport(const std::string& name, SheepSymbolType returnType, const std::vector<SheepSymbolType>& parameters)
 	{
 		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)

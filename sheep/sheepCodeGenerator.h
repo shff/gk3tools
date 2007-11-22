@@ -42,7 +42,7 @@ private:
 	void loadStringConstants(IntermediateOutput* output);
 	void buildSymbolMap(SheepCodeTreeNode* node);
 	void determineExpressionTypes(SheepCodeTreeNode* node);
-	SheepFunction writeFunction(SheepCodeTreeDeclarationNode* node);
+	SheepFunction writeFunction(SheepCodeTreeDeclarationNode* node, int codeOffset);
 	void writeCode(SheepFunction& function, SheepCodeTreeNode* node);
 	void writeStatement(SheepFunction& function, SheepCodeTreeStatementNode* statement);
 	int writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);

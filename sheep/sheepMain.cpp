@@ -40,6 +40,7 @@ int main(int argc, char** argv)
 
 	SheepImportTable imports;
 	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING);
+	imports.TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT);
 
 	SheepCodeGenerator generator(&tree, &imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();

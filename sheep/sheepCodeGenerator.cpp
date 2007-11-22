@@ -39,6 +39,8 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 
 	try
 	{
+		int functionCodeOffset = 0;
+
 		// copy the string constants (which the parser should have gathered for us)
 		// into the output
 		loadStringConstants(output.get());
@@ -64,8 +66,9 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 
 				while(function != NULL)
 				{
-					SheepFunction func = writeFunction(function);
+					SheepFunction func = writeFunction(function, functionCodeOffset);
 					output->Functions.push_back(func);
+					functionCodeOffset += func.Code->GetSize();
 
 					// copy any new imports to the list of imports
 					for (std::vector<std::string>::iterator itr = func.ImportList.begin();
@@ -351,13 +354,14 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 }
 
 
-SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* function)
+SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* function, int codeOffset)
 {
 	assert(function->GetDeclarationType() == DECLARATIONTYPE_FUNCTION);
 
 	SheepFunction func;
 	func.Name = function->GetDeclarationName();
 	func.Code = new SheepCodeBuffer();
+	func.CodeOffset = codeOffset;
 
 	SheepCodeTreeNode* child = function->GetChild(1);
 
@@ -438,16 +442,16 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			size_t elseBranchOffset = function.Code->Tell();
 			function.Code->WriteInt(0xdddddddd);
 
-			function.Code->WriteIntAt(function.Code->Tell(), ifBranchOffset);
+			function.Code->WriteIntAt(function.CodeOffset + function.Code->Tell(), ifBranchOffset);
 
 			writeCode(function, statement->GetChild(2));
 
-			function.Code->WriteIntAt(function.Code->Tell(), elseBranchOffset);
+			function.Code->WriteIntAt(function.CodeOffset + function.Code->Tell(), elseBranchOffset);
 		}
 		else
 		{
 			// no else? just set the earlier branch to this offset
-			function.Code->WriteIntAt(function.Code->Tell(), ifBranchOffset);
+			function.Code->WriteIntAt(function.CodeOffset + function.Code->Tell(), ifBranchOffset);
 		}
 	}
 	else if (statement->GetStatementType() == SMT_ASSIGN)
@@ -464,9 +468,15 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			// should only be assigning a float to int or int to float at this point!
 			if (child1->GetValueType() == EXPRVAL_INT &&
 				child2->GetValueType() == EXPRVAL_FLOAT)
+			{
 				function.Code->WriteSheepInstruction(FToI);
+				function.Code->WriteUInt(0);
+			}
 			else
+			{
 				function.Code->WriteSheepInstruction(IToF);
+				function.Code->WriteUInt(0);
+			}
 		}
 
 		assert(child1 != NULL);
@@ -541,32 +551,54 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			SheepImport import;
 			m_imports->TryFindImport(identifier->GetName(), import);
 	
-			size_t counter = 0;
+
+			std::vector<CodeTreeExpressionValueType> params;
 			SheepCodeTreeExpressionNode* param =
 				static_cast<SheepCodeTreeExpressionNode*>(identifier->GetChild(0));
 
 			while(param != NULL)
 			{
-				if (counter >= import.Parameters.size())
+				if (params.size() >= import.Parameters.size())
 					throw SheepCompilerException(identifier->GetLineNumber(), "Too many parameters");
 
-				if (param->GetValueType() != convertToExpressionValueType(import.Parameters[counter]))
+				if (param->GetValueType() == EXPRVAL_STRING &&
+					convertToExpressionValueType(import.Parameters[params.size()]) != EXPRVAL_STRING)
 				{
-					throw SheepCompilerException(param->GetLineNumber(), "Invalid parameter(s)");
+					throw SheepCompilerException(param->GetLineNumber(), "Cannot convert string to parameter type");
+				}
+				else if (param->GetValueType() != EXPRVAL_STRING &&
+					convertToExpressionValueType(import.Parameters[params.size()]) == EXPRVAL_STRING)
+				{
+					throw SheepCompilerException(param->GetLineNumber(), "Cannot convert parameter to string");
 				}
 
 				writeExpression(function, param);
+				params.push_back(param->GetValueType());
 
-				counter++;
 				param = static_cast<SheepCodeTreeExpressionNode*>(param->GetNextSibling());
 			}
 
-			if (counter != import.Parameters.size())
+			if (params.size() != import.Parameters.size())
 				throw SheepCompilerException(identifier->GetLineNumber(), "Not enough parameters");
+
+			// convert the parameters if necessary
+			for (size_t i = 0; i < params.size(); i++)
+			{
+				if (params[i] == EXPRVAL_INT && import.Parameters[i] == SYM_FLOAT)
+				{
+					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteUInt(params.size() - 1 - i);
+				}
+				else if (params[i] == EXPRVAL_FLOAT && import.Parameters[i] == SYM_INT)
+				{
+					function.Code->WriteSheepInstruction(FToI);
+					function.Code->WriteUInt(params.size() - 1 - i);
+				}
+			}
 
 			// write the number of parameters
 			function.Code->WriteSheepInstruction(PushI);
-			function.Code->WriteInt(counter);
+			function.Code->WriteInt(params.size());
 
 			if (import.ReturnType == SYM_VOID)
 				function.Code->WriteSheepInstruction(CallSysFunctionV);
@@ -683,18 +715,21 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				throw SheepCompilerException(operation->GetLineNumber(), "Operator not supported with strings (yet?)");
 			
 			itemsOnStack += writeExpression(function, child1);
-			if (operation->GetValueType() == EXPRVAL_INT && child1->GetValueType() == EXPRVAL_FLOAT)
-				function.Code->WriteSheepInstruction(FToI);
-			else if (operation->GetValueType() == EXPRVAL_FLOAT && child1->GetValueType() == EXPRVAL_INT)
-				function.Code->WriteSheepInstruction(IToF);
-
 			itemsOnStack += writeExpression(function, child2);
-			if (operation->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_FLOAT)
-				function.Code->WriteSheepInstruction(FToI);
-			else if (operation->GetValueType() == EXPRVAL_FLOAT && child2->GetValueType() == EXPRVAL_INT)
-				function.Code->WriteSheepInstruction(IToF);
 
-			if (operation->GetValueType() == EXPRVAL_INT)
+			if (child1->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_FLOAT)
+			{
+				function.Code->WriteSheepInstruction(IToF);
+				function.Code->WriteUInt(1);
+			}
+			
+			if (child1->GetValueType() == EXPRVAL_FLOAT && child2->GetValueType() == EXPRVAL_INT)
+			{
+				function.Code->WriteSheepInstruction(IToF);
+				function.Code->WriteUInt(0);
+			}
+
+			if (child1->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_INT)
 				function.Code->WriteSheepInstruction(intOp);
 			else
 				function.Code->WriteSheepInstruction(floatOp);
