@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include "sheepCodeTree.h"
 #include "sheepCodeGenerator.h"
 #include "sheepImportTable.h"
@@ -28,56 +29,6 @@ SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* im
 
 	m_tree = tree;
 	m_imports = imports;
-}
-
-void SheepCodeGenerator::WriteOutputToFile(const std::string& filename, IntermediateOutput* output)
-{
-/*	std::auto_ptr<ResizableBuffer> buffer(new ResizableBuffer());
-
-	char magic[] = {"GK3Sheep"};
-	unsigned int dummy = 0;
-	unsigned int baddummy = 0xdddddddd;
-
-	const int extraOffsetOffset = 12;
-	const int dataOffsetOffset = 16;
-	const int dataSizeOffset = 20;
-	const int dataOffsetArrayOffset = 28;
-	const int dataSectionHeaderSize = 28;
-
-	int dataCount = 3; // we'll always have constants, functions, and code sections
-	if (output->Symbols.empty() == false)
-		dataCount++;
-	if (output->Imports.empty() == false)
-		dataCount++;
-
-	writeShpFileSectionHeader(buffer, "GK3Sheep", dataSectionHeaderSize + dataCount * 4, dataCount);
-	
-	// write the data section offset placeholders
-	for (int i = 0; i < dataCount; i++)
-		buffer->WriteUInt(baddummy);
-
-	int currentDataSectionIndex = 0;
-	
-	if (output->Symbols.empty() == false)
-	{
-		// go back and write the offset
-		buffer->WriteUIntAt(buffer->Tell(), dataOffsetArrayOffset + currentDataSection * 4);
-		currentDataSection++;
-
-		// write the symbol header
-		writeShpFileSectionHeader(buffer, "Symbols", dataSectionHeaderSize
-
-	}
-
-	int variableSectionOffsetOffset = 0;
-	int importsSectionOffsetOffset = 0;
-	int constantSectionOffsetOffset = 0;
-	int functionsSectionOffsetOffset = 0;
-	int codeSectionOffsetOffset = 0;
-
-
-
-	buffer->SaveToFile(filename);*/
 }
 
 IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
@@ -165,6 +116,14 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 	return output.release();
 }
 
+struct ConstantOffsetComparer
+{
+	int operator()(const SheepStringConstant& c1, const SheepStringConstant& c2)
+	{
+		return c1.Offset < c2.Offset;
+	}
+};
+
 void SheepCodeGenerator::loadStringConstants(IntermediateOutput *output)
 {
 	assert(output != NULL);
@@ -179,6 +138,8 @@ void SheepCodeGenerator::loadStringConstants(IntermediateOutput *output)
 
 		output->Constants.push_back(constant);
 	}
+
+	std::sort(output->Constants.begin(), output->Constants.end(), ConstantOffsetComparer());
 }
 
 void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
@@ -518,19 +479,19 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		SheepSymbol variable = (*m_symbolMap.find(reference->GetName())).second;
 		size_t index = getIndexOfVariable(variable);
 		
-		if (child1->GetValueType() == SYM_INT)
+		if (child1->GetValueType() == EXPRVAL_INT)
 		{
 			function.Code->WriteSheepInstruction(StoreI);
 			function.Code->WriteInt(index);
 		}
-		else if (child1->GetValueType() == SYM_FLOAT)
+		else if (child1->GetValueType() == EXPRVAL_FLOAT)
 		{
 			function.Code->WriteSheepInstruction(StoreF);
 			function.Code->WriteInt(index);
 		}
 		else
 		{
-			assert(child1->GetValueType() == SYM_STRING);
+			assert(child1->GetValueType() == EXPRVAL_STRING);
 
 			function.Code->WriteSheepInstruction(StoreS);
 			function.Code->WriteInt(index);
@@ -616,8 +577,7 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			
 			function.Code->WriteInt(getIndexOfImport(import));
 
-			if (import.ReturnType != SYM_VOID)
-				itemsOnStack++;
+			itemsOnStack++;
 
 			function.ImportList.push_back(import.Name);
 		}

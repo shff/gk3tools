@@ -22,6 +22,7 @@ private:
 	void writeImportsSection();
 	void writeConstantsSection();
 	void writeFunctionsSection();
+	void writeCodeSection();
 
 	template<typename T, typename Adder>
 	void writeSection(const std::string& label, std::vector<T> collection, Adder adder);

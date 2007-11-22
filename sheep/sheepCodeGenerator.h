@@ -38,8 +38,6 @@ public:
 
 	IntermediateOutput* BuildIntermediateOutput();
 
-	void WriteOutputToFile(const std::string& filename, IntermediateOutput* output);
-
 private:
 	void loadStringConstants(IntermediateOutput* output);
 	void buildSymbolMap(SheepCodeTreeNode* node);

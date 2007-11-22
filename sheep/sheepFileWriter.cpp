@@ -1,5 +1,6 @@
 #include "sheepFileWriter.h"
 #include "sheepCodeGenerator.h"
+#include "sheepCodeBuffer.h"
 #include "rbuffer.h"
 
 SheepFileWriter::SheepFileWriter(IntermediateOutput* output)
@@ -24,6 +25,7 @@ void SheepFileWriter::Write(const std::string &filename)
 	int headerSize = DataSectionHeaderSize + dataCount * 4;
 	writeSectionHeader("GK3Sheep", headerSize, dataCount);
 
+	size_t offsetAfterHeader = m_buffer->Tell();
 
 	int currentSection = 0;
 
@@ -53,12 +55,13 @@ void SheepFileWriter::Write(const std::string &filename)
 	writeFunctionsSection();
 	currentSection++;
 
-/*	// write the code section
+	// write the code section
 	m_buffer->WriteUIntAt(m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
-//	writeCodeSection();
+	writeCodeSection();
 
-	// TODO: write the total size
-*/
+	// write the total size
+	m_buffer->WriteUIntAt(m_buffer->GetSize() - offsetAfterHeader, 20); 
+
 	// save!
 	m_buffer->SaveToFile(filename);
 
@@ -144,6 +147,27 @@ void SheepFileWriter::writeVariablesSection()
 	writeSection<SheepSymbol>("Variables", m_intermediateOutput->Symbols, VariableAdder(m_buffer));
 }
 
+void SheepFileWriter::writeCodeSection()
+{
+	size_t offsetAtStart = m_buffer->Tell();
+	writeSectionHeader("Code", DataSectionHeaderSize + 4, 1);
+
+	size_t offsetAfterHeader = m_buffer->Tell();
+
+	// write the offset to the point
+	m_buffer->WriteUIntAt(0, offsetAtStart + DataSectionHeaderSize);
+
+	// write the code!
+	for (std::vector<SheepFunction>::iterator itr = m_intermediateOutput->Functions.begin(); 
+		itr != m_intermediateOutput->Functions.end(); itr++)
+	{
+		m_buffer->Write((*itr).Code->GetData(), (*itr).Code->GetSize());
+	}
+
+	size_t size = m_buffer->Tell() - offsetAfterHeader;
+	m_buffer->WriteUIntAt(size, offsetAtStart + 20);
+}
+
 class ImportAdder
 {
 public:
@@ -189,6 +213,7 @@ public:
 	FunctionAdder(ResizableBuffer* buffer)
 	{
 		m_buffer = buffer;
+		m_currentCodeOffset = 0;
 	}
 
 	void operator()(SheepFunction function)
@@ -197,14 +222,19 @@ public:
 		m_buffer->WriteUShort(lengthOfName);
 		m_buffer->Write(function.Name.c_str(), lengthOfName + 1);
 
-		// TODO: finish this!
-		//char returnType = 0;
-		//char numParameters = 0;
-		//function.
+		char returnType = 0;
+		char numParameters = 0;
+
+		m_buffer->Write(&returnType, 1);
+		m_buffer->Write(&numParameters, 1);
+		m_buffer->WriteUInt(m_currentCodeOffset);
+
+		m_currentCodeOffset += function.Code->GetSize();
 	}
 
 private:
 
+	size_t m_currentCodeOffset;
 	ResizableBuffer* m_buffer;
 };
 
