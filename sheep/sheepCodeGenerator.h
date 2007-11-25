@@ -12,6 +12,9 @@
 class IntermediateOutput
 {
 public:
+
+	~IntermediateOutput();
+
 	std::vector<SheepSymbol> Symbols;
 	std::vector<SheepStringConstant> Constants;
 	std::vector<SheepImport> Imports;

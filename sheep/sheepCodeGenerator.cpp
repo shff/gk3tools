@@ -6,6 +6,12 @@
 #include "sheepException.h"
 #include "sheepCodeBuffer.h"
 
+IntermediateOutput::~IntermediateOutput()
+{
+	for (std::vector<SheepFunction>::iterator itr = Functions.begin(); itr != Functions.end(); itr++)
+		delete (*itr).Code;
+}
+
 void IntermediateOutput::Print()
 {
 	std::cout << "------------" << std::endl;
