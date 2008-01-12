@@ -41,7 +41,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 {
 	std::auto_ptr<IntermediateOutput> output(new IntermediateOutput());
 
-	std::map<std::string, SheepImport> usedImports;
+	//std::map<std::string, SheepImport> usedImports;
 
 	try
 	{
@@ -82,7 +82,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 					{
 						SheepImport import;
 						m_imports->TryFindImport(*itr, import);
-						usedImports.insert(std::pair<std::string, SheepImport>(import.Name, import));
+						// TODO: I don't think this is even necessary...
 					}
 
 					function = static_cast<SheepCodeTreeDeclarationNode*>(function->GetNextSibling());
@@ -106,10 +106,10 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		}
 
 		// copy the imports into the output
-		for (std::map<std::string, SheepImport>::iterator itr = usedImports.begin();
-			itr != usedImports.end(); itr++)
+		for (std::vector<SheepImport>::iterator itr = m_usedImports.begin();
+			itr != m_usedImports.end(); itr++)
 		{
-			output->Imports.push_back((*itr).second);
+			output->Imports.push_back(*itr);
 		}
 
 	}
@@ -299,7 +299,7 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 						throw SheepCompilerException(identifier->GetLineNumber(), "Unrecognized import function");
 
 					// check the parameters
-					determineExpressionTypes(identifier->GetChild(1));
+					determineExpressionTypes(identifier->GetChild(0));
 
 					identifier->SetValueType(convertToExpressionValueType(import.ReturnType));
 				}

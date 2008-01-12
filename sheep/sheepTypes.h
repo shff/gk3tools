@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "sheepc.h"
 
 enum SheepSymbolType
 {
@@ -57,11 +58,17 @@ struct SheepFunction
 	std::vector<std::string> ImportList;
 };
 
+typedef void (*SheepImportCallback)(SheepVM*);
+
 struct SheepImport
 {
+	SheepImport() { Callback = NULL; }
+
 	std::string Name;
 	SheepSymbolType ReturnType;
 	std::vector<SheepSymbolType> Parameters;
+
+	SheepImportCallback Callback;
 };
 
 struct SheepStringConstant

@@ -100,6 +100,52 @@ public:
 	size_t Tell() { return m_currentOffset; }
 	const char* GetData() { return m_buffer; }
 	size_t GetSize() { return m_size; }
+
+	void Rewind()
+	{
+		m_currentOffset = 0;
+	}
+
+	void SeekFromStart(size_t offset)
+	{
+		if (offset > m_size)
+			m_currentOffset = m_size;
+		else
+			m_currentOffset = offset;
+	}
+
+	unsigned char ReadByte()
+	{
+		unsigned char b;
+		Read((char*)&b, 1);
+		return b;
+	}
+
+	int ReadInt()
+	{
+		int i;
+		Read((char*)&i, 4);
+		return i;
+	}
+
+	float ReadFloat()
+	{
+		float f;
+		Read((char*)&f, 4);
+		return f;
+	}
+
+	size_t Read(char* buffer, size_t size)
+	{
+		if (m_currentOffset >= m_size) return 0;
+
+		size_t bytesToRead = std::min(size, m_size - m_currentOffset);
+
+		memcpy(buffer, &m_buffer[m_currentOffset], bytesToRead);
+
+		m_currentOffset += bytesToRead;
+		return bytesToRead;
+	}
 	
 	void SaveToFile(const std::string& filename)
 	{

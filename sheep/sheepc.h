@@ -100,6 +100,8 @@ struct SHP_FullOutput
 	SHP_CompilerOutput* Errors;
 };
 
+struct SheepVM;
+
 /// Compiles the sheep script and returns a new SHP_FullOutput object.
 /// The code returned inside the SHP_FullOutput object is suitable for
 /// saving to a file as a compiled .shp file. Also, the SheepCode
@@ -115,6 +117,10 @@ DECLSPEC void LIB_CALL SHP_DestroyFullOutput(SHP_FullOutput* sheep);
 DECLSPEC void LIB_CALL SHP_DestroyIntermediateOutput(SHP_IntermediateOutput* sheep);
 
 // TODO: add a way to fetch errors
+
+DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm);
+DECLSPEC float LIB_CALL SHP_PopFloatFromStack(SheepVM* vm);
+DECLSPEC const char* LIB_CALL SHP_PopStringFromStack(SheepVM* vm);
 
 #ifdef __cplusplus
 }

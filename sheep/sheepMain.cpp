@@ -1,11 +1,39 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include "sheepc.h"
+#include "sheepMachine.h"
 #include "sheepCodeTree.h"
 #include "sheepCodeGenerator.h"
 #include "sheepFileWriter.h"
 #include "sheepImportTable.h"
 #include "sheepTypes.h"
+
+void s_printString(SheepVM* vm)
+{
+	std::cout << "Printing string: " << SHP_PopStringFromStack(vm) << std::endl;
+}
+
+void s_printFloat(SheepVM* vm)
+{
+	std::cout << "Printing float: " << SHP_PopFloatFromStack(vm) << std::endl;
+}
+
+float SHP_PopFloatFromStack(SheepVM* vm)
+{
+	assert(vm != NULL);
+	assert(vm->Machine != NULL);
+
+	return vm->Machine->PopFloatFromStack();
+}
+
+const char* SHP_PopStringFromStack(SheepVM* vm)
+{
+	assert(vm != NULL);
+	assert(vm->Machine != NULL);
+
+	return vm->Machine->PopStringFromStack().c_str();
+}
 
 int main(int argc, char** argv)
 {
@@ -39,8 +67,8 @@ int main(int argc, char** argv)
 	tree.Print();
 
 	SheepImportTable imports;
-	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING);
-	imports.TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT);
+	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
+	imports.TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
 
 	SheepCodeGenerator generator(&tree, &imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
@@ -49,8 +77,12 @@ int main(int argc, char** argv)
 	SheepFileWriter writer(output);
 	writer.Write("output.shp");
 
+	SheepMachine machine(imports);
+	machine.Prepare(output);
+	machine.Run("blah$");
+
 	//generator.WriteOutputToFile("output.shp", output);
-	delete output;
+	//delete output;
 
 	tree.Unlock();
 }
