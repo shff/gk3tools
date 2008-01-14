@@ -1,12 +1,11 @@
 #include "sheepMachine.h"
 #include "sheepCodeBuffer.h"
 
-SheepMachine::SheepMachine(const SheepImportTable& imports)
+SheepMachine::SheepMachine()
 {
 	m_code = NULL;
 	m_callback = NULL;
 	m_compilerCallback = NULL;
-	m_imports = imports;
 }
 
 SheepMachine::~SheepMachine()

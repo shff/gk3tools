@@ -6,13 +6,6 @@
 #include "sheepImportTable.h"
 #include "sheepException.h"
 
-class SheepMachine;
-
-struct SheepVM
-{
-	SheepMachine* Machine;
-};
-
 class SheepMachineException : public SheepException
 {
 public:
@@ -31,11 +24,11 @@ public:
 	}
 };
 
-class SheepMachine
+class SheepMachine : public SheepVM
 {
 public:
 
-	SheepMachine(const SheepImportTable& imports);
+	SheepMachine();
 	~SheepMachine();
 
 	void SetOutputCallback(void (*callback)(const char* message));
@@ -86,6 +79,8 @@ public:
 
 		throw SheepMachineException("Invalid string offset found on stack");
 	}
+	
+	SheepImportTable& GetImports() { return m_imports; }
 
 private:
 
@@ -406,9 +401,7 @@ private:
 
 		if (imports[index].Callback != NULL)
 		{
-			SheepVM vm;
-			vm.Machine = this;
-			imports[index].Callback(&vm);
+			imports[index].Callback(this);
 		}
 
 		int paramsLeftOver = numParams - (numItemsOnStack - stack.size());

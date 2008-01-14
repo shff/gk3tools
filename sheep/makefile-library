@@ -1,9 +1,9 @@
 CC=gcc
 CPPC=g++
 LINKER=g++
-COMPILER_FLAGS= -g
-LINKER_FLAGS=
-EXECUTABLE=parser
+COMPILER_FLAGS= -g -fPIC
+LINKER_FLAGS=-shared -Wl
+EXECUTABLE=libsheepc.so
 
 SOURCES = sheepScanner.cpp sheepParser.cpp sheepCodeGenerator.cpp sheepCodeTree.cpp sheepFileWriter.cpp sheepMachine.cpp sheepMain.cpp sheepCompiler.cpp
 OBJECTS = $(SOURCES:.cpp=.o)

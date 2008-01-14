@@ -11,28 +11,12 @@
 
 void s_printString(SheepVM* vm)
 {
-	std::cout << "Printing string: " << SHP_PopStringFromStack(vm) << std::endl;
+	std::cout << SHP_PopStringFromStack(vm) << std::endl;
 }
 
 void s_printFloat(SheepVM* vm)
 {
-	std::cout << "Printing float: " << SHP_PopFloatFromStack(vm) << std::endl;
-}
-
-float SHP_PopFloatFromStack(SheepVM* vm)
-{
-	assert(vm != NULL);
-	assert(vm->Machine != NULL);
-
-	return vm->Machine->PopFloatFromStack();
-}
-
-const char* SHP_PopStringFromStack(SheepVM* vm)
-{
-	assert(vm != NULL);
-	assert(vm->Machine != NULL);
-
-	return vm->Machine->PopStringFromStack().c_str();
+	std::cout << SHP_PopFloatFromStack(vm) << std::endl;
 }
 
 int main(int argc, char** argv)
@@ -76,8 +60,11 @@ int main(int argc, char** argv)
 
 	SheepFileWriter writer(output);
 	writer.Write("output.shp");
+	
+	std::cout << "Num symbols: " << output->Symbols.size() << std::endl;
+	std::cout << "Num functions: " << output->Functions.size() << std::endl;
 
-	SheepMachine machine(imports);
+	SheepMachine machine;
 	machine.Prepare(output);
 	machine.Run("blah$");
 

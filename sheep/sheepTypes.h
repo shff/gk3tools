@@ -60,7 +60,7 @@ struct SheepFunction
 
 typedef void (*SheepImportCallback)(SheepVM*);
 
-struct SheepImport
+struct SheepImport : public SheepImportFunction
 {
 	SheepImport() { Callback = NULL; }
 

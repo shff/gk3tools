@@ -10,60 +10,84 @@ class SheepImportTable
 {
 public:
 
+	~SheepImportTable()
+	{
+		while(m_imports.empty() == false)
+		{
+			delete (*m_imports.begin()).second;
+			m_imports.erase(m_imports.begin());
+		}
+	}
+
 	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepImportCallback callback)
 	{
-		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)
-			return false;
-
-		SheepImport import;
-		import.Name = name;
-		import.ReturnType = returnType;
-		import.Callback = callback;
-
-		return m_imports.insert(ImportMap::value_type(name, import)).second;
+		SheepImport* import = NewImport(name, returnType, callback);
+		
+		if (import)
+		{
+			return true;
+		}
+		
+		return false;
 	}
 
 	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter, SheepImportCallback callback)
 	{
-		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)
-			return false;
-
-		SheepImport import;
-		import.Name = name;
-		import.ReturnType = returnType;
-		import.Parameters.push_back(parameter);
-		import.Callback = callback;
-
-		return m_imports.insert(ImportMap::value_type(name, import)).second;
+		SheepImport* import = NewImport(name, returnType, callback);
+		
+		if (import)
+		{
+			import->Parameters.push_back(parameter);
+			return true;
+		}
+		
+		return false;
 	}
 
 	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter1, SheepSymbolType parameter2, SheepImportCallback callback)
 	{
-		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)
-			return false;
-
-		SheepImport import;
-		import.Name = name;
-		import.ReturnType = returnType;
-		import.Parameters.push_back(parameter1);
-		import.Parameters.push_back(parameter2);
-		import.Callback = callback;
-
-		return m_imports.insert(ImportMap::value_type(name, import)).second;
+		SheepImport* import = NewImport(name, returnType, callback);
+		
+		if (import)
+		{
+			import->Parameters.push_back(parameter1);
+			import->Parameters.push_back(parameter2);
+			return true;
+		}
+		
+		return false;
 	}
 
 	bool TryAddImport(const std::string& name, SheepSymbolType returnType, const std::vector<SheepSymbolType>& parameters, SheepImportCallback callback)
 	{
-		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)
-			return false;
-
-		SheepImport import;
-		import.Name = name;
-		import.ReturnType = returnType;
-		import.Parameters = parameters;
-		import.Callback = callback;
-
-		return m_imports.insert(ImportMap::value_type(name, import)).second;
+		SheepImport* import = NewImport(name, returnType, callback);
+		
+		if (import)
+		{
+			import->Parameters = parameters;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	SheepImport* NewImport(const std::string& name, SheepSymbolType returnType, SheepImportCallback callback)
+	{
+		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT)
+			return NULL;
+		
+		SheepImport* import = new SheepImport;
+		import->Name = name;
+		import->ReturnType = returnType;
+		import->Callback = callback;
+		
+		if (m_imports.insert(ImportMap::value_type(name, import)).second == false)
+		{
+			delete import;
+			return NULL;
+		}
+		
+		return import;
 	}
 
 	bool TryFindImport(const std::string& name, SheepImport& import)
@@ -73,14 +97,14 @@ public:
 		if (itr == m_imports.end())
 			return false;
 
-		import = (*itr).second;
+		import = *(*itr).second;
 
 		return true;
 	}
 
 private:
 
-	typedef std::map<std::string, SheepImport> ImportMap;
+	typedef std::map<std::string, SheepImport*> ImportMap;
 	ImportMap m_imports;
 };
 
