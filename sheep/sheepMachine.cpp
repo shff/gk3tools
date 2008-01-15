@@ -94,6 +94,33 @@ void SheepMachine::Run(const std::string &function)
 	execute(sheepfunction->Code, m_code->Imports, sheepfunction->CodeOffset);
 }
 
+int SheepMachine::RunSnippet(const std::string& snippet)
+{
+	SheepCodeTree tree;
+	tree.Lock(snippet, NULL);
+
+	SheepCodeGenerator generator(&tree, &m_imports);
+	IntermediateOutput* output = generator.BuildIntermediateOutput();
+
+	size_t numItemsOnStack = m_currentStack.size();
+
+	execute(output->Functions[0].Code, output->Imports, output->Functions[0].CodeOffset);
+
+	int returnValue = 0;
+	if (m_currentStack.size() > numItemsOnStack)
+	{
+		if (m_currentStack.top().Type == SYM_INT)
+			returnValue = m_currentStack.top().IValue;
+		else if (m_currentStack.top().Type == SYM_FLOAT)
+			returnValue = (int)m_currentStack.top().FValue;
+
+		m_currentStack.pop();
+	}
+
+	delete output;
+	return returnValue;
+}
+
 void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports,
 	unsigned int offset)
 {

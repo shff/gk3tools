@@ -67,6 +67,7 @@ int main(int argc, char** argv)
 	SheepMachine machine;
 	machine.Prepare(output);
 	machine.Run("blah$");
+	//std::cout << "result: " << machine.RunSnippet(ss.str()) << std::endl;
 
 	//generator.WriteOutputToFile("output.shp", output);
 	//delete output;

@@ -46,6 +46,8 @@ public:
 	/// Executes a function. Make sure that Prepare() has been called first!
 	void Run(const std::string& function);
 
+	int RunSnippet(const std::string& snippet);
+
 	int PopIntFromStack()
 	{
 		return getInt(m_currentStack);

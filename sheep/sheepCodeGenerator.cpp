@@ -90,7 +90,8 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 			}
 			else if (section->GetSectionType() == SECTIONTYPE_SNIPPET)
 			{
-				// TODO!
+				SheepFunction func = writeSnippet(section);
+				output->Functions.push_back(func);
 			}
 
 			section = static_cast<SheepCodeTreeSectionNode*>(section->GetNextSibling());
@@ -235,7 +236,7 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 				if (child2 != NULL) determineExpressionTypes(child2);
 
 				if (child1->GetValueType() == EXPRVAL_VOID ||
-					child2->GetValueType() == EXPRVAL_VOID)
+					(child2 && child2->GetValueType() == EXPRVAL_VOID))
 				{
 					// can't use void with *any* operators!
 					throw SheepCompilerException(operation->GetLineNumber(), "Cannot use void types with operator");
@@ -279,6 +280,20 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 						{
 							operation->SetValueType(EXPRVAL_INT);
 						}
+						break;
+					case OP_NOT:
+						if (child1->GetValueType() != EXPRVAL_INT)
+							throw SheepCompilerException(operation->GetLineNumber(), "Cannot apply '!' operator to a non-integer");
+						else
+							operation->SetValueType(EXPRVAL_INT);
+						break;
+					case OP_AND:
+					case OP_OR:
+						if (child1->GetValueType() != EXPRVAL_INT ||
+							child2->GetValueType() != EXPRVAL_INT)
+							throw SheepCompilerException(operation->GetLineNumber(), "Cannot apply '&&' and '||' operators to non-integers");
+						else
+							operation->SetValueType(EXPRVAL_INT);
 						break;
 					default:
 						throw SheepException("Unknown operation type");
@@ -379,6 +394,22 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	func.Code->WriteSheepInstruction(SitnSpin);
 	func.Code->WriteSheepInstruction(SitnSpin);
 	func.Code->WriteSheepInstruction(SitnSpin);
+
+	return func;
+}
+
+SheepFunction SheepCodeGenerator::writeSnippet(SheepCodeTreeSectionNode* node)
+{
+	assert(node->GetSectionType() == SECTIONTYPE_SNIPPET);
+
+	SheepFunction func;
+	func.Name = "snippet";
+	func.Code = new SheepCodeBuffer();
+	func.CodeOffset = 0;
+
+	SheepCodeTreeNode* child = node->GetChild(0);
+
+	writeCode(func, child);
 
 	return func;
 }
@@ -712,7 +743,21 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				floatOp = IsEqualF;
 				break;
 			case OP_NE:
-				throw SheepCompilerException(operation->GetLineNumber(), "Sorry, != operator not supported yet");
+				intOp = NotEqualI;
+				floatOp = NotEqualF;
+				break;
+			case OP_NOT:
+				intOp = Not;
+				floatOp = Not;
+				break;
+			case OP_AND:
+				intOp = And;
+				floatOp = And;
+				break;
+			case OP_OR:
+				intOp = Or;
+				floatOp = Or;
+				break;
 			default:
 				throw SheepException("Unknown operator type!");
 			}
@@ -721,21 +766,26 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				throw SheepCompilerException(operation->GetLineNumber(), "Operator not supported with strings (yet?)");
 			
 			itemsOnStack += writeExpression(function, child1);
-			itemsOnStack += writeExpression(function, child2);
 
-			if (child1->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_FLOAT)
+			if (child2)
 			{
-				function.Code->WriteSheepInstruction(IToF);
-				function.Code->WriteUInt(1);
-			}
-			
-			if (child1->GetValueType() == EXPRVAL_FLOAT && child2->GetValueType() == EXPRVAL_INT)
-			{
-				function.Code->WriteSheepInstruction(IToF);
-				function.Code->WriteUInt(0);
+				itemsOnStack += writeExpression(function, child2);
+
+				// TODO: shouldn't type be determined by the parent's type (the operator)?
+				if (child1->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_FLOAT)
+				{
+					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteUInt(1);
+				}
+				
+				if (child1->GetValueType() == EXPRVAL_FLOAT && child2->GetValueType() == EXPRVAL_INT)
+				{
+					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteUInt(0);
+				}
 			}
 
-			if (child1->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_INT)
+			if (child1->GetValueType() == EXPRVAL_INT && (child2 == NULL || child2->GetValueType() == EXPRVAL_INT))
 				function.Code->WriteSheepInstruction(intOp);
 			else
 				function.Code->WriteSheepInstruction(floatOp);

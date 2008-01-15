@@ -118,6 +118,11 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateCodeSection(int lineNumber)
 	return new SheepCodeTreeSectionNode(SECTIONTYPE_CODE, lineNumber);
 }
 
+SheepCodeTreeNode* SheepCodeTreeNode::CreateSnippet(int lineNumber)
+{
+	return new SheepCodeTreeSectionNode(SECTIONTYPE_SNIPPET, lineNumber);
+}
+
 SheepCodeTreeNode* SheepCodeTreeNode::CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber)
 {
 	SheepCodeTreeNode* node = new SheepCodeTreeDeclarationNode(type, lineNumber);

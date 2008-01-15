@@ -102,7 +102,11 @@ enum CodeTreeOperationType
 	OP_EQ,
 	OP_NE,
 
-	OP_NEGATE
+	OP_NEGATE,
+
+	OP_NOT,
+	OP_AND,
+	OP_OR
 };
 
 enum CodeTreeKeywordStatementType
@@ -403,6 +407,12 @@ protected:
 			operationText = "EQUALS";
 		else if (m_type == OP_NE)
 			operationText = "NOT EQUAL";
+		else if (m_type == OP_NOT)
+			operationText = "NOT";
+		else if (m_type == OP_AND)
+			operationText = "AND";
+		else if (m_type == OP_OR)
+			operationText = "OR";
 		
 		printf("Operation: %s\n", operationText.c_str());
 	}

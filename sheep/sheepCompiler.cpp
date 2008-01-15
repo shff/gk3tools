@@ -48,6 +48,20 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 	}
 }
 
+int SHP_RunSnippet(SheepVM* vm, const char* script)
+{
+	assert(vm != NULL);
+
+	try
+	{
+		return SM(vm)->RunSnippet(script);
+	}
+	catch(SheepException& ex)
+	{
+		return 0;
+	}
+}
+
 float SHP_PopFloatFromStack(SheepVM* vm)
 {
 	assert(vm != NULL);

@@ -54,6 +54,7 @@
 ">"		return GREATERTHAN;
 "<"		return LESSTHAN;
 
+"!"		return NOT;
 "&&"	return AND;
 "||"	return OR;
 
