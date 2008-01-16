@@ -58,7 +58,7 @@ namespace Gk3Main.Resource
                 while (lines[startIndex].StartsWith("[") == false) startIndex++;
 
                 // now we should be at a section header, so parse it
-                Match match = Regex.Match(lines[startIndex], @"^\[([\w|(|)]+)(?:=(.+))?]");
+                Match match = Regex.Match(lines[startIndex], @"^\[([\w|(|)]+)(?:={(.+)})?]");
 
                 if (match.Success == false)
                     throw new InfoResourceException("??", lines[startIndex] + " fails regex");
@@ -148,6 +148,21 @@ namespace Gk3Main.Resource
                     _attributes.Add(keyvalue);
                 }
             }
+        }
+
+        public bool TryGetAttribute(string name, out string value)
+        {
+            foreach (KeyValuePair<string, string> attribute in _attributes)
+            {
+                if (attribute.Key == name)
+                {
+                    value = attribute.Value;
+                    return true;
+                }
+            }
+
+            value = null;
+            return false;
         }
 
         public string Value { get { return _value; } }

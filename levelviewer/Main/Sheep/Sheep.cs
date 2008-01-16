@@ -1,196 +1,175 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Runtime.InteropServices;
 
 namespace Gk3Main.Sheep
 {
-    public delegate int SheepFunctionDelegate(Parameter[] parameters);
-
-    enum SheepParameterType
+    public class SheepException : Exception
     {
-        String,
-        Integer,
-        Float
+        public SheepException(string message)
+            : base(message)
+        {
+        }
     }
 
-    struct SheepFunction
+    public delegate void SheepFunctionDelegate(IntPtr vm);
+    
+    public enum SymbolType
     {
-        public string Name;
-        public SheepParameterType[] Parameters;
-        public SheepFunctionDelegate Callback;
+        Void,
+        Integer,
+        Float,
+        String
     }
 
     public static class SheepMachine
     {
-        static SheepMachine()
+        public static void Initialize()
         {
-            BasicSheepFunctions.Init();
-        }
-
-        public static void CallSheep(string filename, string function)
-        {
-            SheepScript script = new SheepScript(filename, _state);
-            script.Execute(function);
-        }
-
-        internal static void CallVoidSystemFunction(string name, Parameter[] parameters)
-        {
-            try
+            if (_vm == IntPtr.Zero)
             {
-                Console.CurrentConsole.WriteLine("Calling system function \"{0}\"", name);
 
-                SheepFunction function;
-                if (_imports.TryGetValue(name, out function) == false)
-                    Console.CurrentConsole.WriteLine("Function not found: " + name);
-                else
-                    function.Callback(parameters);
-            }
-            catch (NotImplementedException)
-            {
-                Console.CurrentConsole.WriteLine("{0} not implemented", name);
-            }
-        }
 
-        internal static int CallIntSystemFunction(string name, Parameter[] parameters)
-        {
-            try
-            {
-                Console.CurrentConsole.WriteLine("Calling int system function \"{0}\"", name);
+                _vm = SHP_CreateNewVM();
 
-                SheepFunction function;
-                if (_imports.TryGetValue(name, out function) == false)
-                    Console.CurrentConsole.WriteLine("Function not found: " + name);
-                else
-                    return function.Callback(parameters);
-            }
-            catch(NotImplementedException)
-            {
-                Console.CurrentConsole.WriteLine("{0} not implemented", name);
+
+                _compilerOutputDelegate = new CompilerOutputDelegate(compilerOutputCallback);
                 
+                SHP_SetOutputCallback(_vm,
+                    Marshal.GetFunctionPointerForDelegate(_compilerOutputDelegate));
+               // SHP_SetOutputCallback(_vm, _compilerOutputDelegate);
+
+                BasicSheepFunctions.Init();
             }
-            return 0;
         }
 
-        internal static string CallStringSystemFunction(string name, Parameter[] parameters)
+        public static void Shutdown()
         {
-            try
+            if (_vm != IntPtr.Zero)
             {
-                Console.CurrentConsole.WriteLine("Calling int system function \"{0}\"", name);
-
-                SheepFunction function;
-                if (_imports.TryGetValue(name, out function) == false)
-                    Console.CurrentConsole.WriteLine("Function not found: " + name);
-                else
-                    function.Callback(parameters);
+                SHP_DestroyVM(_vm);
+                _vm = IntPtr.Zero;
             }
-            catch (NotImplementedException)
+        }
+
+        public static void AddImport(string name, SheepFunctionDelegate callback, SymbolType returnType, params SymbolType[] parameters)
+        {
+            IntPtr import = SHP_AddImport(_vm, name, returnType, Marshal.GetFunctionPointerForDelegate(callback));
+
+            if (import == IntPtr.Zero)
+                throw new SheepException("Unable to add import");
+
+            foreach (SymbolType parameterType in parameters)
+                SHP_AddImportParameter(import, parameterType);
+        }
+
+        public static void RunSheep(string filename, string function)
+        {
+            using (System.IO.StreamReader reader = new System.IO.StreamReader(FileSystem.Open(filename)))
             {
-                Console.CurrentConsole.WriteLine("{0} not implemented", name);
+                string script = reader.ReadToEnd();
+
+                SHP_RunScript(_vm, script, function);
             }
-            return "";
         }
 
-        public static void AddFunction(string name, SheepFunctionDelegate callback)
+        public static int RunSnippet(string snippet)
         {
-            SheepFunction function;
+            int result;
 
-            function.Name = name;
-            function.Parameters = null;
-            function.Callback = callback;
+            _output.Clear();
 
-            _imports.Add(name, function);
+            int err = SHP_RunSnippet(_vm, string.Format("snippet{{ {0} }}", snippet), out result);
+
+            if (err != 0)
+                throw new SheepException("Unable to execute snippet");
+
+            return result;
         }
 
-        public static bool EvaluateBoolean(string expression)
+        public static int PopIntOffStack(IntPtr vm)
         {
-            return false;
+            return SHP_PopIntFromStack(vm);
         }
 
-        public static int ExecuteRaw(byte[] code)
+        public static float PopFloatOffStack(IntPtr vm)
         {
-            int instructionPtr = 0;
-
-            while (instructionPtr < code.Length)
-            {
-                byte op = code[instructionPtr++];
-                int param;
-
-                switch (op)
-                {
-                    case 0x00:
-                        // do nothing
-                        break;
-                    case 0x02:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        // do nothing
-                        break;
-                    case 0x03:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        // do nothing
-                        break;
-                    case 0x06:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        instructionPtr = param;
-                        break;
-                    case 0x08:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        // do nothing
-                        break;
-                    case 0x09:
-                        // do nothing
-                        break;
-                    case 0x0A:
-                        // do nothing
-                        break;
-                    case 0x0B:
-                        return 0;
-                    case 0x13:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        // do nothing
-                        break;
-                    case 0x15:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        // do nothing
-                        break;
-                    case 0x16:
-                        // do nothing
-                        break;
-                    case 0x21:
-                        // do nothing
-                        break;
-                    case 0x2D:
-                        param = getIntFromBytes(code, ref instructionPtr);
-                        // do nothing
-                        break;
-                    case 0x30:
-                        // do nothing
-                        break;
-                    case 0x31:
-                        // do nothing
-                        break;
-                    case 0x33:
-                        // do nothing
-                        break;
-                    default:
-                        throw new NotImplementedException("Instruction " +
-                            op.ToString("X") + " not implemented");
-                }
-            }
-
-            return -1;
+            return SHP_PopFloatFromStack(vm);
         }
 
-        private static int getIntFromBytes(byte[] bytes, ref int index)
+        public static string PopStringOffStack(IntPtr vm)
         {
-            int i = BitConverter.ToInt32(bytes, index);
-
-            index += 4;
-
-            return i;
+            return Marshal.PtrToStringAnsi(SHP_PopStringFromStack(vm));
         }
 
-        private static SheepStateManager _state = new SheepStateManager();
-        private static Dictionary<string, SheepFunction> _imports = 
-            new Dictionary<string, SheepFunction>();
+        public static void PushIntOntoStack(IntPtr vm, int i)
+        {
+            SHP_PushIntOntoStack(vm, i);
+        }
+
+        private static IntPtr _vm;
+
+        struct CompilerOutput
+        {
+            public int LineNumber;
+            public string Text;
+        }
+
+        private static List<CompilerOutput> _output = new List<CompilerOutput>();
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct SHP_CompilerOutput
+        {
+            public int LineNumber;
+            public IntPtr Output;
+        }
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        private delegate void CompilerOutputDelegate(int lineNumber, IntPtr message);
+        private static void compilerOutputCallback(int lineNumber, IntPtr message)
+        {
+            CompilerOutput co;
+            co.LineNumber = lineNumber;
+            co.Text = Marshal.PtrToStringAnsi(message);
+
+            _output.Add(co);
+        }
+        private static CompilerOutputDelegate _compilerOutputDelegate;
+
+        #region Interops
+        [DllImport("sheepc")]
+        private static extern IntPtr SHP_CreateNewVM();
+
+        [DllImport("sheepc")]
+        private static extern void SHP_DestroyVM(IntPtr vm);
+
+        [DllImport("sheepc")]
+        private static extern IntPtr SHP_AddImport(IntPtr vm, string name, SymbolType returnType, IntPtr callback);
+
+        [DllImport("sheepc")]
+        private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
+
+        [DllImport("sheepc")]
+        private static extern int SHP_PopIntFromStack(IntPtr vm);
+
+        [DllImport("sheepc")]
+        private static extern float SHP_PopFloatFromStack(IntPtr vm);
+        
+        [DllImport("sheepc")]
+        private static extern IntPtr SHP_PopStringFromStack(IntPtr vm);
+
+        [DllImport("sheepc")]
+        private static extern void SHP_PushIntOntoStack(IntPtr vm, int i);
+
+        [DllImport("sheepc")]
+        private static extern int SHP_RunScript(IntPtr vm, string script, string function);
+
+        [DllImport("sheepc")]
+        private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
+
+        [DllImport("sheepc")]
+        private static extern void SHP_SetOutputCallback(IntPtr vm, IntPtr callback);
+
+        #endregion Interops
     }
 }

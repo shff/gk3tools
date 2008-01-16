@@ -31,6 +31,8 @@ namespace Viewer
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
 
+            Gk3Main.Sheep.SheepMachine.Initialize();
+
             _camera = new Gk3Main.Graphics.Camera();
 
             Gk3Main.SceneManager.LightmapsEnabled = true;
@@ -44,7 +46,7 @@ namespace Viewer
             if (args.Length != 3)
                 return false;
 
-            Gk3Main.Sheep.SheepMachine.CallSheep(args[1], args[2]);
+            Gk3Main.Sheep.SheepMachine.RunSheep(args[1], args[2]);
 
             return true;
         }
@@ -52,6 +54,7 @@ namespace Viewer
         #region Event handlers
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Gk3Main.Sheep.SheepMachine.Shutdown();
             Application.Exit();
         }
 

@@ -56,8 +56,6 @@
     <Compile Include="Resource\TextResource.cs" />
     <Compile Include="Sheep\BasicSheepFunctions.cs" />
     <Compile Include="Sheep\Sheep.cs" />
-    <Compile Include="Sheep\SheepScript.cs" />
-    <Compile Include="Sheep\SheepStateManager.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
