@@ -58,8 +58,6 @@ struct SheepFunction
 	std::vector<std::string> ImportList;
 };
 
-typedef void (*SheepImportCallback)(SheepVM*);
-
 struct SheepImport : public SheepImportFunction
 {
 	SheepImport() { Callback = NULL; }
@@ -68,7 +66,7 @@ struct SheepImport : public SheepImportFunction
 	SheepSymbolType ReturnType;
 	std::vector<SheepSymbolType> Parameters;
 
-	SheepImportCallback Callback;
+	SHP_ImportCallback Callback;
 };
 
 struct SheepStringConstant

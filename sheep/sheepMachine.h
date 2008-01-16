@@ -32,7 +32,7 @@ public:
 	~SheepMachine();
 
 	void SetOutputCallback(void (*callback)(const char* message));
-	void SetCompileOutputCallback(void (*callback)(const char* message));
+	void SetCompileOutputCallback(SHP_MessageCallback callback);
 	
 	/// Allows the script machine to prepare for execution.
 	/// 'script' is assumed to be uncompiled, and will be compiled.
@@ -46,7 +46,10 @@ public:
 	/// Executes a function. Make sure that Prepare() has been called first!
 	void Run(const std::string& function);
 
-	int RunSnippet(const std::string& snippet);
+	/// Runs a snippet. Returns SHEEP_SUCCESS on success, and the value
+	/// left on the stack (if any) is put into 'result'. Or returns
+	/// SHEEP_ERROR on error.
+	int RunSnippet(const std::string& snippet, int* result);
 
 	int PopIntFromStack()
 	{
@@ -80,6 +83,11 @@ public:
 		}
 
 		throw SheepMachineException("Invalid string offset found on stack");
+	}
+
+	void PushIntOntoStack(int i)
+	{
+		m_currentStack.push(StackItem(SYM_INT, i));
 	}
 	
 	SheepImportTable& GetImports() { return m_imports; }
@@ -121,7 +129,7 @@ private:
 	void execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports, unsigned int offset);
 
 	void (*m_callback)(const char* message);
-	void (*m_compilerCallback)(const char* message);
+	SHP_MessageCallback m_compilerCallback;
 
 	std::vector<StackItem> m_variables;
 	IntermediateOutput* m_code;
@@ -385,6 +393,19 @@ private:
 
 	void callVoidFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index)
 	{
+		callFunction(stack, imports, index, 0);
+
+		// the GK3 VM seems to expect something on the stack, even after 'void' functions.
+		stack.push(StackItem(SYM_INT, 0));
+	}
+
+	void callIntFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index)
+	{
+		callFunction(stack, imports, index, 1);
+	}
+
+	void callFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index, int numExpectedReturns)
+	{
 		int numParams = getInt(stack);
 
 		const int MAX_NUM_PARAMS = 16;
@@ -407,19 +428,17 @@ private:
 		}
 
 		int paramsLeftOver = numParams - (numItemsOnStack - stack.size());
-		if (paramsLeftOver > 0)
+		if (paramsLeftOver > numExpectedReturns)
 		{
 			// lazy bums didn't pop everything off!
-			for (int i = 0; i < paramsLeftOver; i++)
+			for (int i = numExpectedReturns; i < paramsLeftOver; i++)
 				stack.pop();
 		}
-		else if (paramsLeftOver < 0)
+		else if (paramsLeftOver < numExpectedReturns)
 		{
-			// the idiots popped too much!
-			throw SheepMachineException("Too many items popped from the stack during function call");
+			// the idiots popped too much, or didn't put enough stuff on the stack!
+			throw SheepMachineException("Incorrect number of items on the stack after function call");
 		}
-
-		stack.push(StackItem(SYM_INT, 0));
 	}
 };
 

@@ -9,14 +9,21 @@
 #include "sheepImportTable.h"
 #include "sheepTypes.h"
 
-void s_printString(SheepVM* vm)
+void CALLBACK s_printString(SheepVM* vm)
 {
 	std::cout << SHP_PopStringFromStack(vm) << std::endl;
 }
 
-void s_printFloat(SheepVM* vm)
+void CALLBACK s_printFloat(SheepVM* vm)
 {
 	std::cout << SHP_PopFloatFromStack(vm) << std::endl;
+}
+
+void CALLBACK s_isCurrentTime(SheepVM* vm)
+{
+	SHP_PopStringFromStack(vm);
+
+	SHP_PushIntOntoStack(vm, 0);
 }
 
 int main(int argc, char** argv)
@@ -53,6 +60,7 @@ int main(int argc, char** argv)
 	SheepImportTable imports;
 	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
 	imports.TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
+	imports.TryAddImport("IsCurrentTime", SYM_INT, SYM_STRING, s_isCurrentTime);
 
 	SheepCodeGenerator generator(&tree, &imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
@@ -65,9 +73,11 @@ int main(int argc, char** argv)
 	std::cout << "Num functions: " << output->Functions.size() << std::endl;
 
 	SheepMachine machine;
-	machine.Prepare(output);
-	machine.Run("blah$");
-	//std::cout << "result: " << machine.RunSnippet(ss.str()) << std::endl;
+	machine.GetImports().TryAddImport("IsCurrentTime", SYM_INT, SYM_STRING, s_isCurrentTime);
+	//machine.Prepare(output);
+	//machine.Run("foo$");
+	int result;
+	std::cout << "result: " << machine.RunSnippet(ss.str(), &result) << std::endl;
 
 	//generator.WriteOutputToFile("output.shp", output);
 	//delete output;

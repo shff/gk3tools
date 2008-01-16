@@ -9,9 +9,11 @@ extern "C"
 #ifdef _MSC_VER
 #define DECLSPEC __declspec(dllexport)
 #define LIB_CALL __cdecl
+#define CALLBACK __stdcall
 #else
 #define DECLSPEC
 #define LIB_CALL
+#define CALLBACK __attribute__((stdcall))
 #endif
 
 #define SHEEP_SUCCESS 0
@@ -63,97 +65,31 @@ struct SHP_Function
 
 struct SHP_CompilerOutput
 {
-	char* Output;
+	const char* Output;
 	int LineNumber;
-};
-
-/*struct SHP_IntermediateOutput
-{
-	int NumImports;
-	SHP_Import* Imports;
-
-	int NumConstants;
-	SHP_StringConstant* Constants;
-
-	int NumSymbols;
-	SHP_Symbol* Symbols;
-
-	int NumFunctions;
-	SHP_Function* Functions;
-
-	int NumWarnings;
-	SHP_CompilerOutput* Warnings;
-
-	int NumErrors;
-	SHP_CompilerOutput* Errors;
-};*/
-
-typedef void* SHP_IntermediateOutput;
-
-struct SHP_FullOutput
-{
-	byte* Code;
-	int CodeLength;
-
-	int NumWarnings;
-	SHP_CompilerOutput* Warnings;
-
-	int NumErrors;
-	SHP_CompilerOutput* Errors;
-};
-
-struct SHP_Import
-{
-	char* Name;
-	SHP_SymbolType ReturnType;
-	int NumParameters;
-	SHP_SymbolType* Parameters;
 };
 
 typedef struct {} SheepVM;
 typedef struct {} SheepImportFunction;
 
-/// Compiles the sheep script and returns a new SHP_FullOutput object.
-/// The code returned inside the SHP_FullOutput object is suitable for
-/// saving to a file as a compiled .shp file. Also, the SheepCode
-/// object must be destroyed with SHP_DestroyFullOutput().
-DECLSPEC SHP_FullOutput* LIB_CALL SHP_Compile(const char* script);
-
-DECLSPEC SHP_IntermediateOutput LIB_CALL SHP_CompileIntermediate(const char* script);
-
-DECLSPEC int LIB_CALL SHP_GetNumImports(SHP_IntermediateOutput output);
-DECLSPEC int LIB_CALL SHP_GetNumStringConstants(SHP_IntermediateOutput output);
-DECLSPEC int LIB_CALL SHP_GetNumSymbols(SHP_IntermediateOutput output);
-DECLSPEC int LIB_CALL SHP_GetNumFunctions(SHP_IntermediateOutput output);
-DECLSPEC int LIB_CALL SHP_GetNumErrors(SHP_IntermediateOutput output);
-
-DECLSPEC void LIB_CALL SHP_GetImportName(SHP_IntermediateOutput output, int index, char* name, int maxlen);
-
-DECLSPEC void LIB_CALL SHP_GetFunctionName(SHP_IntermediateOutput output, int index, char* name, int maxlen);
-DECLSPEC const byte* LIB_CALL SHP_GetFunctionCode(SHP_IntermediateOutput output, int index, int* length);
-
-/// Compiles the "snippet" of sheep. Don't try to save the returned
-/// code as a compiled .shp file, because it won't work! Use this
-/// function for executing small "snippets" of sheep.
-DECLSPEC SHP_IntermediateOutput* LIB_CALL SHP_CompileSnippet(const char* script);
-
-DECLSPEC void LIB_CALL SHP_DestroyFullOutput(SHP_FullOutput* sheep);
-DECLSPEC void LIB_CALL SHP_DestroyIntermediateOutput(SHP_IntermediateOutput* sheep);
-
-// TODO: add a way to fetch errors
-
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
 DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
 
-DECLSPEC int LIB_CALL SHP_RunSnippet(SheepVM* vm, const char* script);
+typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* message);
+DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
+
+DECLSPEC int LIB_CALL SHP_RunSnippet(SheepVM* vm, const char* script, int* result);
 DECLSPEC int LIB_CALL SHP_RunScript(SheepVM* vm, const char* script, const char* function);
 
-DECLSPEC SheepImportFunction* LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, void (*callback)(SheepVM*));
+typedef void (CALLBACK *SHP_ImportCallback)(SheepVM* vm);
+DECLSPEC SheepImportFunction* LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_ImportCallback callback);
 DECLSPEC void LIB_CALL SHP_AddImportParameter(SheepImportFunction* import, SHP_SymbolType parameterType);
 
 DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm);
 DECLSPEC float LIB_CALL SHP_PopFloatFromStack(SheepVM* vm);
 DECLSPEC const char* LIB_CALL SHP_PopStringFromStack(SheepVM* vm);
+
+DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
 
 #ifdef __cplusplus
 }

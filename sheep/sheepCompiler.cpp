@@ -19,7 +19,14 @@ void SHP_DestroyVM(SheepVM* vm)
 	delete SM(vm);
 }
 
-SheepImportFunction* SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, void (*callback)(SheepVM*))
+void SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback)
+{
+	assert(vm != NULL);
+
+	SM(vm)->SetCompileOutputCallback(callback);
+}
+
+SheepImportFunction* SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_ImportCallback callback)
 {
 	return SM(vm)->GetImports().NewImport(name, (SheepSymbolType)returnType, callback);
 }
@@ -48,17 +55,17 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 	}
 }
 
-int SHP_RunSnippet(SheepVM* vm, const char* script)
+int SHP_RunSnippet(SheepVM* vm, const char* script, int* result)
 {
 	assert(vm != NULL);
 
 	try
 	{
-		return SM(vm)->RunSnippet(script);
+		return SM(vm)->RunSnippet(script, result);
 	}
 	catch(SheepException& ex)
 	{
-		return 0;
+		return SHEEP_ERROR;
 	}
 }
 
@@ -74,4 +81,12 @@ const char* SHP_PopStringFromStack(SheepVM* vm)
 	assert(vm != NULL);
 
 	return SM(vm)->PopStringFromStack().c_str();
+}
+
+
+void SHP_PushIntOntoStack(SheepVM* vm, int i)
+{
+	assert(vm != NULL);
+
+	SM(vm)->PushIntOntoStack(i);
 }

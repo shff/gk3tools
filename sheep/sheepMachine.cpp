@@ -20,6 +20,12 @@ void SheepMachine::SetOutputCallback(void (*callback)(const char *))
 	m_callback = callback;
 }
 
+void SheepMachine::SetCompileOutputCallback(SHP_MessageCallback callback)
+{
+	// btw, NULL is perfectly fine
+	m_compilerCallback = callback;
+}
+
 void SheepMachine::Prepare(const std::string &script)
 {
 	if (m_code != NULL)
@@ -93,32 +99,72 @@ void SheepMachine::Run(const std::string &function)
 
 	execute(sheepfunction->Code, m_code->Imports, sheepfunction->CodeOffset);
 }
-
-int SheepMachine::RunSnippet(const std::string& snippet)
+ 
+int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 {
+	if (m_code != NULL)
+	{
+		delete m_code;
+		m_code = NULL;
+	}
+
+	try
+	{
 	SheepCodeTree tree;
 	tree.Lock(snippet, NULL);
 
 	SheepCodeGenerator generator(&tree, &m_imports);
-	IntermediateOutput* output = generator.BuildIntermediateOutput();
+	m_code = generator.BuildIntermediateOutput();
+
+	if (m_code->Errors.empty() == false)
+	{
+		if (m_compilerCallback)
+		{
+			for (std::vector<CompilerOutput>::iterator itr = m_code->Errors.begin();
+				itr != m_code->Errors.end(); itr++)
+			{
+				m_compilerCallback((*itr).LineNumber, (*itr).Output.c_str());
+			}
+		}
+
+		return SHEEP_ERROR;
+	}
 
 	size_t numItemsOnStack = m_currentStack.size();
 
-	execute(output->Functions[0].Code, output->Imports, output->Functions[0].CodeOffset);
+	if (m_code->Functions.empty())
+	{
+		return SHEEP_ERROR;
+	}
+
+	execute(m_code->Functions[0].Code, m_code->Imports, m_code->Functions[0].CodeOffset);
 
 	int returnValue = 0;
 	if (m_currentStack.size() > numItemsOnStack)
 	{
-		if (m_currentStack.top().Type == SYM_INT)
-			returnValue = m_currentStack.top().IValue;
-		else if (m_currentStack.top().Type == SYM_FLOAT)
-			returnValue = (int)m_currentStack.top().FValue;
+		if (result != NULL)
+		{
+			if (m_currentStack.top().Type == SYM_INT)
+				*result = m_currentStack.top().IValue;
+			else if (m_currentStack.top().Type == SYM_FLOAT)
+				*result = (int)m_currentStack.top().FValue;
+		}
 
 		m_currentStack.pop();
 	}
 
-	delete output;
-	return returnValue;
+	return SHEEP_SUCCESS;
+
+	}
+	catch(SheepException& ex)
+	{
+		if (m_compilerCallback)
+		{
+			m_compilerCallback(0, ex.GetMessage().c_str());
+		}
+
+		return -5;
+	}
 }
 
 void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports,
@@ -154,6 +200,9 @@ void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& impo
 			nextInstruction += 4;
 			break;
 		case CallSysFunctionI:
+			callIntFunction(stack, imports, code->ReadInt());
+			nextInstruction += 4;
+			break;
 		case CallSysFunctionF:
 		case CallSysFunctionS:
 			throw SheepMachineInstructionException("Function calling not supported yet.");
