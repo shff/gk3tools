@@ -65,6 +65,8 @@ namespace Gk3Main
 
                 string lightmapFile = Utils.GetFilenameWithoutExtension(scn) + ".MUL";
                 _currentLightmaps = (Graphics.LightmapResource)Resource.ResourceManager.Load(lightmapFile);
+
+                unloadModels();
             }
             catch (System.IO.FileNotFoundException ex)
             {
@@ -72,7 +74,7 @@ namespace Gk3Main
             }
         }
 
-        public static void AddModel(string modelname, Math.Vector position)
+        public static void AddModel(string modelname)
         {
             Graphics.ModelResource model = 
                 (Graphics.ModelResource)Resource.ResourceManager.Load(modelname);
@@ -104,6 +106,16 @@ namespace Gk3Main
         {
             get { return _shadeMode; }
             set { _shadeMode = value; }
+        }
+
+        private static void unloadModels()
+        {
+            foreach (Graphics.ModelResource model in _models)
+            {
+                Resource.ResourceManager.Unload(model);
+            }
+
+            _models.Clear();
         }
 
         private static Graphics.BspResource _currentRoom;

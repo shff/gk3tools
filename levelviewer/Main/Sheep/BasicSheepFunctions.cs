@@ -13,6 +13,21 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
+
+            SheepMachine.AddImport("GetEgoLocationCount", _getEgoLocationCount,
+                SymbolType.Integer, SymbolType.String);
+
+            SheepMachine.AddImport("GetEgoCurrentLocationCount", _getEgoCurrentLocationCount,
+                SymbolType.Integer);
+
+            SheepMachine.AddImport("GetNounVerbCount", _getNounVerbCount,
+                SymbolType.Integer, SymbolType.String, SymbolType.String);
+
+            SheepMachine.AddImport("DoesGraceHaveInvItem", _doesGraceHaveInvItemDelegate,
+                SymbolType.Integer, SymbolType.String);
+
+            SheepMachine.AddImport("DoesGabeHaveInvItem", _doesGabeHaveInvItemDelegate,
+                SymbolType.Integer, SymbolType.String);
         }
 
         private static void sheep_PrintString(IntPtr vm)
@@ -29,7 +44,58 @@ namespace Gk3Main.Sheep
             SheepMachine.PushIntOntoStack(vm, 0);
         }
 
+        private static void sheep_GetEgoCurrentLocationCount(IntPtr vm)
+        {
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_GetEgoLocationCount(IntPtr vm)
+        {
+            string location = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_GetNounVerbCount(IntPtr vm)
+        {
+            string verb = SheepMachine.PopStringOffStack(vm);
+            string noun = SheepMachine.PopStringOffStack(vm);
+            
+
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_DoesGraceHaveInvItem(IntPtr vm)
+        {
+            string item = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_DoesGabeHaveInvItem(IntPtr vm)
+        {
+            string item = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
         private static SheepFunctionDelegate _printStringDelegate = new SheepFunctionDelegate(sheep_PrintString);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
+        private static SheepFunctionDelegate _getEgoLocationCount = new SheepFunctionDelegate(sheep_GetEgoLocationCount);
+        private static SheepFunctionDelegate _getEgoCurrentLocationCount = new SheepFunctionDelegate(sheep_GetEgoCurrentLocationCount);
+        private static SheepFunctionDelegate _getNounVerbCount = new SheepFunctionDelegate(sheep_GetNounVerbCount);
+        private static SheepFunctionDelegate _doesGraceHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGraceHaveInvItem);
+        private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
+        
     }
 }

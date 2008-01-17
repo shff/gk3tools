@@ -95,6 +95,15 @@ namespace Viewer
                 Gk3Main.Game.SifResource sif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
 
                 Gk3Main.SceneManager.LoadScene(sif.Scene);
+
+                // load the models
+                foreach (Gk3Main.Game.SifModel model in sif.Models)
+                {
+                    if (model.Type == "prop" && model.Hidden == false)
+                    {
+                        Gk3Main.SceneManager.AddModel(model.Name + ".MOD");
+                    }
+                }
             }
         }
 
@@ -109,12 +118,11 @@ namespace Viewer
 
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
-                Gk3Main.SceneManager.AddModel(dialog.SelectedScene, new Gk3Main.Math.Vector());
+                Gk3Main.SceneManager.AddModel(dialog.SelectedScene);
         }
 
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)
         {
-            Gk3Main.Console.CurrentConsole.WriteLine("Drawing!");
             Tao.OpenGl.Gl.glClear(Tao.OpenGl.Gl.GL_COLOR_BUFFER_BIT | Tao.OpenGl.Gl.GL_DEPTH_BUFFER_BIT);
             Gk3Main.SceneManager.Render(_camera);
 

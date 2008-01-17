@@ -199,7 +199,15 @@ namespace Barn
 		unsigned int m_numFiles;
 		std::vector<BarnFile> m_fileList;
 
-		typedef std::map<std::string, BarnFile> FileMap;
+		struct ci_less
+		{
+			bool operator() (const std::string& s1, const std::string& s2) const
+			{
+				return stricmp(s1.c_str(), s2.c_str()) < 0;
+			}
+		};
+
+		typedef std::map<std::string, BarnFile, ci_less> FileMap;
 		FileMap m_fileMap;
 		std::vector<Barn*> m_openChildBarns;
 		unsigned int m_dataOffset;

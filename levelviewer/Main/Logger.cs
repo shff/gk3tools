@@ -13,6 +13,10 @@ namespace Gk3Main
 
             _writer = new System.IO.StreamWriter(mypath 
                 + System.IO.Path.DirectorySeparatorChar + "log.txt");
+
+#if DEBUG
+            _localEcho = true;
+#endif
         }
 
         public static void Close()

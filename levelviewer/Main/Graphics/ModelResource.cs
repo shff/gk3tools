@@ -242,27 +242,31 @@ namespace Gk3Main.Graphics
 
         public void Render()
         {
-            Gl.glEnable(Gl.GL_TEXTURE_2D);
-
-            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-
-            foreach (ModMesh mesh in _meshes)
+            if (_loaded == true)
             {
-                foreach (ModMeshSection section in mesh.sections)
+
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+
+                Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+
+                foreach (ModMesh mesh in _meshes)
                 {
-                    section.textureResource.Bind();
+                    foreach (ModMeshSection section in mesh.sections)
+                    {
+                        section.textureResource.Bind();
 
-                    Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, section.vertices);
-                    Gl.glNormalPointer(Gl.GL_FLOAT, 0, section.normals);
-                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, section.texCoords);
+                        Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, section.vertices);
+                        Gl.glNormalPointer(Gl.GL_FLOAT, 0, section.normals);
+                        Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, section.texCoords);
 
-                    Gl.glDrawElements(Gl.GL_TRIANGLES, section.indices.Length, Gl.GL_UNSIGNED_SHORT, section.indices);
+                        Gl.glDrawElements(Gl.GL_TRIANGLES, section.indices.Length, Gl.GL_UNSIGNED_SHORT, section.indices);
+                    }
                 }
-            }
 
-            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+            }
         }
 
         public override void Dispose()
