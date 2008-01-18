@@ -102,6 +102,12 @@ namespace Gk3Main
             set { _lightmapsEnabled = value; }
         }
 
+        public static bool DoubleLightmapValues
+        {
+            get { return _doubleLightmapValues; }
+            set { _doubleLightmapValues = value; }
+        }
+
         public static ShadeMode CurrentShadeMode
         {
             get { return _shadeMode; }
@@ -124,5 +130,6 @@ namespace Gk3Main
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;
+        private static bool _doubleLightmapValues = false;
     }
 }

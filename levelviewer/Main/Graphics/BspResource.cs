@@ -281,8 +281,7 @@ namespace Gk3Main.Graphics
                 Gl.glActiveTextureARB(Gl.GL_TEXTURE1);
                 Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
-                Gl.glEnable(Gl.GL_ALPHA_TEST);
-                Gl.glAlphaFunc(Gl.GL_LESS, 0.1f);
+              
                 Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
                 Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _lightmapcoords);
                 
@@ -330,8 +329,26 @@ namespace Gk3Main.Graphics
                     Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
                     Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
                     lightmap.Bind();
-                    //Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_EXT, Gl.GL_MODULATE);
+                    
                     Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, Gl.GL_COMBINE);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB, Gl.GL_MODULATE);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB, Gl.GL_PREVIOUS);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB, Gl.GL_SRC_COLOR);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB, Gl.GL_TEXTURE);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB, Gl.GL_SRC_COLOR);
+
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_ALPHA, Gl.GL_REPLACE);
+                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_ALPHA, Gl.GL_PREVIOUS);
+
+                    if (SceneManager.DoubleLightmapValues)
+                    {
+                        Gl.glTexEnvf(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE, 2.0f);
+                    }
+                    else
+                    {
+                        Gl.glTexEnvf(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE, 1.0f);
+                    }
+
                     Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
                     Gl.glActiveTexture(Gl.GL_TEXTURE0);
                 }

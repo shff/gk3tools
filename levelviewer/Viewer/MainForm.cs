@@ -260,6 +260,22 @@ namespace Viewer
             simpleOpenGlControl1.Draw();
         }
 
+        private void xLightmapsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (xLightmapsToolStripMenuItem.Checked)
+            {
+                xLightmapsToolStripMenuItem.Checked = false;
+                Gk3Main.SceneManager.DoubleLightmapValues = false;
+            }
+            else
+            {
+                xLightmapsToolStripMenuItem.Checked = true;
+                Gk3Main.SceneManager.DoubleLightmapValues = true;
+            }
+
+            simpleOpenGlControl1.Draw();
+        }
+
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();

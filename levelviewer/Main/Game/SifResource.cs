@@ -33,11 +33,14 @@ namespace Gk3Main.Game
             {
                 if (line.Value == "" && line.Attributes[0].Key == "scene")
                     _scene = line.Attributes[0].Value.ToUpper() + ".SCN";
+                else if (line.Value == "" && line.Attributes[0].Key == "cameraBounds")
+                    _cameraBoundsModel = line.Attributes[0].Value.ToUpper() + ".MOD";
             }
 
             foreach (Resource.InfoSection section in Sections)
             {
-                if (section.Name == "GENERAL" && section.Condition == "")
+                if (section.Name == "GENERAL" &&
+                    (section.Condition == "" || Sheep.SheepMachine.RunSnippet(section.Condition) != 0))
                 {
                     foreach (Resource.InfoLine line in section.Lines)
                     {
@@ -94,6 +97,11 @@ namespace Gk3Main.Game
             get { return _scene; }
         }
 
+        public string CameraBoundsModel
+        {
+            get { return _cameraBoundsModel; }
+        }
+
         public List<SifActor> Actors
         {
             get { return _actors; }
@@ -105,6 +113,7 @@ namespace Gk3Main.Game
         }
 
         private string _scene;
+        private string _cameraBoundsModel;
         private List<SifActor> _actors = new List<SifActor>();
         private List<SifModel> _models = new List<SifModel>();
     }

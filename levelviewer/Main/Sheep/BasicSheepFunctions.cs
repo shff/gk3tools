@@ -14,6 +14,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
+            SheepMachine.AddImport("GetGameVariableInt", _getGameVariableIntDelegate,
+                SymbolType.Integer, SymbolType.String);
+
             SheepMachine.AddImport("GetEgoLocationCount", _getEgoLocationCount,
                 SymbolType.Integer, SymbolType.String);
 
@@ -38,6 +41,16 @@ namespace Gk3Main.Sheep
         private static void sheep_IsCurrentTime(IntPtr vm)
         {
             string time = SheepMachine.PopStringOffStack(vm);
+
+            if (Game.GameManager.CurrentTimeString == time)
+                SheepMachine.PushIntOntoStack(vm, 1);
+            else
+                SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_GetGameVariableInt(IntPtr vm)
+        {
+            string variable = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
 
@@ -91,6 +104,7 @@ namespace Gk3Main.Sheep
 
         private static SheepFunctionDelegate _printStringDelegate = new SheepFunctionDelegate(sheep_PrintString);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
+        private static SheepFunctionDelegate _getGameVariableIntDelegate = new SheepFunctionDelegate(sheep_GetGameVariableInt);
         private static SheepFunctionDelegate _getEgoLocationCount = new SheepFunctionDelegate(sheep_GetEgoLocationCount);
         private static SheepFunctionDelegate _getEgoCurrentLocationCount = new SheepFunctionDelegate(sheep_GetEgoCurrentLocationCount);
         private static SheepFunctionDelegate _getNounVerbCount = new SheepFunctionDelegate(sheep_GetNounVerbCount);

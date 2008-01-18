@@ -38,6 +38,7 @@
     <Compile Include="FileSystem\barn.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Game\CommonStrings.cs" />
+    <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />

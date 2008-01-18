@@ -32,6 +32,7 @@ namespace Viewer
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openSCNToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openSifMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openMODToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.editSearchPathsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -42,7 +43,7 @@ namespace Viewer
             this.texturingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openSifMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.xLightmapsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -103,6 +104,13 @@ namespace Viewer
             this.openSCNToolStripMenuItem.Text = "Open .SCN...";
             this.openSCNToolStripMenuItem.Click += new System.EventHandler(this.openSCNToolStripMenuItem_Click);
             // 
+            // openSifMenuItem
+            // 
+            this.openSifMenuItem.Name = "openSifMenuItem";
+            this.openSifMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openSifMenuItem.Text = "Open .SIF...";
+            this.openSifMenuItem.Click += new System.EventHandler(this.openSifMenuItem_Click);
+            // 
             // openMODToolStripMenuItem
             // 
             this.openMODToolStripMenuItem.Name = "openMODToolStripMenuItem";
@@ -138,7 +146,8 @@ namespace Viewer
             // 
             this.settingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.lightmappingToolStripMenuItem,
-            this.texturingToolStripMenuItem});
+            this.texturingToolStripMenuItem,
+            this.xLightmapsToolStripMenuItem});
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(58, 20);
             this.settingsToolStripMenuItem.Text = "Settings";
@@ -148,7 +157,7 @@ namespace Viewer
             this.lightmappingToolStripMenuItem.Checked = true;
             this.lightmappingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.lightmappingToolStripMenuItem.Name = "lightmappingToolStripMenuItem";
-            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.lightmappingToolStripMenuItem.Text = "Lightmapping";
             this.lightmappingToolStripMenuItem.Click += new System.EventHandler(this.lightmappingToolStripMenuItem_Click);
             // 
@@ -157,7 +166,7 @@ namespace Viewer
             this.texturingToolStripMenuItem.Checked = true;
             this.texturingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.texturingToolStripMenuItem.Name = "texturingToolStripMenuItem";
-            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.texturingToolStripMenuItem.Text = "Texturing";
             this.texturingToolStripMenuItem.Click += new System.EventHandler(this.texturingToolStripMenuItem_Click);
             // 
@@ -176,12 +185,12 @@ namespace Viewer
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
-            // openSifMenuItem
+            // xLightmapsToolStripMenuItem
             // 
-            this.openSifMenuItem.Name = "openSifMenuItem";
-            this.openSifMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.openSifMenuItem.Text = "Open .SIF...";
-            this.openSifMenuItem.Click += new System.EventHandler(this.openSifMenuItem_Click);
+            this.xLightmapsToolStripMenuItem.Name = "xLightmapsToolStripMenuItem";
+            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.xLightmapsToolStripMenuItem.Text = "2X Lightmaps";
+            this.xLightmapsToolStripMenuItem.Click += new System.EventHandler(this.xLightmapsToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -217,6 +226,7 @@ namespace Viewer
         private System.Windows.Forms.ToolStripMenuItem lightmappingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem texturingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openSifMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem xLightmapsToolStripMenuItem;
     }
 }
 

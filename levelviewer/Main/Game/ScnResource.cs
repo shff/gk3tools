@@ -15,7 +15,7 @@ namespace Gk3Main.Game
             {
                 foreach (KeyValuePair<string, string> attribute in line.Attributes)
                 {
-                    if (attribute.Key == "BSP")
+                    if (attribute.Key.ToUpper() == "BSP")
                         _bsp = attribute.Value;
                 }
             }

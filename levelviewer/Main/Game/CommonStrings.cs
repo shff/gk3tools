@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace gk3game.Game
+namespace Gk3Main.Game
 {
     // are these stored in a .brn somewhere? it'd be
     // better to load them from somewhere than hardcode them.
