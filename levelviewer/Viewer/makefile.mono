@@ -1,8 +1,8 @@
 COMPILER = gmcs
-COMPILER_FLAGS = -r:System.Windows.Forms -r:System.Drawing -r:Tao.OpenGl -r:Tao.Sdl -r:main.dll
+COMPILER_FLAGS = -r:Tao.OpenGl -r:Tao.Sdl -r:main.dll
 EXECUTABLE = viewer.exe
 
-SOURCES = Program.cs MainForm.cs MainForm.Designer.cs SearchPathEditor.cs SearchPathEditor.Designer.cs SceneChooser.cs SceneChooser.Designer.cs Console.cs Console.Designer.cs Video.cs
+SOURCES = MonoMain.cs
 
 $(EXECUTABLE):
 	cp ../Main/main.dll .
