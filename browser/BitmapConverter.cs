@@ -55,6 +55,11 @@ namespace GK3BB
             for (int row = height - 1; row >= 0; row--)
             {
                 currentIndex = row * width * 2 + 8;
+
+                // skip the GK3 padding
+                if ((width & 0x01) == 0x01)
+                    currentIndex += row * 2;
+
                 for (int i = 0; i < width; i++)
                 {
                     ushort pixel = BitConverter.ToUInt16(data, currentIndex);
