@@ -56,7 +56,7 @@ namespace Gk3Main.Graphics
             else
                 loadWindowsBitmap(reader);
 
-            convertToOpenGlTexture(false, false);
+            convertToOpenGlTexture(true, false);
         }
 
         public TextureResource(string name, System.IO.Stream stream, bool clamp)
@@ -76,11 +76,52 @@ namespace Gk3Main.Graphics
             else
                 loadWindowsBitmap(reader);
 
-            convertToOpenGlTexture(false, clamp);
+            convertToOpenGlTexture(true, clamp);
         }
 
         private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp)
         {
+            byte[] pixels = _pixels;
+            int newWidth = _width;
+            int newHeight = _height;
+
+            _actualWidth = 1.0f;
+            _actualHeight = 1.0f;
+
+            if (resizeToPowerOfTwo &&
+                ((_width & (_width - 1)) != 0 ||
+                (_height & (_height - 1)) != 0))
+            {
+                newWidth = getNextPowerOfTwo(_width);
+                newHeight = getNextPowerOfTwo(_height);
+
+                _actualWidth = _width / (float)newWidth;
+                _actualHeight = _height / (float)newHeight;
+
+                pixels = new byte[newWidth * newHeight * 4];
+
+                for (int y = 0; y < newHeight; y++)
+                {
+                    for (int x = 0; x < newWidth; x++)
+                    {
+                        if (x < _width && y < _height)
+                        {
+                            pixels[(y * newWidth + x) * 4 + 0] = _pixels[(y * _width + x) * 4 + 0];
+                            pixels[(y * newWidth + x) * 4 + 1] = _pixels[(y * _width + x) * 4 + 1];
+                            pixels[(y * newWidth + x) * 4 + 2] = _pixels[(y * _width + x) * 4 + 2];
+                            pixels[(y * newWidth + x) * 4 + 3] = _pixels[(y * _width + x) * 4 + 3];
+                        }
+                        else
+                        {
+                            pixels[(y * newWidth + x) * 4 + 0] = 0;
+                            pixels[(y * newWidth + x) * 4 + 1] = 0;
+                            pixels[(y * newWidth + x) * 4 + 2] = 0;
+                            pixels[(y * newWidth + x) * 4 + 3] = 0;
+                        }
+                    }
+                }
+            }
+
             Gl.glEnable(Gl.GL_TEXTURE_2D);
 
             int[] textures = new int[1];
@@ -89,8 +130,8 @@ namespace Gk3Main.Graphics
             _glTexture = textures[0];
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
-            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _width, _height,
-                Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, _pixels);
+            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, newWidth, newHeight,
+                Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_NEAREST);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
@@ -114,7 +155,25 @@ namespace Gk3Main.Graphics
 
         public int OpenGlTexture { get { return _glTexture; } }
 
+        public float ActualWidth { get { return _actualWidth; } }
+        public float ActualHeight { get { return _actualHeight; } }
+
         #region Privates
+
+        private int getNextPowerOfTwo(int n)
+        {
+            if ((n & (n - 1)) == 0)
+                return n;
+
+            n--;
+            for (int i = 1; i < 32; i *= 2)
+            {
+                n = n | n >> i;
+            }
+
+            return n + 1;
+        }
+
         private void loadGk3Bitmap(System.IO.BinaryReader reader)
         {
             const string errorMessage = "This is not a valid GK3 bitmap";
@@ -215,6 +274,8 @@ namespace Gk3Main.Graphics
         private int _width;
         private int _height;
         private int _glTexture;
+
+        private float _actualWidth, _actualHeight;
 
         #endregion
     }
