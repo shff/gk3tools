@@ -74,7 +74,7 @@ namespace Gk3Main
 				return false;
 			
 			// pack up the results
-			distance = edge2.Dot(qvec);
+            distance = edge2.Dot(qvec) * inv_det;
 			
 			collisionPoint = v1 + edge1 * u + edge2 * v;
 			

@@ -111,11 +111,13 @@ namespace Gk3Main.Graphics
             // read the model names
             byte[] buffer32 = new byte[32];
             BspModel[] models = new BspModel[header.numModels];
+            _modelsNames = new string[header.numModels];
             for (uint i = 0; i < header.numModels; i++)
             {
                 models[i] = new BspModel();
 
                 models[i].name = Utils.ConvertAsciiToString(reader.ReadBytes(32));
+                _modelsNames[i] = models[i].name;
             }
 
             // read the surfaces
@@ -395,23 +397,33 @@ namespace Gk3Main.Graphics
                 return false;
             }
 
+            surface = null;
+            float distance = float.MaxValue, minDistance = float.MaxValue;
             foreach (BspSurface isurface in _surfaces)
             {
-                if (collideRayWithSurface(isurface, origin, direction, length) == true)
+                if (collideRayWithSurface(isurface, origin, direction, length, out distance) == true)
                 {
-                    surface = isurface;
-                    return true;
+                    if (distance < minDistance && distance > 0)
+                    {
+                        minDistance = distance;
+                        surface = isurface;
+                    }
                 }
             }
 
-            surface = null;
-            return false;
+            if (surface == null)
+                return false;
+
+            
+            return true;
         }
 
         public override void Dispose()
         {
             // nothing
         }
+
+        public string GetModelName(uint index) { return _modelsNames[index]; }
 
         private void loadTextures()
         {
@@ -443,9 +455,8 @@ namespace Gk3Main.Graphics
         }
 
         private bool collideRayWithSurface(BspSurface surface, 
-            Math.Vector origin, Math.Vector direction, float length)
+            Math.Vector origin, Math.Vector direction, float length, out float distance)
         {
-            float distance;
             Math.Vector collisionPoint;
 
             for (int i = 0; i < surface.indices.Length / 3; i++)
@@ -470,6 +481,7 @@ namespace Gk3Main.Graphics
                     return true;
             }
 
+            distance = float.NaN;
             return false;
         }
 
@@ -477,6 +489,7 @@ namespace Gk3Main.Graphics
         private float[] _texcoords;
         private float[] _lightmapcoords;
         private BspSurface[] _surfaces;
+        private string[] _modelsNames;
     }
 
     public class BspResourceLoader : Resource.IResourceLoader

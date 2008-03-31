@@ -114,6 +114,23 @@ namespace Gk3Main
             set { _shadeMode = value; }
         }
 
+        /// <summary>
+        /// Collides a ray against the world and returns the name of the
+        /// first model the ray collided with.
+        /// </summary>
+        /// <param name="origin">The origin of the ray.</param>
+        /// <param name="direction">The direction of the ray.</param>
+        /// <param name="length">The length of the ray.</param>
+        /// <returns>The name of the model, or null if no collision occured.</returns>
+        public static string GetCollisionModel(Math.Vector origin, Math.Vector direction, float length)
+        {
+            Graphics.BspSurface surface;
+            if (_currentRoom != null && _currentRoom.CollideRayWithSurfaces(origin, direction, length, out surface) == true)
+                return _currentRoom.GetModelName(surface.modelIndex);
+
+            return null;
+        }
+
         private static void unloadModels()
         {
             foreach (Graphics.ModelResource model in _models)
