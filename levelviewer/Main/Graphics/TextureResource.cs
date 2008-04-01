@@ -133,7 +133,7 @@ namespace Gk3Main.Graphics
             Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, newWidth, newHeight,
                 Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
-            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_NEAREST);
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
 
             if (clamp)
@@ -157,6 +157,9 @@ namespace Gk3Main.Graphics
 
         public float ActualWidth { get { return _actualWidth; } }
         public float ActualHeight { get { return _actualHeight; } }
+
+        public int Width { get { return _width; } }
+        public int Height { get { return _height; } }
 
         #region Privates
 
