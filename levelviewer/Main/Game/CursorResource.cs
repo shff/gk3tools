@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Tao.OpenGl;
 
 namespace Gk3Main.Game
@@ -10,20 +11,51 @@ namespace Gk3Main.Game
         public CursorResource(string name, System.IO.Stream stream)
             : base(name, true)
         {
+            _frameCount = 1;
+            _frameRate = 0;
+            string alphaTexture = null;
+
             StreamReader reader = new StreamReader(stream);
-            string hotspot = reader.ReadLine();
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                string[] tokens = line.Split('=');
+                if (tokens[0] == "Hotspot")
+                {
+                    if (tokens[1] == "center")
+                    {
+                        _hotX = -1;
+                        _hotY = -1;
+                    }
+                    else
+                    {
+                        Match match = new Regex("([0-9]+),([0-9]+)").Match(tokens[1]);
+                        _hotX = int.Parse(match.Groups[1].Value);
+                        _hotY = int.Parse(match.Groups[2].Value);
+                    }
+                }
+                else if (tokens[0] == "Frame Count")
+                {
+                    _frameCount = int.Parse(tokens[1]);
+                }
+                else if (tokens[0] == "Frame Rate")
+                {
+                    _frameRate = int.Parse(tokens[1]);
+                }
+                else if (tokens[0] == "Alpha Channel")
+                {
+                    alphaTexture = tokens[1];
+                }
+            }
+
             reader.Close();
 
-            System.Text.RegularExpressions.Regex regex
-                = new System.Text.RegularExpressions.Regex("Hotspot=([0-9]+),([0-9]+)");
-
-            System.Text.RegularExpressions.Match match = regex.Match(hotspot);
-
-            _hotX = int.Parse(match.Groups[1].Value);
-            _hotY = int.Parse(match.Groups[2].Value);
-
+            // TODO: GK3 stores the alpha info as a seperate bitmap from the color info. Load the alpha map and merge it with the color!
             // load the texture
             _cursor = (Graphics.TextureResource)Resource.ResourceManager.Load(Utils.GetFilenameWithoutExtension(name) + ".BMP");
+
+            if (_hotX == -1) _hotX = _cursor.Width / 2;
+            if (_hotY == -1) _hotY = _cursor.Height / 2;
         }
 
         public void Render(int x, int y)
@@ -73,6 +105,7 @@ namespace Gk3Main.Game
 
         private Graphics.TextureResource _cursor;
         private int _hotX, _hotY;
+        private int _frameCount, _frameRate;
     }
 
     public class CursorResourceLoader : Resource.IResourceLoader
