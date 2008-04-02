@@ -12,75 +12,82 @@ namespace GK3BB
         {
             int currentIndex = 0;
 
-            // skip the first 4 bytes
-            currentIndex += 4;
-
-            // read the width
-            ushort height = BitConverter.ToUInt16(data, currentIndex);
-            currentIndex += 2;
-
-            // read the height
-            ushort width = BitConverter.ToUInt16(data, currentIndex);
-            currentIndex += 2;
-
-            int numPaddingBytes = 0;
-
-            if ((width * 3) % 4 != 0)
-                numPaddingBytes = 4 - (width * 3) % 4;
-
-            _data = new MemoryStream();
-            BinaryWriter writer = new BinaryWriter(_data);
-
-            // write the file header
-            writer.Write((UInt16)19778);
-            writer.Write((UInt32)(54 + height * (width * 3 + numPaddingBytes)));
-            writer.Write((UInt16)0);
-            writer.Write((UInt16)0);
-            writer.Write((UInt32)54);
-
-            // write the info header
-            writer.Write((UInt32)40);
-            writer.Write((UInt32)width);
-            writer.Write((UInt32)height);
-            writer.Write((UInt16)1);
-            writer.Write((UInt16)24);
-            writer.Write((UInt32)0);
-            writer.Write((UInt32)height * width * 3);
-            writer.Write((UInt32)0);
-            writer.Write((UInt32)0);
-            writer.Write((UInt32)0);
-            writer.Write((UInt32)0);
-
-            // write the pixel data
-            for (int row = height - 1; row >= 0; row--)
+            // read the first 4 bytes
+            if (BitConverter.ToUInt32(data, currentIndex) != 0x4d6e3136)
             {
-                currentIndex = row * width * 2 + 8;
+                _data = new MemoryStream(data);
+            }
+            else
+            {
+                currentIndex += 4;
 
-                // skip the GK3 padding
-                if ((width & 0x01) == 0x01)
-                    currentIndex += row * 2;
+                // read the width
+                ushort height = BitConverter.ToUInt16(data, currentIndex);
+                currentIndex += 2;
 
-                for (int i = 0; i < width; i++)
+                // read the height
+                ushort width = BitConverter.ToUInt16(data, currentIndex);
+                currentIndex += 2;
+
+                int numPaddingBytes = 0;
+
+                if ((width * 3) % 4 != 0)
+                    numPaddingBytes = 4 - (width * 3) % 4;
+
+                _data = new MemoryStream();
+                BinaryWriter writer = new BinaryWriter(_data);
+
+                // write the file header
+                writer.Write((UInt16)19778);
+                writer.Write((UInt32)(54 + height * (width * 3 + numPaddingBytes)));
+                writer.Write((UInt16)0);
+                writer.Write((UInt16)0);
+                writer.Write((UInt32)54);
+
+                // write the info header
+                writer.Write((UInt32)40);
+                writer.Write((UInt32)width);
+                writer.Write((UInt32)height);
+                writer.Write((UInt16)1);
+                writer.Write((UInt16)24);
+                writer.Write((UInt32)0);
+                writer.Write((UInt32)height * width * 3);
+                writer.Write((UInt32)0);
+                writer.Write((UInt32)0);
+                writer.Write((UInt32)0);
+                writer.Write((UInt32)0);
+
+                // write the pixel data
+                for (int row = height - 1; row >= 0; row--)
                 {
-                    ushort pixel = BitConverter.ToUInt16(data, currentIndex);
-                    currentIndex += 2;
+                    currentIndex = row * width * 2 + 8;
 
-                    // convert the pixel into 24bit color
-                    byte b = (byte)(((pixel & 0xf800) >> 11) * 8);
-                    byte g = (byte)(((pixel & 0x07e0) >> 5) * 4);
-                    byte r = (byte)((pixel & 0x001f) * 8);
+                    // skip the GK3 padding
+                    if ((width & 0x01) == 0x01)
+                        currentIndex += row * 2;
 
-                    writer.Write(r);
-                    writer.Write(g);
-                    writer.Write(b);
-                }
+                    for (int i = 0; i < width; i++)
+                    {
+                        ushort pixel = BitConverter.ToUInt16(data, currentIndex);
+                        currentIndex += 2;
 
-                // add any padding
-                for (int i = 0; i < numPaddingBytes; i++)
-                {
-                    byte zero = 0;
+                        // convert the pixel into 24bit color
+                        byte b = (byte)(((pixel & 0xf800) >> 11) * 8);
+                        byte g = (byte)(((pixel & 0x07e0) >> 5) * 4);
+                        byte r = (byte)((pixel & 0x001f) * 8);
 
-                    writer.Write(zero);
+                        writer.Write(r);
+                        writer.Write(g);
+                        writer.Write(b);
+                    }
+
+                    // add any padding
+                    for (int i = 0; i < numPaddingBytes; i++)
+                    {
+                        byte zero = 0;
+
+                        writer.Write(zero);
+                    }
                 }
             }
             //writer.Write(data, currentIndex, data.Length - 8);
@@ -107,8 +114,7 @@ namespace GK3BB
             if (_data == null) throw new InvalidOperationException();
 
             System.IO.FileStream file = new FileStream(filename, FileMode.Create);
-            file.Write(_data.GetBuffer(), 0, (int)_data.Length);
-
+            _data.WriteTo(file);
             file.Close();
    
         }

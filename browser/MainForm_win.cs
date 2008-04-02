@@ -160,7 +160,7 @@ namespace GK3BB
 
                     uint index = bf.Index;
 
-                    if (bf.Extension == "BMP")
+                    if (bf.Extension == "BMP" && convertBitmapsToolStripMenuItem.Checked)
                     {
                         byte[] data = BarnManager.ExtractData(bf.Name);
                         GK3Bitmap bmp = new GK3Bitmap(data);
@@ -243,6 +243,13 @@ namespace GK3BB
                 {
                 }
             }
+        }
+
+        private void convertBitmapsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            convertBitmapsToolStripMenuItem.Checked = !convertBitmapsToolStripMenuItem.Checked;
+
+
         }
 
         private void mainListView_SelectedIndexChanged(object sender, EventArgs e)

@@ -133,6 +133,7 @@ namespace GK3BB
             this.convertBitmapsToolStripMenuItem.Name = "convertBitmapsToolStripMenuItem";
             this.convertBitmapsToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
             this.convertBitmapsToolStripMenuItem.Text = "Convert bitmaps";
+            this.convertBitmapsToolStripMenuItem.Click += new System.EventHandler(this.convertBitmapsToolStripMenuItem_Click);
             // 
             // decompressFilesToolStripMenuItem
             // 
