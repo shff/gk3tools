@@ -41,6 +41,35 @@ namespace Gk3Main.Resource
             }
         }
 
+        public static bool TryParse2f(string str, out float f1, out float f2)
+        {
+            f1 = f2 = 0;
+            Match match = Regex.Match(str, @"{(-?[\d]+.?[\d]+),[\s]*(-?[\d]+.?[\d]+)}");
+
+            if (match.Success == false) return false;
+
+            if (float.TryParse(match.Groups[1].Value, out f1) == false ||
+                float.TryParse(match.Groups[2].Value, out f2) == false)
+                return false;
+
+            return true;
+        }
+
+        public static bool TryParse3f(string str, out float f1, out float f2, out float f3)
+        {
+            f1 = f2 = f3 = 0;
+            Match match = Regex.Match(str, @"{(-?[\d]+.?[\d]+),[\s]*(-?[\d]+.?[\d]+),[\s]*(-?[\d]+.?[\d]+)}");
+
+            if (match.Success == false) return false;
+
+            if (float.TryParse(match.Groups[1].Value, out f1) == false ||
+                float.TryParse(match.Groups[2].Value, out f2) == false ||
+                float.TryParse(match.Groups[3].Value, out f3) == false)
+                return false;
+
+            return true;
+        }
+
         public InfoSection GlobalSection { get { return _globalSection; } }
         public List<InfoSection> Sections { get { return _sections; } }
 

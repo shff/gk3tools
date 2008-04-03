@@ -99,7 +99,7 @@ namespace Viewer
                 // load the models
                 foreach (Gk3Main.Game.SifModel model in sif.Models)
                 {
-                    if (model.Type == "prop" && model.Hidden == false)
+                    if (model.Type == Gk3Main.Game.SifModelType.Prop && model.Hidden == false)
                     {
                         Gk3Main.SceneManager.AddModel(model.Name + ".MOD");
                     }

@@ -11,6 +11,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("PrintString", _printStringDelegate,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("SetLocation", new SheepFunctionDelegate(sheep_setLocation),
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
@@ -36,6 +39,13 @@ namespace Gk3Main.Sheep
         private static void sheep_PrintString(IntPtr vm)
         {
             Console.CurrentConsole.WriteLine(SheepMachine.PopStringOffStack(vm));
+        }
+
+        private static void sheep_setLocation(IntPtr vm)
+        {
+            string location = SheepMachine.PopStringOffStack(vm);
+
+            Game.GameManager.SetLocation(location);
         }
 
         private static void sheep_IsCurrentTime(IntPtr vm)

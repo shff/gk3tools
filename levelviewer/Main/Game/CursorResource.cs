@@ -50,16 +50,22 @@ namespace Gk3Main.Game
 
             reader.Close();
 
-            // TODO: GK3 stores the alpha info as a seperate bitmap from the color info. Load the alpha map and merge it with the color!
-            // load the texture
-            _cursor = (Graphics.TextureResource)Resource.ResourceManager.Load(Utils.GetFilenameWithoutExtension(name) + ".BMP");
+            if (alphaTexture == null)
+                _cursor = new Gk3Main.Graphics.TextureResource(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"));
+            else
+                _cursor = new Gk3Main.Graphics.TextureResource(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"), FileSystem.Open(alphaTexture + ".BMP"));
 
-            if (_hotX == -1) _hotX = _cursor.Width / 2;
+            if (_hotX == -1) _hotX = _cursor.Height / 2;
             if (_hotY == -1) _hotY = _cursor.Height / 2;
         }
 
         public void Render(int x, int y)
         {
+            Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
+            Gl.glEnable(Gl.GL_BLEND);
+            Gl.glDisable(Gl.GL_ALPHA_TEST);
+            Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
+
             int[] viewport = new int[4];
             Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
 
@@ -80,15 +86,25 @@ namespace Gk3Main.Game
 
             _cursor.Bind();
 
+            int currentFrame = (int)((Game.GameManager.TickCount / 1000.0f) * _frameRate) % _frameCount;
+            float uWidth = (_cursor.ActualWidth / _frameCount);
+            float u = uWidth * currentFrame;
+             
+
             Gl.glBegin(Gl.GL_QUADS);
-            Gl.glTexCoord2f(0, 0);
+
+            Gl.glTexCoord2f(u, 0);
             Gl.glVertex3f(0, 0, 0);
-            Gl.glTexCoord2f(_cursor.ActualWidth, 0);
-            Gl.glVertex3f(_cursor.Width, 0, 0);
-            Gl.glTexCoord2f(_cursor.ActualWidth, _cursor.ActualHeight);
-            Gl.glVertex3f(_cursor.Width, _cursor.Height, 0);
-            Gl.glTexCoord2f(0, _cursor.ActualHeight);
+
+            Gl.glTexCoord2f(u + uWidth, 0);
+            Gl.glVertex3f(_cursor.Height, 0, 0);
+
+            Gl.glTexCoord2f(u + uWidth, _cursor.ActualHeight);
+            Gl.glVertex3f(_cursor.Height, _cursor.Height, 0);
+
+            Gl.glTexCoord2f(u, _cursor.ActualHeight);
             Gl.glVertex3f(0, _cursor.Height, 0);
+
             Gl.glEnd();
 
             Gl.glPopAttrib();
@@ -96,6 +112,8 @@ namespace Gk3Main.Game
             Gl.glMatrixMode(Gl.GL_PROJECTION);
             Gl.glPopMatrix();
             Gl.glMatrixMode(Gl.GL_MODELVIEW);
+
+            Gl.glPopAttrib();
         }
 
         public override void Dispose()

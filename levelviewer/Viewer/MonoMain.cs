@@ -10,28 +10,42 @@ class MonoMain
 		
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.CursorResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
+
 		
 		Gk3Main.Sheep.SheepMachine.Initialize();
 		
 		Gk3Main.SceneManager.LightmapsEnabled = true;
 		Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
+        Gk3Main.SceneManager.DoubleLightmapValues = true;
 		
-		SetupGraphics(800, 600, 32, false);
+		SetupGraphics(640, 480, 32, false);
+        Sdl.SDL_ShowCursor(0);
 		
 
 		parseArgs(args);
+
+        Gk3Main.Game.CursorResource waitCursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
+        Gk3Main.Game.CursorResource pointCursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
+        Gk3Main.Game.CursorResource zoom1Cursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
+        Gk3Main.Game.CursorResource zoom2Cursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
 		
-		Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera();
+        
+        
+        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera();
 		
-		int mx, my;
-		Sdl.SDL_GetRelativeMouseState(out mx, out my);
+
+		int mx, my, rmx, rmy;
+		Sdl.SDL_GetMouseState(out mx, out my);
 		while(MainLoop())
 		{
-			byte buttons = Sdl.SDL_GetRelativeMouseState(out mx, out my);
+            int oldmx = mx, oldmy = my;
+			byte buttons = Sdl.SDL_GetMouseState(out mx, out my);
+            rmx = mx - oldmx; rmy = my - oldmy;
 			
 			int numkeys;
 			byte[] keys = Sdl.SDL_GetKeyState(out numkeys);
@@ -40,30 +54,32 @@ class MonoMain
 			{
 				if ((buttons & Sdl.SDL_BUTTON_RMASK) != 0)
 				{
-					camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(mx, 0, 0));
-					camera.AddPositionOffset(0, -my, 0);
+					camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(rmx, 0, 0));
+					camera.AddPositionOffset(0, -rmy, 0);
 				}
 				else
 				{
 					if (keys[Sdl.SDLK_LSHIFT] != 0 ||
 						keys[Sdl.SDLK_RSHIFT] != 0)
 					{
-						camera.AdjustYaw(-mx * 0.01f);
-						camera.AdjustPitch(-my * 0.01f);
+						camera.AdjustYaw(-rmx * 0.01f);
+						camera.AdjustPitch(-rmy * 0.01f);
 					}
 					else
 					{
-						camera.AdjustYaw(-mx * 0.01f);
-						camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(0, 0, my));
+						camera.AdjustYaw(-rmx * 0.01f);
+						camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(0, 0, rmy));
 					}
 				}
 			}
 
-			
+            Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
 			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
 			Gk3Main.SceneManager.Render(camera);
-			
+
+            pointCursor.Render(mx, my);
+
 			Sdl.SDL_GL_SwapBuffers();
 		}
 		
@@ -73,7 +89,13 @@ class MonoMain
 	public static void SetupGraphics(int width, int height, int depth, bool fullscreen)
 	{
 		Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
-		
+
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 8);
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DEPTH_SIZE, 24);
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
+
 		Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
 		
 		#region Perspective view setup
@@ -83,15 +105,15 @@ class MonoMain
 		Gl.glMatrixMode(Gl.GL_PROJECTION);
 		Gl.glLoadIdentity();
 
-		Glu.gluPerspective(60.0f, ratio, 1.0f, 5000.0f);
+		Glu.gluPerspective(60.0f, ratio, 10.0f, 5000.0f);
 
 		Gl.glMatrixMode(Gl.GL_MODELVIEW);
 		Glu.gluLookAt(0, 0, 0, 0, 0, 1.0f, 0, 1.0f, 0);
 		#endregion
 
 		Gl.glEnable(Gl.GL_DEPTH_TEST);
-		Gl.glEnable(Gl.GL_ALPHA_TEST);
-		Gl.glAlphaFunc(Gl.GL_LESS, 0.1f);
+		//Gl.glEnable(Gl.GL_ALPHA_TEST);
+		Gl.glAlphaFunc(Gl.GL_GREATER, 0.1f);
 
 		Gl.glEnable(Gl.GL_CULL_FACE);
 		Gl.glFrontFace(Gl.GL_CW);
@@ -128,7 +150,7 @@ class MonoMain
 			}
 			else if (args[i] == "-sif")
 			{
-				throw new NotSupportedException();
+                Gk3Main.SceneManager.LoadSif(args[++i]);
 			}
 			else if (args[i] == "-mod")
 			{

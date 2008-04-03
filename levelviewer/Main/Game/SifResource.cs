@@ -14,12 +14,34 @@ namespace Gk3Main.Game
         public bool IsEgo;
     }
 
+    public enum SifModelType
+    {
+        Scene,
+        Prop,
+        HitTest
+    }
+
     public struct SifModel
     {
         public string Name;
         public string Noun;
-        public string Type;
+        public SifModelType Type;
         public bool Hidden;
+    }
+
+    public struct SifRoomCamera
+    {
+        public string Name;
+        public float PitchDegrees, YawDegrees;
+        public float X, Y, Z;
+    }
+
+    public struct SifPosition
+    {
+        public string Name;
+        public float X, Y, Z;
+        public float HeadingDegrees;
+        public string CameraName;
     }
 
     public class SifResource : Resource.InfoResource
@@ -73,15 +95,65 @@ namespace Gk3Main.Game
                     foreach (Resource.InfoLine line in section.Lines)
                     {
                         SifModel model;
+                        string modelType;
 
                         line.TryGetAttribute("model", out model.Name);
                         line.TryGetAttribute("noun", out model.Noun);
-                        line.TryGetAttribute("type", out model.Type);
+                        line.TryGetAttribute("type", out modelType);
+
+                        if (modelType.ToUpper() == "SCENE")
+                            model.Type = SifModelType.Scene;
+                        else if (modelType.ToUpper() == "PROP")
+                            model.Type = SifModelType.Prop;
+                        else
+                            model.Type = SifModelType.HitTest;
 
                         string dummy;
                         model.Hidden = line.TryGetAttribute("hidden", out dummy);
 
                         _models.Add(model);
+                    }
+                }
+                else if (section.Name == "ROOM_CAMERAS")
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        SifRoomCamera camera;
+                        camera.Name = line.Value;
+
+                        string angle, pos;
+                        line.TryGetAttribute("angle", out angle);
+                        line.TryGetAttribute("pos", out pos);
+
+                        TryParse2f(angle, out camera.PitchDegrees, out camera.YawDegrees);
+                        TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
+
+                        _roomCameras.Add(camera);
+                    }
+                }
+                else if (section.Name == "POSITIONS")
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        SifPosition position;
+                        position.Name = line.Value;
+
+                        string pos, heading;
+                        line.TryGetAttribute("pos", out pos);
+                        line.TryGetAttribute("heading", out heading);
+                        line.TryGetAttribute("camera", out position.CameraName);
+
+                        TryParse3f(pos, out position.X, out position.Y, out position.Z);
+                        float.TryParse(heading, out position.HeadingDegrees);
+
+                        _positions.Add(position);
+                    }
+                }
+                else if (section.Name == "ACTIONS")
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        _actions.Add(line.Value);
                     }
                 }
             }
@@ -112,10 +184,23 @@ namespace Gk3Main.Game
             get { return _models; }
         }
 
+        public List<SifRoomCamera> RoomCameras
+        {
+            get { return _roomCameras; }
+        }
+
+        public List<SifPosition> Positions
+        {
+            get { return _positions; }
+        }
+
         private string _scene;
         private string _cameraBoundsModel;
         private List<SifActor> _actors = new List<SifActor>();
         private List<SifModel> _models = new List<SifModel>();
+        private List<SifRoomCamera> _roomCameras = new List<SifRoomCamera>();
+        private List<SifPosition> _positions = new List<SifPosition>();
+        private List<string> _actions = new List<string>();
     }
 
     public class SifResourceLoader : Resource.IResourceLoader

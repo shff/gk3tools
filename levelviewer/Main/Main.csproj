@@ -40,6 +40,7 @@
     <Compile Include="Game\CommonStrings.cs" />
     <Compile Include="Game\CursorResource.cs" />
     <Compile Include="Game\GameManager.cs" />
+    <Compile Include="Game\NvcResource.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />

@@ -45,6 +45,22 @@ namespace Gk3Main
 
     public static class SceneManager
     {
+        public static void LoadSif(string sif)
+        {
+            Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
+
+            LoadScene(sifResource.Scene);
+
+            // load the models
+            foreach (Game.SifModel model in sifResource.Models)
+            {
+                if (model.Type == Gk3Main.Game.SifModelType.Prop && model.Hidden == false)
+                {
+                    AddModel(model.Name + ".MOD");
+                }
+            }
+        }
+
         public static void LoadScene(string scn)
         {
             try

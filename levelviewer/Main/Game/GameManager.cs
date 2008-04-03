@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gk3Main.Game
 {
-    enum Timeblock
+    public enum Timeblock
     {
         Day1_10AM,
         Day1_12PM,
@@ -27,8 +27,21 @@ namespace Gk3Main.Game
         Day3_09PM
     }
 
-    static class GameManager
+    public static class GameManager
     {
+        public static int TickCount
+        {
+            get { return _tickCount; }
+        }
+
+        public static float SecsPerFrame
+        {
+            get
+            {
+                return (_tickCount - _prevTickCount) * 0.001f;
+            }
+        }
+
         public static Timeblock CurrentTime
         {
             get { return _currentTime; }
@@ -66,6 +79,18 @@ namespace Gk3Main.Game
             }
         }
 
+        public static void InjectTickCount(int tickCount)
+        {
+            _prevTickCount = _tickCount;
+            _tickCount = tickCount;
+        }
+
+        public static void SetLocation(string location)
+        {
+            SceneManager.LoadSif(location);
+        }
+
+        private static int _tickCount, _prevTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
     }
 }
