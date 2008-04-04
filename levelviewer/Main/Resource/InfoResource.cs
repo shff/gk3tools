@@ -139,7 +139,7 @@ namespace Gk3Main.Resource
             
             // break apart the line
             //MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+}?)|[^,]+");
-            MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+})|([\w]+=[^,]+)|([\w]+)");
+            MatchCollection matches = Regex.Matches(line, @"([\w\.]+={[^}]+})|([\w\.]+=[^,]+)|([\w\.]+)");
 
             // each match represents a piece of data, either a single 'key'
             // or something like 'key=value' (where value could be something
@@ -152,7 +152,7 @@ namespace Gk3Main.Resource
                 int equals = match.Value.IndexOf('=');
 
                 // check for a value sitting at the beginning of the line without a '='
-                if (equals == -1 && _attributes.Count == 0)
+                if (equals == -1 && _attributes.Count == 0 && _value == null)
                 {
                     _value = match.Value;
                 }

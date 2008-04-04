@@ -194,6 +194,11 @@ namespace Gk3Main.Game
             get { return _positions; }
         }
 
+        public List<string> Actions
+        {
+            get { return _actions; }
+        }
+
         private string _scene;
         private string _cameraBoundsModel;
         private List<SifActor> _actors = new List<SifActor>();

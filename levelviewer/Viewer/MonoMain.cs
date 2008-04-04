@@ -11,12 +11,12 @@ class MonoMain
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.CursorResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
-
-		
+        
 		Gk3Main.Sheep.SheepMachine.Initialize();
 		
 		Gk3Main.SceneManager.LightmapsEnabled = true;
@@ -78,7 +78,7 @@ class MonoMain
 			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
 			Gk3Main.SceneManager.Render(camera);
 
-            pointCursor.Render(mx, my);
+            renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
 
 			Sdl.SDL_GL_SwapBuffers();
 		}
@@ -134,6 +134,32 @@ class MonoMain
 		
 		return true;
 	}
+
+    private static void renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Game.CursorResource point, Gk3Main.Game.CursorResource zoom)
+    {
+        double[] modelMatrix = new double[16];
+        double[] projectionMatrix = new double[16];
+        int[] viewport = new int[4];
+
+        Gl.glGetDoublev(Gl.GL_MODELVIEW_MATRIX, modelMatrix);
+        Gl.glGetDoublev(Gl.GL_PROJECTION_MATRIX, projectionMatrix);
+        Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
+
+        double x, y, z;
+        Glu.gluUnProject(mx, 480 - my, 0, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
+
+        string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
+
+        if (model == null || Gk3Main.SceneManager.GetNounVerbCaseCountForTarget(model) == 0)
+        {
+            point.Render(mx, my);
+        }
+        else
+        {
+            Console.WriteLine(model);
+            zoom.Render(mx, my);
+        }
+    }
 	
 	private static void parseArgs(string[] args)
 	{
@@ -146,10 +172,12 @@ class MonoMain
 			}
 			else if (args[i] == "-scn")
 			{
+                Gk3Main.SceneManager.Initialize();
 				Gk3Main.SceneManager.LoadScene(args[++i]);
 			}
 			else if (args[i] == "-sif")
 			{
+                Gk3Main.SceneManager.Initialize();
                 Gk3Main.SceneManager.LoadSif(args[++i]);
 			}
 			else if (args[i] == "-mod")

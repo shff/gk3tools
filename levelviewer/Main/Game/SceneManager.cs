@@ -45,6 +45,11 @@ namespace Gk3Main
 
     public static class SceneManager
     {
+        public static void Initialize()
+        {
+            _verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
+        }
+
         public static void LoadSif(string sif)
         {
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
@@ -58,6 +63,12 @@ namespace Gk3Main
                 {
                     AddModel(model.Name + ".MOD");
                 }
+            }
+
+            // load the NVCs
+            foreach (string nvcFile in sifResource.Actions)
+            {
+                _nvcs.Add((Game.NvcResource)Resource.ResourceManager.Load(nvcFile));
             }
         }
 
@@ -147,6 +158,21 @@ namespace Gk3Main
             return null;
         }
 
+        public static int GetNounVerbCaseCountForTarget(string target)
+        {
+            int count = 0;
+            foreach (Game.NvcResource nvcResource in _nvcs)
+            {
+                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
+                {
+                    if (nvc.Target == target)
+                        count++;
+                }
+            }
+
+            return count;
+        }
+
         private static void unloadModels()
         {
             foreach (Graphics.ModelResource model in _models)
@@ -160,9 +186,12 @@ namespace Gk3Main
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
+        private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;
+
+        private static Game.Verbs _verbs;
     }
 }
