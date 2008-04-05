@@ -68,7 +68,14 @@ namespace Gk3Main
             // load the NVCs
             foreach (string nvcFile in sifResource.Actions)
             {
-                _nvcs.Add((Game.NvcResource)Resource.ResourceManager.Load(nvcFile));
+                try
+                {
+                    _nvcs.Add((Game.NvcResource)Resource.ResourceManager.Load(nvcFile));
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // do nothing, sometimes NVCs just don't exist
+                }
             }
         }
 
