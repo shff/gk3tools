@@ -72,9 +72,14 @@ namespace GK3BB
                         currentIndex += 2;
 
                         // convert the pixel into 24bit color
-                        byte b = (byte)(((pixel & 0xf800) >> 11) * 8);
-                        byte g = (byte)(((pixel & 0x07e0) >> 5) * 4);
-                        byte r = (byte)((pixel & 0x001f) * 8);
+                        int tb = (byte)((pixel & 0xf800) >> 11);
+                        int tg = (byte)((pixel & 0x07e0) >> 5);
+                        int tr = (byte)(pixel & 0x001f);
+                        
+                        // now scale the values up to max of 255
+                        byte r = (byte)(tr * 255 / 31);
+                        byte g = (byte)(tg * 255 / 63);
+                        byte b = (byte)(tb * 255 / 31);
 
                         writer.Write(r);
                         writer.Write(g);
