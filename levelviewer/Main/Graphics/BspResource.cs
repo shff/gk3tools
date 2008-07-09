@@ -116,7 +116,7 @@ namespace Gk3Main.Graphics
             {
                 models[i] = new BspModel();
 
-                models[i].name = Utils.ConvertAsciiToString(reader.ReadBytes(32));
+                models[i].name = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
                 _modelsNames[i] = models[i].name;
             }
 
@@ -128,7 +128,7 @@ namespace Gk3Main.Graphics
                 _surfaces[i] = new BspSurface();
 
                 _surfaces[i].modelIndex = reader.ReadUInt32();
-                _surfaces[i].texture = Utils.ConvertAsciiToString(reader.ReadBytes(32));
+                _surfaces[i].texture = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
                 _surfaces[i].uCoord = reader.ReadSingle();
                 _surfaces[i].vCoord = reader.ReadSingle();
                 _surfaces[i].uScale = reader.ReadSingle();
@@ -476,7 +476,7 @@ namespace Gk3Main.Graphics
                     _vertices[surface.indices[i * 3 + 2] * 3 + 1],
                     _vertices[surface.indices[i * 3 + 2] * 3 + 2]);
 
-                if (Utils.TestRayTriangleCollision(origin, direction,
+                if (Gk3Main.Utils.TestRayTriangleCollision(origin, direction,
                     v1, v2, v3, out distance, out collisionPoint) == true)
                     return true;
             }

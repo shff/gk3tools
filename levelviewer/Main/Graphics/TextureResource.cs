@@ -125,8 +125,8 @@ namespace Gk3Main.Graphics
         private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp)
         {
             byte[] pixels = _pixels;
-            int newWidth = _width;
-            int newHeight = _height;
+            _actualPixelWidth = _width;
+            _actualPixelHeight = _height;
 
             _actualWidth = 1.0f;
             _actualHeight = 1.0f;
@@ -135,31 +135,31 @@ namespace Gk3Main.Graphics
                 ((_width & (_width - 1)) != 0 ||
                 (_height & (_height - 1)) != 0))
             {
-                newWidth = getNextPowerOfTwo(_width);
-                newHeight = getNextPowerOfTwo(_height);
+                _actualPixelWidth = getNextPowerOfTwo(_width);
+                _actualPixelHeight = getNextPowerOfTwo(_height);
 
-                _actualWidth = _width / (float)newWidth;
-                _actualHeight = _height / (float)newHeight;
+                _actualWidth = _width / (float)_actualPixelWidth;
+                _actualHeight = _height / (float)_actualPixelHeight;
 
-                pixels = new byte[newWidth * newHeight * 4];
+                pixels = new byte[_actualPixelWidth * _actualPixelHeight * 4];
 
-                for (int y = 0; y < newHeight; y++)
+                for (int y = 0; y < _actualPixelHeight; y++)
                 {
-                    for (int x = 0; x < newWidth; x++)
+                    for (int x = 0; x < _actualPixelWidth; x++)
                     {
                         if (x < _width && y < _height)
                         {
-                            pixels[(y * newWidth + x) * 4 + 0] = _pixels[(y * _width + x) * 4 + 0];
-                            pixels[(y * newWidth + x) * 4 + 1] = _pixels[(y * _width + x) * 4 + 1];
-                            pixels[(y * newWidth + x) * 4 + 2] = _pixels[(y * _width + x) * 4 + 2];
-                            pixels[(y * newWidth + x) * 4 + 3] = _pixels[(y * _width + x) * 4 + 3];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = _pixels[(y * _width + x) * 4 + 0];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = _pixels[(y * _width + x) * 4 + 1];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = _pixels[(y * _width + x) * 4 + 2];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = _pixels[(y * _width + x) * 4 + 3];
                         }
                         else
                         {
-                            pixels[(y * newWidth + x) * 4 + 0] = 0;
-                            pixels[(y * newWidth + x) * 4 + 1] = 0;
-                            pixels[(y * newWidth + x) * 4 + 2] = 0;
-                            pixels[(y * newWidth + x) * 4 + 3] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = 0;
                         }
                     }
                 }
@@ -173,7 +173,7 @@ namespace Gk3Main.Graphics
             _glTexture = textures[0];
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
-            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, newWidth, newHeight,
+            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
                 Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
@@ -203,6 +203,9 @@ namespace Gk3Main.Graphics
 
         public int Width { get { return _width; } }
         public int Height { get { return _height; } }
+
+        public int ActualPixelWidth { get { return _actualPixelWidth; } }
+        public int ActualPixelHeight { get { return _actualPixelHeight; } }
 
         #region Privates
 
@@ -334,6 +337,7 @@ namespace Gk3Main.Graphics
         private int _glTexture;
 
         private float _actualWidth, _actualHeight;
+        private int _actualPixelWidth, _actualPixelHeight;
 
         #endregion
     }

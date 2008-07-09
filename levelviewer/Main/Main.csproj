@@ -49,6 +49,8 @@
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
+    <Compile Include="Graphics\Utils.cs" />
+    <Compile Include="Gui\Font.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Math\Matrix.cs" />
     <Compile Include="Math\Quaternion.cs" />

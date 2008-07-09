@@ -28,7 +28,8 @@ namespace Gk3Main.Resource
         {
             if (stream == null) throw new ArgumentNullException("stream");
 
-            System.IO.StreamReader reader = new System.IO.StreamReader(stream);
+            // TODO: Encoding.Default works to load extended ASCII characters on my machine, but it won't always work!
+            System.IO.StreamReader reader = new System.IO.StreamReader(stream, Encoding.Default);
             _text = reader.ReadToEnd();
             reader.Close();
         }

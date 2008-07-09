@@ -42,6 +42,14 @@ namespace Gk3Main
             set { _currentConsole = value; }
         }
 
-        private static Console _currentConsole;
+        private static Console _currentConsole = new NullConsole();
+    }
+
+    public class NullConsole : Console
+    {
+        public override void Write(string text, params object[] arg)
+        {
+            // do nothing
+        }
     }
 }

@@ -181,7 +181,7 @@ namespace Gk3Main.Graphics
 				        throw new Resource.InvalidResourceFileFormat("Not a valid model file! Unable to find valid mesh section header!");
 			        }
 
-                    meshSection.texture = Utils.ConvertAsciiToString(reader.ReadBytes(32));
+                    meshSection.texture = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
                     meshSection.textureResource = (TextureResource)Resource.ResourceManager.Load(meshSection.texture + ".BMP");
                     meshSection.unknown1 = reader.ReadUInt32();
                     meshSection.numFaces = reader.ReadUInt32();
