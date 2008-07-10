@@ -16,6 +16,7 @@ class MonoMain
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
         
 		Gk3Main.Sheep.SheepMachine.Initialize();
 		
@@ -33,53 +34,70 @@ class MonoMain
         Gk3Main.Game.CursorResource pointCursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
         Gk3Main.Game.CursorResource zoom1Cursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
         Gk3Main.Game.CursorResource zoom2Cursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
-		
-        
         
         Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera();
-		
+
+        MainMenu menu = new MainMenu();
+        menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
+
 
 		int mx, my, rmx, rmy;
 		Sdl.SDL_GetMouseState(out mx, out my);
+        byte buttons = 0, oldButtons = 0;
 		while(MainLoop())
 		{
             int oldmx = mx, oldmy = my;
-			byte buttons = Sdl.SDL_GetMouseState(out mx, out my);
+            oldButtons = buttons;
+			buttons = Sdl.SDL_GetMouseState(out mx, out my);
             rmx = mx - oldmx; rmy = my - oldmy;
 			
 			int numkeys;
 			byte[] keys = Sdl.SDL_GetKeyState(out numkeys);
-			
-			if ((buttons & Sdl.SDL_BUTTON_LMASK) != 0)
-			{
-				if ((buttons & Sdl.SDL_BUTTON_RMASK) != 0)
-				{
-					camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(rmx, 0, 0));
-					camera.AddPositionOffset(0, -rmy, 0);
-				}
-				else
-				{
-					if (keys[Sdl.SDLK_LSHIFT] != 0 ||
-						keys[Sdl.SDLK_RSHIFT] != 0)
-					{
-						camera.AdjustYaw(-rmx * 0.01f);
-						camera.AdjustPitch(-rmy * 0.01f);
-					}
-					else
-					{
-						camera.AdjustYaw(-rmx * 0.01f);
-						camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(0, 0, rmy));
-					}
-				}
-			}
+
+            if ((buttons & Sdl.SDL_BUTTON_LMASK) != 0)
+            {
+                if ((buttons & Sdl.SDL_BUTTON_RMASK) != 0)
+                {
+                    camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(rmx, 0, 0));
+                    camera.AddPositionOffset(0, -rmy, 0);
+                }
+                else
+                {
+                    if (keys[Sdl.SDLK_LSHIFT] != 0 ||
+                        keys[Sdl.SDLK_RSHIFT] != 0)
+                    {
+                        camera.AdjustYaw(-rmx * 0.01f);
+                        camera.AdjustPitch(-rmy * 0.01f);
+                    }
+                    else
+                    {
+                        camera.AdjustYaw(-rmx * 0.01f);
+                        camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(0, 0, rmy));
+                    }
+                }
+
+                if ((oldButtons & Sdl.SDL_BUTTON_LMASK) == 0)
+                    menu.OnMouseDown(0);
+            }
+            else if ((oldButtons & Sdl.SDL_BUTTON_LMASK) != 0)
+                menu.OnMouseUp(0);
 
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
 			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
 			Gk3Main.SceneManager.Render(camera);
 
-            renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
+            menu.SetMouseCoords(mx, my);
+            menu.Render();
 
+
+           
+            
+            //f.Print(0, 16, "h");
+           // f.Print(0, 24, " 3");
+            //f.Print(0, 32, "!");
+            //f.Print(0, 48, "oo");
+            renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
 			Sdl.SDL_GL_SwapBuffers();
 		}
 		
@@ -97,6 +115,7 @@ class MonoMain
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
 
 		Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
+        Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
 		
 		#region Perspective view setup
 		float ratio = (float)width / height;
@@ -134,6 +153,14 @@ class MonoMain
 		
 		return true;
 	}
+
+    static void menu_OnQuitClicked(object sender, EventArgs e)
+    {
+        Sdl.SDL_Event quitEvent = new Sdl.SDL_Event();
+        quitEvent.type = Sdl.SDL_QUIT;
+
+        Sdl.SDL_PushEvent(out quitEvent);
+    }
 
     private static void renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Game.CursorResource point, Gk3Main.Game.CursorResource zoom)
     {
