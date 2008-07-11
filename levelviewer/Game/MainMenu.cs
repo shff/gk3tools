@@ -6,6 +6,7 @@ class MainMenu
 {
     public MainMenu()
     {
+        _theme = (Gk3Main.Sound.Sound)Gk3Main.Resource.ResourceManager.Load("THEME.WAV");
         _background = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("TITLE.BMP");
         _introButton = new Gk3Main.Gui.Button("TITLE_INTRO_D.BMP", "TITLE_INTRO_H.BMP", "TITLE_INTRO_U.BMP", "TITLE_INTRO_X.BMP");
         _playButton = new Gk3Main.Gui.Button("TITLE_PLAY_D.BMP", "TITLE_PLAY_H.BMP", "TITLE_PLAY_U.BMP", "TITLE_PLAY_X.BMP");
@@ -23,6 +24,11 @@ class MainMenu
 
         _quitButton.X = new Gk3Main.Gui.Unit(0.35f, 300);
         _quitButton.Y = new Gk3Main.Gui.Unit(1.0f, -50);
+
+        _introButton.Enabled = false;
+        _restoreButton.Enabled = false;
+
+        _theme.Play2D();
     }
 
     public void SetMouseCoords(int x, int y)
@@ -74,6 +80,12 @@ class MainMenu
         _quitButton.Render();
     }
 
+    public event EventHandler OnPlayClicked
+    {
+        add { _playButton.OnClick += value; }
+        remove { _playButton.OnClick -= value; }
+    }
+
     public event EventHandler OnQuitClicked
     {
         add { _quitButton.OnClick += value; }
@@ -81,6 +93,7 @@ class MainMenu
     }
 
     int _mouseX, _mouseY;
+    private Gk3Main.Sound.Sound _theme;
     private Gk3Main.Graphics.TextureResource _background;
     private Gk3Main.Gui.Button _introButton;
     private Gk3Main.Gui.Button _playButton;

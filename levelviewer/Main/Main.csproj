@@ -15,7 +15,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;SOUND_DISABLED</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -38,7 +38,6 @@
     <Compile Include="FileSystem\barn.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Game\CommonStrings.cs" />
-    <Compile Include="Game\CursorResource.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\NvcResource.cs" />
     <Compile Include="Game\SceneManager.cs" />
@@ -51,6 +50,7 @@
     <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="Graphics\Utils.cs" />
     <Compile Include="Gui\Button.cs" />
+    <Compile Include="Gui\CursorResource.cs" />
     <Compile Include="Gui\Font.cs" />
     <Compile Include="Gui\Unit.cs" />
     <Compile Include="Logger.cs" />
@@ -63,6 +63,8 @@
     <Compile Include="Resource\TextResource.cs" />
     <Compile Include="Sheep\BasicSheepFunctions.cs" />
     <Compile Include="Sheep\Sheep.cs" />
+    <Compile Include="Sound\Sound.cs" />
+    <Compile Include="Sound\SoundManager.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

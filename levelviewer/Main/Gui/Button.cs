@@ -45,7 +45,7 @@ namespace Gk3Main.Gui
         {
             if (button == 0)
             {
-                if (_mouseDown && isMouseOverButton())
+                if (_enabled && _mouseDown && isMouseOverButton())
                 {
                     // clicked!
                     if (_onButtonClicked != null)

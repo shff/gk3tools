@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Tao.OpenGl;
 
-namespace Gk3Main.Game
+namespace Gk3Main.Gui
 {
     public class CursorResource : Resource.Resource
     {

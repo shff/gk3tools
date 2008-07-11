@@ -10,15 +10,17 @@ class MonoMain
 		
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.CursorResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
         
 		Gk3Main.Sheep.SheepMachine.Initialize();
+        Gk3Main.Sound.SoundManager.Init();
 		
 		Gk3Main.SceneManager.LightmapsEnabled = true;
 		Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
@@ -30,11 +32,11 @@ class MonoMain
 
 		parseArgs(args);
 
-        Gk3Main.Game.CursorResource waitCursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
-        Gk3Main.Game.CursorResource pointCursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
-        Gk3Main.Game.CursorResource zoom1Cursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
-        Gk3Main.Game.CursorResource zoom2Cursor = (Gk3Main.Game.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
-        
+        Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
+        Gk3Main.Gui.CursorResource pointCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
+        Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
+        Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
+
         Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera();
 
         MainMenu menu = new MainMenu();
@@ -100,7 +102,8 @@ class MonoMain
             renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
 			Sdl.SDL_GL_SwapBuffers();
 		}
-		
+
+        Gk3Main.Sound.SoundManager.Shutdown();
 		Gk3Main.Sheep.SheepMachine.Shutdown();
 	}
 	
@@ -162,7 +165,7 @@ class MonoMain
         Sdl.SDL_PushEvent(out quitEvent);
     }
 
-    private static void renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Game.CursorResource point, Gk3Main.Game.CursorResource zoom)
+    private static void renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
     {
         double[] modelMatrix = new double[16];
         double[] projectionMatrix = new double[16];
