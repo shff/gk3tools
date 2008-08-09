@@ -148,6 +148,11 @@ namespace Gk3Main
             set { _shadeMode = value; }
         }
 
+        public static bool IsSceneLoaded
+        {
+            get { return _currentRoom != null; }
+        }
+
         /// <summary>
         /// Collides a ray against the world and returns the name of the
         /// first model the ray collided with.

@@ -39,8 +39,12 @@ class MonoMain
 
         Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera();
 
-        MainMenu menu = new MainMenu();
-        menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
+        MainMenu menu = null;
+        if (Gk3Main.SceneManager.IsSceneLoaded == false)
+        {
+            menu = new MainMenu();
+            menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
+        }
 
 
 		int mx, my, rmx, rmy;
@@ -78,10 +82,10 @@ class MonoMain
                     }
                 }
 
-                if ((oldButtons & Sdl.SDL_BUTTON_LMASK) == 0)
+                if (menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) == 0)
                     menu.OnMouseDown(0);
             }
-            else if ((oldButtons & Sdl.SDL_BUTTON_LMASK) != 0)
+            else if (menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) != 0)
                 menu.OnMouseUp(0);
 
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
@@ -89,9 +93,11 @@ class MonoMain
 			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
 			Gk3Main.SceneManager.Render(camera);
 
-            menu.SetMouseCoords(mx, my);
-            menu.Render();
-
+            if (menu != null)
+            {
+                menu.SetMouseCoords(mx, my);
+                menu.Render();
+            }
 
            
             
@@ -134,8 +140,8 @@ class MonoMain
 		#endregion
 
 		Gl.glEnable(Gl.GL_DEPTH_TEST);
-		//Gl.glEnable(Gl.GL_ALPHA_TEST);
-		Gl.glAlphaFunc(Gl.GL_GREATER, 0.1f);
+		Gl.glEnable(Gl.GL_ALPHA_TEST);
+		Gl.glAlphaFunc(Gl.GL_GREATER, 0.9f);
 
 		Gl.glEnable(Gl.GL_CULL_FACE);
 		Gl.glFrontFace(Gl.GL_CW);

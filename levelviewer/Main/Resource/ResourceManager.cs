@@ -125,7 +125,6 @@ namespace Gk3Main.Resource
             return resource;
         }
 
-
         public static void AddResourceLoader(IResourceLoader loader)
         {
             string[] supportedExtensions = loader.SupportedExtensions;
@@ -134,6 +133,21 @@ namespace Gk3Main.Resource
             {
                 _loaders.Add(ext.ToUpper(), loader);
             }
+        }
+
+        /// <summary>
+        /// Returns a list of the names of loaded resources
+        /// </summary>
+        public static IList<string> GetLoadedResourceNames()
+        {
+            IList<string> list = new List<string>();
+
+            foreach (string key in _resources.Keys)
+            {
+                list.Add(key);
+            }
+
+            return list;
         }
 
         private static IResourceLoader getLoaderForFile(string filename)

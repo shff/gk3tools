@@ -20,6 +20,9 @@ namespace Viewer
             _consoleForm = new ConsoleForm();
             _consoleForm.Show();
 
+            _resourceViewerForm = new ResourceViewer();
+            _resourceViewerForm.Show();
+
             Gk3Main.Console.CurrentConsole = new FormConsole(_consoleForm);
             Gk3Main.Console.CurrentConsole.AddCommand("run", new Gk3Main.ConsoleCommand(run));
             Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
@@ -77,7 +80,12 @@ namespace Viewer
 
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
+            {
                 Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
+
+                IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
+                _resourceViewerForm.UpdateResources(resources);
+            }
         }
 
         private void openSifMenuItem_Click(object sender, EventArgs e)
@@ -104,6 +112,9 @@ namespace Viewer
                         Gk3Main.SceneManager.AddModel(model.Name + ".MOD");
                     }
                 }
+
+                IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
+                _resourceViewerForm.UpdateResources(resources);
             }
         }
 
@@ -118,7 +129,17 @@ namespace Viewer
 
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
+            {
                 Gk3Main.SceneManager.AddModel(dialog.SelectedScene);
+
+                IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
+                _resourceViewerForm.UpdateResources(resources);
+            }
+        }
+
+        private void takeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Video.SaveScreenshot("screenshot.bmp");
         }
 
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)
@@ -289,11 +310,14 @@ namespace Viewer
         private Gk3Main.Graphics.Camera _camera;
         private SearchPathEditor _pathEditor;
         private ConsoleForm _consoleForm;
+        private ResourceViewer _resourceViewerForm;
         private bool _leftMouseButton, _rightMouseButton;
         private bool[] _keys = new bool[MaxKeyValue+1];
 
         private int _oldMouseX, _oldMouseY;
 
         private const int MaxKeyValue = 163;
+
+        
     }
 }

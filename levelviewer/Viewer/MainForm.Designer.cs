@@ -41,9 +41,10 @@ namespace Viewer
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.lightmappingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.texturingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.xLightmapsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.xLightmapsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.takeScreenshotToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -63,11 +64,11 @@ namespace Viewer
             this.simpleOpenGlControl1.Size = new System.Drawing.Size(547, 402);
             this.simpleOpenGlControl1.StencilBits = ((byte)(0));
             this.simpleOpenGlControl1.TabIndex = 0;
-            this.simpleOpenGlControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseDown);
-            this.simpleOpenGlControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseMove);
-            this.simpleOpenGlControl1.Resize += new System.EventHandler(this.simpleOpenGlControl1_Resize);
-            this.simpleOpenGlControl1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyUp);
             this.simpleOpenGlControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.simpleOpenGlControl1_Paint);
+            this.simpleOpenGlControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseMove);
+            this.simpleOpenGlControl1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyUp);
+            this.simpleOpenGlControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseDown);
+            this.simpleOpenGlControl1.Resize += new System.EventHandler(this.simpleOpenGlControl1_Resize);
             this.simpleOpenGlControl1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseUp);
             this.simpleOpenGlControl1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyDown);
             // 
@@ -92,6 +93,7 @@ namespace Viewer
             this.toolStripMenuItem2,
             this.editSearchPathsToolStripMenuItem,
             this.toolStripSeparator1,
+            this.takeScreenshotToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
@@ -157,7 +159,7 @@ namespace Viewer
             this.lightmappingToolStripMenuItem.Checked = true;
             this.lightmappingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.lightmappingToolStripMenuItem.Name = "lightmappingToolStripMenuItem";
-            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.lightmappingToolStripMenuItem.Text = "Lightmapping";
             this.lightmappingToolStripMenuItem.Click += new System.EventHandler(this.lightmappingToolStripMenuItem_Click);
             // 
@@ -166,9 +168,16 @@ namespace Viewer
             this.texturingToolStripMenuItem.Checked = true;
             this.texturingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.texturingToolStripMenuItem.Name = "texturingToolStripMenuItem";
-            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
             this.texturingToolStripMenuItem.Text = "Texturing";
             this.texturingToolStripMenuItem.Click += new System.EventHandler(this.texturingToolStripMenuItem_Click);
+            // 
+            // xLightmapsToolStripMenuItem
+            // 
+            this.xLightmapsToolStripMenuItem.Name = "xLightmapsToolStripMenuItem";
+            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(148, 22);
+            this.xLightmapsToolStripMenuItem.Text = "2X Lightmaps";
+            this.xLightmapsToolStripMenuItem.Click += new System.EventHandler(this.xLightmapsToolStripMenuItem_Click);
             // 
             // helpToolStripMenuItem
             // 
@@ -185,12 +194,12 @@ namespace Viewer
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
-            // xLightmapsToolStripMenuItem
+            // takeScreenshotToolStripMenuItem
             // 
-            this.xLightmapsToolStripMenuItem.Name = "xLightmapsToolStripMenuItem";
-            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.xLightmapsToolStripMenuItem.Text = "2X Lightmaps";
-            this.xLightmapsToolStripMenuItem.Click += new System.EventHandler(this.xLightmapsToolStripMenuItem_Click);
+            this.takeScreenshotToolStripMenuItem.Name = "takeScreenshotToolStripMenuItem";
+            this.takeScreenshotToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.takeScreenshotToolStripMenuItem.Text = "Take screenshot";
+            this.takeScreenshotToolStripMenuItem.Click += new System.EventHandler(this.takeScreenshotToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -227,6 +236,7 @@ namespace Viewer
         private System.Windows.Forms.ToolStripMenuItem texturingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openSifMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xLightmapsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem takeScreenshotToolStripMenuItem;
     }
 }
 

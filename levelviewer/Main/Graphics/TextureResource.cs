@@ -311,6 +311,7 @@ namespace Gk3Main.Graphics
                     if (bitsPerPixel == 24)
                     {
                         int currentPixel = (y * _width + x) * 4;
+                        pixels[currentPixel + 3] = 255;
                         pixels[currentPixel + 2] = reader.ReadByte();
                         pixels[currentPixel + 1] = reader.ReadByte();
                         pixels[currentPixel + 0] = reader.ReadByte();
@@ -320,6 +321,7 @@ namespace Gk3Main.Graphics
                         int currentPixel = (y * _width + x) * 4;
                         byte pixel = reader.ReadByte();
 
+                        pixels[currentPixel + 3] = 255;
                         pixels[currentPixel + 2] = pixel;
                         pixels[currentPixel + 1] = pixel;
                         pixels[currentPixel + 0] = pixel;
