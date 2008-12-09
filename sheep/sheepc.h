@@ -19,6 +19,10 @@ extern "C"
 #define SHEEP_SUCCESS 0
 #define SHEEP_ERROR -1
 
+#define SHEEP_VERSION_MAJOR 0
+#define SHEEP_VERSION_MINOR 1
+#define SHEEP_VERSION_REVISION 0
+
 typedef unsigned char byte;
 
 enum SHP_SymbolType
@@ -69,6 +73,11 @@ struct SHP_CompilerOutput
 	int LineNumber;
 };
 
+struct SHP_Version
+{
+	byte Major, Minor, Revision;
+};
+
 typedef struct {} SheepVM;
 typedef struct {} SheepImportFunction;
 
@@ -90,6 +99,8 @@ DECLSPEC float LIB_CALL SHP_PopFloatFromStack(SheepVM* vm);
 DECLSPEC const char* LIB_CALL SHP_PopStringFromStack(SheepVM* vm);
 
 DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
+
+DECLSPEC SHP_Version SHP_GetVersion();
 
 #ifdef __cplusplus
 }

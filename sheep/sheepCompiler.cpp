@@ -90,3 +90,13 @@ void SHP_PushIntOntoStack(SheepVM* vm, int i)
 
 	SM(vm)->PushIntOntoStack(i);
 }
+
+SHP_Version SHP_GetVersion()
+{
+	SHP_Version v;
+	v.Major = SHEEP_VERSION_MAJOR;
+	v.Minor = SHEEP_VERSION_MINOR;
+	v.Revision = SHEEP_VERSION_REVISION;
+
+	return v;
+}

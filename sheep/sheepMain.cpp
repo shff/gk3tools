@@ -30,16 +30,50 @@ int main(int argc, char** argv)
 {
 	if (argc < 2)
 	{
-		std::cout << "Sorry, need something to compile" << std::endl;
+		std::cout << "Usage:\tsheep INPUTFILE [OUTPUTFILE]" << std::endl;
+		//std::cout << "\t* compiles INPUTFILE and writes the\n\t  results to OUTPUTFILE (\"output.shp\" by default)" << std::endl;
+		std::cout << "\tsheep -s INPUTFILE [FUNCTION]" << std::endl;
+		//std::cout << "\t* compiles INPUTFILE and executes\n\t  FUNCTION (\"main$\" by default)" << std::endl;
 		return -1;
 	}
 	
+	bool interpreterMode = false;
 	SheepCodeTree tree;
+
+	int indexOfFile = 1;
+	std::string outputFile = "output.shp";
+	std::string functionToRun = "main$";
+
+	if (std::string(argv[1]) == "-v")
+	{
+		SHP_Version v = SHP_GetVersion();
+
+		std::cout << "Sheep Compiler and Virtual Machine " << (int)v.Major << "." << (int)v.Minor << "." << (int)v.Revision << std::endl;
+		return 0;
+	}
+
+	if (argc >= 3)
+	{
+		if (std::string(argv[1]) == "-s")
+		{
+			interpreterMode = true;
+			indexOfFile = 2;
+
+			if (argc > 3)
+			{
+				functionToRun = argv[3];
+			}
+		}
+		else
+		{
+			outputFile = argv[2];
+		}
+	}
 	
-	std::ifstream file(argv[1]);
+	std::ifstream file(argv[indexOfFile]);
 	if (file.good() == false)
 	{
-		std::cout << "Unable to open " << argv[1] << std::endl;
+		std::cout << "Unable to open " << argv[indexOfFile] << std::endl;
 		return -1;
 	}
 
@@ -51,11 +85,8 @@ int main(int argc, char** argv)
 	}
 
 	file.close();
-
-	std::cout << "Parsing:" << std::endl << ss.str() << std::endl;
 	
 	tree.Lock(ss.str(), NULL);
-	tree.Print();
 
 	SheepImportTable imports;
 	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
@@ -64,23 +95,30 @@ int main(int argc, char** argv)
 
 	SheepCodeGenerator generator(&tree, &imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
-	output->Print();
-
-	SheepFileWriter writer(output);
-	writer.Write("output.shp");
-	
-	std::cout << "Num symbols: " << output->Symbols.size() << std::endl;
-	std::cout << "Num functions: " << output->Functions.size() << std::endl;
-
-	SheepMachine machine;
-	machine.GetImports().TryAddImport("IsCurrentTime", SYM_INT, SYM_STRING, s_isCurrentTime);
-	//machine.Prepare(output);
-	//machine.Run("foo$");
-	int result;
-	std::cout << "result: " << machine.RunSnippet(ss.str(), &result) << std::endl;
-
-	//generator.WriteOutputToFile("output.shp", output);
-	//delete output;
-
 	tree.Unlock();
+	
+	if (interpreterMode == false)
+	{
+		SheepFileWriter writer(output);
+		writer.Write(outputFile);
+		
+		std::cout << "Num symbols: " << output->Symbols.size() << std::endl;
+		std::cout << "Num functions: " << output->Functions.size() << std::endl;
+	}
+	else
+	{
+		try
+		{
+			SheepMachine machine;
+			machine.Prepare(output);
+			machine.Run(functionToRun);
+		}
+		catch(SheepException& ex)
+		{
+			std::cout << "Error: " << ex.GetMessage() << std::endl;
+			return -1;
+		}
+	}
+
+	return 0;
 }
