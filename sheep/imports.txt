@@ -1,2 +1,0 @@
-void PrintString string
-void PrintInt int
