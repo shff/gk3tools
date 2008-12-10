@@ -8,6 +8,7 @@
 #include "sheepFileWriter.h"
 #include "sheepImportTable.h"
 #include "sheepTypes.h"
+#include "sheepDisassembler.h"
 
 void CALLBACK s_printString(SheepVM* vm)
 {
@@ -26,6 +27,13 @@ void CALLBACK s_isCurrentTime(SheepVM* vm)
 	SHP_PushIntOntoStack(vm, 0);
 }
 
+enum CompilerMode
+{
+	Compiler,
+	Interpreter,
+	Disassembler
+};
+
 int main(int argc, char** argv)
 {
 	if (argc < 2)
@@ -34,10 +42,11 @@ int main(int argc, char** argv)
 		//std::cout << "\t* compiles INPUTFILE and writes the\n\t  results to OUTPUTFILE (\"output.shp\" by default)" << std::endl;
 		std::cout << "\tsheep -s INPUTFILE [FUNCTION]" << std::endl;
 		//std::cout << "\t* compiles INPUTFILE and executes\n\t  FUNCTION (\"main$\" by default)" << std::endl;
+		std::cout << "\tsheep -d INPUTFILE" << std::endl;
 		return -1;
 	}
 	
-	bool interpreterMode = false;
+	CompilerMode mode = Compiler;
 	SheepCodeTree tree;
 
 	int indexOfFile = 1;
@@ -56,7 +65,7 @@ int main(int argc, char** argv)
 	{
 		if (std::string(argv[1]) == "-s")
 		{
-			interpreterMode = true;
+			mode = Interpreter;
 			indexOfFile = 2;
 
 			if (argc > 3)
@@ -64,9 +73,28 @@ int main(int argc, char** argv)
 				functionToRun = argv[3];
 			}
 		}
+		else if (std::string(argv[1]) == "-d")
+		{
+			mode = Disassembler;
+			indexOfFile = 2;
+		}
 		else
 		{
 			outputFile = argv[2];
+		}
+	}
+
+	if (mode == Disassembler)
+	{
+		try
+		{
+			std::cout << SheepCompiler::Disassembler::GetDisassembly(argv[indexOfFile]) << std::endl;
+			return 0;
+		}
+		catch(SheepException& ex)
+		{
+			std::cout << "Error: " << ex.GetMessage() << std::endl;
+			return -1;
 		}
 	}
 	
@@ -97,7 +125,7 @@ int main(int argc, char** argv)
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
 	tree.Unlock();
 	
-	if (interpreterMode == false)
+	if (mode == Compiler)
 	{
 		SheepFileWriter writer(output);
 		writer.Write(outputFile);

@@ -3,10 +3,66 @@
 
 #include <string>
 #include <fstream>
-#include "sheepfile.h"
+#include <vector>
+#include "sheepc.h"
+//#include "sheepfile.h"
 
 namespace SheepCompiler
 {
+	struct SheepHeader
+	{
+		unsigned int Magic1;
+		unsigned int Magic2;
+		unsigned int Unknown;
+		unsigned int ExtraOffset;
+		unsigned int DataOffset;
+		unsigned int DataSize;
+		unsigned int DataCount;
+
+		unsigned int* OffsetArray;
+
+		static const unsigned int SheepHeaderSize = 28;
+		static const unsigned int Magic1Value = 0x53334b47;
+		static const unsigned int Magic2Value = 0x70656568;
+	};
+
+	struct SectionHeader
+	{
+		SectionHeader() { memset(Label, 0, 12); OffsetArray = NULL; }
+
+		char Label[12];
+		unsigned int ExtraOffset;
+		unsigned int DataOffset;
+		unsigned int DataSize;
+		unsigned int DataCount;
+
+		unsigned int* OffsetArray;
+
+		static const unsigned int SectionHeaderSize = 28;
+	};
+
+	struct Import
+	{
+		unsigned short LengthOfName;
+		std::string Name;
+		byte NumReturns;
+		byte NumParameters;
+
+		byte* ParametersTypes;
+	};
+
+	struct StringConstant
+	{
+		std::string String;
+		unsigned int Offset;
+	};
+
+	struct LocalFunction
+	{
+		std::string Name;
+		unsigned int Offset;
+	};
+
 	class Disassembler
 	{
 	public:

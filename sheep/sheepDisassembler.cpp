@@ -2,9 +2,12 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
-#include "compiler.h"
-#include "disassembler.h"
-#include "sheepfile.h"
+//#include "compiler.h"
+#include "sheepTypes.h"
+#include "sheepCodeBuffer.h"
+#include "sheepDisassembler.h"
+//#include "sheepfile.h"
+#include "sheepException.h"
 
 namespace SheepCompiler
 {
@@ -19,7 +22,7 @@ namespace SheepCompiler
 		std::ifstream file(inputFile.c_str(), std::ios_base::binary);
 		if (!file)
 		{
-			throw CompilerException("Unable to open input file");
+			throw SheepException("Unable to open input file");
 		}
 
 		unsigned int fileSize = getFileSize(file);
@@ -30,10 +33,10 @@ namespace SheepCompiler
 		READ4(&header.Magic1);
 		READ4(&header.Magic2);
 
-		if (header.Magic1 != Magic1 || header.Magic2 != Magic2)
+		if (header.Magic1 != SheepHeader::Magic1Value || header.Magic2 != SheepHeader::Magic2Value)
 		{
 			file.close();
-			throw CompilerException("Input file is not a valid sheep file");
+			throw SheepException("Input file is not a valid sheep file");
 		}
 
 		READ4(&header.Unknown);
@@ -57,7 +60,7 @@ namespace SheepCompiler
 			if (header.OffsetArray[i] >= fileSize)
 			{
 				delete[] header.OffsetArray;
-				throw CompilerException("Input file is not a valid sheep file");
+				throw SheepException("Input file is not a valid sheep file");
 			}
 
 			file.seekg(header.DataOffset + header.OffsetArray[i]);
@@ -91,13 +94,13 @@ namespace SheepCompiler
 
 						if (k > 0) output << ", ";
 
-						if (parameterType == Symbol_Void)
+						if (parameterType == SYM_VOID)
 							output << "void";
-						else if (parameterType == Symbol_Integer)
+						else if (parameterType == SYM_INT)
 							output << "int";
-						else if (parameterType == Symbol_Float)
+						else if (parameterType == SYM_FLOAT)
 							output << "float";
-						else if (parameterType == Symbol_String)
+						else if (parameterType == SYM_STRING)
 							output << "string";
 						else
 							output << "??";
@@ -153,13 +156,13 @@ namespace SheepCompiler
 					
 					output << "\t" << j << "\t";
 					
-					if (type == Symbol_Void)
+					if (type == SYM_VOID)
 						output << "void";
-					else if (type == Symbol_Integer)
+					else if (type == SYM_INT)
 						output << "int";
-					else if (type == Symbol_Float)
+					else if (type == SYM_FLOAT)
 						output << "float";
-					else if (type == Symbol_String)
+					else if (type == SYM_STRING)
 						output << "string";
 					else
 						output << "??";
@@ -203,7 +206,7 @@ namespace SheepCompiler
 				unsigned int currentOffset = file.tellg();
 
 				if (codeHeader.DataCount > 1)
-					throw CompilerException("Extra code sections found");
+					throw SheepException("Extra code sections found");
 
 				file.seekg(currentOffset + codeHeader.OffsetArray[0], std::ios_base::beg);
 				currentOffset = file.tellg();
@@ -228,7 +231,7 @@ namespace SheepCompiler
 			}
 			else
 			{
-				throw CompilerException("Unrecognized data section");
+				throw SheepException("Unrecognized data section");
 				
 			}
 		}
@@ -359,6 +362,42 @@ namespace SheepCompiler
 		{
 			printDisassembly(output, op, "ReturnV");
 			return 1;
+		}
+		else if (op == StoreI)
+		{
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "StoreI");
+			return 5;
+		}
+		else if (op == StoreF)
+		{
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "StoreF");
+			return 5;
+		}
+		else if (op == StoreS)
+		{
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "StoreS");
+			return 5;
+		}
+		else if (op == LoadI)
+		{
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "LoadI");
+			return 5;
+		}
+		else if (op == LoadF)
+		{
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "LoadF");
+			return 5;
+		}
+		else if (op == LoadS)
+		{
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "LoadS");
+			return 5;
 		}
 		else if (op == PushI)
 		{
