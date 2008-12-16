@@ -196,13 +196,24 @@ namespace GK3BB
         {
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             dialog.Description = "Select the directory where files will be extracted";
-            if (BarnManager.ExtractPath == "~")
-                dialog.SelectedPath = Environment.CurrentDirectory;
+            if (BarnManager.ExtractPath == string.Empty)
+            {
+                if (Settings.Default.ExtractPath == String.Empty)
+                    dialog.SelectedPath = Environment.CurrentDirectory;
+               else
+                    dialog.SelectedPath = Settings.Default.ExtractPath;
+            }
             else
+            {
                 dialog.SelectedPath = BarnManager.ExtractPath;
+            }
 
             if (dialog.ShowDialog() == DialogResult.OK)
+            {
                 BarnManager.ExtractPath = dialog.SelectedPath + System.IO.Path.DirectorySeparatorChar;
+                Settings.Default.ExtractPath = BarnManager.ExtractPath;
+                Settings.Default.Save();
+            }
         }
         
         private void previewFileToolStripMenuItem_Click(object sender, EventArgs e)

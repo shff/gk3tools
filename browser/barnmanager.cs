@@ -127,7 +127,7 @@ namespace GK3BB
 		}
 		
 		private static Barn _barn = null;
-		private static string _extractPath = "";
+		private static string _extractPath = String.Empty;
 		private static bool _convertBitmaps = true;
 		private static bool _decompress = true;
 		
