@@ -85,7 +85,23 @@ namespace Barn
 		}
 		else if (compressionType == ZLib)
 		{
-			// TODO: support ZLib decompression!
+#ifdef DISABLE_ZLIB
+			throw BarnException("This version of LibBarn does not have support for ZLib", BARNERR_UNABLE_TO_INIT_ZLIB);
+#else
+			// TODO: make this work for big-endian machines!
+			unsigned int size;
+			memcpy(&size, m_buffer, 4);
+
+			char* newBuffer = new char[size];
+
+			uLongf s = size;
+			uncompress((Bytef*)newBuffer, &s, (const Bytef*)&m_buffer[8], m_size);
+
+			// delete the old buffer
+			delete[] m_buffer;
+			m_buffer = newBuffer;
+			m_size = size;
+#endif
 		}
 		
 		std::cout << "done decompressing" << std::endl;
