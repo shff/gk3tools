@@ -167,13 +167,13 @@ namespace BarnLib
 			success = brn_ExtractFileByIndex(barnHandle, index, outputPath,
 				true, true);
 				
-			if (success == -3)
+			if (success == (int)BarnError.InvalidIndex)
 				throw new BarnException("invalid index");
-			else if (success == -4)
+			else if (success == (int)BarnError.UnableToOpenChildBarn)
 				throw new BarnException("Unable to open child barn");
-			else if (success == -5)
+			else if (success == (int)BarnError.UnableToOpenOutputFile)
 				throw new BarnException("Unable to open output file");
-			else if (success != 0)
+			else if (success != (int)BarnError.Success)
 				throw new BarnException("Unable to extract file");
 		}
 
@@ -181,8 +181,10 @@ namespace BarnLib
         {
             int success = brn_ReadFile(barnHandle, filename, buffer, buffer.Length, openChildBarns);
 
-            if (success == -4)
+            if (success == (int)BarnError.UnableToOpenChildBarn)
                 throw new BarnException("Unable to open child barn");
+            else if (success == (int)BarnError.DecompressionError)
+                throw new BarnException("Error while decompressing file");
             else if (success < 0)
                 throw new BarnException("Unable to read file");
         }
@@ -217,7 +219,22 @@ namespace BarnLib
 		}
 		
 		#region Private Members
-		
+
+        private enum BarnError
+        {
+            Success = 0,
+            InvalidBarn = -1,
+            FileNotFound = -2,
+            InvalidIndex = -3,
+            UnableToOpenChildBarn = -4,
+            UnableToOpenOutputFile = -5,
+            NotYetImplemented = -6,
+            UnableToInitLzo = -7,
+            UnableToInitZLib = -8,
+            DecompressionError = -9,
+            Unknown = -100
+        }
+
 		[DllImport("barn")]
 		private static extern IntPtr brn_OpenBarn(string name);
 		

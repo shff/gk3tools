@@ -75,7 +75,11 @@ namespace Barn
 			char* newBuffer = new char[size];
 			
 			// decompress the data
-			lzo1x_decompress((unsigned char*)&m_buffer[8], m_size, (unsigned char*)newBuffer, &size, NULL);
+			if (lzo1x_decompress((unsigned char*)&m_buffer[8], m_size, (unsigned char*)newBuffer, &size, NULL) != LZO_E_OK && false)
+			{
+				delete[] newBuffer;
+				throw BarnException("Error while decompressing LZO-compressed data", BARNERR_DECOMPRESSION_ERROR);
+			}
 			
 			// delete the old buffer
 			delete[] m_buffer;
@@ -95,7 +99,11 @@ namespace Barn
 			char* newBuffer = new char[size];
 
 			uLongf s = size;
-			uncompress((Bytef*)newBuffer, &s, (const Bytef*)&m_buffer[8], m_size);
+			if (uncompress((Bytef*)newBuffer, &s, (const Bytef*)&m_buffer[8], m_size) != Z_OK)
+			{
+				delete[] newBuffer;
+				throw BarnException("Error while decompressing ZLib-compressed data", BARNERR_DECOMPRESSION_ERROR);
+			}
 
 			// delete the old buffer
 			delete[] m_buffer;

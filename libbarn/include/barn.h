@@ -35,6 +35,10 @@ extern "C" {
 #define BARN_CALL
 #endif
 
+#define BARN_VERSION_MAJOR 0
+#define BARN_VERSION_MINOR 2
+#define BARN_VERSION_REVISION 0
+
 #define BARN_SUCCESS            0
 #define BARNERR_INVALID_BARN   -1
 #define BARNERR_FILE_NOT_FOUND -2
@@ -44,6 +48,7 @@ extern "C" {
 #define BARNERR_NOT_YET_IMPLEMENTED -6
 #define BARNERR_UNABLE_TO_INIT_LZO -7
 #define BARNERR_UNABLE_TO_INIT_ZLIB -8
+#define BARNERR_DECOMPRESSION_ERROR -9
 #define BARNERR_UNKNOWN        -100
 
 typedef void* BarnHandle;

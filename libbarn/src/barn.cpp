@@ -171,7 +171,7 @@ int brn_ExtractFileByIndex(BarnHandle barn, unsigned int index,
 void brn_GetLibInfo(char* buffer, int size)
 {
 	std::stringstream ss;
-	ss << "LibBarn v0.1.0" << std::endl
+	ss << "LibBarn v" << BARN_VERSION_MAJOR << "." << BARN_VERSION_MINOR << "." << BARN_VERSION_REVISION << std::endl
 		<< "Compiled on " << __DATE__ << " at " << __TIME__;
 	
 	strncpy(buffer, ss.str().c_str(), size);
