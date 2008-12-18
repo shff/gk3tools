@@ -62,6 +62,8 @@ namespace GK3BB
             _previewExtensionsMap.Add("HTML", "HTML");
             _previewExtensionsMap.Add("HTM", "HTML");
             _previewExtensionsMap.Add("WAV", "WAV");
+
+            BarnManager.ExtractPath = Settings.Default.ExtractPath;
         }
 
         #region Event handlers
@@ -198,10 +200,7 @@ namespace GK3BB
             dialog.Description = "Select the directory where files will be extracted";
             if (BarnManager.ExtractPath == string.Empty)
             {
-                if (Settings.Default.ExtractPath == String.Empty)
-                    dialog.SelectedPath = Environment.CurrentDirectory;
-               else
-                    dialog.SelectedPath = Settings.Default.ExtractPath;
+                dialog.SelectedPath = Environment.CurrentDirectory;
             }
             else
             {
