@@ -1,7 +1,7 @@
 GK3 Scene Viewer
 ----------------
-Version 0.2.0
-Released June 5, 2007
+Version 0.3.0
+Released December 20, 2008
 Licensed under the GNU GPL (see license.txt)
 http://gk3tools.sourceforge.net
 
@@ -28,12 +28,11 @@ Now that the scene is loaded you can use the mouse to look around and move. To l
 
 
 === KNOWN ISSUES ===
-1. Alpha testing doesn't work when lightmaps are enabled
+None!
 
 === TODO ===
-1. Remember search path settings
-2. Load models
-3. Add optional camera bounds
+1. Add optional camera bounds
+2. Visibility culling
 
 === CHANGE LOG ===
 0.1.0 - May 27, 2007
@@ -42,3 +41,12 @@ Now that the scene is loaded you can use the mouse to look around and move. To l
 0.2.0 - June 5, 2007
    - Got lightmapping to work
    - UI improvements
+   
+0.3.0 - December 20, 2008
+    - Added console
+    - Added basic Sheep support
+    - Added basic model support
+    - Added "2x Lightmaps" option
+    - Remembers search path
+    - Fixed alpha testing
+    - Other minor bugs and enhancements

@@ -137,37 +137,37 @@ namespace Gk3Main.Sheep
         private static CompilerOutputDelegate _compilerOutputDelegate;
 
         #region Interops
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern IntPtr SHP_CreateNewVM();
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern void SHP_DestroyVM(IntPtr vm);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern IntPtr SHP_AddImport(IntPtr vm, string name, SymbolType returnType, IntPtr callback);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern int SHP_PopIntFromStack(IntPtr vm);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern float SHP_PopFloatFromStack(IntPtr vm);
         
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern IntPtr SHP_PopStringFromStack(IntPtr vm);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern void SHP_PushIntOntoStack(IntPtr vm, int i);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern int SHP_RunScript(IntPtr vm, string script, string function);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
 
-        [DllImport("sheepc")]
+        [DllImport("sheep")]
         private static extern void SHP_SetOutputCallback(IntPtr vm, IntPtr callback);
 
         #endregion Interops
