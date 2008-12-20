@@ -43,10 +43,37 @@ namespace Gk3Main
         public static BarnLib.Barn AddBarnToSearchPath(string barn)
         {
             PathInfo path = new PathInfo();
+            path.Name = barn;
             path.Barn = new BarnLib.Barn(barn);
             _searchPath.Add(path);
 
             return path.Barn;
+        }
+
+        public static void RemoveFromSearchPath(PathInfo path)
+        {
+            _searchPath.Remove(path);
+        }
+
+        private struct SearchPathPredicate
+        {
+            public string Path;
+
+            public bool Where(PathInfo info)
+            {
+                if (info.Name == Path || (info.Barn != null && info.Barn.Name == Path))
+                    return true;
+                
+                return false;
+            }
+        }
+
+        public static void RemoveFromSearchPath(string path)
+        {
+            SearchPathPredicate p;
+            p.Path = path;
+
+            _searchPath.RemoveAll(p.Where);
         }
 
         public static PathInfo[] SearchPath { get { return _searchPath.ToArray(); } }

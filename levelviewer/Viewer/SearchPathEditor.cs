@@ -18,13 +18,20 @@ namespace Viewer
         {
             lstSearchPaths.Items.Clear();
 
+            StringBuilder searchPathString = new StringBuilder();
             foreach (Gk3Main.FileSystem.PathInfo info in Gk3Main.FileSystem.SearchPath)
             {
                 if (info.Barn == null)
                     lstSearchPaths.Items.Add(info.Name);
                 else
                     lstSearchPaths.Items.Add(info.Barn.Name);
+
+                searchPathString.Append(info.Name);
+                searchPathString.Append(';');
             }
+
+            Settings.Default.SearchPath = searchPathString.ToString();
+            Settings.Default.Save();
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -79,7 +86,14 @@ namespace Viewer
 
         private void btnRemove_Click(object sender, EventArgs e)
         {
-            // TODO
+            string path = lstSearchPaths.SelectedItem as string;
+
+            if (path != null)
+            {
+                Gk3Main.FileSystem.RemoveFromSearchPath(path);
+            }
+
+            Refresh();
         }
     }
 }

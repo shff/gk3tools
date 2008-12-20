@@ -25,7 +25,26 @@ namespace Viewer
 
             Gk3Main.Console.CurrentConsole = new FormConsole(_consoleForm);
             Gk3Main.Console.CurrentConsole.AddCommand("run", new Gk3Main.ConsoleCommand(run));
-            Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
+
+            if (Settings.Default.SearchPath == String.Empty)
+            {
+                Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
+            }
+            else
+            {
+                string[] paths = Settings.Default.SearchPath.Split(';');
+
+                foreach(string path in paths)
+                {
+                    if (path != string.Empty)
+                    {
+                        if (System.IO.Directory.Exists(path))
+                            Gk3Main.FileSystem.AddPathToSearchPath(path);
+                        else
+                            Gk3Main.FileSystem.AddBarnToSearchPath(path);
+                    }
+                }
+            }
 
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
