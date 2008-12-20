@@ -9,6 +9,6 @@ namespace GK3BB
 {
 	public class Info
 	{
-		public const string Version = "2.0.0.1";
+		public const string Version = "2.0.1.0";
 	}
 }

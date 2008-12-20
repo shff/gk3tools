@@ -1,0 +1,13 @@
+Barn Browser Changelog
+----------------------
+
+2.0.1.0 (2008-12-20)
+    * zlib decompression works
+    * fixed bugs in RGB565 -> RGB888 bitmap conversion
+    * deletes temporary files created when previewing on exit
+    * "remembers" extract path
+    * other minor bugs
+
+2.0.0.0 (2007-09-15)
+    Initial release
+
