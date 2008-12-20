@@ -1,4 +1,4 @@
-// Copyright (c) 2006 Brad Farris
+// Copyright (c) 2008 Brad Farris
 // This file is licensed under the MIT license. You can do whatever you
 // want with this file as long as this notice remains at the top.
 

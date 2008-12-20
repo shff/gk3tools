@@ -1,0 +1,9 @@
+libbarn Changelog
+-----------------
+
+0.2.0 (2008-12-20)
+    * zlib decompression
+    * fixed some minor bugs
+    
+0.1.0 (2007-09-15)
+    Initial release (packaged with the Barn Browser)
