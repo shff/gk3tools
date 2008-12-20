@@ -64,6 +64,8 @@ namespace GK3BB
             _previewExtensionsMap.Add("WAV", "WAV");
 
             BarnManager.ExtractPath = Settings.Default.ExtractPath;
+
+            _temporaryFiles = new List<string>();
         }
 
         #region Event handlers
@@ -226,8 +228,13 @@ namespace GK3BB
                     if (isPreviewSupported(bf.Extension))
                     {
                         // get the name of a temporary file we can use
-                        System.IO.FileInfo newFileInfo = new System.IO.FileInfo(System.IO.Path.GetTempFileName());
-                        newFileInfo.MoveTo(newFileInfo.FullName + "." + getPreviewExtension(bf.Extension));
+                        System.Text.StringBuilder filenameBuilder = new System.Text.StringBuilder();
+                        filenameBuilder.Append(System.IO.Path.GetTempPath());
+                        filenameBuilder.Append(System.IO.Path.DirectorySeparatorChar);
+                        filenameBuilder.Append(bf.Name);
+                        filenameBuilder.Append(".");
+                        filenameBuilder.Append(getPreviewExtension(bf.Extension));
+                        string filename = filenameBuilder.ToString();
 
                         byte[] data = BarnManager.ExtractData(bf.Name);
 
@@ -235,18 +242,19 @@ namespace GK3BB
                         if (bf.Extension == "BMP")
                         {
                             GK3Bitmap bmp = new GK3Bitmap(data);
-                            bmp.Save(newFileInfo.FullName);
+                            bmp.Save(filename);
                         }
                         else
                         {
-                            System.IO.FileStream fs = new System.IO.FileStream(newFileInfo.FullName, System.IO.FileMode.Create);
+                            System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Create);
                             fs.Write(data, 0, data.Length);
                             fs.Close();
                         }
 
-                        System.Diagnostics.Process.Start(newFileInfo.FullName);
+                        System.Diagnostics.Process.Start(filename);
 
-                        // TODO: delete the file when the process is done!
+                        // add the file to the list of files to delete when the browser closes
+                        _temporaryFiles.Add(filename);
                     }
                 }
                 catch(System.IO.FileNotFoundException)
@@ -294,6 +302,22 @@ namespace GK3BB
             mainListView.Sort();
         }
 
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            // delete all the temporary files
+            foreach(string file in _temporaryFiles)
+            {
+                try
+                {
+                    System.IO.File.Delete(file);
+                }
+                catch
+                {
+                    // meh, no big deal, just ignore it
+                }
+            }
+        }
+
         #endregion
 
         private bool isPreviewSupported(string extension)
@@ -309,9 +333,8 @@ namespace GK3BB
         private ImageList _imageList;
         private ListViewColumnSorter _sorter;
         private Dictionary<string, string> _previewExtensionsMap;
+        private List<string> _temporaryFiles;
 
-        
-        
     }
 
     class ListViewColumnSorter : System.Collections.IComparer

@@ -26,11 +26,11 @@ namespace GK3BB
 		{
 			return "Gabriel Knight 3 Barn Browser" + Environment.NewLine
 				+ Environment.NewLine
-				+ "Copyright 2007 Brad Farris" + Environment.NewLine
-				+ "http://www.fwheel.net" + Environment.NewLine
+				+ "Copyright 2008 Brad Farris" + Environment.NewLine
+                + "http://gk3tools.sourceforge.net/" + Environment.NewLine
 				+ "Licensed under the GNU GPL" + Environment.NewLine
 				+ Environment.NewLine
-				+ "Version " + Info.Version + " (Alpha)" + Environment.NewLine
+				+ "Version " + Info.Version + Environment.NewLine
 				+ Environment.NewLine
 				+ "Using " + BarnLib.Barn.GetLibBarnInfo();
 		}
