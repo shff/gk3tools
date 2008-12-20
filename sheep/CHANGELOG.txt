@@ -1,0 +1,5 @@
+SheepC and libsheep Changelog
+-----------------------------
+
+0.1.0 (2008-12-20)
+    Initial release
