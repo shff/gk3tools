@@ -2,7 +2,7 @@ COMPILER = gmcs
 COMPILER_FLAGS = -r:Tao.OpenGl -r:Tao.Sdl -r:main.dll
 EXECUTABLE = viewer.exe
 
-SOURCES = MonoMain.cs
+SOURCES = MonoMain.cs MainMenu.cs
 
 $(EXECUTABLE):
 	cp ../Main/main.dll .
