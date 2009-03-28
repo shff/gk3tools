@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <memory.h>
 
 class ResizableBuffer
 {

@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <memory.h>
 #include "sheepc.h"
 //#include "sheepfile.h"
 

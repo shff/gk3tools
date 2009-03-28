@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <memory>
 #include "sheepCodeTree.h"
 #include "sheepCodeGenerator.h"
 #include "sheepImportTable.h"
