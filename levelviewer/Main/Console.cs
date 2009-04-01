@@ -15,6 +15,11 @@ namespace Gk3Main
 
         public abstract void Write(string text, params object[] arg);
 
+        public virtual void ReportError(string error)
+        {
+            WriteLine("Error: " + error);
+        }
+
         public void AddCommand(string command, ConsoleCommand callback)
         {
             _commands.Add(command, callback);

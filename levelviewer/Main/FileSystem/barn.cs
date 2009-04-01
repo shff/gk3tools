@@ -37,24 +37,36 @@ namespace BarnLib
 		public BarnException(string message)
 			: base(message)
 		{}
+
+        public BarnException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
 	};
 	
 	public class Barn : System.IDisposable
 	{
 		public Barn(string name)
 		{
-            this.name = name;
+            try
+            {
+                this.name = name;
 
-			IntPtr barn = brn_OpenBarn(name);
-			
-			if (barn == (IntPtr)null)
-				throw new BarnException("Unable to open barn: " + name);
+                IntPtr barn = brn_OpenBarn(name);
 
-			barnHandle = new HandleRef(this, barn);
-			
-			numFiles = brn_GetNumFilesInBarn(barnHandle);
-			
-			disposed = false;
+                if (barn == (IntPtr)null)
+                    throw new BarnException("Unable to open barn: " + name);
+
+                barnHandle = new HandleRef(this, barn);
+
+                numFiles = brn_GetNumFilesInBarn(barnHandle);
+
+                disposed = false;
+            }
+            catch (DllNotFoundException ex)
+            {
+                throw new BarnException("Unable to load the Barn library.", ex);
+            }
 		}
 		
 		~Barn()
@@ -64,10 +76,10 @@ namespace BarnLib
 		
 		public void Dispose()
 		{
-			if (disposed == false)
-				brn_CloseBarn(barnHandle);
-			
-			disposed = true;
+            if (disposed == false && barnHandle.Handle != IntPtr.Zero)
+                brn_CloseBarn(barnHandle);
+
+            disposed = true;
 		}
 		
 		public uint NumberOfFiles

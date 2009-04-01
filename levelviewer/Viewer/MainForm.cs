@@ -53,7 +53,14 @@ namespace Viewer
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
 
-            Gk3Main.Sheep.SheepMachine.Initialize();
+            try
+            {
+                Gk3Main.Sheep.SheepMachine.Initialize();
+            }
+            catch (Gk3Main.Sheep.SheepException ex)
+            {
+                Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
+            }
 
             _camera = new Gk3Main.Graphics.Camera();
 

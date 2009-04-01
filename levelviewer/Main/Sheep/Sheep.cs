@@ -10,6 +10,11 @@ namespace Gk3Main.Sheep
             : base(message)
         {
         }
+
+        public SheepException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
     }
 
     public delegate void SheepFunctionDelegate(IntPtr vm);
@@ -24,22 +29,28 @@ namespace Gk3Main.Sheep
 
     public static class SheepMachine
     {
+        private const string SheepUnavailableError = "The Sheep VM is unavailable";
+
         public static void Initialize()
         {
             if (_vm == IntPtr.Zero)
             {
+                try
+                {
+                    _vm = SHP_CreateNewVM();
 
+                    _compilerOutputDelegate = new CompilerOutputDelegate(compilerOutputCallback);
 
-                _vm = SHP_CreateNewVM();
+                    SHP_SetOutputCallback(_vm,
+                        Marshal.GetFunctionPointerForDelegate(_compilerOutputDelegate));
+                    // SHP_SetOutputCallback(_vm, _compilerOutputDelegate);
 
-
-                _compilerOutputDelegate = new CompilerOutputDelegate(compilerOutputCallback);
-                
-                SHP_SetOutputCallback(_vm,
-                    Marshal.GetFunctionPointerForDelegate(_compilerOutputDelegate));
-               // SHP_SetOutputCallback(_vm, _compilerOutputDelegate);
-
-                BasicSheepFunctions.Init();
+                    BasicSheepFunctions.Init();
+                }
+                catch (DllNotFoundException ex)
+                {
+                    throw new SheepException("Unable to load the Sheep library.", ex);
+                }
             }
         }
 
@@ -54,56 +65,89 @@ namespace Gk3Main.Sheep
 
         public static void AddImport(string name, SheepFunctionDelegate callback, SymbolType returnType, params SymbolType[] parameters)
         {
-            IntPtr import = SHP_AddImport(_vm, name, returnType, Marshal.GetFunctionPointerForDelegate(callback));
+            if (_vm != IntPtr.Zero)
+            {
+                IntPtr import = SHP_AddImport(_vm, name, returnType, Marshal.GetFunctionPointerForDelegate(callback));
 
-            if (import == IntPtr.Zero)
-                throw new SheepException("Unable to add import");
+                if (import == IntPtr.Zero)
+                    throw new SheepException("Unable to add import");
 
-            foreach (SymbolType parameterType in parameters)
-                SHP_AddImportParameter(import, parameterType);
+                foreach (SymbolType parameterType in parameters)
+                    SHP_AddImportParameter(import, parameterType);
+            }
+            else
+            {
+                throw new SheepException(SheepUnavailableError);
+            }
         }
 
         public static void RunSheep(string filename, string function)
         {
-            using (System.IO.StreamReader reader = new System.IO.StreamReader(FileSystem.Open(filename)))
+            if (_vm != IntPtr.Zero)
             {
-                string script = reader.ReadToEnd();
+                using (System.IO.StreamReader reader = new System.IO.StreamReader(FileSystem.Open(filename)))
+                {
+                    string script = reader.ReadToEnd();
 
-                SHP_RunScript(_vm, script, function);
+                    SHP_RunScript(_vm, script, function);
+                }
+            }
+            else
+            {
+                throw new SheepException(SheepUnavailableError);
             }
         }
 
         public static int RunSnippet(string snippet)
         {
-            int result;
+            if (_vm != IntPtr.Zero)
+            {
+                int result;
 
-            _output.Clear();
+                _output.Clear();
 
-            int err = SHP_RunSnippet(_vm, string.Format("snippet{{ {0} }}", snippet), out result);
+                int err = SHP_RunSnippet(_vm, string.Format("snippet{{ {0} }}", snippet), out result);
 
-            if (err != 0)
-                throw new SheepException("Unable to execute snippet");
+                if (err != 0)
+                    throw new SheepException("Unable to execute snippet");
 
-            return result;
+                return result;
+            }
+            else
+            {
+                throw new SheepException(SheepUnavailableError);
+            }
         }
 
         public static int PopIntOffStack(IntPtr vm)
         {
+            if (vm == IntPtr.Zero)
+                throw new ArgumentException("vm");
+
             return SHP_PopIntFromStack(vm);
         }
 
         public static float PopFloatOffStack(IntPtr vm)
         {
+            if (vm == IntPtr.Zero)
+                throw new ArgumentException("vm");
+
             return SHP_PopFloatFromStack(vm);
         }
 
         public static string PopStringOffStack(IntPtr vm)
         {
+            if (vm == IntPtr.Zero)
+                throw new ArgumentException("vm");
+
             return Marshal.PtrToStringAnsi(SHP_PopStringFromStack(vm));
         }
 
         public static void PushIntOntoStack(IntPtr vm, int i)
         {
+            if (vm == IntPtr.Zero)
+                throw new ArgumentException("vm");
+
             SHP_PushIntOntoStack(vm, i);
         }
 

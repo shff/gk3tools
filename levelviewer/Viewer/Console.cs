@@ -48,6 +48,13 @@ namespace Viewer
             _console.Write(text, arg);
         }
 
+        public override void ReportError(string error)
+        {
+            base.ReportError(error);
+
+            MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         private ConsoleForm _console;
     }
 }
