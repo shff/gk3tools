@@ -17,7 +17,7 @@ public:
 	
 private:
 
-	void writeSectionHeader(const std::string& label, size_t dataOffset, size_t dataCount);
+	void writeSectionHeader(const std::string& label, int dataOffset, int dataCount);
 	void writeVariablesSection();
 	void writeImportsSection();
 	void writeConstantsSection();

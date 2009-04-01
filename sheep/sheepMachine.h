@@ -187,7 +187,7 @@ private:
 		variables[variable].IValue = value;
 	}
 
-	static void storeF(SheepStack& stack, std::vector<StackItem>& variables, float variable)
+	static void storeF(SheepStack& stack, std::vector<StackItem>& variables, int variable)
 	{
 		StackItem item = stack.top();
 		stack.pop();
@@ -427,7 +427,7 @@ private:
 			imports[index].Callback(this);
 		}
 
-		int paramsLeftOver = numParams - (numItemsOnStack - stack.size());
+		int paramsLeftOver = numParams - (int)(numItemsOnStack - stack.size());
 		if (paramsLeftOver > numExpectedReturns)
 		{
 			// lazy bums didn't pop everything off!

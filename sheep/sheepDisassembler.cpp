@@ -407,7 +407,8 @@ namespace SheepCompiler
 		}
 		else if (op == PushF)
 		{
-			PRINT_INT_OP(iop, 0, 0, 0, 0, "PushF");
+			file.read((char*)param, 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3], "PushF");
 			return 5;
 		}
 		else if (op == PushS)

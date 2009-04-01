@@ -3,6 +3,11 @@
 #include "sheepCodeBuffer.h"
 #include "rbuffer.h"
 
+#ifdef _MSC_VER
+#pragma warning(error:4267)
+#endif
+
+
 SheepFileWriter::SheepFileWriter(IntermediateOutput* output)
 {
 	assert(output != NULL);
@@ -25,14 +30,14 @@ void SheepFileWriter::Write(const std::string &filename)
 	int headerSize = DataSectionHeaderSize + dataCount * 4;
 	writeSectionHeader("GK3Sheep", headerSize, dataCount);
 
-	size_t offsetAfterHeader = m_buffer->Tell();
+	int offsetAfterHeader = (int)m_buffer->Tell();
 
 	int currentSection = 0;
 
 	// write the variables
 	if (m_intermediateOutput->Symbols.empty() == false)
 	{
-		m_buffer->WriteUIntAt(m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+		m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
 		writeVariablesSection();
 		currentSection++;
 	}
@@ -40,27 +45,27 @@ void SheepFileWriter::Write(const std::string &filename)
 	// write the imports section
 	if (m_intermediateOutput->Imports.empty() == false)
 	{
-		m_buffer->WriteUIntAt(m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+		m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
 		writeImportsSection();
 		currentSection++;
 	}
 
 	// write the constants section
-	m_buffer->WriteUIntAt(m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+	m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
 	writeConstantsSection();
 	currentSection++;
 
 	// write the function section
-	m_buffer->WriteUIntAt(m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+	m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
 	writeFunctionsSection();
 	currentSection++;
 
 	// write the code section
-	m_buffer->WriteUIntAt(m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+	m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
 	writeCodeSection();
 
 	// write the total size
-	m_buffer->WriteUIntAt(m_buffer->GetSize() - offsetAfterHeader, 20); 
+	m_buffer->WriteUIntAt((int)m_buffer->GetSize() - offsetAfterHeader, 20); 
 
 	// save!
 	m_buffer->SaveToFile(filename);
@@ -69,7 +74,7 @@ void SheepFileWriter::Write(const std::string &filename)
 	m_buffer = NULL;
 }
 
-void SheepFileWriter::writeSectionHeader(const std::string& label, size_t dataOffset, size_t dataCount)
+void SheepFileWriter::writeSectionHeader(const std::string& label, int dataOffset, int dataCount)
 {
 	char buffer[12] = {0};
 	label.copy(buffer, 12); 
@@ -88,17 +93,17 @@ void SheepFileWriter::writeSectionHeader(const std::string& label, size_t dataOf
 template<typename T, typename Adder>
 void SheepFileWriter::writeSection(const std::string& label, std::vector<T> collection, Adder adder)
 {
-	size_t offsetAtStart = m_buffer->Tell();
+	int offsetAtStart = (int)m_buffer->Tell();
 
-	writeSectionHeader(label, DataSectionHeaderSize + collection.size() * 4, collection.size());
+	writeSectionHeader(label, DataSectionHeaderSize + (int)collection.size() * 4, (int)collection.size());
 
-	size_t offsetAfterHeader = m_buffer->Tell();
+	int offsetAfterHeader = (int)m_buffer->Tell();
 
 	int counter = 0;
 	for (typename std::vector<T>::iterator itr = collection.begin(); itr != collection.end(); itr++)
 	{
 		// go back and write the offset to this position
-		m_buffer->WriteUIntAt(m_buffer->Tell() - offsetAfterHeader, offsetAtStart + DataSectionHeaderSize + counter * 4);
+		m_buffer->WriteUIntAt((int)m_buffer->Tell() - offsetAfterHeader, offsetAtStart + DataSectionHeaderSize + counter * 4);
 		
 		// add the thingy
 		adder(*itr);
@@ -106,7 +111,7 @@ void SheepFileWriter::writeSection(const std::string& label, std::vector<T> coll
 		counter++;
 	}
 
-	size_t size = m_buffer->Tell() - offsetAfterHeader;
+	int size = (int)m_buffer->Tell() - offsetAfterHeader;
 	m_buffer->WriteUIntAt(size, offsetAtStart + 20);
 }
 
@@ -152,7 +157,7 @@ void SheepFileWriter::writeCodeSection()
 	size_t offsetAtStart = m_buffer->Tell();
 	writeSectionHeader("Code", DataSectionHeaderSize + 4, 1);
 
-	size_t offsetAfterHeader = m_buffer->Tell();
+	int offsetAfterHeader = (int)m_buffer->Tell();
 
 	// write the offset to the point
 	m_buffer->WriteUIntAt(0, offsetAtStart + DataSectionHeaderSize);
@@ -164,7 +169,7 @@ void SheepFileWriter::writeCodeSection()
 		m_buffer->Write((*itr).Code->GetData(), (*itr).Code->GetSize());
 	}
 
-	size_t size = m_buffer->Tell() - offsetAfterHeader;
+	int size = (int)m_buffer->Tell() - offsetAfterHeader;
 	m_buffer->WriteUIntAt(size, offsetAtStart + 20);
 }
 
@@ -229,12 +234,12 @@ public:
 		m_buffer->Write(&numParameters, 1);
 		m_buffer->WriteUInt(m_currentCodeOffset);
 
-		m_currentCodeOffset += function.Code->GetSize();
+		m_currentCodeOffset += (int)function.Code->GetSize();
 	}
 
 private:
 
-	size_t m_currentCodeOffset;
+	int m_currentCodeOffset;
 	ResizableBuffer* m_buffer;
 };
 

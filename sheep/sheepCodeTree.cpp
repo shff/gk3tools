@@ -76,7 +76,7 @@ int SheepCodeTree::AddStringConstant(const std::string& value)
 		str.Value = value;
 		m_stringConstants.insert(std::pair<std::string, StringConst>(value, str));
 		
-		m_nextStringConstantOffset += value.length() + 1;
+		m_nextStringConstantOffset += (int)value.length() + 1;
 		return str.Offset;
 	}
 

@@ -7,6 +7,10 @@
 #include "sheepException.h"
 #include "sheepCodeBuffer.h"
 
+#ifdef _MSC_VER
+#pragma warning(error:4267)
+#endif
+
 IntermediateOutput::~IntermediateOutput()
 {
 	for (std::vector<SheepFunction>::iterator itr = Functions.begin(); itr != Functions.end(); itr++)
@@ -75,7 +79,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 				{
 					SheepFunction func = writeFunction(function, functionCodeOffset);
 					output->Functions.push_back(func);
-					functionCodeOffset += func.Code->GetSize();
+					functionCodeOffset += (int)func.Code->GetSize();
 
 					// copy any new imports to the list of imports
 					for (std::vector<std::string>::iterator itr = func.ImportList.begin();
@@ -467,7 +471,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		writeExpression(function, condition);
 
 		function.Code->WriteSheepInstruction(BranchIfZero);
-		size_t ifBranchOffset = function.Code->Tell();
+		int ifBranchOffset = (int)function.Code->Tell();
 		function.Code->WriteInt(0xdddddddd);
 
 		// write the "happy path"
@@ -480,16 +484,16 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			size_t elseBranchOffset = function.Code->Tell();
 			function.Code->WriteInt(0xdddddddd);
 
-			function.Code->WriteIntAt(function.CodeOffset + function.Code->Tell(), ifBranchOffset);
+			function.Code->WriteIntAt(function.CodeOffset + (int)function.Code->Tell(), ifBranchOffset);
 
 			writeCode(function, statement->GetChild(2));
 
-			function.Code->WriteIntAt(function.CodeOffset + function.Code->Tell(), elseBranchOffset);
+			function.Code->WriteIntAt(function.CodeOffset + (int)function.Code->Tell(), elseBranchOffset);
 		}
 		else
 		{
 			// no else? just set the earlier branch to this offset
-			function.Code->WriteIntAt(function.CodeOffset + function.Code->Tell(), ifBranchOffset);
+			function.Code->WriteIntAt(function.CodeOffset + (int)function.Code->Tell(), ifBranchOffset);
 		}
 	}
 	else if (statement->GetStatementType() == SMT_ASSIGN)
@@ -525,7 +529,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 
 		assert(reference->IsGlobal() == false);
 		SheepSymbol variable = (*m_symbolMap.find(reference->GetName())).second;
-		size_t index = getIndexOfVariable(variable);
+		int index = getIndexOfVariable(variable);
 		
 		if (child1->GetValueType() == EXPRVAL_INT)
 		{
@@ -620,23 +624,23 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				throw SheepCompilerException(identifier->GetLineNumber(), "Not enough parameters");
 
 			// convert the parameters if necessary
-			for (size_t i = 0; i < params.size(); i++)
+			for (int i = 0; i < (int)params.size(); i++)
 			{
 				if (params[i] == EXPRVAL_INT && import.Parameters[i] == SYM_FLOAT)
 				{
 					function.Code->WriteSheepInstruction(IToF);
-					function.Code->WriteUInt(params.size() - 1 - i);
+					function.Code->WriteUInt((int)params.size() - 1 - i);
 				}
 				else if (params[i] == EXPRVAL_FLOAT && import.Parameters[i] == SYM_INT)
 				{
 					function.Code->WriteSheepInstruction(FToI);
-					function.Code->WriteUInt(params.size() - 1 - i);
+					function.Code->WriteUInt((int)params.size() - 1 - i);
 				}
 			}
 
 			// write the number of parameters
 			function.Code->WriteSheepInstruction(PushI);
-			function.Code->WriteInt(params.size());
+			function.Code->WriteInt((int)params.size());
 
 			if (import.ReturnType == SYM_VOID)
 				function.Code->WriteSheepInstruction(CallSysFunctionV);
@@ -837,9 +841,9 @@ CodeTreeExpressionValueType SheepCodeGenerator::convertToExpressionValueType(She
 	return EXPRVAL_UNKNOWN;
 }
 
-size_t SheepCodeGenerator::getIndexOfImport(SheepImport &import)
+int SheepCodeGenerator::getIndexOfImport(SheepImport &import)
 {
-	for (size_t i = 0; i < m_usedImports.size(); i++)
+	for (int i = 0; i < (int)m_usedImports.size(); i++)
 	{
 		if (m_usedImports[i].Name == import.Name)
 			return i;
@@ -848,12 +852,12 @@ size_t SheepCodeGenerator::getIndexOfImport(SheepImport &import)
 	// still here? it must not be added yet, so add it.
 	m_usedImports.push_back(import);
 
-	return m_usedImports.size() - 1;
+	return (int)m_usedImports.size() - 1;
 }
 
-size_t SheepCodeGenerator::getIndexOfVariable(SheepSymbol &symbol)
+int SheepCodeGenerator::getIndexOfVariable(SheepSymbol &symbol)
 {
-	for (size_t i = 0; i < m_variables.size(); i++)
+	for (int i = 0; i < (int)m_variables.size(); i++)
 	{
 		if (m_variables[i].Name == symbol.Name)
 			return i;
@@ -862,5 +866,5 @@ size_t SheepCodeGenerator::getIndexOfVariable(SheepSymbol &symbol)
 	// still here? it must not be added yet, so add it.
 	m_variables.push_back(symbol);
 
-	return m_variables.size() - 1;
+	return (int)m_variables.size() - 1;
 }

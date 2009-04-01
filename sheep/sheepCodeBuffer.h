@@ -69,7 +69,7 @@ public:
 
 	void WriteSheepInstruction(SheepInstruction instruction)
 	{
-		char op = instruction;
+		char op = (char)instruction;
 		Write(&op, 1);
 	}
 

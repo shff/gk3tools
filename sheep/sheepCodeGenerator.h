@@ -61,8 +61,8 @@ private:
 	std::vector<SheepImport> m_usedImports;
 	std::vector<SheepSymbol> m_variables;
 	
-	size_t getIndexOfImport(SheepImport& import);
-	size_t getIndexOfVariable(SheepSymbol& symbol);
+	int getIndexOfImport(SheepImport& import);
+	int getIndexOfVariable(SheepSymbol& symbol);
 
 	typedef std::map<std::string, SheepSymbol> SymbolMap;
 	SymbolMap m_symbolMap;
