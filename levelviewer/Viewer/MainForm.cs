@@ -65,6 +65,7 @@ namespace Viewer
             _camera = new Gk3Main.Graphics.Camera();
 
             Gk3Main.SceneManager.LightmapsEnabled = true;
+            Gk3Main.SceneManager.DoubleLightmapValues = true;
             Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
 
             Video.Init(simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);

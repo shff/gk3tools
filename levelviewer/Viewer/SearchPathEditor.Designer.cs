@@ -56,7 +56,7 @@ namespace Viewer
             this.btnRemove.Location = new System.Drawing.Point(6, 61);
             this.btnRemove.Name = "btnRemove";
             this.btnRemove.Size = new System.Drawing.Size(75, 23);
-            this.btnRemove.TabIndex = 4;
+            this.btnRemove.TabIndex = 2;
             this.btnRemove.Text = "Remove";
             this.btnRemove.UseVisualStyleBackColor = true;
             this.btnRemove.Click += new System.EventHandler(this.btnRemove_Click);
@@ -66,30 +66,30 @@ namespace Viewer
             this.btnAddBarn.Location = new System.Drawing.Point(6, 32);
             this.btnAddBarn.Name = "btnAddBarn";
             this.btnAddBarn.Size = new System.Drawing.Size(75, 23);
-            this.btnAddBarn.TabIndex = 3;
+            this.btnAddBarn.TabIndex = 1;
             this.btnAddBarn.Text = "Add barn...";
             this.btnAddBarn.UseVisualStyleBackColor = true;
             this.btnAddBarn.Click += new System.EventHandler(this.btnAddBarn_Click);
             // 
             // btnMoveDown
             // 
-            this.btnMoveDown.Enabled = false;
             this.btnMoveDown.Location = new System.Drawing.Point(6, 119);
             this.btnMoveDown.Name = "btnMoveDown";
             this.btnMoveDown.Size = new System.Drawing.Size(75, 23);
-            this.btnMoveDown.TabIndex = 2;
+            this.btnMoveDown.TabIndex = 4;
             this.btnMoveDown.Text = "Move down";
             this.btnMoveDown.UseVisualStyleBackColor = true;
+            this.btnMoveDown.Click += new System.EventHandler(this.btnMoveDown_Click);
             // 
             // btnMoveUp
             // 
-            this.btnMoveUp.Enabled = false;
             this.btnMoveUp.Location = new System.Drawing.Point(6, 90);
             this.btnMoveUp.Name = "btnMoveUp";
             this.btnMoveUp.Size = new System.Drawing.Size(75, 23);
-            this.btnMoveUp.TabIndex = 1;
+            this.btnMoveUp.TabIndex = 3;
             this.btnMoveUp.Text = "Move up";
             this.btnMoveUp.UseVisualStyleBackColor = true;
+            this.btnMoveUp.Click += new System.EventHandler(this.btnMoveUp_Click);
             // 
             // btnAddPath
             // 

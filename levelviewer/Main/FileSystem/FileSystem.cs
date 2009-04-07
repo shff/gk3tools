@@ -55,6 +55,46 @@ namespace Gk3Main
             _searchPath.Remove(path);
         }
 
+        public static void IncreasePathPriority(string path)
+        {
+            // find the path
+            int index = 0;
+            for (; index < _searchPath.Count; index++)
+            {
+                if (_searchPath[index].Name == path)
+                {
+                    break;
+                }
+            }
+
+            if (index == 0 || index == _searchPath.Count) return;
+
+            // remove the path and insert it "higher"
+            PathInfo info = _searchPath[index];
+            _searchPath.RemoveAt(index);
+            _searchPath.Insert(index-1, info);
+        }
+
+        public static void DecreasePathPriority(string path)
+        {
+            // find the path
+            int index = 0;
+            for (; index < _searchPath.Count; index++)
+            {
+                if (_searchPath[index].Name == path)
+                {
+                    break;
+                }
+            }
+
+            if (index >= _searchPath.Count-1) return;
+
+            // remove the path and insert it "higher"
+            PathInfo info = _searchPath[index];
+            _searchPath.RemoveAt(index);
+            _searchPath.Insert(index + 1, info);
+        }
+
         private struct SearchPathPredicate
         {
             public string Path;

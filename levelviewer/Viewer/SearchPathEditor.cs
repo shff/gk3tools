@@ -95,5 +95,31 @@ namespace Viewer
 
             Refresh();
         }
+
+        private void btnMoveUp_Click(object sender, EventArgs e)
+        {
+            string path = lstSearchPaths.SelectedItem as string;
+
+            if (path != null)
+            {
+                Gk3Main.FileSystem.IncreasePathPriority(path);
+            }
+
+            Refresh();
+            lstSearchPaths.SelectedItem = path;
+        }
+
+        private void btnMoveDown_Click(object sender, EventArgs e)
+        {
+            string path = lstSearchPaths.SelectedItem as string;
+
+            if (path != null)
+            {
+                Gk3Main.FileSystem.DecreasePathPriority(path);
+            }
+
+            Refresh();
+            lstSearchPaths.SelectedItem = path;
+        }
     }
 }
