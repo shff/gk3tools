@@ -121,9 +121,11 @@ namespace Gk3Main.Graphics
             if (_in2D) return;
 
             Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
-            Gl.glEnable(Gl.GL_BLEND);
-            Gl.glDisable(Gl.GL_ALPHA_TEST);
-            Gl.glDisable(Gl.GL_DEPTH_TEST);
+            IRenderer renderer = RendererManager.CurrentRenderer;
+            renderer.BlendEnabled = true;
+            renderer.AlphaTestEnabled = false;
+            renderer.DepthTestEnabled = false;
+
             Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
 
             if (_viewportInitialized == false)
