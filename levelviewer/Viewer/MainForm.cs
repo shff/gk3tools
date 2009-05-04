@@ -52,6 +52,7 @@ namespace Viewer
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
 
             try
             {
@@ -215,7 +216,7 @@ namespace Viewer
             {
                 if (_rightMouseButton)
                 {
-                    _camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(relx, 0, 0));
+                    _camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(relx, 0, 0));
                     _camera.AddPositionOffset(0, -rely, 0);
                 }
                 else
@@ -229,7 +230,7 @@ namespace Viewer
                     else
                     {
                         _camera.AdjustYaw(-relx * 0.01f);
-                        _camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(0, 0, rely));
+                        _camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(0, 0, rely));
                     }
                 }
 

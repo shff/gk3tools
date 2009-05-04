@@ -14,7 +14,8 @@ namespace Viewer
         {
             #region Perspective view setup
             float ratio = (float)width / height;
-            Gl.glViewport(0, 0, width, height);
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport
+                = new Gk3Main.Graphics.Viewport(0, 0, width, height);
 
             Gl.glMatrixMode(Gl.GL_PROJECTION);
             Gl.glLoadIdentity();
