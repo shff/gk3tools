@@ -13,6 +13,19 @@ namespace Gk3Main.Graphics
 
     public class Utils
     {
+        static Utils()
+        {
+            _indices = new ushort[6];
+
+            _indices[0] = 0;
+            _indices[1] = 1;
+            _indices[2] = 2;
+
+            _indices[3] = 0;
+            _indices[4] = 2;
+            _indices[5] = 3;
+        }
+
         public static void Blit(float x, float y, TextureResource texture)
         {
             bool wasIn2D = _in2D;
@@ -25,21 +38,35 @@ namespace Gk3Main.Graphics
             float uw = (float)texture.Width / texture.ActualPixelWidth;
             float vw = (float)texture.Height / texture.ActualPixelHeight;
 
-            Gl.glBegin(Gl.GL_QUADS);
+            _workingBuffer1[0] = x;
+            _workingBuffer1[1] = y;
+            _workingBuffer2[0] = u;
+            _workingBuffer2[1] = v;
 
-            Gl.glTexCoord2f(u, v);
-            Gl.glVertex3f(x, y, 0);
+            _workingBuffer1[2] = x + texture.Width;
+            _workingBuffer1[3] = y;
+            _workingBuffer2[2] = u + uw;
+            _workingBuffer2[3] = v;
 
-            Gl.glTexCoord2f(u + uw, v);
-            Gl.glVertex3f(x + texture.Width, y, 0);
+            _workingBuffer1[4] = _workingBuffer1[2];
+            _workingBuffer1[5] = y + texture.Height;
+            _workingBuffer2[4] = u + uw;
+            _workingBuffer2[5] = v + vw;
 
-            Gl.glTexCoord2f(u + uw, v + vw);
-            Gl.glVertex3f(x + texture.Width, y + texture.Height, 0);
+            _workingBuffer1[6] = x;
+            _workingBuffer1[7] = _workingBuffer1[5];
+            _workingBuffer2[6] = u;
+            _workingBuffer2[7] = v + vw;
 
-            Gl.glTexCoord2f(u, v + vw);
-            Gl.glVertex3f(x, y + texture.Height, 0);
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glVertexPointer(2, Gl.GL_FLOAT, 0, _workingBuffer1);
+            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
+            
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
 
-            Gl.glEnd();
+            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
             if (wasIn2D == false) End2D();
         }
@@ -74,7 +101,6 @@ namespace Gk3Main.Graphics
 
             if (wasIn2D == false) End2D();
         }
-
 
         public static void ScaleBlit(Rect dest, TextureResource texture, Rect src)
         {
@@ -119,31 +145,20 @@ namespace Gk3Main.Graphics
         public static void Go2D()
         {
             if (_in2D) return;
+            if (_2dEffect == null)
+                _2dEffect = (Effect)Resource.ResourceManager.Load("2d.fx");
 
-            Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
+            
             IRenderer renderer = RendererManager.CurrentRenderer;
             renderer.BlendEnabled = true;
             renderer.AlphaTestEnabled = false;
             renderer.DepthTestEnabled = false;
-
             Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
 
-            if (_viewportInitialized == false)
-            {
-                Gl.glGetIntegerv(Gl.GL_VIEWPORT, _viewport);
-                _viewportInitialized = true;
-            }
-
-            Gl.glMatrixMode(Gl.GL_PROJECTION);
-            Gl.glPushMatrix();
-            Gl.glLoadIdentity();
-
-            Gl.glOrtho(_viewport[0], _viewport[2], _viewport[3], _viewport[1], -1.0f, 1.0f);
-
-            Gl.glMatrixMode(Gl.GL_MODELVIEW);
-            Gl.glPushMatrix();
-            Gl.glLoadIdentity();
-            
+            _2dEffect.SetParameter("Viewport", renderer.Viewport.Vector);
+            _2dEffect.Begin();
+            _2dEffect.BeginPass(0);
+           
             _in2D = true;
         }
 
@@ -151,13 +166,13 @@ namespace Gk3Main.Graphics
         {
             if (!_in2D) return;
 
-            Gl.glPopAttrib();
-            Gl.glPopMatrix();
-            Gl.glMatrixMode(Gl.GL_PROJECTION);
-            Gl.glPopMatrix();
-            Gl.glMatrixMode(Gl.GL_MODELVIEW);
+            _2dEffect.EndPass();
+            _2dEffect.End();
 
-            Gl.glPopAttrib();
+            IRenderer renderer = RendererManager.CurrentRenderer;
+            renderer.BlendEnabled = false;
+            renderer.AlphaTestEnabled = true;
+            renderer.DepthTestEnabled = true;
 
             _in2D = false;
         }
@@ -178,6 +193,10 @@ namespace Gk3Main.Graphics
 
         private static bool _viewportInitialized;
         private static int[] _viewport = new int[4];
+        private static float[] _workingBuffer1 = new float[4 * 2];
+        private static float[] _workingBuffer2 = new float[4 * 2];
+        private static ushort[] _indices;
         private static bool _in2D;
+        private static Effect _2dEffect;
     }
 }

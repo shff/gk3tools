@@ -39,20 +39,20 @@ namespace Gk3Main
             return text.Trim((char)0);
         }
 
-        public static bool TestRayTriangleCollision(Math.Vector origin,
-			Math.Vector direction,  Math.Vector v1,
-		    Math.Vector v2, Math.Vector v3,
-			out float distance, out Math.Vector collisionPoint)
+        public static bool TestRayTriangleCollision(Math.Vector3 origin,
+			Math.Vector3 direction,  Math.Vector3 v1,
+		    Math.Vector3 v2, Math.Vector3 v3,
+			out float distance, out Math.Vector3 collisionPoint)
 		{
             distance = 0;
             collisionPoint = null;
 
 			const float EPSILON = 0.00001f;
 			
-			Math.Vector edge1 = v2 - v1;
-			Math.Vector edge2 = v3 - v1;
+			Math.Vector3 edge1 = v2 - v1;
+			Math.Vector3 edge2 = v3 - v1;
 			
-			Math.Vector pvec = direction.Cross(edge2);
+			Math.Vector3 pvec = direction.Cross(edge2);
 			
 			float det = edge1.Dot(pvec);
 			
@@ -61,13 +61,13 @@ namespace Gk3Main
 			
 			float inv_det = 1.0f / det;
 			
-			Math.Vector tvec = origin - v1;
+			Math.Vector3 tvec = origin - v1;
 			
 			float u = tvec.Dot(pvec) * inv_det;
 			if (u < 0.0f || u > 1.0f)
 				return false;
 			
-			Math.Vector qvec = tvec.Cross(edge1);
+			Math.Vector3 qvec = tvec.Cross(edge1);
 			
 			float v = direction.Dot(qvec) * inv_det;
 			if (v < 0.0f || u + v > 1.0f)

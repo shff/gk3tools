@@ -14,9 +14,9 @@ namespace Gk3Main.Math
             _values = values;
         }
 
-        public static Vector operator *(Matrix m, Vector v)
+        public static Vector3 operator *(Matrix m, Vector3 v)
         {
-            Vector result = new Vector();
+            Vector3 result = new Vector3();
 
             result.X = m._values[0] * v.X + m._values[3] * v.Y + m._values[6] * v.Z + m._values[9];
             result.Y = m._values[1] * v.X + m._values[4] * v.Y + m._values[7] * v.Z + m._values[10];

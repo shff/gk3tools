@@ -389,7 +389,7 @@ namespace Gk3Main.Graphics
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
         }
 
-        public bool CollideRayWithSurfaces(Math.Vector origin, Math.Vector direction, float length, out BspSurface surface)
+        public bool CollideRayWithSurfaces(Math.Vector3 origin, Math.Vector3 direction, float length, out BspSurface surface)
         {
             if (_surfaces == null)
             {
@@ -455,23 +455,23 @@ namespace Gk3Main.Graphics
         }
 
         private bool collideRayWithSurface(BspSurface surface, 
-            Math.Vector origin, Math.Vector direction, float length, out float distance)
+            Math.Vector3 origin, Math.Vector3 direction, float length, out float distance)
         {
-            Math.Vector collisionPoint;
+            Math.Vector3 collisionPoint;
 
             for (int i = 0; i < surface.indices.Length / 3; i++)
             {
-                Math.Vector v1 = new Math.Vector(
+                Math.Vector3 v1 = new Math.Vector3(
                     _vertices[surface.indices[i * 3 + 0] * 3 + 0],
                     _vertices[surface.indices[i * 3 + 0] * 3 + 1],
                     _vertices[surface.indices[i * 3 + 0] * 3 + 2]);
 
-                Math.Vector v2 = new Math.Vector(
+                Math.Vector3 v2 = new Math.Vector3(
                     _vertices[surface.indices[i * 3 + 1] * 3 + 0],
                     _vertices[surface.indices[i * 3 + 1] * 3 + 1],
                     _vertices[surface.indices[i * 3 + 1] * 3 + 2]);
 
-                Math.Vector v3 = new Math.Vector(
+                Math.Vector3 v3 = new Math.Vector3(
                     _vertices[surface.indices[i * 3 + 2] * 3 + 0],
                     _vertices[surface.indices[i * 3 + 2] * 3 + 1],
                     _vertices[surface.indices[i * 3 + 2] * 3 + 2]);

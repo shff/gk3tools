@@ -150,6 +150,18 @@ namespace Gk3Main.Resource
             return list;
         }
 
+        public static IList<T> GetLoadedResources<T>() where T: Resource
+        {
+            List<T> list = new List<T>();
+            foreach(Resource r in _resources.Values)
+            {
+                if (r is T)
+                    list.Add((T)r);
+            }
+
+            return list;
+        }
+
         private static IResourceLoader getLoaderForFile(string filename)
         {
             int dot = filename.LastIndexOf('.');

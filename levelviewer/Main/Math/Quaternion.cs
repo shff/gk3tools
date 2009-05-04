@@ -25,38 +25,38 @@ namespace Gk3Main.Math
     {
         public Quaternion()
         {
-            _v = new Vector();
+            _v = new Vector3();
             _s = 1.0f;
         }
 
         public Quaternion(float x, float y, float z, float s)
         {
-            _v = new Vector(x, y, z);
+            _v = new Vector3(x, y, z);
             _s = s;
         }
 
-        public Vector V { get { return _v; } }
+        public Vector3 V { get { return _v; } }
         public float S { get { return _s; } }
         public Quaternion Conjugate
         {
             get { return new Quaternion(-_v.X, -_v.Y, -_v.Z, _s); }
         }
 
-        public static Quaternion FromAxis(Vector v, float angle)
+        public static Quaternion FromAxis(Vector3 v, float angle)
         {
             angle *= 0.5f;
 
             float sinAngle = (float)System.Math.Sin(angle);
-            Vector vn = v.Normalize();
+            Vector3 vn = v.Normalize();
 
             return new Quaternion(vn.X * sinAngle, vn.Y * sinAngle, vn.Z * sinAngle,
                 (float)System.Math.Cos(angle));
         }
 
-        public static void ToAxis(Quaternion q, out Vector axis, out float angle)
+        public static void ToAxis(Quaternion q, out Vector3 axis, out float angle)
         {
             float scale = q.V.Length;
-            axis = new Vector(q.V.X / scale, q.V.Y / scale, q.V.Z / scale);
+            axis = new Vector3(q.V.X / scale, q.V.Y / scale, q.V.Z / scale);
             angle = (float)System.Math.Acos(q.S) * 2.0f;
         }
 
@@ -68,12 +68,12 @@ namespace Gk3Main.Math
                 quat1.S * quat2.S - quat1.V.X * quat2.V.X - quat1.V.Y * quat2.V.Y - quat1.V.Z * quat2.V.Z);
         }
 
-        public static Vector operator *(Quaternion quat, Vector v)
+        public static Vector3 operator *(Quaternion quat, Vector3 v)
         {
             return (quat * new Quaternion(v.X, v.Y, v.Z, 0) * quat.Conjugate).V;
         }
 
-        private Vector _v;
+        private Vector3 _v;
         private float _s;
     }
 }

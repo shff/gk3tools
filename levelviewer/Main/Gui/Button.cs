@@ -12,6 +12,7 @@ namespace Gk3Main.Gui
             _hoverImage = (Graphics.TextureResource)Resource.ResourceManager.Load(hoverImage);
             _upImage = (Graphics.TextureResource)Resource.ResourceManager.Load(upImage);
             _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
+            _wooshSound = (Sound.Sound)Resource.ResourceManager.Load("SIDBUTN-1.WAV");
 
             _enabled = true;
         }
@@ -22,6 +23,7 @@ namespace Gk3Main.Gui
             if (_hoverImage != null) Resource.ResourceManager.Unload(_hoverImage);
             if (_upImage != null) Resource.ResourceManager.Unload(_upImage);
             if (_disabledImage != null) Resource.ResourceManager.Unload(_disabledImage);
+            if (_wooshSound != null) Resource.ResourceManager.Unload(_wooshSound);
         }
 
         public void SetMousePosition(int x, int y)
@@ -47,6 +49,8 @@ namespace Gk3Main.Gui
             {
                 if (_enabled && _mouseDown && isMouseOverButton())
                 {
+                    _wooshSound.Play2D();
+                    
                     // clicked!
                     if (_onButtonClicked != null)
                         _onButtonClicked(this, new EventArgs());
@@ -120,6 +124,7 @@ namespace Gk3Main.Gui
         private Graphics.TextureResource _hoverImage;
         private Graphics.TextureResource _upImage;
         private Graphics.TextureResource _disabledImage;
+        private Sound.Sound _wooshSound;
 
         private EventHandler _onButtonClicked;
     }

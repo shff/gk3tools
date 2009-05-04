@@ -42,9 +42,15 @@ namespace Gk3Main.Graphics
             // nothing
         }
 
+        [Obsolete("Use the Maps property instead")]
         public TextureResource this[int index]
         {
             get { return _maps[index]; }
+        }
+
+        public TextureResource[] Maps
+        {
+            get { return _maps; }
         }
 
         private TextureResource[] _maps;

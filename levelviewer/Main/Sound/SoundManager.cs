@@ -23,6 +23,7 @@ namespace Gk3Main.Sound
         {
             _engine = new ISoundEngine();
             _engine.AddFileFactory(new BarnFileFactory());
+            _engine.LoadPlugins(".");
         }
 
         public static void Shutdown()

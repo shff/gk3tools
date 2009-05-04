@@ -28,17 +28,17 @@ namespace Gk3Main.Graphics
         public Camera()
         {
             _orientation = new Gk3Main.Math.Quaternion();
-            _position = new Gk3Main.Math.Vector();
+            _position = new Gk3Main.Math.Vector3();
         }
 
-        public void AddRelativePositionOffset(Math.Vector offset)
+        public void AddRelativePositionOffset(Math.Vector3 offset)
         {
             offset = _orientation * offset;
 
             _position += offset;
         }
 
-        public void AddPositionOffset(Math.Vector offset)
+        public void AddPositionOffset(Math.Vector3 offset)
         {
             _position += offset;
         }
@@ -50,7 +50,7 @@ namespace Gk3Main.Graphics
             _position.Z += z;
         }
 
-        public Math.Vector Position
+        public Math.Vector3 Position
         {
             get { return _position; }
             set { _position = value; }
@@ -64,7 +64,7 @@ namespace Gk3Main.Graphics
 
         public void AdjustYaw(float radians)
         {
-            Math.Quaternion rotation = Math.Quaternion.FromAxis(new Math.Vector(0, 1.0f, 0), radians);
+            Math.Quaternion rotation = Math.Quaternion.FromAxis(new Math.Vector3(0, 1.0f, 0), radians);
 
             _orientation = rotation * _orientation;
         }
@@ -74,17 +74,17 @@ namespace Gk3Main.Graphics
             const float maxPitch = (float)System.Math.PI * 0.49f;
             const float minPitch = (float)System.Math.PI * -0.49f;
 
-            Math.Vector right = _orientation * new Math.Vector(1.0f, 0, 0);
+            Math.Vector3 right = _orientation * new Math.Vector3(1.0f, 0, 0);
 
-            Math.Quaternion rotation = Math.Quaternion.FromAxis(new Math.Vector(1.0f, 0, 0), radians);
+            Math.Quaternion rotation = Math.Quaternion.FromAxis(new Math.Vector3(1.0f, 0, 0), radians);
 
             _orientation = _orientation * rotation;
         }
 
         public void Update()
         {
-            Math.Vector forward = new Math.Vector(0, 0, -1.0f);
-            Math.Vector up = new Math.Vector(0, 1.0f, 0);
+            Math.Vector3 forward = new Math.Vector3(0, 0, -1.0f);
+            Math.Vector3 up = new Math.Vector3(0, 1.0f, 0);
 
             forward = _orientation * forward;
             up = _orientation * up;
@@ -96,6 +96,6 @@ namespace Gk3Main.Graphics
         }
 
         private Math.Quaternion _orientation;
-        private Math.Vector _position;
+        private Math.Vector3 _position;
     }
 }

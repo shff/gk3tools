@@ -192,7 +192,7 @@ namespace Gk3Main.Graphics
 
                     // read the vertices
                     meshSection.vertices = new float[meshSection.numVerts * 3];
-                    Math.Vector dummy = new Gk3Main.Math.Vector();
+                    Math.Vector3 dummy = new Gk3Main.Math.Vector3();
                     for (uint k = 0; k < meshSection.numVerts; k++)
                     {
                         dummy.X = reader.ReadSingle();

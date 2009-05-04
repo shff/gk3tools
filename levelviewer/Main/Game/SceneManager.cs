@@ -161,7 +161,7 @@ namespace Gk3Main
         /// <param name="direction">The direction of the ray.</param>
         /// <param name="length">The length of the ray.</param>
         /// <returns>The name of the model, or null if no collision occured.</returns>
-        public static string GetCollisionModel(Math.Vector origin, Math.Vector direction, float length)
+        public static string GetCollisionModel(Math.Vector3 origin, Math.Vector3 direction, float length)
         {
             Graphics.BspSurface surface;
             if (_currentRoom != null && _currentRoom.CollideRayWithSurfaces(origin, direction, length, out surface) == true)
