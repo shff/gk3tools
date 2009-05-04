@@ -177,7 +177,9 @@ class MonoMain
         if (_timeBlockSplash == null)
         {
             if (_isDemo)
-                _timeBlockSplash = new Game.TimeBlockSplash("212P");
+                _timeBlockSplash = new Game.TimeBlockSplash(Gk3Main.Game.Timeblock.Day2_12PM);
+            else
+                _timeBlockSplash = new Game.TimeBlockSplash(Gk3Main.Game.Timeblock.Day1_10AM);
         }
     }
 

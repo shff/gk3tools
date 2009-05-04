@@ -52,7 +52,7 @@ namespace Gk3Main.Sheep
         {
             string time = SheepMachine.PopStringOffStack(vm);
 
-            if (Game.GameManager.CurrentTimeString == time)
+            if (Game.GameManager.GetTimeBlockString(Game.GameManager.CurrentTime).Equals(time, StringComparison.InvariantCultureIgnoreCase))
                 SheepMachine.PushIntOntoStack(vm, 1);
             else
                 SheepMachine.PushIntOntoStack(vm, 0);

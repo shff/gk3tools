@@ -7,23 +7,29 @@ namespace Game
     class TimeBlockSplash : IDisposable 
     {
         private Gk3Main.Graphics.TextureResource _background;
-        private Gk3Main.Graphics.TextureResource[] _title;
+        private List<Gk3Main.Graphics.TextureResource> _title;
         private Gk3Main.Sound.Sound _ticktock;
  
         private int _timeAtStartRender;
         private const int _titleX = 14;
         private const int _titleY = 346;
-        private const int _titleLength = 14;
         private const int _msPerTitleFrame = 60;
 
-        public TimeBlockSplash(string name)
+        public TimeBlockSplash(Gk3Main.Game.Timeblock timeblock)
         {
-            _background = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("TBT" + name + ".BMP");
+            string timeblockName = Gk3Main.Game.GameManager.GetTimeBlockString(timeblock);
+            _background = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("TBT" + timeblockName + ".BMP");
 
-            _title = new Gk3Main.Graphics.TextureResource[_titleLength];
-            for (int i = 0; i < _titleLength; i++)
+            _title = new List<Gk3Main.Graphics.TextureResource>();
+            int counter = 0;
+            while(true)
             {
-                _title[i] = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("D" + name + "_" + (i+1).ToString("00") + ".BMP");
+                Gk3Main.Graphics.TextureResource title = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("D" + timeblockName + "_" + (counter+1).ToString("00") + ".BMP");
+                if (title == null || title.Loaded == false) break;
+                
+                _title.Add(title);
+
+                counter++;
             }
 
             _ticktock = (Gk3Main.Sound.Sound)Gk3Main.Resource.ResourceManager.Load("CLOCKTIMEBLOCK.WAV");
@@ -51,7 +57,7 @@ namespace Game
             // draw the title
             if (_timeAtStartRender == 0) _timeAtStartRender = Gk3Main.Game.GameManager.TickCount;
             int frame = calcCurrentFrame(_timeAtStartRender, Gk3Main.Game.GameManager.TickCount);
-            if (frame >= _titleLength) frame = _titleLength - 1;
+            if (frame >= _title.Count) frame = _title.Count - 1;
             Gk3Main.Graphics.Utils.Blit(backgroundX + _titleX, backgroundY + _titleY, _title[frame]);
         }
 

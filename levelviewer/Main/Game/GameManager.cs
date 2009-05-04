@@ -48,35 +48,32 @@ namespace Gk3Main.Game
             set { _currentTime = value; }
         }
 
-        public static string CurrentTimeString
+        public static string GetTimeBlockString(Timeblock timeblock)
         {
-            get
+            switch (timeblock)
             {
-                switch (_currentTime)
-                {
-                    case Timeblock.Day1_10AM: return TimeCodes.Day1_10AM;
-                    case Timeblock.Day1_12PM: return TimeCodes.Day1_12PM;
-                    case Timeblock.Day1_02PM: return TimeCodes.Day1_02PM;
-                    case Timeblock.Day1_04PM: return TimeCodes.Day1_04PM;
-                    case Timeblock.Day1_06PM: return TimeCodes.Day1_06PM;
-                    
-                    case Timeblock.Day2_07AM: return TimeCodes.Day2_07AM;
-                    case Timeblock.Day2_10AM: return TimeCodes.Day2_10AM;
-                    case Timeblock.Day2_12PM: return TimeCodes.Day2_12PM;
-                    case Timeblock.Day2_02PM: return TimeCodes.Day2_02PM;
-                    case Timeblock.Day2_05PM: return TimeCodes.Day2_05PM;
-                    case Timeblock.Day2_02AM: return TimeCodes.Day2_02AM;
+                case Timeblock.Day1_10AM: return TimeCodes.Day1_10AM;
+                case Timeblock.Day1_12PM: return TimeCodes.Day1_12PM;
+                case Timeblock.Day1_02PM: return TimeCodes.Day1_02PM;
+                case Timeblock.Day1_04PM: return TimeCodes.Day1_04PM;
+                case Timeblock.Day1_06PM: return TimeCodes.Day1_06PM;
+                
+                case Timeblock.Day2_07AM: return TimeCodes.Day2_07AM;
+                case Timeblock.Day2_10AM: return TimeCodes.Day2_10AM;
+                case Timeblock.Day2_12PM: return TimeCodes.Day2_12PM;
+                case Timeblock.Day2_02PM: return TimeCodes.Day2_02PM;
+                case Timeblock.Day2_05PM: return TimeCodes.Day2_05PM;
+                case Timeblock.Day2_02AM: return TimeCodes.Day2_02AM;
 
-                    case Timeblock.Day3_07AM: return TimeCodes.Day3_07AM;
-                    case Timeblock.Day3_10AM: return TimeCodes.Day3_10AM;
-                    case Timeblock.Day3_12PM: return TimeCodes.Day3_12PM;
-                    case Timeblock.Day3_03PM: return TimeCodes.Day3_03PM;
-                    case Timeblock.Day3_06PM: return TimeCodes.Day3_06PM;
-                    case Timeblock.Day3_09PM: return TimeCodes.Day3_09PM;
-                }
-
-                throw new InvalidOperationException("Invalid TimeBlock");
+                case Timeblock.Day3_07AM: return TimeCodes.Day3_07AM;
+                case Timeblock.Day3_10AM: return TimeCodes.Day3_10AM;
+                case Timeblock.Day3_12PM: return TimeCodes.Day3_12PM;
+                case Timeblock.Day3_03PM: return TimeCodes.Day3_03PM;
+                case Timeblock.Day3_06PM: return TimeCodes.Day3_06PM;
+                case Timeblock.Day3_09PM: return TimeCodes.Day3_09PM;
             }
+
+            throw new ArgumentException("Invalid TimeBlock");
         }
 
         public static void InjectTickCount(int tickCount)
