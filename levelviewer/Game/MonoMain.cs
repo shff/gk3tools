@@ -4,6 +4,9 @@ using Tao.OpenGl;
 
 class MonoMain
 {
+    private static Game.TimeBlockSplash _timeBlockSplash;
+    private static bool _isDemo;
+
 	public static void Main(string[] args)
 	{
 		Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
@@ -15,6 +18,7 @@ class MonoMain
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
@@ -43,6 +47,7 @@ class MonoMain
         if (Gk3Main.SceneManager.IsSceneLoaded == false)
         {
             menu = new MainMenu();
+            menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
             menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
         }
 
@@ -64,7 +69,7 @@ class MonoMain
             {
                 if ((buttons & Sdl.SDL_BUTTON_RMASK) != 0)
                 {
-                    camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(rmx, 0, 0));
+                    camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(rmx, 0, 0));
                     camera.AddPositionOffset(0, -rmy, 0);
                 }
                 else
@@ -78,7 +83,7 @@ class MonoMain
                     else
                     {
                         camera.AdjustYaw(-rmx * 0.01f);
-                        camera.AddRelativePositionOffset(new Gk3Main.Math.Vector(0, 0, rmy));
+                        camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(0, 0, rmy));
                     }
                 }
 
@@ -93,7 +98,11 @@ class MonoMain
 			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
 			Gk3Main.SceneManager.Render(camera);
 
-            if (menu != null)
+            if (_timeBlockSplash != null)
+            {
+                _timeBlockSplash.Render();
+            }
+            else if (menu != null)
             {
                 menu.SetMouseCoords(mx, my);
                 menu.Render();
@@ -163,6 +172,15 @@ class MonoMain
 		return true;
 	}
 
+    static void menu_OnPlayClicked(object sender, EventArgs e)
+    {
+        if (_timeBlockSplash == null)
+        {
+            if (_isDemo)
+                _timeBlockSplash = new Game.TimeBlockSplash("212P");
+        }
+    }
+
     static void menu_OnQuitClicked(object sender, EventArgs e)
     {
         Sdl.SDL_Event quitEvent = new Sdl.SDL_Event();
@@ -184,7 +202,7 @@ class MonoMain
         double x, y, z;
         Glu.gluUnProject(mx, 480 - my, 0, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
 
-        string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
+        string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector3((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
 
         if (model == null || Gk3Main.SceneManager.GetNounVerbCaseCountForTarget(model) == 0)
         {
@@ -220,6 +238,10 @@ class MonoMain
 			{
 				throw new NotSupportedException();
 			}
+            else if (args[i] == "-demo")
+            {
+                _isDemo = true;
+            }
 			
 			i++;
 		}
