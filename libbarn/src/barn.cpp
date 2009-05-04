@@ -236,7 +236,8 @@ namespace Barn
 
 	unsigned int Barn::GetFileSize(unsigned int index, bool decompressedSize)
 	{
-		if (decompressedSize == false || m_fileList[index].compression == None)
+		if (decompressedSize == false || m_fileList[index].compression == None ||
+			m_fileList[index].compression == None2)
 			return m_fileList[index].size;
 
 		// they want the actual decompressed size of the file, which is a little tricky.
@@ -262,7 +263,8 @@ namespace Barn
 		if (itr == m_fileMap.end())
 			throw BarnException("The specified file does not exist", BARNERR_FILE_NOT_FOUND);
 
-		if (decompressedSize == false || (*itr).second.compression == None)
+		if (decompressedSize == false || (*itr).second.compression == None ||
+			(*itr).second.compression == None2)
 			return (*itr).second.size;
 
 		// they want the actual decompressed size of the file, which is a little tricky.

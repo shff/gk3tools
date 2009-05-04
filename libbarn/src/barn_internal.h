@@ -37,7 +37,8 @@ namespace Barn
 	{
 		None = 0,
 		ZLib = 1,
-		LZO = 2
+		LZO = 2,
+		None2 = 3
 	};
 
 	struct BarnFile
