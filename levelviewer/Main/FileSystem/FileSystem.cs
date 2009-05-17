@@ -30,7 +30,7 @@ namespace Gk3Main
             if (Directory.Exists(path))
             {
                 PathInfo pathinfo = new PathInfo();
-                pathinfo.Name = path;
+                pathinfo.Name = Path.GetFullPath(path);
                 _searchPath.Add(pathinfo);
             }
             else

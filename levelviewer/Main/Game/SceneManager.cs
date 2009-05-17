@@ -47,7 +47,7 @@ namespace Gk3Main
     {
         public static void Initialize()
         {
-            _verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
+            ///_verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
         }
 
         public static void LoadSif(string sif)
@@ -123,11 +123,11 @@ namespace Gk3Main
 
             // render the room
             if (camera != null && _currentRoom != null)
-                _currentRoom.Render(_currentLightmaps);
+                _currentRoom.Render(camera, _currentLightmaps);
 
             // render the models
             foreach (Graphics.ModelResource model in _models)
-                model.Render();
+                model.Render(camera);
         }
 
         public static bool LightmapsEnabled

@@ -10,6 +10,7 @@ class MonoMain
 	public static void Main(string[] args)
 	{
 		Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
+        Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
 		
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
@@ -41,7 +42,7 @@ class MonoMain
         Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
         Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
 
-        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera();
+        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, 640.0f / 480.0f, 1.0f, 1000.0f));
 
         MainMenu menu = null;
         if (Gk3Main.SceneManager.IsSceneLoaded == false)
@@ -136,6 +137,9 @@ class MonoMain
         Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
 		
 		#region Perspective view setup
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
+
+
 		float ratio = (float)width / height;
 		Gl.glViewport(0, 0, width, height);
 

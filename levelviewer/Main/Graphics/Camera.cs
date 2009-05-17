@@ -25,10 +25,12 @@ namespace Gk3Main.Graphics
 {
     public class Camera
     {
-        public Camera()
+        public Camera(Math.Matrix projection)
         {
             _orientation = new Gk3Main.Math.Quaternion();
             _position = new Gk3Main.Math.Vector3();
+
+            _projection = projection;
         }
 
         public void AddRelativePositionOffset(Math.Vector3 offset)
@@ -93,9 +95,25 @@ namespace Gk3Main.Graphics
             Glu.gluLookAt(_position.X, _position.Y, _position.Z,
                 _position.X + forward.X, _position.Y + forward.Y, _position.Z + forward.Z,
                 up.X, up.Y, up.Z);
+
+            // calculate the ModelViewProjection matrix
+            _modelViewProjection = Math.Matrix.LookAt(_position, forward, up) * _projection;
+        }
+
+        public Math.Matrix ModelViewProjection
+        {
+            get { return _modelViewProjection; }
+        }
+
+        public Math.Matrix Projection
+        {
+            get { return _projection; }
+            set { _projection = value; }
         }
 
         private Math.Quaternion _orientation;
         private Math.Vector3 _position;
+        private Math.Matrix _projection;
+        private Math.Matrix _modelViewProjection;
     }
 }

@@ -265,116 +265,89 @@ namespace Gk3Main.Graphics
 
             setupLightmapCoords();
             loadTextures();
+
+            _basicTexturedEffect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
+            _lightmapEffect = (Effect)Resource.ResourceManager.Load("basic_lightmapped.fx");
+            _lightmapNoTextureEffect = (Effect)Resource.ResourceManager.Load("basic_lightmapped_notexture.fx");
         }
 
-        public void Render(LightmapResource lightmaps)
+        public void Render(Camera camera, LightmapResource lightmaps)
         {
-            Gl.glColor3f(1.0f, 1.0f, 1.0f);
-            Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Effect currentEffect;
+            if (SceneManager.LightmapsEnabled && lightmaps != null)
+            {
+                if (SceneManager.CurrentShadeMode == ShadeMode.Flat)
+                    currentEffect = _lightmapNoTextureEffect;
+                else
+                {
+                    currentEffect = _lightmapEffect;
+
+                    if (SceneManager.DoubleLightmapValues)
+                        currentEffect.SetParameter("LightmapMultiplier", 2.0f);
+                    else
+                        currentEffect.SetParameter("LightmapMultiplier", 1.0f);
+                }
+            }
+            else
+            {
+                if (SceneManager.CurrentShadeMode == ShadeMode.Textured)
+                    currentEffect = _basicTexturedEffect;
+                else
+                    return; // nothing to render
+            }
 
             Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
-           // Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, _vertices);
-            //Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _texcoords);
-
-            if (SceneManager.LightmapsEnabled && lightmaps != null)
-            {
-                Gl.glActiveTextureARB(Gl.GL_TEXTURE1);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glEnable(Gl.GL_TEXTURE_2D);
-              
-                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _lightmapcoords);
-                
-                Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-            }
-
             for (int i = 0; i < _surfaces.Length; i++)
             {
-                Gl.glPushMatrix();
-                Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
-
                 BspSurface surface = _surfaces[i];
                 TextureResource lightmap = lightmaps[i];
 
+                currentEffect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
+
+                currentEffect.EnableTextureParameter("Diffuse");
+                currentEffect.EnableTextureParameter("Lightmap");
+                currentEffect.SetParameter("Diffuse", surface.textureResource);
+                currentEffect.SetParameter("Lightmap", lightmap);
+
+                currentEffect.Begin();
+                currentEffect.BeginPass(0);
+
+                Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
+
                 Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
+                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
 
-                if (SceneManager.CurrentShadeMode == ShadeMode.Textured)
-               //     && collidedSurface.HasValue && collidedSurface.Value.index != _surfaces[i].index)
-                {
-                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
-
-                    Gl.glEnable(Gl.GL_TEXTURE_2D);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, Gl.GL_REPLACE);
-                    surface.textureResource.Bind();
-                }
-                else
-                {
-                    Gl.glDisable(Gl.GL_ALPHA_TEST);
-                    Gl.glDisable(Gl.GL_TEXTURE_2D);
-                   
-                    if (SceneManager.CurrentShadeMode == ShadeMode.Colored)
-                    {
-                        Gl.glColor3f(_surfaces[i].r, _surfaces[i].g, _surfaces[i].b);
-                    }
-                    else
-                    {
-                        Gl.glColor3f(1.0f, 1.0f, 1.0f);
-                    }
-                }
-
-                if (SceneManager.LightmapsEnabled && lightmap != null)
+                if (lightmap != null)
                 {
                     Gl.glActiveTexture(Gl.GL_TEXTURE1);
                     Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
+                    Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
                     Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
-                    lightmap.Bind();
-                    
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, Gl.GL_COMBINE);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB, Gl.GL_MODULATE);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB, Gl.GL_PREVIOUS);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB, Gl.GL_SRC_COLOR);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB, Gl.GL_TEXTURE);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB, Gl.GL_SRC_COLOR);
-
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_ALPHA, Gl.GL_REPLACE);
-                    Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_ALPHA, Gl.GL_PREVIOUS);
-
-                    if (SceneManager.DoubleLightmapValues)
-                    {
-                        Gl.glTexEnvf(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE, 2.0f);
-                    }
-                    else
-                    {
-                        Gl.glTexEnvf(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE, 1.0f);
-                    }
 
                     Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
                     Gl.glActiveTexture(Gl.GL_TEXTURE0);
                 }
 
+                Gl.glGetError();
+
                 Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
-                //Gl.glDrawElements(Gl.GL_TRIANGLES, surface.indices.Length, Gl.GL_UNSIGNED_SHORT,
-                //    surface.indices);
 
-                /*lightmap.Bind(); 
-                Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
-                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords );
-
-                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length /3 );
-                */
+                currentEffect.DisableTextureParameter("Diffuse");
+                currentEffect.DisableTextureParameter("Lightmap");
 
                 Gl.glPopAttrib();
-                Gl.glPopMatrix();
 
                 int err = Gl.glGetError();
 
                 if (err != Gl.GL_NO_ERROR)
                     Console.CurrentConsole.Write("error: " + err);
+            
+                currentEffect.EndPass();
+                currentEffect.End();
             }
-
+            
             if (SceneManager.LightmapsEnabled && lightmaps != null)
             {
                 Gl.glActiveTexture(Gl.GL_TEXTURE1);
@@ -490,6 +463,10 @@ namespace Gk3Main.Graphics
         private float[] _lightmapcoords;
         private BspSurface[] _surfaces;
         private string[] _modelsNames;
+
+        private Effect _basicTexturedEffect;
+        private Effect _lightmapEffect;
+        private Effect _lightmapNoTextureEffect;
     }
 
     public class BspResourceLoader : Resource.IResourceLoader

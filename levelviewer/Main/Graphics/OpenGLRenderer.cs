@@ -77,10 +77,40 @@ namespace Gk3Main.Graphics
             _currentPass = IntPtr.Zero;
         }
 
+        public override void SetParameter(string name, float parameter)
+        {
+            IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
+            Cg.cgSetParameter1f(param, parameter);
+        }
+
         public override void SetParameter(string name, Math.Vector4 parameter)
         {
             IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
             Cg.cgSetParameter4f(param, parameter.X, parameter.Y, parameter.Z, parameter.W);
+        }
+
+        public override void SetParameter(string name, Gk3Main.Math.Matrix parameter)
+        {
+            IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
+            Cg.cgSetMatrixParameterfc(param, out parameter.M11);
+        }
+
+        public override void SetParameter(string name, TextureResource parameter)
+        {
+            IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
+            CgGl.cgGLSetTextureParameter(param, parameter.OpenGlTexture);
+        }
+
+        public override void DisableTextureParameter(string name)
+        {
+            IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
+            CgGl.cgGLDisableTextureParameter(param);
+        }
+
+        public override void EnableTextureParameter(string name)
+        {
+            IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
+            CgGl.cgGLEnableTextureParameter(param);
         }
     }
 

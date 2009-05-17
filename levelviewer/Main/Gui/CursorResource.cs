@@ -61,59 +61,20 @@ namespace Gk3Main.Gui
 
         public void Render(int x, int y)
         {
-            Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
-            Gl.glEnable(Gl.GL_BLEND);
-            Gl.glDisable(Gl.GL_ALPHA_TEST);
-            Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
-
-            int[] viewport = new int[4];
-            Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
-
-            Gl.glMatrixMode(Gl.GL_PROJECTION);
-            Gl.glPushMatrix();
-            Gl.glLoadIdentity();
-
-            Gl.glOrtho(viewport[0], viewport[2], viewport[3], viewport[1], -1.0f, 1.0f);
-
-            Gl.glMatrixMode(Gl.GL_MODELVIEW);
-            Gl.glPushMatrix();
-            Gl.glLoadIdentity();
-
-            Gl.glTranslatef((float)(x - _hotX), (float)(y - _hotY), 0);
-
-            Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
-            Gl.glDisable(Gl.GL_DEPTH_TEST);
-
-            _cursor.Bind();
-
             int currentFrame = (int)((Game.GameManager.TickCount / 1000.0f) * _frameRate) % _frameCount;
-            float uWidth = (_cursor.ActualWidth / _frameCount);
+            float uWidth = _cursor.ActualPixelWidth * (_cursor.ActualWidth / _frameCount);
             float u = uWidth * currentFrame;
-             
 
-            Gl.glBegin(Gl.GL_QUADS);
+            Graphics.Rect src;
+            src.X = u;
+            src.Y = 0;
+            src.Width = uWidth;
+            src.Height = _cursor.ActualPixelHeight;
 
-            Gl.glTexCoord2f(u, 0);
-            Gl.glVertex3f(0, 0, 0);
+            Graphics.Utils.Go2D();
+            Graphics.Utils.Blit(x - _hotX, y - _hotY, _cursor, src);
 
-            Gl.glTexCoord2f(u + uWidth, 0);
-            Gl.glVertex3f(_cursor.Height, 0, 0);
-
-            Gl.glTexCoord2f(u + uWidth, _cursor.ActualHeight);
-            Gl.glVertex3f(_cursor.Height, _cursor.Height, 0);
-
-            Gl.glTexCoord2f(u, _cursor.ActualHeight);
-            Gl.glVertex3f(0, _cursor.Height, 0);
-
-            Gl.glEnd();
-
-            Gl.glPopAttrib();
-            Gl.glPopMatrix();
-            Gl.glMatrixMode(Gl.GL_PROJECTION);
-            Gl.glPopMatrix();
-            Gl.glMatrixMode(Gl.GL_MODELVIEW);
-
-            Gl.glPopAttrib();
+            Graphics.Utils.End2D();
         }
 
         public override void Dispose()

@@ -29,19 +29,29 @@ namespace Viewer
             if (Settings.Default.SearchPath == String.Empty)
             {
                 Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
+                Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
             }
             else
             {
                 string[] paths = Settings.Default.SearchPath.Split(';');
-
                 foreach(string path in paths)
                 {
                     if (path != string.Empty)
                     {
-                        if (System.IO.Directory.Exists(path))
-                            Gk3Main.FileSystem.AddPathToSearchPath(path);
-                        else
-                            Gk3Main.FileSystem.AddBarnToSearchPath(path);
+                        try
+                        {
+                            if (System.IO.Directory.Exists(path))
+                                Gk3Main.FileSystem.AddPathToSearchPath(path);
+                            else
+                            {
+                                Gk3Main.FileSystem.AddBarnToSearchPath(path);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Error when attempting to add to the search path: " + ex.Message,
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
                 }
             }
@@ -63,7 +73,7 @@ namespace Viewer
                 Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
             }
 
-            _camera = new Gk3Main.Graphics.Camera();
+            _camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 1000.0f));
 
             Gk3Main.SceneManager.LightmapsEnabled = true;
             Gk3Main.SceneManager.DoubleLightmapValues = true;
@@ -97,8 +107,6 @@ namespace Viewer
 
         private void openSCNToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Gk3Main.Game.SifResource sif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load("R25.SIF");
-
             string[] scnFiles = Gk3Main.FileSystem.GetFilesWithExtension("SCN");
 
             SceneChooser dialog = new SceneChooser();
@@ -181,6 +189,8 @@ namespace Viewer
         private void simpleOpenGlControl1_Resize(object sender, EventArgs e)
         {
             Video.Init(simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);
+            _camera.Projection = Gk3Main.Math.Matrix.Perspective(1.04719755f,
+                (float)simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 1000.0f);
         }
 
         private void simpleOpenGlControl1_MouseDown(object sender, MouseEventArgs e)

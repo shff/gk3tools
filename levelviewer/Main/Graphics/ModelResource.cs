@@ -72,13 +72,14 @@ namespace Gk3Main.Graphics
         public ModelResource(string name)
             : base(name, false)
         {
+            _effect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
         }
 
         public ModelResource(string name, System.IO.Stream stream)
             : base(name, true)
         {
             int currentStreamPosition = (int)stream.Position;
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
+            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream, Encoding.ASCII);
 
             // read the header
             ModHeader header;
@@ -131,19 +132,26 @@ namespace Gk3Main.Graphics
                     throw new Resource.InvalidResourceFileFormat("Not a valid model file! Unable to find MESH section!");
                 }
 
-                mesh.transform = new float[12];
+                mesh.transform = new float[16];
                 mesh.transform[0] = reader.ReadSingle();
                 mesh.transform[1] = reader.ReadSingle();
                 mesh.transform[2] = reader.ReadSingle();
-                mesh.transform[3] = reader.ReadSingle();
+                mesh.transform[3] = 0;
+
                 mesh.transform[4] = reader.ReadSingle();
                 mesh.transform[5] = reader.ReadSingle();
                 mesh.transform[6] = reader.ReadSingle();
-                mesh.transform[7] = reader.ReadSingle();
+                mesh.transform[7] = 0;
+
                 mesh.transform[8] = reader.ReadSingle();
                 mesh.transform[9] = reader.ReadSingle();
                 mesh.transform[10] = reader.ReadSingle();
-                mesh.transform[11] = reader.ReadSingle();
+                mesh.transform[11] = 0;
+                 
+                mesh.transform[12] = reader.ReadSingle();
+                mesh.transform[13] = reader.ReadSingle();
+                mesh.transform[14] = reader.ReadSingle();
+                mesh.transform[15] = 1.0f;
 
                 Math.Matrix transform = new Gk3Main.Math.Matrix(mesh.transform);
 
@@ -238,12 +246,17 @@ namespace Gk3Main.Graphics
 
                 _meshes[i] = mesh;
             }
+
+            _effect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
         }
 
-        public void Render()
+        public void Render(Camera camera)
         {
             if (_loaded == true)
             {
+                _effect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
+                _effect.Begin();
+                _effect.BeginPass(0);
 
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
 
@@ -266,6 +279,9 @@ namespace Gk3Main.Graphics
 
                 Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
                 Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+
+                _effect.EndPass();
+                _effect.End();
             }
         }
 
@@ -275,6 +291,7 @@ namespace Gk3Main.Graphics
         }
 
         private ModMesh[] _meshes;
+        private Effect _effect;
     }
 
     public class ModelResourceLoader : Resource.IResourceLoader

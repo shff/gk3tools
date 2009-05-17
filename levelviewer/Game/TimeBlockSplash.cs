@@ -58,7 +58,8 @@ namespace Game
             if (_timeAtStartRender == 0) _timeAtStartRender = Gk3Main.Game.GameManager.TickCount;
             int frame = calcCurrentFrame(_timeAtStartRender, Gk3Main.Game.GameManager.TickCount);
             if (frame >= _title.Count) frame = _title.Count - 1;
-            Gk3Main.Graphics.Utils.Blit(backgroundX + _titleX, backgroundY + _titleY, _title[frame]);
+            if (frame >= 0)
+                Gk3Main.Graphics.Utils.Blit(backgroundX + _titleX, backgroundY + _titleY, _title[frame]);
         }
 
         private static int calcCurrentFrame(int timeAtLastFrame, int currentTime)

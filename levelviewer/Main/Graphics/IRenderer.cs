@@ -67,7 +67,13 @@ namespace Gk3Main.Graphics
         public abstract void BeginPass(int index);
         public abstract void EndPass();
 
+        public abstract void SetParameter(string name, float parameter);
         public abstract void SetParameter(string name, Math.Vector4 parameter);
+        public abstract void SetParameter(string name, Math.Matrix parameter);
+        public abstract void SetParameter(string name, TextureResource parameter);
+
+        public abstract void EnableTextureParameter(string name);
+        public abstract void DisableTextureParameter(string name);
     }
 
     public class EffectLoader : Resource.IResourceLoader
