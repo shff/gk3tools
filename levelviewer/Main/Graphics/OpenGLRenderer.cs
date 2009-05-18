@@ -112,6 +112,21 @@ namespace Gk3Main.Graphics
             IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
             CgGl.cgGLEnableTextureParameter(param);
         }
+
+        public override void UpdatePassParameters()
+        {
+            Cg.cgGetError();
+            cgUpdatePassParameters(_currentPass);
+            if (Cg.cgGetError() != Cg.CG_NO_ERROR)
+                throw new Exception("OH NO!");
+        }
+
+
+        // TODO: hopefully Tao will expose this method someday.
+        // When it does we can remove this.
+        [System.Runtime.InteropServices.DllImport("cg")]
+        private static extern void cgUpdatePassParameters(IntPtr pass);
+
     }
 
     public class OpenGLRenderer : IRenderer
@@ -124,6 +139,11 @@ namespace Gk3Main.Graphics
             CgGl.cgGLEnableProfile(Cg.CG_PROFILE_ARBVP1);
 
             CgGl.cgGLRegisterStates(_cgContext);
+
+            Cg.cgGetError();
+            cgSetParameterSettingMode(_cgContext, CG_DEFERRED_PARAMETER_SETTING);
+            if (Cg.cgGetError() != Cg.CG_NO_ERROR)
+                throw new Exception("Oh no!");
         }
 
         public IntPtr CgContext { get { return _cgContext; } }
@@ -204,5 +224,14 @@ namespace Gk3Main.Graphics
         {
             return new CgEffect(name, stream, _cgContext);
         }
+
+
+        const int CG_IMMEDIATE_PARAMETER_SETTING = 4132;
+        const int CG_DEFERRED_PARAMETER_SETTING = 4133;
+
+        // TODO: hopefully Tao will expose this method someday.
+        // When it does we can remove this.
+        [System.Runtime.InteropServices.DllImport("cg")]
+        private static extern void cgSetParameterSettingMode(IntPtr context, int value);
     }
 }

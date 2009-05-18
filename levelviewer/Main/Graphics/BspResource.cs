@@ -299,22 +299,28 @@ namespace Gk3Main.Graphics
             Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
+            currentEffect.EnableTextureParameter("Diffuse");
+            currentEffect.EnableTextureParameter("Lightmap");
+
+            currentEffect.Begin();
+            currentEffect.BeginPass(0);
+
             for (int i = 0; i < _surfaces.Length; i++)
             {
                 BspSurface surface = _surfaces[i];
                 TextureResource lightmap = lightmaps[i];
 
                 currentEffect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
-
-                currentEffect.EnableTextureParameter("Diffuse");
-                currentEffect.EnableTextureParameter("Lightmap");
                 currentEffect.SetParameter("Diffuse", surface.textureResource);
                 currentEffect.SetParameter("Lightmap", lightmap);
 
-                currentEffect.Begin();
-                currentEffect.BeginPass(0);
+                Gl.glActiveTexture(0);
+                surface.textureResource.Bind();
 
-                Gl.glPushAttrib(Gl.GL_ENABLE_BIT);
+                Gl.glActiveTexture(1);
+                lightmap.Bind();
+
+                currentEffect.UpdatePassParameters();
 
                 Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
                 Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
@@ -334,19 +340,20 @@ namespace Gk3Main.Graphics
 
                 Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
 
-                currentEffect.DisableTextureParameter("Diffuse");
-                currentEffect.DisableTextureParameter("Lightmap");
-
-                Gl.glPopAttrib();
-
                 int err = Gl.glGetError();
 
                 if (err != Gl.GL_NO_ERROR)
                     Console.CurrentConsole.Write("error: " + err);
-            
-                currentEffect.EndPass();
-                currentEffect.End();
+                
+                
             }
+            currentEffect.EndPass();
+            currentEffect.End();
+            
+            currentEffect.DisableTextureParameter("Diffuse");
+            currentEffect.DisableTextureParameter("Lightmap");
+            
+            
             
             if (SceneManager.LightmapsEnabled && lightmaps != null)
             {
