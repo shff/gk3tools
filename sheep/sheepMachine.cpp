@@ -1,11 +1,15 @@
 #include "sheepMachine.h"
 #include "sheepCodeBuffer.h"
 
+
+
 SheepMachine::SheepMachine()
 {
 	m_code = NULL;
 	m_callback = NULL;
 	m_compilerCallback = NULL;
+	m_inWaitSection = false;
+	m_suspendedInstruction = 0;
 }
 
 SheepMachine::~SheepMachine()
@@ -41,6 +45,14 @@ void SheepMachine::Prepare(const std::string &script)
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
 
 	m_code = output;
+
+	if (output->Errors.empty() == false && m_compilerCallback)
+	{
+		for (size_t i = 0; i < output->Errors.size(); i++)
+		{
+			m_compilerCallback(output->Errors[i].LineNumber, output->Errors[i].Output.c_str());
+		}
+	}
 
 	prepareVariables();
 }
@@ -95,7 +107,7 @@ void SheepMachine::Run(const std::string &function)
 	}
 
 	if (sheepfunction == NULL)
-		throw SheepMachineException("Unable to find function.");
+		throw NoSuchFunctionException(function);
 
 	execute(sheepfunction->Code, m_code->Imports, sheepfunction->CodeOffset);
 }
@@ -167,18 +179,48 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	}
 }
 
+int SheepMachine::Suspend()
+{
+	if (m_suspended) return SHEEP_ERROR;
+
+	m_suspended = true;
+	return SHEEP_SUCCESS;
+}
+
+int SheepMachine::Resume()
+{
+	if (!m_suspended) return SHEEP_ERROR;
+
+	try
+	{
+		m_suspended = false;
+		execute(m_suspendedCodeBuffer, m_code->Imports, m_suspendedCodeOffset, m_suspendedInstruction);
+
+		return SHEEP_SUCCESS;
+	}
+	catch(SheepException& ex)
+	{
+		if (m_compilerCallback)
+		{
+			m_compilerCallback(0, ex.GetMessage().c_str());
+		}
+
+		return SHEEP_ERROR;
+	}
+}
+
 void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports,
-	unsigned int offset)
+	unsigned int offset, unsigned int firstInstruction)
 {
 	// HACK: originally there was a parameter called 'stack', but it was removed!
 	// Go back and fix this right!
 	SheepStack& stack = m_currentStack;
 
-	unsigned int nextInstruction = 0;
+	unsigned int nextInstruction = firstInstruction;
 	SheepStack::size_type numItemsOnStack = stack.size();
 
 	code->SeekFromStart(nextInstruction);
-	while(code->Tell() < code->GetSize())
+	while(!m_suspended && code->Tell() < code->GetSize())
 	{
 		if (nextInstruction != code->Tell())
 			code->SeekFromStart(nextInstruction);
@@ -228,8 +270,12 @@ void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& impo
 			}
 			break;
 		case BeginWait:
+			m_inWaitSection = true;
+			break;
 		case EndWait:
-			throw SheepMachineInstructionException("Waiting not supported yet.");
+			m_inWaitSection = false;
+			if (m_endWaitCallback) m_endWaitCallback();
+			break;
 		case ReturnV:
 			return;
 		case StoreI:
@@ -237,7 +283,7 @@ void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& impo
 			nextInstruction += 4;
 			break;
 		case StoreF:
-			storeF(stack, m_variables, code->ReadFloat());
+			storeF(stack, m_variables, code->ReadInt());
 			nextInstruction += 4;
 			break;
 		case StoreS:
@@ -409,5 +455,13 @@ void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& impo
 		default:
 			throw SheepMachineInstructionException("Unknown instruction");
 		}
+	}
+
+	// if we were suspended then remember where we were so we can pick it up later
+	if (m_suspended)
+	{
+		m_suspendedInstruction = nextInstruction;
+		m_suspendedCodeBuffer = code;
+		m_suspendedCodeOffset = offset;
 	}
 }

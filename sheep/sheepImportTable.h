@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include "sheepTypes.h"
+#include "sheepCaseInsensitiveStringCompare.h"
 
 /// A list of all the imports registered with the compiler
 class SheepImportTable
@@ -104,7 +105,7 @@ public:
 
 private:
 
-	typedef std::map<std::string, SheepImport*> ImportMap;
+	typedef std::map<std::string, SheepImport*, ci_less> ImportMap;
 	ImportMap m_imports;
 };
 

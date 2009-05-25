@@ -34,6 +34,11 @@ enum CompilerMode
 	Disassembler
 };
 
+void CALLBACK compiler_output(int lineNumber, const char* error)
+{
+	std::cout << "ERROR: " << lineNumber << ": " << error << std::endl;
+}
+
 int main(int argc, char** argv)
 {
 	if (argc < 2)
@@ -124,11 +129,21 @@ int main(int argc, char** argv)
 	SheepCodeGenerator generator(&tree, &imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
 	tree.Unlock();
+
+	if (output->Errors.empty() == false)
+	{
+		for (size_t i = 0; i < output->Errors.size(); i++)
+		{
+			std::cout << "OE: " << output->Errors[i].LineNumber << ": " << output->Errors[i].Output << std::endl;
+		}
+	}
 	
 	if (mode == Compiler)
 	{
 		SheepFileWriter writer(output);
 		writer.Write(outputFile);
+
+		
 		
 		std::cout << "Num symbols: " << output->Symbols.size() << std::endl;
 		std::cout << "Num functions: " << output->Functions.size() << std::endl;

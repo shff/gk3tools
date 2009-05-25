@@ -18,6 +18,11 @@ extern "C"
 
 #define SHEEP_SUCCESS 0
 #define SHEEP_ERROR -1
+#define SHEEP_ERR_NO_SUCH_FUNCTION -2
+#define SHEEP_SUSPENDED 2
+
+#define SHEEP_TRUE 1
+#define SHEEP_FALSE 0
 
 #define SHEEP_VERSION_MAJOR 0
 #define SHEEP_VERSION_MINOR 1
@@ -99,6 +104,51 @@ DECLSPEC float LIB_CALL SHP_PopFloatFromStack(SheepVM* vm);
 DECLSPEC const char* LIB_CALL SHP_PopStringFromStack(SheepVM* vm);
 
 DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
+
+
+
+
+
+/* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.
+
+As far as this library is concerned, there's one simple rule you should remember:
+
+- ALL import functions return immediately
+
+This means that no functions are allowed to block. They MUST return control to the Sheep VM
+immediately. Even if they aren't finished executing. In other words, any import function
+that may take a few frames to execute are actually asynchronous. The Wait mechanism
+is what allows the VM to wait on functions to finish before continuing with the script.
+
+Here's the typical usage of the wait system:
+
+1) VM encounters a BeginWait instruction. It sets an internal IsWaiting flag.
+	(this is the flag that SHP_IsInWaitSection() returns)
+2) VM calls an import function. It is up to this import function to determine what to do next.
+	If the function can return immediately then everything works as normal. But if
+	this is an import function that may take a few frames to execute then the host
+	application must check if the VM is in a wait section (using SHP_IsInWaitSection()).
+	If so, the host application must somehow *remember that the action is still pending,*
+	and then return.
+3) The VM encounters an EndWait instruction. This raises the EndWaitCallback (which
+	should be set using SHP_SetEndWaitCallback()). The host application should check
+	for any pending actions, and call SHP_Suspend() if there is anything still executing.
+	Later, once everything finishes, the host application can call SHP_Resume() and
+	the script can continue executing where it left off.
+
+NOTE: Though the VM itself doesn't really care, asynchronous import functions should
+	never need to return a value.
+
+** THE WAITING STUFF ISN'T WORKING YET! DON'T USE IT! THE API WILL PROBABLY CHANGE! **
+
+*/
+
+DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_Suspend(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm);
+typedef  void (CALLBACK *SHP_EndWaitCallback)();
+DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
+
 
 DECLSPEC SHP_Version SHP_GetVersion();
 

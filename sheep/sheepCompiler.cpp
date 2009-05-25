@@ -49,6 +49,10 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 		
 		return SHEEP_SUCCESS;
 	}
+	catch(NoSuchFunctionException& ex)
+	{
+		return SHEEP_ERR_NO_SUCH_FUNCTION;
+	}
 	catch(SheepException& ex)
 	{
 		return SHEEP_ERROR;
@@ -89,6 +93,28 @@ void SHP_PushIntOntoStack(SheepVM* vm, int i)
 	assert(vm != NULL);
 
 	SM(vm)->PushIntOntoStack(i);
+}
+
+int SHP_IsInWaitSection(SheepVM* vm)
+{
+	if (SM(vm)->IsInWaitSection())
+		return SHEEP_TRUE;
+
+	return SHEEP_FALSE;
+}
+
+int SHP_Suspend(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->Suspend();
+}
+
+int SHP_Resume(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->Resume();
 }
 
 SHP_Version SHP_GetVersion()

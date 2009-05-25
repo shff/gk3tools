@@ -19,6 +19,17 @@ private:
 
 };
 
+class NoSuchFunctionException : public SheepException
+{
+public:
+	NoSuchFunctionException(const std::string& name) throw()
+		: SheepException("No such function: " + name)
+	{
+	}
+
+	virtual ~NoSuchFunctionException() throw() {}
+};
+
 class SheepCompilerException : public SheepException
 {
 public:

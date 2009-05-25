@@ -51,6 +51,11 @@ public:
 	/// SHEEP_ERROR on error.
 	int RunSnippet(const std::string& snippet, int* result);
 
+	/// Resumes where the code left off.
+	/// Returns SHEEP_SUCCESS on success, or SHEEP_ERROR on error.
+	int Resume();
+	int Suspend();
+
 	int PopIntFromStack()
 	{
 		return getInt(m_currentStack);
@@ -92,6 +97,9 @@ public:
 	
 	SheepImportTable& GetImports() { return m_imports; }
 
+	bool IsInWaitSection() { return m_inWaitSection; }
+	bool IsSuspended() { return m_suspended; }
+
 private:
 
 	struct StackItem
@@ -126,7 +134,7 @@ private:
 	typedef std::stack<StackItem> SheepStack;
 
 	void prepareVariables();
-	void execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports, unsigned int offset);
+	void execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports, unsigned int offset, unsigned int firstInstruction = 0);
 
 	void (*m_callback)(const char* message);
 	SHP_MessageCallback m_compilerCallback;
@@ -136,6 +144,13 @@ private:
 	SheepImportTable m_imports;
 
 	SheepStack m_currentStack;
+
+	bool m_inWaitSection;
+	SHP_EndWaitCallback m_endWaitCallback;
+	bool m_suspended;
+	unsigned int m_suspendedInstruction;
+	SheepCodeBuffer* m_suspendedCodeBuffer;
+	unsigned int m_suspendedCodeOffset;
 
 	static int getInt(SheepStack& stack)
 	{
