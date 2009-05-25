@@ -89,7 +89,8 @@ namespace Gk3Main.Sheep
                 {
                     string script = reader.ReadToEnd();
 
-                    SHP_RunScript(_vm, script, function);
+                    if (SHP_RunScript(_vm, script, function) != SHEEP_SUCCESS)
+                        throw new SheepException("Unable to execute Sheep script");
                 }
             }
             else
@@ -181,6 +182,10 @@ namespace Gk3Main.Sheep
         private static CompilerOutputDelegate _compilerOutputDelegate;
 
         #region Interops
+
+        const int SHEEP_SUCCESS = 0;
+        const int SHEEP_ERROR = -1;
+
         [DllImport("sheep")]
         private static extern IntPtr SHP_CreateNewVM();
 
