@@ -8,6 +8,11 @@ using IrrKlang;
 
 namespace Gk3Main.Sound
 {
+    public enum SoundTrackChannel
+    {
+        Music
+    }
+
     public class SoundException : Exception
     {
         public SoundException(string message)
@@ -31,6 +36,25 @@ namespace Gk3Main.Sound
 
         }
 
+        public static void PlaySound2DToChannel(Sound sound, SoundTrackChannel channel)
+        {
+            StopChannel(channel);
+
+            _channelSounds[channel] = Engine.Play2D(sound.Source, false, false, false);
+        }
+
+        public static void StopChannel(SoundTrackChannel channel)
+        {
+            ISound sound;
+            if (_channelSounds.TryGetValue(channel, out sound))
+            {
+                sound.Stop();
+                sound.Dispose();
+
+                _channelSounds[channel] = null;
+            }
+        }
+
         internal static ISoundEngine Engine
         {
             get { return _engine; }
@@ -40,6 +64,9 @@ namespace Gk3Main.Sound
 
         private static int _numSources;
         private static int[] _sources = new int[_maxSources];
+
+        private static Dictionary<SoundTrackChannel, ISound> _channelSounds 
+            = new Dictionary<SoundTrackChannel, ISound>();
     }
 
     internal class BarnFileFactory : IFileFactory

@@ -24,6 +24,16 @@ namespace Gk3Main.Sound
             SoundManager.Engine.Play2D(_sound, false, false, false);
         }
 
+        public void Play2D(SoundTrackChannel channel)
+        {
+            SoundManager.PlaySound2DToChannel(this, channel);
+        }
+
+        internal IrrKlang.ISoundSource Source
+        {
+            get { return _sound; }
+        }
+
         private IrrKlang.ISoundSource _sound;
        
     }

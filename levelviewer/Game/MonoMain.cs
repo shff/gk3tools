@@ -4,7 +4,16 @@ using Tao.OpenGl;
 
 class MonoMain
 {
+    enum GameState
+    {
+        MainMenu,
+        TimeBlockSplash,
+        Game
+    }
+
     private static Game.TimeBlockSplash _timeBlockSplash;
+    private static int _timeAtLastStateChange;
+    private static GameState _state;
     private static bool _isDemo;
 
 	public static void Main(string[] args)
@@ -33,8 +42,8 @@ class MonoMain
 		
 		SetupGraphics(640, 480, 32, false);
         Sdl.SDL_ShowCursor(0);
-		
 
+        _state = GameState.MainMenu;
 		parseArgs(args);
 
         Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
@@ -45,7 +54,7 @@ class MonoMain
         Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, 640.0f / 480.0f, 1.0f, 1000.0f));
 
         MainMenu menu = null;
-        if (Gk3Main.SceneManager.IsSceneLoaded == false)
+        if (_state == GameState.MainMenu)
         {
             menu = new MainMenu();
             menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
@@ -88,10 +97,10 @@ class MonoMain
                     }
                 }
 
-                if (menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) == 0)
+                if (_state == GameState.MainMenu && menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) == 0)
                     menu.OnMouseDown(0);
             }
-            else if (menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) != 0)
+            else if (_state == GameState.MainMenu && menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) != 0)
                 menu.OnMouseUp(0);
 
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
@@ -99,14 +108,46 @@ class MonoMain
 			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
 			Gk3Main.SceneManager.Render(camera);
 
-            if (_timeBlockSplash != null)
+            if (_state == GameState.TimeBlockSplash)
             {
-                _timeBlockSplash.Render();
+                if (_timeAtLastStateChange + 4000 < Gk3Main.Game.GameManager.TickCount)
+                {
+                    _state = GameState.Game;
+                    _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
+
+                    if (_timeBlockSplash != null)
+                    {
+                        _timeBlockSplash.Dispose();
+                        _timeBlockSplash = null;
+                    }
+
+                    Gk3Main.SceneManager.Initialize();
+                    if (_isDemo)
+                    {
+                        Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
+                        Gk3Main.SceneManager.LoadSif("CSE.SIF");
+                        Gk3Main.Sheep.SheepMachine.RunSheep("CSE_ALL.SHP", "PlaceEgo");
+                    }
+                    else
+                    {
+                        // TODO: do what the game would do
+                    }
+
+                    Gk3Main.Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Music);
+                }
+
+                if (_timeBlockSplash != null)
+                {
+                    _timeBlockSplash.Render();
+                }
             }
-            else if (menu != null)
+            else if (_state == GameState.MainMenu)
             {
-                menu.SetMouseCoords(mx, my);
-                menu.Render();
+                if (menu != null)
+                {
+                    menu.SetMouseCoords(mx, my);
+                    menu.Render();
+                }
             }
 
            
@@ -184,6 +225,9 @@ class MonoMain
                 _timeBlockSplash = new Game.TimeBlockSplash(Gk3Main.Game.Timeblock.Day2_12PM);
             else
                 _timeBlockSplash = new Game.TimeBlockSplash(Gk3Main.Game.Timeblock.Day1_10AM);
+
+            _state = GameState.TimeBlockSplash;
+            _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
         }
     }
 
@@ -232,11 +276,13 @@ class MonoMain
 			}
 			else if (args[i] == "-scn")
 			{
+                _state = GameState.Game;
                 Gk3Main.SceneManager.Initialize();
 				Gk3Main.SceneManager.LoadScene(args[++i]);
 			}
 			else if (args[i] == "-sif")
 			{
+                _state = GameState.Game;
                 Gk3Main.SceneManager.Initialize();
                 Gk3Main.SceneManager.LoadSif(args[++i]);
 			}
@@ -247,6 +293,8 @@ class MonoMain
             else if (args[i] == "-demo")
             {
                 _isDemo = true;
+
+                Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
             }
 			
 			i++;

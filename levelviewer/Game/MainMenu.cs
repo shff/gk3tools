@@ -28,7 +28,7 @@ class MainMenu
         _introButton.Enabled = false;
         _restoreButton.Enabled = false;
 
-        _theme.Play2D();
+        _theme.Play2D(Gk3Main.Sound.SoundTrackChannel.Music);
     }
 
     public void SetMouseCoords(int x, int y)
