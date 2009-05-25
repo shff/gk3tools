@@ -17,6 +17,7 @@
 
 [\n] { currentLine++; }
 [ \t]+	{ }
+"//".* { }
 
 <INITIAL>{
 "int"		return INTSYM;
