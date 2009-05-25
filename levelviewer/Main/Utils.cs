@@ -42,7 +42,7 @@ namespace Gk3Main
         public static bool TestRayTriangleCollision(Math.Vector3 origin,
 			Math.Vector3 direction,  Math.Vector3 v1,
 		    Math.Vector3 v2, Math.Vector3 v3,
-			out float distance, out Math.Vector3 collisionPoint)
+			out float distance, out Math.Vector3? collisionPoint)
 		{
             distance = 0;
             collisionPoint = null;

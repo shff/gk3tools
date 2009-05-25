@@ -21,12 +21,12 @@ using System.Text;
 
 namespace Gk3Main.Math
 {
-    public class Vector3
+    public struct Vector3
     {
-        public Vector3()
+        /*public Vector3()
         {
             _x = 0; _y = 0; _z = 0;
-        }
+        }*/
 
         public Vector3(float x, float y, float z)
         {
@@ -79,12 +79,32 @@ namespace Gk3Main.Math
             return new Vector3(v._x / s, v._y / s, v._z / s);
         }
 
+        public static Vector3 operator -(Vector3 v)
+        {
+            return new Vector3(-v.X, -v.Y, -v.Z);
+        }
+
         public override string ToString()
         {
             return "(" + _x + ", " + _y + ", " + _z + ")";
         }
 
         private float _x, _y, _z;
+        
+        public static Vector3 Forward
+        {
+            get { return new Vector3(0, 0, -1.0f); }
+        }
+
+        public static Vector3 Up
+        {
+            get { return new Vector3(0, 1.0f, 0); }
+        }
+
+        public static Vector3 Right
+        {
+            get { return new Vector3(1.0f, 0, 0); }
+        }
     }
 
     public struct Vector4

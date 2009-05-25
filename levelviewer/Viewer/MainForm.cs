@@ -73,7 +73,7 @@ namespace Viewer
                 Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
             }
 
-            _camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 1000.0f));
+            _camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 5000.0f));
 
             Gk3Main.SceneManager.LightmapsEnabled = true;
             Gk3Main.SceneManager.DoubleLightmapValues = true;
@@ -190,7 +190,7 @@ namespace Viewer
         {
             Video.Init(simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);
             _camera.Projection = Gk3Main.Math.Matrix.Perspective(1.04719755f,
-                (float)simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 1000.0f);
+                (float)simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 5000.0f);
         }
 
         private void simpleOpenGlControl1_MouseDown(object sender, MouseEventArgs e)

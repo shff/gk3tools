@@ -101,12 +101,19 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("noun", out model.Noun);
                         line.TryGetAttribute("type", out modelType);
 
-                        if (modelType.ToUpper() == "SCENE")
-                            model.Type = SifModelType.Scene;
-                        else if (modelType.ToUpper() == "PROP")
-                            model.Type = SifModelType.Prop;
+                        if (modelType != null)
+                        {
+                            if (modelType.ToUpper() == "SCENE")
+                                model.Type = SifModelType.Scene;
+                            else if (modelType.ToUpper() == "PROP")
+                                model.Type = SifModelType.Prop;
+                            else
+                                model.Type = SifModelType.HitTest;
+                        }
                         else
-                            model.Type = SifModelType.HitTest;
+                        {
+                            model.Type = SifModelType.Scene;
+                        }
 
                         string dummy;
                         model.Hidden = line.TryGetAttribute("hidden", out dummy);

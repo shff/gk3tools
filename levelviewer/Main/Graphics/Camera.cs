@@ -66,7 +66,7 @@ namespace Gk3Main.Graphics
 
         public void AdjustYaw(float radians)
         {
-            Math.Quaternion rotation = Math.Quaternion.FromAxis(new Math.Vector3(0, 1.0f, 0), radians);
+            Math.Quaternion rotation = Math.Quaternion.FromAxis(Math.Vector3.Up, radians);
 
             _orientation = rotation * _orientation;
         }
@@ -76,17 +76,17 @@ namespace Gk3Main.Graphics
             const float maxPitch = (float)System.Math.PI * 0.49f;
             const float minPitch = (float)System.Math.PI * -0.49f;
 
-            Math.Vector3 right = _orientation * new Math.Vector3(1.0f, 0, 0);
+            Math.Vector3 right = _orientation * Math.Vector3.Right;
 
-            Math.Quaternion rotation = Math.Quaternion.FromAxis(new Math.Vector3(1.0f, 0, 0), radians);
+            Math.Quaternion rotation = Math.Quaternion.FromAxis(Math.Vector3.Right, radians);
 
             _orientation = _orientation * rotation;
         }
 
         public void Update()
         {
-            Math.Vector3 forward = new Math.Vector3(0, 0, -1.0f);
-            Math.Vector3 up = new Math.Vector3(0, 1.0f, 0);
+            Math.Vector3 forward = Math.Vector3.Forward;
+            Math.Vector3 up = Math.Vector3.Up;
 
             forward = _orientation * forward;
             up = _orientation * up;
@@ -97,7 +97,8 @@ namespace Gk3Main.Graphics
                 up.X, up.Y, up.Z);
 
             // calculate the ModelViewProjection matrix
-            _modelViewProjection = Math.Matrix.LookAt(_position, forward, up) * _projection;
+            _modelView = Math.Matrix.LookAt(_position, forward, up);
+            _modelViewProjection = _modelView * _projection;
         }
 
         public Math.Matrix ModelViewProjection
@@ -111,9 +112,16 @@ namespace Gk3Main.Graphics
             set { _projection = value; }
         }
 
+        public Math.Matrix ModelView
+        {
+            get { return _modelView; }
+            set { _modelView = value; }
+        }
+
         private Math.Quaternion _orientation;
         private Math.Vector3 _position;
         private Math.Matrix _projection;
+        private Math.Matrix _modelView;
         private Math.Matrix _modelViewProjection;
     }
 }

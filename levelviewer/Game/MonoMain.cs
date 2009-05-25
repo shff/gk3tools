@@ -70,7 +70,7 @@ class MonoMain
             {
                 if ((buttons & Sdl.SDL_BUTTON_RMASK) != 0)
                 {
-                    camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(rmx, 0, 0));
+                    camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
                     camera.AddPositionOffset(0, -rmy, 0);
                 }
                 else
@@ -84,7 +84,7 @@ class MonoMain
                     else
                     {
                         camera.AdjustYaw(-rmx * 0.01f);
-                        camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(0, 0, rmy));
+                        camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * -rmy);
                     }
                 }
 

@@ -225,6 +225,33 @@ namespace Gk3Main.Graphics
             return new CgEffect(name, stream, _cgContext);
         }
 
+        public VertexBuffer CreateVertexBuffer(float[] data, int stride)
+        {
+            return new GlVertexBuffer(data, stride);
+        }
+
+        public IndexBuffer CreateIndexBuffer(uint[] data)
+        {
+            return new GlIndexBuffer(data);
+        }
+
+        public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
+        {
+            GlVertexBuffer glVertices = (GlVertexBuffer)vertices;
+            GlIndexBuffer glIndices = (GlIndexBuffer)indices;
+
+            glVertices.Bind();
+            glIndices.Bind();
+
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glVertexPointer(3, Gl.GL_FLOAT, vertices.Stride, null);
+
+            Gl.glDrawElements(Gl.GL_TRIANGLES, indices.Length, Gl.GL_UNSIGNED_INT, null);
+
+            glVertices.Unbind();
+            glIndices.Unbind();
+        }
+
 
         const int CG_IMMEDIATE_PARAMETER_SETTING = 4132;
         const int CG_DEFERRED_PARAMETER_SETTING = 4133;
@@ -233,5 +260,80 @@ namespace Gk3Main.Graphics
         // When it does we can remove this.
         [System.Runtime.InteropServices.DllImport("cg")]
         private static extern void cgSetParameterSettingMode(IntPtr context, int value);
+    }
+
+    public class GlVertexBuffer : VertexBuffer
+    {
+        private int _buffer;
+        private int _length;
+
+        public GlVertexBuffer(float[] data, int stride)
+        {
+            _stride = stride;
+            _length = data.Length;
+
+            Gl.glGenBuffers(1, out _buffer);
+            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, _buffer);
+            Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(data.Length * sizeof(float)), data, Gl.GL_STATIC_DRAW);
+
+            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, 0);
+        }
+
+        public override void Dispose()
+        {
+            Gl.glDeleteBuffers(1, ref _buffer);
+        }
+
+        public void Bind()
+        {
+            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, _buffer);
+        }
+
+        public void Unbind()
+        {
+            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, 0);
+        }
+
+        public override int Length
+        {
+            get { return _length; }
+        }
+    }
+
+    public class GlIndexBuffer : IndexBuffer
+    {
+        private int _buffer;
+        private int _length;
+
+        public GlIndexBuffer(uint[] data)
+        {
+            _length = data.Length;
+
+            Gl.glGenBuffers(1, out _buffer);
+            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, _buffer);
+            Gl.glBufferData(Gl.GL_ELEMENT_ARRAY_BUFFER, (IntPtr)(data.Length * sizeof(uint)), data, Gl.GL_STATIC_DRAW);
+
+            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, 0);
+        }
+
+        public override void Dispose()
+        {
+            Gl.glDeleteBuffers(1, ref _buffer);
+        }
+
+        public void Bind()
+        {
+            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, _buffer);
+        }
+
+        public void Unbind()
+        {
+            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, 0);
+        }
+
+        public override int Length
+        {
+            get { return _length; }
+        }
     }
 }

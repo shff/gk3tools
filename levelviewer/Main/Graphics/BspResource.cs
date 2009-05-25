@@ -437,7 +437,7 @@ namespace Gk3Main.Graphics
         private bool collideRayWithSurface(BspSurface surface, 
             Math.Vector3 origin, Math.Vector3 direction, float length, out float distance)
         {
-            Math.Vector3 collisionPoint;
+            Math.Vector3? collisionPoint;
 
             for (int i = 0; i < surface.indices.Length / 3; i++)
             {

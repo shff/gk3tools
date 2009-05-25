@@ -66,10 +66,12 @@
     <Compile Include="Game\SifResource.cs" />
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
+    <Compile Include="Graphics\CubeMapResource.cs" />
     <Compile Include="Graphics\IRenderer.cs" />
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
     <Compile Include="Graphics\OpenGLRenderer.cs" />
+    <Compile Include="Graphics\SkyBox.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="Graphics\Utils.cs" />
     <Compile Include="Gui\Button.cs" />
@@ -103,6 +105,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Shaders\2d.fx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Shaders\skybox.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

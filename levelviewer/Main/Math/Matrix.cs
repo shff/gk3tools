@@ -77,7 +77,7 @@ namespace Gk3Main.Math
             return result;
         }
 
-      public static Matrix LookAt(Vector3 position, Vector3 direction, Vector3 up)
+        public static Matrix LookAt(Vector3 position, Vector3 direction, Vector3 up)
         {
             Vector3 inverseDirection = new Vector3(-direction.X, -direction.Y, -direction.Z);
             direction = inverseDirection.Normalize();
@@ -135,6 +135,16 @@ namespace Gk3Main.Math
             m.M44 = 0;
 
             return m;
+        }
+
+        public static Matrix Translate(float x, float y, float z)
+        {
+            Matrix translation = Identity;
+            translation.M41 = x;
+            translation.M42 = y;
+            translation.M43 = z;
+            
+            return translation;
         }
 
         public float M11;

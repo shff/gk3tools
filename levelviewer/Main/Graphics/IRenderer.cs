@@ -106,6 +106,23 @@ namespace Gk3Main.Graphics
         #endregion
     }
 
+    public abstract class VertexBuffer : IDisposable
+    {
+        protected int _stride;
+
+        public abstract void Dispose();
+
+        public int Stride { get { return _stride; } }
+        public abstract int Length { get; }
+    }
+
+    public abstract class IndexBuffer : IDisposable
+    {
+        public abstract void Dispose();
+
+        public abstract int Length { get; }
+    }
+
     public interface IRenderer
     {
         bool BlendEnabled { get; set; }
@@ -115,5 +132,10 @@ namespace Gk3Main.Graphics
         Viewport Viewport { get; set; }
 
         Effect CreateEffect(string name, System.IO.Stream stream);
+
+        VertexBuffer CreateVertexBuffer(float[] data, int stride);
+        IndexBuffer CreateIndexBuffer(uint[] data);
+
+        void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
     }
 }

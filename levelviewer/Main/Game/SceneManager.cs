@@ -92,6 +92,7 @@ namespace Gk3Main
                     Resource.ResourceManager.Unload(_currentRoom);
 
                 _currentRoom = (Graphics.BspResource)Resource.ResourceManager.Load(bspFile);
+                _currentSkybox = loadSkybox(scnFile);
 
                 // load the lightmaps
                 if (_currentLightmaps != null)
@@ -120,6 +121,10 @@ namespace Gk3Main
         {
             if (camera != null)
                 camera.Update();
+
+            // render the skybox
+            if (_currentSkybox != null)
+                _currentSkybox.Render(camera);
 
             // render the room
             if (camera != null && _currentRoom != null)
@@ -195,6 +200,23 @@ namespace Gk3Main
             _models.Clear();
         }
 
+        private static Graphics.SkyBox loadSkybox(Game.ScnResource scn)
+        {
+            if (string.IsNullOrEmpty(scn.SkyboxLeft) == false &&
+                string.IsNullOrEmpty(scn.SkyboxRight) == false &&
+                string.IsNullOrEmpty(scn.SkyboxFront) == false &&
+                string.IsNullOrEmpty(scn.SkyboxBack) == false &&
+                string.IsNullOrEmpty(scn.SkyboxUp) == false &&
+                string.IsNullOrEmpty(scn.SkyboxDown) == false)
+            {
+                return new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", scn.SkyboxFront + ".BMP", scn.SkyboxBack + ".BMP",
+                    scn.SkyboxLeft + ".BMP", scn.SkyboxRight + ".BMP", scn.SkyboxUp + ".BMP", scn.SkyboxDown + ".BMP", scn.SkyboxAzimuth);
+            }
+
+            return null;
+        }
+
+        private static Graphics.SkyBox _currentSkybox;
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
