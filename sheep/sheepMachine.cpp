@@ -9,7 +9,9 @@ SheepMachine::SheepMachine()
 	m_callback = NULL;
 	m_compilerCallback = NULL;
 	m_inWaitSection = false;
+	m_endWaitCallback = NULL;
 	m_suspendedInstruction = 0;
+	m_suspended = false;
 }
 
 SheepMachine::~SheepMachine()

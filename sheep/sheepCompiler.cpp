@@ -73,6 +73,13 @@ int SHP_RunSnippet(SheepVM* vm, const char* script, int* result)
 	}
 }
 
+int SHP_PopIntFromStack(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->PopIntFromStack();
+}
+
 float SHP_PopFloatFromStack(SheepVM* vm)
 {
 	assert(vm != NULL);
