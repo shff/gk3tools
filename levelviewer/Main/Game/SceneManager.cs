@@ -292,7 +292,5 @@ namespace Gk3Main
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;
-
-        private static Game.Verbs _verbs;
     }
 }

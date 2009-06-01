@@ -87,7 +87,13 @@ namespace Gk3Main.Game
             SceneManager.LoadSif(location);
         }
 
+        public static void Load()
+        {
+            _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
+        }
+
         private static int _tickCount, _prevTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
+        private static Verbs _verbs;
     }
 }

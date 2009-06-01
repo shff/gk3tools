@@ -6,13 +6,15 @@ namespace Gk3Main.Gui
 {
     public class Button : IDisposable
     {
-        public Button(string downImage, string hoverImage, string upImage, string disabledImage)
+        public Button(string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound)
         {
             _downImage = (Graphics.TextureResource)Resource.ResourceManager.Load(downImage);
             _hoverImage = (Graphics.TextureResource)Resource.ResourceManager.Load(hoverImage);
             _upImage = (Graphics.TextureResource)Resource.ResourceManager.Load(upImage);
             _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
-            _wooshSound = (Sound.Sound)Resource.ResourceManager.Load("SIDBUTN-1.WAV");
+
+            if (string.IsNullOrEmpty(clickedSound) == false)
+                _clickedSound = (Sound.Sound)Resource.ResourceManager.Load(clickedSound);
 
             _enabled = true;
         }
@@ -23,7 +25,7 @@ namespace Gk3Main.Gui
             if (_hoverImage != null) Resource.ResourceManager.Unload(_hoverImage);
             if (_upImage != null) Resource.ResourceManager.Unload(_upImage);
             if (_disabledImage != null) Resource.ResourceManager.Unload(_disabledImage);
-            if (_wooshSound != null) Resource.ResourceManager.Unload(_wooshSound);
+            if (_clickedSound != null) Resource.ResourceManager.Unload(_clickedSound);
         }
 
         public void SetMousePosition(int x, int y)
@@ -49,7 +51,8 @@ namespace Gk3Main.Gui
             {
                 if (_enabled && _mouseDown && isMouseOverButton())
                 {
-                    _wooshSound.Play2D();
+                    if (_clickedSound != null)
+                        _clickedSound.Play2D();
                     
                     // clicked!
                     if (_onButtonClicked != null)
@@ -124,7 +127,7 @@ namespace Gk3Main.Gui
         private Graphics.TextureResource _hoverImage;
         private Graphics.TextureResource _upImage;
         private Graphics.TextureResource _disabledImage;
-        private Sound.Sound _wooshSound;
+        private Sound.Sound _clickedSound;
 
         private EventHandler _onButtonClicked;
     }

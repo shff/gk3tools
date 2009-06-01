@@ -156,7 +156,15 @@ namespace Gk3Main.Game
                         _positions.Add(position);
                     }
                 }
-                else if (section.Name == "ACTIONS")
+                else if (section.Name.Equals("Ambient", StringComparison.OrdinalIgnoreCase) &&
+                    (section.Condition == "" || Sheep.SheepMachine.RunSnippet(section.Condition) != 0))
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        _soundTracks.Add(line.Value);
+                    }
+                }
+                else if (section.Name.Equals("Actions", StringComparison.OrdinalIgnoreCase))
                 {
                     foreach (Resource.InfoLine line in section.Lines)
                     {
@@ -201,6 +209,11 @@ namespace Gk3Main.Game
             get { return _positions; }
         }
 
+        public List<string> SoundTracks
+        {
+            get { return _soundTracks; }
+        }
+
         public List<string> Actions
         {
             get { return _actions; }
@@ -213,6 +226,7 @@ namespace Gk3Main.Game
         private List<SifRoomCamera> _roomCameras = new List<SifRoomCamera>();
         private List<SifPosition> _positions = new List<SifPosition>();
         private List<string> _actions = new List<string>();
+        private List<string> _soundTracks = new List<string>();
     }
 
     public class SifResourceLoader : Resource.IResourceLoader

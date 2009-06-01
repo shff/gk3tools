@@ -82,7 +82,9 @@ namespace Gk3Main.Game
     {
         Normal,
         Inventory,
-        Topic
+        Topic,
+        RecurringTopic,
+        Chat
     }
 
     public struct VerbInfo
@@ -118,14 +120,21 @@ namespace Gk3Main.Game
                     string type;
                     if (line.TryGetAttribute("type", out type))
                     {
-                        string typeCaps = type.ToUpper();
-                        if (typeCaps == "NORMAL")
+                        if (type.Equals("Normal", StringComparison.OrdinalIgnoreCase))
                             verb.Type = VerbType.Normal;
-                        else if (typeCaps == "INVENTORY")
-                            verb.Type = VerbType.Inventory;
-                        else if (typeCaps == "TOPIC")
+                        else if (type.Equals("Topic", StringComparison.OrdinalIgnoreCase))
                             verb.Type = VerbType.Topic;
+                        else if (type.Equals("Inventory", StringComparison.OrdinalIgnoreCase))
+                            verb.Type = VerbType.Inventory;
+                        else if (type.Equals("RecurringTopic", StringComparison.OrdinalIgnoreCase))
+                            verb.Type = VerbType.RecurringTopic;
+                        else if (type.Equals("Chat", StringComparison.OrdinalIgnoreCase))
+                            verb.Type = VerbType.Chat;
+                        else
+                            throw new Resource.InfoResourceException("Unknown verb button type: " + type);
                     }
+
+                    _verbs.Add(line.Value, verb);
                 }
             }
         }
@@ -135,7 +144,7 @@ namespace Gk3Main.Game
             get { return _verbs[name]; }
         }
 
-        private Dictionary<string, VerbInfo> _verbs = new Dictionary<string, VerbInfo>();
+        private Dictionary<string, VerbInfo> _verbs = new Dictionary<string, VerbInfo>(StringComparer.OrdinalIgnoreCase);
     }
 
     public class VerbFileLoader : Resource.IResourceLoader
