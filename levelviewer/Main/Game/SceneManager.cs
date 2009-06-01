@@ -54,29 +54,34 @@ namespace Gk3Main
         {
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
 
-            LoadScene(sifResource.Scene);
-
-            // load the models
-            foreach (Game.SifModel model in sifResource.Models)
-            {
-                if (model.Type == Gk3Main.Game.SifModelType.Prop && model.Hidden == false)
-                {
-                    AddModel(model.Name + ".MOD");
-                }
-            }
-
-            // load the NVCs
-            foreach (string nvcFile in sifResource.Actions)
+            // attempt to load a "parent" sif
+            Gk3Main.Game.SifResource parentSif = null;
+            string parentSifName = sif.Substring(0, 3) + ".SIF";
+            if (parentSifName.Equals(sif, StringComparison.OrdinalIgnoreCase) == false)
             {
                 try
                 {
-                    _nvcs.Add((Game.NvcResource)Resource.ResourceManager.Load(nvcFile));
+                    parentSif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(parentSifName);
                 }
-                catch (System.IO.FileNotFoundException)
+                catch
                 {
-                    // do nothing, sometimes NVCs just don't exist
+                    // ignore
                 }
             }
+
+            if (string.IsNullOrEmpty(sifResource.Scene) == false)
+                LoadScene(sifResource.Scene);
+            else if (parentSif != null && string.IsNullOrEmpty(parentSif.Scene) == false)
+                LoadScene(parentSif.Scene);
+
+            // load the models
+            _modelNounMap.Clear();
+            loadSifModels(sifResource);
+            if (parentSif != null) loadSifModels(parentSif);
+
+            // load the NVCs
+            loadSifNvcs(sifResource);
+            if (parentSif != null) loadSifNvcs(parentSif);
         }
 
         public static void LoadScene(string scn)
@@ -175,6 +180,14 @@ namespace Gk3Main
             return null;
         }
 
+        public static string GetModelNoun(string model)
+        {
+            string noun = null;
+            _modelNounMap.TryGetValue(model, out noun);
+
+            return noun;
+        }
+
         public static int GetNounVerbCaseCountForTarget(string target)
         {
             int count = 0;
@@ -182,12 +195,65 @@ namespace Gk3Main
             {
                 foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
                 {
-                    if (nvc.Target == target)
+                    if (nvc.Target != null && nvc.Target.Equals(target, StringComparison.OrdinalIgnoreCase))
                         count++;
                 }
             }
 
             return count;
+        }
+
+        public static int GetNounVerbCaseCountForNoun(string noun)
+        {
+            int count = 0;
+            foreach (Game.NvcResource nvcResource in _nvcs)
+            {
+                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
+                {
+                    if (nvc.Target != null && nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+                        count++;
+                }
+            }
+
+            return count;
+        }
+
+        public static List<string> GetAllModels()
+        {
+            if (_currentRoom != null)
+                return _currentRoom.GetAllModels();
+
+            // just return an empty list
+            return new List<string>();
+        }
+
+        private static void loadSifModels(Game.SifResource sif)
+        {
+            foreach (Game.SifModel model in sif.Models)
+            {
+                if (model.Type == Gk3Main.Game.SifModelType.Prop && model.Hidden == false)
+                {
+                    AddModel(model.Name + ".MOD");
+                }
+
+                if (string.IsNullOrEmpty(model.Noun) == false)
+                    _modelNounMap.Add(model.Name, model.Noun);
+            }
+        }
+
+        private static void loadSifNvcs(Game.SifResource sif)
+        {
+            foreach (string nvcFile in sif.Actions)
+            {
+                try
+                {
+                    _nvcs.Add((Game.NvcResource)Resource.ResourceManager.Load(nvcFile));
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // do nothing, sometimes NVCs just don't exist
+                }
+            }
         }
 
         private static void unloadModels()
@@ -220,6 +286,7 @@ namespace Gk3Main
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
+        private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;

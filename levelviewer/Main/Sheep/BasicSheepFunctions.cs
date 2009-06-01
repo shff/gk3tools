@@ -188,10 +188,10 @@ namespace Gk3Main.Sheep
 
         private static void sheep_SetNounVerbCount(IntPtr vm)
         {
-            string noun = SheepMachine.PopStringOffStack(vm);
-            string verb = SheepMachine.PopStringOffStack(vm);
             int count = SheepMachine.PopIntOffStack(vm);
-
+            string verb = SheepMachine.PopStringOffStack(vm);
+            string noun = SheepMachine.PopStringOffStack(vm);
+          
             // TODO!
         }
 

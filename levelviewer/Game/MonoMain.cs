@@ -125,8 +125,8 @@ class MonoMain
                     if (_isDemo)
                     {
                         Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
-                        Gk3Main.SceneManager.LoadSif("CSE.SIF");
-                        Gk3Main.Sheep.SheepMachine.RunSheep("CSE_ALL.SHP", "PlaceEgo");
+                        Gk3Main.SceneManager.LoadSif("CSE212P.SIF");
+                        Gk3Main.Sheep.SheepMachine.RunSheep("CSE_ALL.SHP", "PlaceEgo$");
                     }
                     else
                     {
@@ -254,14 +254,23 @@ class MonoMain
 
         string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector3((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
 
-        if (model == null || Gk3Main.SceneManager.GetNounVerbCaseCountForTarget(model) == 0)
+        if (model != null)
         {
-            point.Render(mx, my);
+            string noun = Gk3Main.SceneManager.GetModelNoun(model);
+
+            if (noun == null || Gk3Main.SceneManager.GetNounVerbCaseCountForNoun(noun) == 0)
+            {
+                point.Render(mx, my);
+            }
+            else
+            {
+                Console.WriteLine(model);
+                zoom.Render(mx, my);
+            }
         }
         else
         {
-            Console.WriteLine(model);
-            zoom.Render(mx, my);
+            point.Render(mx, my);
         }
     }
 	

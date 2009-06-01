@@ -405,6 +405,11 @@ namespace Gk3Main.Graphics
 
         public string GetModelName(uint index) { return _modelsNames[index]; }
 
+        public List<string> GetAllModels()
+        {
+            return new List<string>(_modelsNames);
+        }
+
         private void loadTextures()
         {
             foreach (BspSurface surface in _surfaces)

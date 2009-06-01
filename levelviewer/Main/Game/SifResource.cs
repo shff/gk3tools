@@ -49,7 +49,7 @@ namespace Gk3Main.Game
         public SifResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
-            _scene = Utils.GetFilenameWithoutExtension(name).ToUpper() + ".SCN";
+            //_scene = Utils.GetFilenameWithoutExtension(name).ToUpper() + ".SCN";
 
             foreach (Resource.InfoLine line in GlobalSection.Lines)
             {

@@ -107,7 +107,7 @@ namespace Gk3Main.Sheep
 
                 _output.Clear();
 
-                int err = SHP_RunSnippet(_vm, string.Format("snippet{{ {0} }}", snippet), out result);
+                int err = SHP_RunSnippet(_vm, string.Format("snippet {{ {0} }}", snippet), out result);
 
                 if (err != 0)
                     throw new SheepException("Unable to execute snippet");
