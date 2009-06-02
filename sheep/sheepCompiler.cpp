@@ -124,6 +124,13 @@ int SHP_Resume(SheepVM* vm)
 	return SM(vm)->Resume();
 }
 
+void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->SetEndWaitCallback(callback);
+}
+
 SHP_Version SHP_GetVersion()
 {
 	SHP_Version v;

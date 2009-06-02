@@ -146,7 +146,7 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_Suspend(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm);
-typedef  void (CALLBACK *SHP_EndWaitCallback)();
+typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm);
 DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
 
 

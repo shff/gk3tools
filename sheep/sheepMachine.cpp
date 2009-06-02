@@ -211,6 +211,11 @@ int SheepMachine::Resume()
 	}
 }
 
+void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
+{
+	m_endWaitCallback = callback;
+}
+
 void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports,
 	unsigned int offset, unsigned int firstInstruction)
 {
@@ -276,7 +281,7 @@ void SheepMachine::execute(SheepCodeBuffer* code, std::vector<SheepImport>& impo
 			break;
 		case EndWait:
 			m_inWaitSection = false;
-			if (m_endWaitCallback) m_endWaitCallback();
+			if (m_endWaitCallback) m_endWaitCallback(this);
 			break;
 		case ReturnV:
 			return;

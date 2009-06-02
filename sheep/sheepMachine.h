@@ -99,6 +99,7 @@ public:
 
 	bool IsInWaitSection() { return m_inWaitSection; }
 	bool IsSuspended() { return m_suspended; }
+	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
 private:
 
