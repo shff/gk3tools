@@ -183,7 +183,7 @@ namespace Gk3Main.Resource
         {
             foreach (KeyValuePair<string, string> attribute in _attributes)
             {
-                if (attribute.Key == name)
+                if (attribute.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
                     value = attribute.Value;
                     return true;
@@ -191,6 +191,36 @@ namespace Gk3Main.Resource
             }
 
             value = null;
+            return false;
+        }
+
+        public bool TryGetIntAttribute(string name, out int value)
+        {
+            foreach (KeyValuePair<string, string> attribute in _attributes)
+            {
+                if (attribute.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (int.TryParse(attribute.Value, out value))
+                        return true;
+                }
+            }
+
+            value = 0;
+            return false;
+        }
+
+        public bool TryGetFloatAttribute(string name, out float value)
+        {
+            foreach (KeyValuePair<string, string> attribute in _attributes)
+            {
+                if (attribute.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (float.TryParse(attribute.Value, out value))
+                        return true;
+                }
+            }
+
+            value = 0;
             return false;
         }
 

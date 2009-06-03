@@ -82,6 +82,10 @@ namespace Gk3Main
             // load the NVCs
             loadSifNvcs(sifResource);
             if (parentSif != null) loadSifNvcs(parentSif);
+
+            // load the STKs
+            loadSifStks(sifResource);
+            if (parentSif != null) loadSifStks(parentSif);
         }
 
         public static void LoadScene(string scn)
@@ -138,6 +142,9 @@ namespace Gk3Main
             // render the models
             foreach (Graphics.ModelResource model in _models)
                 model.Render(camera);
+
+            foreach (Sound.SoundTrackResource stk in _stks)
+                stk.Step(Game.GameManager.TickCount);
         }
 
         public static bool LightmapsEnabled
@@ -256,6 +263,17 @@ namespace Gk3Main
             }
         }
 
+        private static void loadSifStks(Game.SifResource sif)
+        {
+            foreach (string stkFile in sif.SoundTracks)
+            {
+                Sound.SoundTrackResource stk = (Sound.SoundTrackResource)Resource.ResourceManager.Load(stkFile);
+                stk.Start(Game.GameManager.TickCount);
+
+                _stks.Add(stk);
+            }
+        }
+
         private static void unloadModels()
         {
             foreach (Graphics.ModelResource model in _models)
@@ -288,6 +306,7 @@ namespace Gk3Main
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
+        private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;

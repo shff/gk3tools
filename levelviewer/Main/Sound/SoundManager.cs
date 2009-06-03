@@ -10,7 +10,10 @@ namespace Gk3Main.Sound
 {
     public enum SoundTrackChannel
     {
-        Music
+        SFX,
+        Ambient,
+        Music,
+        Dialog
     }
 
     public class SoundException : Exception
@@ -36,11 +39,14 @@ namespace Gk3Main.Sound
 
         }
 
-        public static void PlaySound2DToChannel(Sound sound, SoundTrackChannel channel)
+        public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel)
         {
             StopChannel(channel);
 
-            _channelSounds[channel] = Engine.Play2D(sound.Source, false, false, false);
+            ISound isound = Engine.Play2D(sound.Source, false, false, false);
+            _channelSounds[channel] = isound;
+
+            return new PlayingSound(isound);
         }
 
         public static void StopChannel(SoundTrackChannel channel)

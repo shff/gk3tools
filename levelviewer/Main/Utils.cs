@@ -23,6 +23,8 @@ namespace Gk3Main
 {
     static class Utils
     {
+        private static Random _random = new Random();
+
         public static string GetFilenameWithoutExtension(string filename)
         {
             int dot = filename.LastIndexOf('.');
@@ -80,5 +82,15 @@ namespace Gk3Main
 			
 			return true;
 		}
+
+        public static float RollFloatingDie()
+        {
+            return (float)_random.NextDouble();
+        }
+
+        public static int PickRandomNumber(int min, int max)
+        {
+            return _random.Next(min, max);
+        }
     }
 }

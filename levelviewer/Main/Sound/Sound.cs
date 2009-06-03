@@ -4,6 +4,33 @@ using System.Text;
 
 namespace Gk3Main.Sound
 {
+    public struct PlayingSound
+    {
+        public int Dummy;
+
+#if !SOUND_DISABLED
+
+        internal IrrKlang.ISound _PlayingSound;
+
+        public PlayingSound(IrrKlang.ISound sound)
+        {
+            _PlayingSound = sound;
+            Dummy = 0;
+        }
+
+        public bool Finished
+        {
+            get { return _PlayingSound.Finished; }
+        }
+#else
+        public bool Finished
+        {
+            get { return true; }
+        }
+#endif
+    }
+
+
 #if !SOUND_DISABLED
     public class Sound : Resource.Resource
     {
@@ -19,14 +46,14 @@ namespace Gk3Main.Sound
             _sound = null;
         }
 
-        public void Play2D()
+        public PlayingSound Play2D()
         {
-            SoundManager.Engine.Play2D(_sound, false, false, false);
+            return new PlayingSound(SoundManager.Engine.Play2D(_sound, false, false, false));
         }
 
-        public void Play2D(SoundTrackChannel channel)
+        public PlayingSound Play2D(SoundTrackChannel channel)
         {
-            SoundManager.PlaySound2DToChannel(this, channel);
+            return SoundManager.PlaySound2DToChannel(this, channel);
         }
 
         internal IrrKlang.ISoundSource Source
