@@ -53,7 +53,12 @@ namespace Gk3Main.Sound
 
         public PlayingSound Play2D(SoundTrackChannel channel)
         {
-            return SoundManager.PlaySound2DToChannel(this, channel);
+            return SoundManager.PlaySound2DToChannel(this, channel, false);
+        }
+
+        public PlayingSound Play3D(SoundTrackChannel channel, float x, float y, float z)
+        {
+            return SoundManager.PlaySound3DToChannel(this, x, y, z, channel, false);
         }
 
         internal IrrKlang.ISoundSource Source

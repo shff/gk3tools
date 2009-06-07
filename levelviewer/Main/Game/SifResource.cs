@@ -162,7 +162,7 @@ namespace Gk3Main.Game
                     foreach (Resource.InfoLine line in section.Lines)
                     {
                         // TODO: get this working
-                        //_soundTracks.Add(line.Value);
+                        _soundTracks.Add(line.Value);
                     }
                 }
                 else if (section.Name.Equals("Actions", StringComparison.OrdinalIgnoreCase))

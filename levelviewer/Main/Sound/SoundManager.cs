@@ -39,12 +39,24 @@ namespace Gk3Main.Sound
 
         }
 
-        public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel)
+        public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel, bool clearChannel)
         {
-            StopChannel(channel);
+            if (clearChannel)
+                StopChannel(channel);
 
             ISound isound = Engine.Play2D(sound.Source, false, false, false);
-            _channelSounds[channel] = isound;
+            _channelSounds[channel] = isound; // BUG: this should be adding this sound to a collection!
+
+            return new PlayingSound(isound);
+        }
+
+        public static PlayingSound PlaySound3DToChannel(Sound sound, float x, float y, float z, SoundTrackChannel channel, bool clearChannel)
+        {
+            if (clearChannel)
+                StopChannel(channel);
+
+            ISound isound = Engine.Play3D(sound.Source, x, y, z, false, false, false);
+            _channelSounds[channel] = isound;// BUG: this should be adding this sound to a collection!
 
             return new PlayingSound(isound);
         }

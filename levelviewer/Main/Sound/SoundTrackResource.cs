@@ -101,45 +101,42 @@ namespace Gk3Main.Sound
             foreach (Resource.InfoLine line in soundSection.Lines)
             {
                 // TODO: this code is messy and could be more efficient
-                if (line.TryGetAttribute("Name", out _name) == false)
-                {
-                    int volume;
-                    if (line.TryGetIntAttribute("Volume", out volume))
-                    {
-                        _volume = volume / 100.0f;
-                    }
-                    else if (line.TryGetIntAttribute("Repeat", out _repeat) == false)
-                    {
-                        int random;
-                        if (line.TryGetIntAttribute("Random", out random))
-                            _random = random / 100.0f;
-                        else
-                        {
-                            int loop;
-                            if (line.TryGetIntAttribute("Loop", out loop))
-                                _loop = loop != 0;
-                            else if (line.TryGetIntAttribute("FadeInMS", out _fadeIn) == false)
-                            {
-                                int stopMethod;
-                                if (line.TryGetIntAttribute("StopMetod", out stopMethod))
-                                    _stopMethod = (SoundStopMethod)stopMethod;
-                                else if (line.TryGetIntAttribute("FadeOutMS", out _fadeOut) == false)
-                                {
-                                    int is3d;
-                                    if (line.TryGetIntAttribute("3D", out is3d))
-                                        _3d = is3d != 0;
-                                    else if (line.TryGetIntAttribute("MinDist", out _minDist) == false)
-                                        if (line.TryGetIntAttribute("MaxDist", out _maxDist) == false)
-                                            if (line.TryGetFloatAttribute("X", out _x) == false)
-                                                if (line.TryGetFloatAttribute("Y", out _y) == false)
-                                                    if (line.TryGetFloatAttribute("Z", out _z) == false)
-                                                        line.TryGetAttribute("Follow", out _follow);
-                                }
-                            }
-                        }
-                    }
-                }
+                string sdummy;
+                int idummy;
+                float fdummy;
+
+                if (line.TryGetAttribute("Name", out sdummy))
+                    _name = sdummy;
+                else if (line.TryGetIntAttribute("Volume", out idummy))
+                    _volume = idummy / 100.0f;
+                else if (line.TryGetIntAttribute("Repeat", out idummy))
+                    _repeat = idummy;
+                else if (line.TryGetIntAttribute("Random", out idummy))
+                    _random = idummy / 100.0f;
+                else if (line.TryGetIntAttribute("Loop", out idummy))
+                    _loop = idummy != 0;
+                else if (line.TryGetIntAttribute("FadeInMS", out idummy))
+                    _fadeIn = idummy;
+                else if (line.TryGetIntAttribute("FadeOutMS", out idummy))
+                    _fadeOut = idummy;
+                else if (line.TryGetIntAttribute("StopMethod", out idummy))
+                    _stopMethod = (SoundStopMethod)idummy;
+                else if (line.TryGetIntAttribute("3D", out idummy))
+                    _3d = idummy != 0;
+                else if (line.TryGetIntAttribute("MinDist", out idummy))
+                    _minDist = idummy;
+                else if (line.TryGetIntAttribute("MaxDist", out idummy))
+                    _maxDist = idummy;
+                else if (line.TryGetFloatAttribute("X", out fdummy))
+                    _x = fdummy;
+                else if (line.TryGetFloatAttribute("Y", out fdummy))
+                    _y = fdummy;
+                else if (line.TryGetFloatAttribute("Z", out fdummy))
+                    _z = fdummy;
+                else if (line.TryGetAttribute("Follow", out sdummy))
+                    _follow = sdummy;
             }
+
 
             // load the sound
             if (string.IsNullOrEmpty(_name) == false)
@@ -168,8 +165,12 @@ namespace Gk3Main.Sound
         public virtual SoundTrackNodeType Type { get { return SoundTrackNodeType.Sound; } }
         public bool Enabled { get { return _enabled; } set { _enabled = value; } }
         public int Repeat { get { return _repeat; } set { _repeat = value; } }
+        public bool Is3D { get { return _3d; } }
         public virtual bool RepeatEnabled { get { return _repeatEnabled; } set { _repeatEnabled = value; } }
         public float Random { get { return _random; } }
+        public float X { get { return _x; } }
+        public float Y { get { return _y; } }
+        public float Z { get { return _z; } }
 
         public Sound Sound { get { return _sound; } }
         public PlayingSound PlayingSound { get { return _playingSound; } }
@@ -317,7 +318,10 @@ namespace Gk3Main.Sound
                         SoundTrackSoundNode node = (SoundTrackSoundNode)_nodes[_currentNodeIndex];
 
                         // TODO: set up the 3D position, fade in/out, etc
-                        _playingSound = node.Sound.Play2D(_channel);
+                        if (node.Is3D)
+                            _playingSound = node.Sound.Play3D(_channel, node.X, node.Y, node.Z);
+                        else
+                            _playingSound = node.Sound.Play2D(_channel);
                     }
                     else if (_nodes[_currentNodeIndex].Type == SoundTrackNodeType.Prs)
                     {
