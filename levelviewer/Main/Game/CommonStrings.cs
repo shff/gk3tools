@@ -137,4 +137,46 @@ namespace Gk3Main.Game
         public const string Day3_06PM = "306p";
         public const string Day3_09PM = "309p";
     }
+
+    public class LocalizedStrings : Resource.TextResource
+    {
+        private Dictionary<string, string> _common = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<string, string> _verbs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        public LocalizedStrings(string name, System.IO.Stream stream)
+            : base(name, stream)
+        {
+            string[] lines = Text.Split('\n');
+
+            foreach (string line in lines)
+            {
+                if (string.IsNullOrEmpty(line)) 
+                    continue;
+
+                int equalPos = line.IndexOf("=");
+                if (equalPos >= 0 && equalPos < line.Length - 1)
+                {
+                    string left = line.Substring(0, equalPos);
+                    string right = line.Substring(equalPos + 1);
+
+                    if (left.IndexOf("//") >= 0 || left.IndexOf("[") >= 0)
+                        continue;
+
+                    if (left.StartsWith("V_", StringComparison.OrdinalIgnoreCase))
+                        _verbs.Add(left.Substring(2).Trim(), right.Trim());
+                    else
+                        _common.Add(left.Trim(), right.Trim());
+                }
+            }
+        }
+
+        public string GetVerbTooltip(string verb)
+        {
+            string tooltip;
+            if (_verbs.TryGetValue(verb, out tooltip))
+                return tooltip;
+
+            return null;
+        }
+    }
 }

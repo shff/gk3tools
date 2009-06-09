@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Tao.Sdl;
 using Tao.OpenGl;
 
@@ -11,6 +12,11 @@ class MonoMain
         Game
     }
 
+    const float DefaultScreenWidth = 640.0f;
+    const float DefaultScreenHeight = 480.0f;
+
+    private static float _screenWidth = DefaultScreenWidth;
+    private static float _screenHeight = DefaultScreenHeight;
     private static Game.TimeBlockSplash _timeBlockSplash;
     private static int _timeAtLastStateChange;
     private static GameState _state;
@@ -40,12 +46,14 @@ class MonoMain
 		Gk3Main.SceneManager.LightmapsEnabled = true;
 		Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
         Gk3Main.SceneManager.DoubleLightmapValues = true;
-		
-		SetupGraphics(640, 480, 32, false);
+
+        parseArgs(args);
+
+		SetupGraphics((int)_screenWidth, (int)_screenHeight, 32, false);
         Sdl.SDL_ShowCursor(0);
 
         _state = GameState.MainMenu;
-		parseArgs(args);
+		
 
         Gk3Main.Game.GameManager.Load();
         Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
@@ -53,7 +61,7 @@ class MonoMain
         Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
         Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
 
-        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, 640.0f / 480.0f, 1.0f, 1000.0f));
+        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, _screenWidth / _screenHeight, 1.0f, 1000.0f));
 
         MainMenu menu = null;
         if (_state == GameState.MainMenu)
@@ -67,6 +75,10 @@ class MonoMain
 		int mx, my, rmx, rmy;
 		Sdl.SDL_GetMouseState(out mx, out my);
         byte buttons = 0, oldButtons = 0;
+
+
+        Gk3Main.Gui.VerbButtonSet verbButtons = null;
+
 		while(MainLoop())
 		{
             int oldmx = mx, oldmy = my;
@@ -77,9 +89,15 @@ class MonoMain
 			int numkeys;
 			byte[] keys = Sdl.SDL_GetKeyState(out numkeys);
 
-            if ((buttons & Sdl.SDL_BUTTON_LMASK) != 0)
+            bool lmb = ((buttons & Sdl.SDL_BUTTON_LMASK) != 0);
+            bool rmb = ((buttons & Sdl.SDL_BUTTON_RMASK) != 0);
+
+            Game.Input.Refresh(lmb, false, rmb);
+
+
+            if (Game.Input.LeftMousePressed)
             {
-                if ((buttons & Sdl.SDL_BUTTON_RMASK) != 0)
+                if (Game.Input.RightMousePressed)
                 {
                     camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
                     camera.AddPositionOffset(0, -rmy, 0);
@@ -97,18 +115,27 @@ class MonoMain
                         camera.AdjustYaw(-rmx * 0.01f);
                         camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * -rmy);
                     }
+
+                    if (verbButtons != null && verbButtons.IsMouseInside(mx, my) && Game.Input.LeftMousePressedFirstTime)
+                        verbButtons.OnMouseDown(mx, my);
                 }
 
-                if (_state == GameState.MainMenu && menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) == 0)
+                if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMousePressedFirstTime)
                     menu.OnMouseDown(0);
             }
-            else if (_state == GameState.MainMenu && menu != null && (oldButtons & Sdl.SDL_BUTTON_LMASK) != 0)
+            else if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMouseReleasedFirstTime)
                 menu.OnMouseUp(0);
+            else if (Game.Input.LeftMouseReleasedFirstTime && verbButtons != null)
+                verbButtons.OnMouseUp(mx, my);
+
 
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
-			Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
 			Gk3Main.SceneManager.Render(camera);
+
+            if (verbButtons != null)
+                verbButtons.Render(mx, my);
 
             if (_state == GameState.TimeBlockSplash)
             {
@@ -153,12 +180,8 @@ class MonoMain
             }
 
            
-            
-            //f.Print(0, 16, "h");
-           // f.Print(0, 24, " 3");
-            //f.Print(0, 32, "!");
-            //f.Print(0, 48, "oo");
-            renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
+            Gk3Main.Gui.VerbButtonSet vbs = renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
+            if (vbs != null) verbButtons = vbs;
 			Sdl.SDL_GL_SwapBuffers();
 		}
 
@@ -179,29 +202,14 @@ class MonoMain
 		Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
         Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
 		
-		#region Perspective view setup
         Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
 
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestFunction = Gk3Main.Graphics.CompareFunction.Greater;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.9f;
 
-		float ratio = (float)width / height;
-		Gl.glViewport(0, 0, width, height);
-
-		Gl.glMatrixMode(Gl.GL_PROJECTION);
-		Gl.glLoadIdentity();
-
-		Glu.gluPerspective(60.0f, ratio, 10.0f, 5000.0f);
-
-		Gl.glMatrixMode(Gl.GL_MODELVIEW);
-		Glu.gluLookAt(0, 0, 0, 0, 0, 1.0f, 0, 1.0f, 0);
-		#endregion
-
-		Gl.glEnable(Gl.GL_DEPTH_TEST);
-		Gl.glEnable(Gl.GL_ALPHA_TEST);
-		Gl.glAlphaFunc(Gl.GL_GREATER, 0.9f);
-
-		Gl.glEnable(Gl.GL_CULL_FACE);
-		Gl.glFrontFace(Gl.GL_CW);
-		Gl.glCullFace(Gl.GL_BACK);
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;
 	}
 	
 	public static bool MainLoop()
@@ -241,7 +249,7 @@ class MonoMain
         Sdl.SDL_PushEvent(out quitEvent);
     }
 
-    private static void renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
+    private static Gk3Main.Gui.VerbButtonSet renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
     {
         double[] modelMatrix = new double[16];
         double[] projectionMatrix = new double[16];
@@ -252,7 +260,7 @@ class MonoMain
         Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
 
         double x, y, z;
-        Glu.gluUnProject(mx, 480 - my, 0, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
+        Glu.gluUnProject(mx, viewport[3] - my, 0, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
 
         string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector3((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
 
@@ -260,20 +268,36 @@ class MonoMain
         {
             string noun = Gk3Main.SceneManager.GetModelNoun(model);
 
-            if (noun == null || Gk3Main.SceneManager.GetNounVerbCaseCountForNoun(noun) == 0)
+            if (noun != null)
             {
-                point.Render(mx, my);
+                List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun);
+
+                if (nvcs.Count == 0)
+                {
+                    point.Render(mx, my);
+                }
+                else
+                {
+                    Console.WriteLine(model);
+                    zoom.Render(mx, my);
+
+                    if (Game.Input.LeftMousePressedFirstTime)
+                    {
+                        return new Gk3Main.Gui.VerbButtonSet(mx, my, nvcs, true);
+                    }
+                }
             }
             else
             {
-                Console.WriteLine(model);
-                zoom.Render(mx, my);
+                point.Render(mx, my);
             }
         }
         else
         {
             point.Render(mx, my);
         }
+
+        return null;
     }
 	
 	private static void parseArgs(string[] args)
@@ -306,6 +330,16 @@ class MonoMain
                 _isDemo = true;
 
                 Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
+            }
+            else if (args[i] == "-width")
+            {
+                string width = args[++i];
+                float.TryParse(width, out _screenWidth);
+            }
+            else if (args[i] == "-height")
+            {
+                string height = args[++i];
+                float.TryParse(height, out _screenHeight);
             }
 			
 			i++;

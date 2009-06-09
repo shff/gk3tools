@@ -15,7 +15,7 @@ namespace Gk3Main.Game
     {
         public string Noun;
         public string Verb;
-        public string Ego;
+        public string Case;
         public NvcApproachType Approach;
         public string Target;
         public string Script;
@@ -30,8 +30,8 @@ namespace Gk3Main.Game
             {
                 NounVerbCase nvc;
                 nvc.Noun = line.Value;
-                nvc.Verb = line.Attributes[0].Value;
-                nvc.Ego = line.Attributes[1].Value;
+                nvc.Verb = line.Attributes[0].Key;
+                nvc.Case = line.Attributes[1].Key;
 
                 string approach;
                 if (line.TryGetAttribute("approach", out approach))

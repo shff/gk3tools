@@ -57,7 +57,7 @@ namespace Gk3Main.Gui
             }
 
             // load the images
-            if (bitmap.EndsWith(".bmp", StringComparison.CurrentCultureIgnoreCase))
+            if (bitmap.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase))
                 _texture = (Graphics.TextureResource)Resource.ResourceManager.Load(bitmap);
             else
                 _texture = (Graphics.TextureResource)Resource.ResourceManager.Load(bitmap + ".BMP");
@@ -134,9 +134,9 @@ namespace Gk3Main.Gui
                 }
 
                 _characterInfo[i].SourceRect.Width = nextMarkerPixel - currentMarkerPixel;
-                _characterInfo[i].SourceRect.Height = _height;
+                _characterInfo[i].SourceRect.Height = _height - 1.0f;
                 _characterInfo[i].SourceRect.X = currentMarkerPixel;
-                _characterInfo[i].SourceRect.Y = currentLine * _height;
+                _characterInfo[i].SourceRect.Y = currentLine * _height + 1.0f;
 
                 currentMarkerPixel = nextMarkerPixel++;
             }

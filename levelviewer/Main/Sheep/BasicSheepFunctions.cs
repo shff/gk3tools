@@ -59,6 +59,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("StartAnimation", _sheepStartAnimation,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("StartVoiceOver", _startVoiceOver,
+                SymbolType.Void, SymbolType.String, SymbolType.Integer);
+
             SheepMachine.AddImport("WalkerBoundaryBlockRegion", _walkerBoundaryBlockRegion,
                 SymbolType.Void, SymbolType.Integer, SymbolType.Integer);
 
@@ -123,8 +126,10 @@ namespace Gk3Main.Sheep
             string location = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
-
-            SheepMachine.PushIntOntoStack(vm, 0);
+            if (location.Equals("CSE", StringComparison.OrdinalIgnoreCase))
+                SheepMachine.PushIntOntoStack(vm, 1);
+            else
+                SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_GetFlag(IntPtr vm)
@@ -202,6 +207,14 @@ namespace Gk3Main.Sheep
             // TODO!
         }
 
+        private static void sheep_StartVoiceOver(IntPtr vm)
+        {
+            int count = SheepMachine.PopIntOffStack(vm);
+            string id = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+        }
+
         private static void sheep_WalkerBoundaryBlockRegion(IntPtr vm)
         {
             int index1 = SheepMachine.PopIntOffStack(vm);
@@ -235,6 +248,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
         private static SheepFunctionDelegate _setNounVerbCount = new SheepFunctionDelegate(sheep_SetNounVerbCount);
+        private static SheepFunctionDelegate _startVoiceOver = new SheepFunctionDelegate(sheep_StartVoiceOver);
         private static SheepFunctionDelegate _sheepStartAnimation = new SheepFunctionDelegate(sheep_StartAnimation);
         private static SheepFunctionDelegate _walkerBoundaryBlockRegion = new SheepFunctionDelegate(sheep_WalkerBoundaryBlockRegion);
         private static SheepFunctionDelegate _wasLastLocation = new SheepFunctionDelegate(sheep_WasLastLocation);

@@ -195,21 +195,6 @@ namespace Gk3Main
             return noun;
         }
 
-        public static int GetNounVerbCaseCountForTarget(string target)
-        {
-            int count = 0;
-            foreach (Game.NvcResource nvcResource in _nvcs)
-            {
-                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
-                {
-                    if (nvc.Target != null && nvc.Target.Equals(target, StringComparison.OrdinalIgnoreCase))
-                        count++;
-                }
-            }
-
-            return count;
-        }
-
         public static int GetNounVerbCaseCountForNoun(string noun)
         {
             int count = 0;
@@ -223,6 +208,27 @@ namespace Gk3Main
             }
 
             return count;
+        }
+
+        public static List<Game.NounVerbCase> GetNounVerbCasesForNoun(string noun)
+        {
+            List<Game.NounVerbCase> nvcs = new List<Gk3Main.Game.NounVerbCase>();
+
+            foreach (Game.NvcResource nvcResource in _nvcs)
+            {
+                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
+                {
+                    if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // TODO: support the "custom" conditions
+                        if (nvc.Case.Equals("ALL", StringComparison.OrdinalIgnoreCase) ||
+                            nvc.Case.Equals("GRACE_ALL", StringComparison.OrdinalIgnoreCase))
+                            nvcs.Add(nvc);
+                    }
+                }
+            }
+
+            return nvcs;
         }
 
         public static List<string> GetAllModels()

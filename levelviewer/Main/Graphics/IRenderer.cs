@@ -11,6 +11,20 @@ namespace Gk3Main.Graphics
         None
     }
 
+    public enum CompareFunction
+    {
+        Always,
+        Never,
+
+        Greater,
+        Less,
+
+        Equal,
+        LessOrEqual,
+        GreaterOrEqual,
+        NotEqual
+    }
+
     public struct Viewport
     {
         private int _x, _y, _width, _height;
@@ -51,6 +65,7 @@ namespace Gk3Main.Graphics
         {
             get { return new Math.Vector4(_x, _y, _width, _height); }
         }
+
     }
 
     public abstract class Effect : Resource.TextResource
@@ -130,6 +145,8 @@ namespace Gk3Main.Graphics
         bool DepthTestEnabled { get; set; }
         CullMode CullMode { get; set; }
         Viewport Viewport { get; set; }
+        CompareFunction AlphaTestFunction { get; set; }
+        float AlphaTestReference { get; set; }
 
         Effect CreateEffect(string name, System.IO.Stream stream);
 
@@ -137,5 +154,7 @@ namespace Gk3Main.Graphics
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
+
+        void Clear();
     }
 }

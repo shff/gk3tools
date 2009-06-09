@@ -199,6 +199,57 @@ namespace Gk3Main.Graphics
             }
         }
 
+        public CompareFunction AlphaTestFunction
+        {
+            get
+            {
+                int func;
+                Gl.glGetIntegerv(Gl.GL_ALPHA_TEST_FUNC, out func);
+
+                if (func == Gl.GL_ALWAYS)
+                    return CompareFunction.Always;
+                else if (func == Gl.GL_NEVER)
+                    return CompareFunction.Never;
+                else if (func == Gl.GL_EQUAL)
+                    return CompareFunction.Equal;
+                else if (func == Gl.GL_NOTEQUAL)
+                    return CompareFunction.NotEqual;
+                else if (func == Gl.GL_GREATER)
+                    return CompareFunction.Greater;
+                else if (func == Gl.GL_LESS)
+                    return CompareFunction.Less;
+                else if (func == Gl.GL_LEQUAL)
+                    return CompareFunction.LessOrEqual;
+                else if (func == Gl.GL_GEQUAL)
+                    return CompareFunction.GreaterOrEqual;
+
+                throw new NotImplementedException("Unknown OpenGL alpha test function");
+            }
+            set
+            {
+                if (value == CompareFunction.Always)
+                    Gl.glAlphaFunc(Gl.GL_ALWAYS, AlphaTestReference);
+            }
+        }
+
+        public float AlphaTestReference
+        {
+            get
+            {
+                float alphaRef;
+                Gl.glGetFloatv(Gl.GL_ALPHA_TEST_REF, out alphaRef);
+
+                return alphaRef;
+            }
+            set
+            {
+                int func;
+                Gl.glGetIntegerv(Gl.GL_ALPHA_TEST_FUNC, out func);
+
+                Gl.glAlphaFunc(func, value);
+            }
+        }
+
         public Viewport Viewport
         {
             get
@@ -252,6 +303,10 @@ namespace Gk3Main.Graphics
             glIndices.Unbind();
         }
 
+        public void Clear()
+        {
+            Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
+        }
 
         const int CG_IMMEDIATE_PARAMETER_SETTING = 4132;
         const int CG_DEFERRED_PARAMETER_SETTING = 4133;

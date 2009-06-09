@@ -90,10 +90,22 @@ namespace Gk3Main.Game
         public static void Load()
         {
             _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
+            _strings = new LocalizedStrings("estrings.txt", FileSystem.Open("estrings.txt"));
+        }
+
+        public static Verbs Verbs
+        {
+            get { return _verbs; }
+        }
+
+        public static LocalizedStrings Strings
+        {
+            get { return _strings; }
         }
 
         private static int _tickCount, _prevTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
         private static Verbs _verbs;
+        private static LocalizedStrings _strings;
     }
 }

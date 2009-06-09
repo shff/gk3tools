@@ -106,6 +106,11 @@ namespace Gk3Main.Sound
         {
             // nothing
         }
+
+        public static void StopChannel(SoundTrackChannel channel)
+        {
+            // nothing
+        }
     }
 #endif
 }

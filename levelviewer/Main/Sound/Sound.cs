@@ -112,6 +112,17 @@ namespace Gk3Main.Sound
         {
             // nothing
         }
+
+        public PlayingSound Play2D(SoundTrackChannel channel)
+        {
+            return new PlayingSound();
+        }
+
+        public PlayingSound Play3D(SoundTrackChannel channel, float x, float y, float z)
+        {
+            return new PlayingSound();
+        }
+
     }
 
     public class SoundLoader : Resource.IResourceLoader
