@@ -77,6 +77,16 @@ namespace Gk3Main.Math
             return result;
         }
 
+
+        /*public static Matrix Invert(Matrix matrix)
+        {
+            float n23 = matrix.M33 * matrix.M44 - matrix.M34 * matrix.M43;
+            float n22 = matrix.M32 * matrix.M44 - matrix.M34 * matrix.M42;
+            float n21 = matrix.M32 * matrix.M43 - matrix.M33 * matrix.m42;
+            float n20 = matrix.M31 * matrix.M44 - matrix.M34 * matrix.M41;
+            float n19 = matrix.M31 * matrix.M43 - matrix.M33 * 
+        }*/
+
         public static Matrix LookAt(Vector3 position, Vector3 direction, Vector3 up)
         {
             Vector3 inverseDirection = new Vector3(-direction.X, -direction.Y, -direction.Z);
@@ -145,6 +155,16 @@ namespace Gk3Main.Math
             translation.M43 = z;
             
             return translation;
+        }
+
+        public static Matrix Scale(float x, float y, float z)
+        {
+            Matrix scale = Identity;
+            scale.M11 = x;
+            scale.M22 = y;
+            scale.M33 = z;
+
+            return scale;
         }
 
         public float M11;

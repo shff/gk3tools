@@ -73,12 +73,23 @@ namespace Gk3Main.Graphics
         public float[] lightmapCoords;
         public float[] textureCoords;
         public TextureResource textureResource;
+
+        public Math.Vector4 boundingSphere;
     }
 
     struct BspModel
     {
         public string name;
         public List<BspSurface> surfaces;
+    }
+
+    struct BspNode
+    {
+        public short Left;
+        public short Right;
+        public short PlaneIndex;
+        public short PolygonStartIndex;
+        public short NumPolygons;
     }
 
     #endregion
@@ -144,21 +155,45 @@ namespace Gk3Main.Graphics
             }
 
             // read the BSP nodes (for now throw them away)
+            _nodes = new BspNode[header.numNodes];
             for (uint i = 0; i < header.numNodes; i++)
             {
-                reader.ReadBytes(16);
+                _nodes[i].Left = reader.ReadInt16();
+                _nodes[i].Right = reader.ReadInt16();
+                _nodes[i].PlaneIndex = reader.ReadInt16();
+                _nodes[i].PolygonStartIndex = reader.ReadInt16();
+                reader.ReadInt16();
+                _nodes[i].NumPolygons = reader.ReadInt16();
+
+                uint i3 = reader.ReadUInt16();
+                uint i4 = reader.ReadUInt16();
+
+                Console.CurrentConsole.WriteLine(string.Format("{0} {1}, {2}, {3}, {4}",
+                    _nodes[i].Left, _nodes[i].Right, _nodes[i].PlaneIndex, _nodes[i].PolygonStartIndex, _nodes[i].NumPolygons));
             }
 
+            // TEMP: validate the BSP
+            foreach (BspNode node in _nodes)
+            {
+                if (node.Left >= _nodes.Length ||
+                    node.Right >= _nodes.Length)
+                    throw new Exception("OH NO!");
+
+                
+            }
+
+            int parent = findParent(_nodes, 0);
+
             // read all the polygons
-            BspPolygon[] polys = new BspPolygon[header.numPolygons];
+            _polygons = new BspPolygon[header.numPolygons];
             for (uint i = 0; i < header.numPolygons; i++)
             {
-                polys[i] = new BspPolygon();
+                _polygons[i] = new BspPolygon();
 
-                polys[i].vertexIndex = reader.ReadUInt16();
-                polys[i].flags = reader.ReadUInt16();
-                polys[i].numVertices = reader.ReadUInt16();
-                polys[i].surfaceIndex = reader.ReadUInt16();
+                _polygons[i].vertexIndex = reader.ReadUInt16();
+                _polygons[i].flags = reader.ReadUInt16();
+                _polygons[i].numVertices = reader.ReadUInt16();
+                _polygons[i].surfaceIndex = reader.ReadUInt16();
             }
 
             // read all the planes (thow them away)
@@ -198,17 +233,26 @@ namespace Gk3Main.Graphics
                 texindices[i] = reader.ReadUInt16();
             }
 
-            // read the bounding spheres (throw them away)
+            // read the bounding spheres
+            _boundingSpheres = new Math.Vector4[header.numNodes];
             for (uint i = 0; i < header.numNodes; i++)
             {
-                reader.ReadBytes(16);
+                _boundingSpheres[i].Z = reader.ReadSingle();
+                _boundingSpheres[i].Y = reader.ReadSingle();
+                _boundingSpheres[i].X = reader.ReadSingle();
+                _boundingSpheres[i].W = reader.ReadSingle();
             }
 
             // load the "thingies", whatever that means
             for (int i = 0; i < header.numSurfaces; i++)
             {
                 // throw junk away
-                reader.ReadBytes(28);
+                _surfaces[i].boundingSphere.Z = reader.ReadSingle();
+                _surfaces[i].boundingSphere.Y = reader.ReadSingle();
+                _surfaces[i].boundingSphere.X = reader.ReadSingle();
+                _surfaces[i].boundingSphere.W = reader.ReadSingle();
+
+                reader.ReadBytes(12);
 
                 uint numIndices = reader.ReadUInt32();
                 uint numTriangles = reader.ReadUInt32();
@@ -302,53 +346,21 @@ namespace Gk3Main.Graphics
             currentEffect.EnableTextureParameter("Diffuse");
             currentEffect.EnableTextureParameter("Lightmap");
 
-            currentEffect.Begin();
-            currentEffect.BeginPass(0);
+          //drawBspNode(0, currentEffect, lightmaps, camera);
+          //return;
+
+
+            
+
+            
 
             for (int i = 0; i < _surfaces.Length; i++)
             {
                 BspSurface surface = _surfaces[i];
                 TextureResource lightmap = lightmaps[i];
 
-                currentEffect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
-                currentEffect.SetParameter("Diffuse", surface.textureResource);
-                currentEffect.SetParameter("Lightmap", lightmap);
-
-                Gl.glActiveTexture(0);
-                surface.textureResource.Bind();
-
-                Gl.glActiveTexture(1);
-                lightmap.Bind();
-
-                currentEffect.UpdatePassParameters();
-
-                Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
-                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
-
-                if (lightmap != null)
-                {
-                    Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                    Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
-                    Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
-
-                    Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-                    Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                }
-
-                Gl.glGetError();
-
-                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
-
-                int err = Gl.glGetError();
-
-                if (err != Gl.GL_NO_ERROR)
-                    Console.CurrentConsole.Write("error: " + err);
-                
-                
+                drawSurface(surface, lightmap, currentEffect, camera);
             }
-            currentEffect.EndPass();
-            currentEffect.End();
             
             currentEffect.DisableTextureParameter("Diffuse");
             currentEffect.DisableTextureParameter("Lightmap");
@@ -470,10 +482,124 @@ namespace Gk3Main.Graphics
             return false;
         }
 
+        /// <summary>
+        /// Recursively draws the BSP tree, beginning at the specified node. SLOW!!
+        /// </summary>
+        private void drawBspNode(int nodeIndex, Effect effect, LightmapResource lightmaps, Camera camera)
+        {
+            if (_boundingSpheres[nodeIndex].W > 100.0f &&
+                camera.Frustum.IsSphereOutside(_boundingSpheres[nodeIndex]))
+                return;
+
+            BspNode node = _nodes[nodeIndex];
+            if (node.Left < 0 && node.Right < 0)
+            {
+                // draw the polygon
+                for (int i = node.PolygonStartIndex; i < node.PolygonStartIndex + node.NumPolygons; i++)
+                {
+                    drawSurface(_surfaces[_polygons[i].surfaceIndex], lightmaps[_polygons[i].surfaceIndex], effect, camera);
+                }
+            }
+            else
+            {
+                if (node.Left >= 0)
+                    drawBspNode(node.Left, effect, lightmaps, camera);
+                if (node.Right >= 0)
+                    drawBspNode(node.Right, effect, lightmaps, camera);
+
+                // draw the polygon
+                for (int i = node.PolygonStartIndex; i < node.PolygonStartIndex + node.NumPolygons; i++)
+                {
+                    drawSurface(_surfaces[_polygons[i].surfaceIndex], lightmaps[_polygons[i].surfaceIndex], effect, camera);
+                }
+            }
+        }
+
+        private void drawSurface(BspSurface surface, TextureResource lightmap, Effect effect, Camera camera)
+        {
+            if (camera.Frustum.IsSphereOutside(surface.boundingSphere))
+                return;
+
+            effect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
+            effect.SetParameter("Diffuse", surface.textureResource);
+
+            if (lightmap != null)
+                effect.SetParameter("Lightmap", lightmap);
+
+            Gl.glActiveTexture(0);
+            surface.textureResource.Bind();
+
+            if (lightmap != null)
+            {
+                Gl.glActiveTexture(1);
+                lightmap.Bind();
+            }
+
+            effect.Begin();
+            effect.BeginPass(0);
+
+            effect.UpdatePassParameters();
+
+            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
+            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
+
+            if (lightmap != null)
+            {
+                Gl.glActiveTexture(Gl.GL_TEXTURE1);
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
+                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
+
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+                Gl.glActiveTexture(Gl.GL_TEXTURE0);
+            }
+
+            Gl.glGetError();
+
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
+
+            int err = Gl.glGetError();
+
+            if (err != Gl.GL_NO_ERROR)
+                Console.CurrentConsole.Write("error: " + err);
+
+            effect.EndPass();
+            effect.End();
+
+            //BoundingSphereRenderer.Render(camera, surface.boundingSphere.X, surface.boundingSphere.Y, surface.boundingSphere.Z, surface.boundingSphere.W);
+        }
+
+        private int findParent(BspNode[] nodes, int index)
+        {
+            int currentIndex = 0;
+            bool foundNode = false;
+
+            do
+            {
+                foundNode = false;
+
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    if (nodes[i].Left == index ||
+                        nodes[i].Right == index)
+                    {
+                        currentIndex = i;
+                        foundNode = true;
+                        break;
+                    }
+                }
+            } while (foundNode);
+
+            return currentIndex;
+        }
+
         private float[] _vertices;
         private float[] _texcoords;
         private float[] _lightmapcoords;
         private BspSurface[] _surfaces;
+        private BspNode[] _nodes;
+        private BspPolygon[] _polygons;
+        private Math.Vector4[] _boundingSpheres;
         private string[] _modelsNames;
 
         private Effect _basicTexturedEffect;

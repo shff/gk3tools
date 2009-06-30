@@ -11,6 +11,12 @@ namespace Gk3Main.Graphics
         None
     }
 
+    public enum PrimitiveType
+    {
+        Triangles,
+        LineStrip
+    }
+
     public enum CompareFunction
     {
         Always,
@@ -154,6 +160,7 @@ namespace Gk3Main.Graphics
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
+        void RenderPrimitives(PrimitiveType type, int startIndex, float[] vertices);
 
         void Clear();
     }

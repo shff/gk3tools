@@ -229,6 +229,8 @@ namespace Gk3Main.Graphics
             {
                 if (value == CompareFunction.Always)
                     Gl.glAlphaFunc(Gl.GL_ALWAYS, AlphaTestReference);
+                else if (value == CompareFunction.Greater)
+                    Gl.glAlphaFunc(Gl.GL_GREATER, AlphaTestReference);
             }
         }
 
@@ -301,6 +303,27 @@ namespace Gk3Main.Graphics
 
             glVertices.Unbind();
             glIndices.Unbind();
+        }
+
+        public void RenderPrimitives(PrimitiveType type, int startIndex, float[] vertices)
+        {
+            int glType, count;
+
+            if (type == PrimitiveType.LineStrip)
+            {
+                glType = Gl.GL_LINE_STRIP;
+                count = vertices.Length / 3;
+            }
+            else
+            {
+                glType = Gl.GL_TRIANGLES;
+                count = vertices.Length / 3;
+            }
+
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, vertices);
+
+            Gl.glDrawArrays(glType, startIndex, count);
         }
 
         public void Clear()

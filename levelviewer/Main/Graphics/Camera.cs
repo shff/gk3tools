@@ -99,6 +99,8 @@ namespace Gk3Main.Graphics
             // calculate the ModelViewProjection matrix
             _modelView = Math.Matrix.LookAt(_position, forward, up);
             _modelViewProjection = _modelView * _projection;
+
+            _frustum = new Frustum(_modelViewProjection);
         }
 
         public Math.Matrix ModelViewProjection
@@ -118,10 +120,16 @@ namespace Gk3Main.Graphics
             set { _modelView = value; }
         }
 
+        public Frustum Frustum
+        {
+            get { return _frustum; }
+        }
+
         private Math.Quaternion _orientation;
         private Math.Vector3 _position;
         private Math.Matrix _projection;
         private Math.Matrix _modelView;
         private Math.Matrix _modelViewProjection;
+        private Frustum _frustum;
     }
 }
