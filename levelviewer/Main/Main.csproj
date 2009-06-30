@@ -64,9 +64,12 @@
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
+    <Compile Include="Game\YakResource.cs" />
+    <Compile Include="Graphics\BoundingSphereRenderer.cs" />
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
     <Compile Include="Graphics\CubeMapResource.cs" />
+    <Compile Include="Graphics\Frustum.cs" />
     <Compile Include="Graphics\IRenderer.cs" />
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
@@ -80,6 +83,7 @@
     <Compile Include="Gui\Unit.cs" />
     <Compile Include="Gui\VerbButtonSet.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="Math\Constants.cs" />
     <Compile Include="Math\Matrix.cs" />
     <Compile Include="Math\Quaternion.cs" />
     <Compile Include="Math\Vector.cs" />
