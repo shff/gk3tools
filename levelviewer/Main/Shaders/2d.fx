@@ -36,9 +36,11 @@ sampler2D Diffuse = sampler_state {
     Texture = <DiffuseTexture>;
 };
 
+float4 Color;
+
 float4 ps_main(PS_INPUT input) : COLOR0
 {
-    return tex2D(Diffuse, input.texCoords);
+    return tex2D(Diffuse, input.texCoords) * Color;
 }
 
 

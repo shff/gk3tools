@@ -191,6 +191,11 @@ namespace Gk3Main.Graphics
 
         public static void Go2D()
         {
+            Go2D(Math.Vector4.One);
+        }
+
+        public static void Go2D(Math.Vector4 color)
+        {
             if (_in2D) return;
             if (_2dEffect == null)
                 _2dEffect = (Effect)Resource.ResourceManager.Load("2d.fx");
@@ -203,6 +208,7 @@ namespace Gk3Main.Graphics
             Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
 
             _2dEffect.SetParameter("Viewport", renderer.Viewport.Vector);
+            _2dEffect.SetParameter("Color", color);
             _2dEffect.Begin();
             _2dEffect.BeginPass(0);
            

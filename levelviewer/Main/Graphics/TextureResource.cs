@@ -33,7 +33,7 @@ namespace Gk3Main.Graphics
             {
                 if (_defaultTexture == null)
                 {
-                    _defaultTexture = new TextureResource("empty");
+                    _defaultTexture = createDefaultTexture();
                 }
 
                 return _defaultTexture; 
@@ -321,6 +321,20 @@ namespace Gk3Main.Graphics
                 // skip any extra bytes
                 reader.ReadBytes(width % 4);
             }
+        }
+
+        private static TextureResource createDefaultTexture()
+        {
+            TextureResource tr = new TextureResource("default_white");
+
+            // create a 1x1 white pixel
+            tr._pixels = new byte[] { 255, 255, 255, 255 };
+            tr._width = 1;
+            tr._height = 1;
+
+            tr.convertToOpenGlTexture(false, true);
+
+            return tr;
         }
 
 

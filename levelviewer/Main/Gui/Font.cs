@@ -50,6 +50,11 @@ namespace Gk3Main.Gui
                         r = int.Parse(colors[0]);
                         g = int.Parse(colors[1]);
                         b = int.Parse(colors[2]);
+
+                        _color.X = r / 255.0f;
+                        _color.Y = g / 255.0f;
+                        _color.Z = b / 255.0f;
+                        _color.W = 1.0f;
                     }
                     
                     // TODO: the spec lists "Alpha Blend" as one of the possible values for "Type."
@@ -75,6 +80,8 @@ namespace Gk3Main.Gui
             float cursorX = (float)x;
             float cursorY = (float)y;
 
+            Graphics.Utils.Go2D(_color);
+
             foreach (char c in text)
             {
                 int index = mapUnicodeToFontCharacter(c);
@@ -83,6 +90,8 @@ namespace Gk3Main.Gui
 
                 cursorX += _characterInfo[index].SourceRect.Width;
             }
+
+            Graphics.Utils.End2D();
         }
 
         public Graphics.Rect GetPrintedRect(string text)
@@ -187,6 +196,7 @@ namespace Gk3Main.Gui
         private char _defaultCharacter = ' ';
         private Graphics.TextureResource _texture;
         private Graphics.TextureResource _alpha;
+        private Math.Vector4 _color;
     }
 
     public class FontResourceLoader : Resource.IResourceLoader

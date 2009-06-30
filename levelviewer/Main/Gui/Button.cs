@@ -107,18 +107,22 @@ namespace Gk3Main.Gui
             else
                 Graphics.Utils.Blit(_screenX, _screenY, _disabledImage);
 
+            Graphics.Utils.End2D();
+
+
             if (_tooltipVisible && _tooltipFont != null)
             {
                 Graphics.Rect tooltipRect = _tooltipFont.GetPrintedRect(_tooltip);
-                tooltipRect.X = _mouseX;
+                tooltipRect.X = _mouseX - 2;
                 tooltipRect.Y = _mouseY + 32;
+                tooltipRect.Width += 4;
 
                 Graphics.Utils.DrawRect(tooltipRect);
 
                 _tooltipFont.Print(_mouseX, _mouseY + 32, _tooltip);
             }
 
-            Graphics.Utils.End2D();
+            
         }
 
         public Unit X

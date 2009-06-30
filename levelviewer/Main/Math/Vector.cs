@@ -105,6 +105,11 @@ namespace Gk3Main.Math
         {
             get { return new Vector3(1.0f, 0, 0); }
         }
+
+        public static Vector3 One
+        {
+            get { return new Vector3(1.0f, 1.0f, 1.0f); }
+        }
     }
 
     public struct Vector4
@@ -123,5 +128,11 @@ namespace Gk3Main.Math
         public float W { get { return _w; } set { _w = value; } }
 
         private float _x, _y, _z, _w;
+
+
+        public static Vector4 One
+        {
+            get { return new Vector4(1.0f, 1.0f, 1.0f, 1.0f); }
+        }
     }
 }
