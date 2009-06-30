@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Tao.Sdl;
-using Tao.OpenGl;
 
 class MyConsole : Gk3Main.Console
 {

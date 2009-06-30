@@ -103,6 +103,24 @@ namespace Gk3Main.Graphics
             _frustum = new Frustum(_modelViewProjection);
         }
 
+        public Math.Vector3 Unproject(Math.Vector3 v)
+        {
+            // TODO: use our own matrix stuff instead of this OpenGL stuff
+
+            double[] modelMatrix = new double[16];
+            double[] projectionMatrix = new double[16];
+            int[] viewport = new int[4];
+
+            Gl.glGetDoublev(Gl.GL_MODELVIEW_MATRIX, modelMatrix);
+            Gl.glGetDoublev(Gl.GL_PROJECTION_MATRIX, projectionMatrix);
+            Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
+
+            double x, y, z;
+            Glu.gluUnProject(v.X, viewport[3] - v.Y, v.Z, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
+
+            return new Math.Vector3((float)x, (float)y, (float)z);
+        }
+
         public Math.Matrix ModelViewProjection
         {
             get { return _modelViewProjection; }

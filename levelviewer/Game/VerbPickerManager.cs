@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Tao.OpenGl;
 
 namespace Game
 {
@@ -96,19 +95,9 @@ namespace Game
         private static List<Gk3Main.Game.NounVerbCase> getNounVerbCasesUnderCursor(Gk3Main.Graphics.Camera camera, int mx, int my)
         {
             // TODO: replace this junk with our own matrix unproject stuff and get rid of the OpenGL stuff
-
-            double[] modelMatrix = new double[16];
-            double[] projectionMatrix = new double[16];
-            int[] viewport = new int[4];
-
-            Gl.glGetDoublev(Gl.GL_MODELVIEW_MATRIX, modelMatrix);
-            Gl.glGetDoublev(Gl.GL_PROJECTION_MATRIX, projectionMatrix);
-            Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
-
-            double x, y, z;
-            Glu.gluUnProject(mx, viewport[3] - my, 0, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
-
-            string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector3((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
+            Gk3Main.Math.Vector3 unprojected = camera.Unproject(new Gk3Main.Math.Vector3(mx, my, 0));
+           
+            string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, unprojected - camera.Position, 1000.0f);
 
             if (model != null)
             {
