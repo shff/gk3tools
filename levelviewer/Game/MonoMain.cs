@@ -50,6 +50,7 @@ class MonoMain
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
         
 		Gk3Main.Sheep.SheepMachine.Initialize();
         Gk3Main.Sound.SoundManager.Init();
@@ -196,12 +197,6 @@ class MonoMain
 
                     menu.Render(Gk3Main.Game.GameManager.TickCount);
                 }
-            }
-            else
-            {
-                Gk3Main.Math.Vector4 sphere = new Gk3Main.Math.Vector4(0, 0, 0, 100.0f);
-                if (!camera.Frustum.IsSphereOutside(sphere))
-                    Gk3Main.Graphics.BoundingSphereRenderer.Render(camera, sphere.X, sphere.Y, sphere.Z, sphere.W + 50.0f);
             }
 
             Game.VerbPickerManager.Render(Gk3Main.Game.GameManager.TickCount);

@@ -50,6 +50,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("DoesGabeHaveInvItem", _doesGabeHaveInvItemDelegate,
                 SymbolType.Integer, SymbolType.String);
 
+            SheepMachine.AddImport("InspectModelUsingAngle", _inspectModelUsingAngle,
+                SymbolType.Void, SymbolType.String, SymbolType.String);
+
             SheepMachine.AddImport("SetCameraAngleType", _setCameraAngleType,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
@@ -183,6 +186,14 @@ namespace Gk3Main.Sheep
             // TODO!
         }
 
+        private static void sheep_InspectModelUsingAngle(IntPtr vm)
+        {
+            string blah1 = SheepMachine.PopStringOffStack(vm);
+            string blah2 = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+        }
+
         private static void sheep_SetCameraAngleType(IntPtr vm)
         {
             string camera = SheepMachine.PopStringOffStack(vm);
@@ -213,6 +224,8 @@ namespace Gk3Main.Sheep
             string id = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
+            Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", id));
+            yak.Play();
         }
 
         private static void sheep_WalkerBoundaryBlockRegion(IntPtr vm)
@@ -246,6 +259,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _getNounVerbCount = new SheepFunctionDelegate(sheep_GetNounVerbCount);
         private static SheepFunctionDelegate _doesGraceHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGraceHaveInvItem);
         private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
+        private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
         private static SheepFunctionDelegate _setNounVerbCount = new SheepFunctionDelegate(sheep_SetNounVerbCount);
         private static SheepFunctionDelegate _startVoiceOver = new SheepFunctionDelegate(sheep_StartVoiceOver);

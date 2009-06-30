@@ -69,6 +69,7 @@
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
+    <Compile Include="Game\YakResource.cs" />
     <Compile Include="Graphics\BoundingSphereRenderer.cs" />
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
