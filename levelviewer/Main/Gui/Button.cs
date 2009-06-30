@@ -48,12 +48,6 @@ namespace Gk3Main.Gui
             if (_tooltipFont != null) Resource.ResourceManager.Unload(_tooltipFont);
         }
 
-        public void SetMousePosition(int x, int y)
-        {
-            _mouseX = x;
-            _mouseY = y;
-        }
-
         public void OnMouseDown(int button)
         {
             if (button == 0)
@@ -83,13 +77,21 @@ namespace Gk3Main.Gui
             }
         }
 
-        public void Render()
+        public void OnMouseMove(int ticks, int x, int y)
         {
-            Render(false);
+            _timeAtLastMouseMove = ticks;
+
+            _mouseX = x;
+            _mouseY = y;
+
+            if (IsMouseOverButton(x, y) == false)
+                _tooltipVisible = false;
         }
 
-        public void Render(bool tooltip)
+        public void Render(int tickCount)
         {
+            Graphics.Utils.Go2D();
+
             if (_enabled)
             {
                 if (_mouseDown)
@@ -98,15 +100,25 @@ namespace Gk3Main.Gui
                     Graphics.Utils.Blit(_screenX, _screenY, _hoverImage);
                 else
                     Graphics.Utils.Blit(_screenX, _screenY, _upImage);
+
+                if (_tooltipVisible == false && tickCount > _timeAtLastMouseMove + 500 && IsMouseOverButton(_mouseX, _mouseY))
+                    _tooltipVisible = true;
             }
             else
                 Graphics.Utils.Blit(_screenX, _screenY, _disabledImage);
 
-
-            if (tooltip)
+            if (_tooltipVisible && _tooltipFont != null)
             {
-                _tooltipFont.Print(_screenX, _screenY + 32, _tooltip);
+                Graphics.Rect tooltipRect = _tooltipFont.GetPrintedRect(_tooltip);
+                tooltipRect.X = _mouseX;
+                tooltipRect.Y = _mouseY + 32;
+
+                Graphics.Utils.DrawRect(tooltipRect);
+
+                _tooltipFont.Print(_mouseX, _mouseY + 32, _tooltip);
             }
+
+            Graphics.Utils.End2D();
         }
 
         public Unit X
@@ -163,6 +175,8 @@ namespace Gk3Main.Gui
         private Graphics.TextureResource _disabledImage;
         private Sound.Sound _clickedSound;
         private string _tooltip;
+        private int _timeAtLastMouseMove;
+        private bool _tooltipVisible;
 
         private EventHandler _onButtonClicked;
     }

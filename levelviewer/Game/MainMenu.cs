@@ -31,17 +31,6 @@ class MainMenu
         _theme.Play2D(Gk3Main.Sound.SoundTrackChannel.Music);
     }
 
-    public void SetMouseCoords(int x, int y)
-    {
-        _mouseX = x;
-        _mouseY = y;
-
-        _introButton.SetMousePosition(x, y);
-        _playButton.SetMousePosition(x, y);
-        _restoreButton.SetMousePosition(x, y);
-        _quitButton.SetMousePosition(x, y);
-    }
-
     public void OnMouseDown(int button)
     {
         _introButton.OnMouseDown(button);
@@ -58,7 +47,18 @@ class MainMenu
         _quitButton.OnMouseUp(button);
     }
 
-    public void Render()
+    public void OnMouseMove(int tickCount, int x, int y)
+    {
+        _mouseX = x;
+        _mouseY = y;
+
+        _introButton.OnMouseMove(tickCount, x, y);
+        _playButton.OnMouseMove(tickCount, x, y);
+        _restoreButton.OnMouseMove(tickCount, x, y);
+        _quitButton.OnMouseMove(tickCount, x, y);
+    }
+
+    public void Render(int tickCount)
     {
         Gk3Main.Graphics.Rect dest;
         dest.X = 0;
@@ -74,10 +74,10 @@ class MainMenu
 
         Gk3Main.Graphics.Utils.ScaleBlit(dest, _background, src);
 
-        _introButton.Render();
-        _playButton.Render();
-        _restoreButton.Render();
-        _quitButton.Render();
+        _introButton.Render(tickCount);
+        _playButton.Render(tickCount);
+        _restoreButton.Render(tickCount);
+        _quitButton.Render(tickCount);
     }
 
     public event EventHandler OnPlayClicked

@@ -27,6 +27,19 @@ namespace Gk3Main.Graphics
     {
         private const uint Gk3BitmapHeader = 0x4D6E3136;
 
+        public static TextureResource DefaultTexture
+        {
+            get
+            {
+                if (_defaultTexture == null)
+                {
+                    _defaultTexture = new TextureResource("empty");
+                }
+
+                return _defaultTexture; 
+            }
+        }
+
         /// <summary>
         /// Creates a empty texture
         /// </summary>
@@ -348,6 +361,8 @@ namespace Gk3Main.Graphics
 
         private float _actualWidth, _actualHeight;
         private int _actualPixelWidth, _actualPixelHeight;
+
+        private static TextureResource _defaultTexture;
 
         #endregion
     }

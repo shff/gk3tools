@@ -8,6 +8,9 @@ namespace Gk3Main.Gui
     {
         const int ButtonWidth = 32;
         private List<Button> _buttons = new List<Button>();
+        private bool _active = true;
+        private Button _tooltipButton = null;
+        private int _tooltipX, _tooltipY;
 
         public VerbButtonSet(int screenX, int screenY, List<Game.NounVerbCase> nvcs, bool cancel)
         {
@@ -60,12 +63,11 @@ namespace Gk3Main.Gui
             _buttons = null;
         }
 
-        public void Render(int mouseX, int mouseY)
+        public void Render(int tickCount)
         {
             foreach(Button b in _buttons)
             {
-                b.SetMousePosition(mouseX, mouseY);
-                b.Render(true);
+                b.Render(tickCount);
             }
         }
 
@@ -78,6 +80,14 @@ namespace Gk3Main.Gui
             }
 
             return false;
+        }
+
+        public void OnMouseMove(int mouseX, int mouseY)
+        {
+            foreach (Button b in _buttons)
+            {
+                b.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+            }
         }
 
         public void OnMouseDown(int mouseX, int mouseY)
@@ -97,6 +107,16 @@ namespace Gk3Main.Gui
             }
         }
 
+        public bool Active
+        {
+            get { return _active; }
+        }
+
+        public bool TooltipVisible
+        {
+            get { return _tooltipButton != null; }
+        }
+
         private void buttonClicked(string verb, string script)
         {
             Sheep.SheepMachine.RunCommand(script);
@@ -104,7 +124,7 @@ namespace Gk3Main.Gui
 
         private void cancelClicked()
         {
-            // TODO
+            _active = false;
         }
     }
 }

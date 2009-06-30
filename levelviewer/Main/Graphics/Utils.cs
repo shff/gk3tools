@@ -142,6 +142,53 @@ namespace Gk3Main.Graphics
             if (wasIn2D == false) End2D();
         }
 
+        public static void DrawRect(Rect dest)
+        {
+            bool wasIn2D = _in2D;
+            if (_in2D == false) Go2D();
+
+            TextureResource texture = TextureResource.DefaultTexture;
+            texture.Bind();
+
+
+            _workingBuffer1[0] = dest.X;
+            _workingBuffer1[1] = dest.Y;
+            _workingBuffer2[0] = 0;
+            _workingBuffer2[1] = 0;
+
+            _workingBuffer1[2] = dest.X + dest.Width;
+            _workingBuffer1[3] = dest.Y;
+            _workingBuffer2[2] = 1.0f;
+            _workingBuffer2[3] = 0;
+
+            _workingBuffer1[4] = _workingBuffer1[2];
+            _workingBuffer1[5] = dest.Y + dest.Height;
+            _workingBuffer2[4] = 1.0f;
+            _workingBuffer2[5] = 1.0f;
+
+            _workingBuffer1[6] = dest.X;
+            _workingBuffer1[7] = _workingBuffer1[5];
+            _workingBuffer2[6] = 0;
+            _workingBuffer2[7] = 1.0f;
+
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glVertexPointer(2, Gl.GL_FLOAT, 0, _workingBuffer1);
+            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
+
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
+
+            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+
+            if (wasIn2D == false) End2D();
+        }
+
+        public static void DrawBoundingSphere(float x, float y, float z, float radius)
+        {
+
+        }
+
         public static void Go2D()
         {
             if (_in2D) return;

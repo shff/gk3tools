@@ -3,6 +3,15 @@ using System.Collections.Generic;
 using Tao.Sdl;
 using Tao.OpenGl;
 
+class MyConsole : Gk3Main.Console
+{
+    public override void Write(string text, params object[] arg)
+    {
+        Console.WriteLine(text, arg);
+    }
+}
+
+
 class MonoMain
 {
     enum GameState
@@ -24,6 +33,8 @@ class MonoMain
 
 	public static void Main(string[] args)
 	{
+        Gk3Main.Console.CurrentConsole = new MyConsole();
+
 		Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
         Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
 		
@@ -77,7 +88,6 @@ class MonoMain
         byte buttons = 0, oldButtons = 0;
 
 
-        Gk3Main.Gui.VerbButtonSet verbButtons = null;
 
 		while(MainLoop())
 		{
@@ -99,25 +109,31 @@ class MonoMain
             {
                 if (Game.Input.RightMousePressed)
                 {
-                    camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
-                    camera.AddPositionOffset(0, -rmy, 0);
+                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
+                    {
+                        camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
+                        camera.AddPositionOffset(0, -rmy, 0);
+                    }
                 }
                 else
                 {
-                    if (keys[Sdl.SDLK_LSHIFT] != 0 ||
-                        keys[Sdl.SDLK_RSHIFT] != 0)
+                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
                     {
-                        camera.AdjustYaw(-rmx * 0.01f);
-                        camera.AdjustPitch(-rmy * 0.01f);
-                    }
-                    else
-                    {
-                        camera.AdjustYaw(-rmx * 0.01f);
-                        camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * -rmy);
+                        if (keys[Sdl.SDLK_LSHIFT] != 0 ||
+                            keys[Sdl.SDLK_RSHIFT] != 0)
+                        {
+                            camera.AdjustYaw(-rmx * 0.01f);
+                            camera.AdjustPitch(-rmy * 0.01f);
+                        }
+                        else
+                        {
+                            camera.AdjustYaw(-rmx * 0.01f);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * -rmy);
+                        }
                     }
 
-                    if (verbButtons != null && verbButtons.IsMouseInside(mx, my) && Game.Input.LeftMousePressedFirstTime)
-                        verbButtons.OnMouseDown(mx, my);
+                    if (Game.Input.LeftMousePressedFirstTime)
+                        Game.VerbPickerManager.MouseDown(0, mx, my);
                 }
 
                 if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMousePressedFirstTime)
@@ -125,17 +141,18 @@ class MonoMain
             }
             else if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMouseReleasedFirstTime)
                 menu.OnMouseUp(0);
-            else if (Game.Input.LeftMouseReleasedFirstTime && verbButtons != null)
-                verbButtons.OnMouseUp(mx, my);
+            else if (Game.Input.LeftMouseReleasedFirstTime)
+                Game.VerbPickerManager.MouseUp(camera, 0, mx, my);
 
+
+            if (rmx != 0 || rmy != 0)
+                Game.VerbPickerManager.MouseMove(mx, my);
 
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
             Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
 			Gk3Main.SceneManager.Render(camera);
 
-            if (verbButtons != null)
-                verbButtons.Render(mx, my);
 
             if (_state == GameState.TimeBlockSplash)
             {
@@ -174,14 +191,25 @@ class MonoMain
             {
                 if (menu != null)
                 {
-                    menu.SetMouseCoords(mx, my);
-                    menu.Render();
+                    if (rmx != 0 || rmy != 0)
+                        menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
+
+                    menu.Render(Gk3Main.Game.GameManager.TickCount);
                 }
             }
+            else
+            {
+                Gk3Main.Math.Vector4 sphere = new Gk3Main.Math.Vector4(0, 0, 0, 100.0f);
+                if (!camera.Frustum.IsSphereOutside(sphere))
+                    Gk3Main.Graphics.BoundingSphereRenderer.Render(camera, sphere.X, sphere.Y, sphere.Z, sphere.W + 50.0f);
+            }
 
-           
-            Gk3Main.Gui.VerbButtonSet vbs = renderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
-            if (vbs != null) verbButtons = vbs;
+            Game.VerbPickerManager.Render(Gk3Main.Game.GameManager.TickCount);
+            Game.VerbPickerManager.RenderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
+
+            Game.VerbPickerManager.Process();
+
+
 			Sdl.SDL_GL_SwapBuffers();
 		}
 
@@ -249,57 +277,7 @@ class MonoMain
         Sdl.SDL_PushEvent(out quitEvent);
     }
 
-    private static Gk3Main.Gui.VerbButtonSet renderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
-    {
-        double[] modelMatrix = new double[16];
-        double[] projectionMatrix = new double[16];
-        int[] viewport = new int[4];
-
-        Gl.glGetDoublev(Gl.GL_MODELVIEW_MATRIX, modelMatrix);
-        Gl.glGetDoublev(Gl.GL_PROJECTION_MATRIX, projectionMatrix);
-        Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
-
-        double x, y, z;
-        Glu.gluUnProject(mx, viewport[3] - my, 0, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
-
-        string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, new Gk3Main.Math.Vector3((float)x, (float)y, (float)z) - camera.Position, 1000.0f);
-
-        if (model != null)
-        {
-            string noun = Gk3Main.SceneManager.GetModelNoun(model);
-
-            if (noun != null)
-            {
-                List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun);
-
-                if (nvcs.Count == 0)
-                {
-                    point.Render(mx, my);
-                }
-                else
-                {
-                    Console.WriteLine(model);
-                    zoom.Render(mx, my);
-
-                    if (Game.Input.LeftMousePressedFirstTime)
-                    {
-                        return new Gk3Main.Gui.VerbButtonSet(mx, my, nvcs, true);
-                    }
-                }
-            }
-            else
-            {
-                point.Render(mx, my);
-            }
-        }
-        else
-        {
-            point.Render(mx, my);
-        }
-
-        return null;
-    }
-	
+   
 	private static void parseArgs(string[] args)
 	{
 		int i = 0;

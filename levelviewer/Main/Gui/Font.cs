@@ -85,12 +85,33 @@ namespace Gk3Main.Gui
             }
         }
 
+        public Graphics.Rect GetPrintedRect(string text)
+        {
+            float cursorX = 0;
+
+            foreach (char c in text)
+            {
+                int index = mapUnicodeToFontCharacter(c);
+
+                cursorX += _characterInfo[index].SourceRect.Width;
+            }
+
+            Graphics.Rect r;
+            r.X = 0;
+            r.Y = 0;
+            r.Width = cursorX;
+            r.Height = _height;
+
+            return r;
+        }
+
         private void buildCharacterInfo()
         {
             // set the height of each character
             _height = _texture.Height / _lineCount;
 
             byte[] buffer = new byte[_texture.ActualPixelWidth * _texture.ActualPixelHeight * 3];
+            _texture.Bind();
             Gl.glGetTexImage(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGB, Gl.GL_UNSIGNED_BYTE, buffer);
 
             // look for the baseline marker
