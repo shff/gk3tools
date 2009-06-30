@@ -96,8 +96,9 @@ namespace Game
         {
             // TODO: replace this junk with our own matrix unproject stuff and get rid of the OpenGL stuff
             Gk3Main.Math.Vector3 unprojected = camera.Unproject(new Gk3Main.Math.Vector3(mx, my, 0));
+            
            
-            string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, unprojected - camera.Position, 1000.0f);
+            string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, (unprojected - camera.Position).Normalize(), 1000.0f);
 
             if (model != null)
             {

@@ -132,10 +132,31 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("angle", out angle);
                         line.TryGetAttribute("pos", out pos);
 
-                        TryParse2f(angle, out camera.PitchDegrees, out camera.YawDegrees);
-                        TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
+                        TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
+                        TryParse3f(pos, out camera.Z, out camera.Y, out camera.X);
+
+                        camera.YawDegrees += 180.0f;
 
                         _roomCameras.Add(camera);
+                    }
+                }
+                else if (section.Name == "CINEMATIC_CAMERAS")
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        SifRoomCamera camera;
+                        camera.Name = line.Value;
+
+                        string angle, pos;
+                        line.TryGetAttribute("angle", out angle);
+                        line.TryGetAttribute("pos", out pos);
+
+                        TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
+                        TryParse3f(pos, out camera.Z, out camera.Y, out camera.X);
+
+                        camera.YawDegrees += 180.0f;
+
+                        _cinematicCameras.Add(camera);
                     }
                 }
                 else if (section.Name == "POSITIONS")
@@ -150,7 +171,7 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("heading", out heading);
                         line.TryGetAttribute("camera", out position.CameraName);
 
-                        TryParse3f(pos, out position.X, out position.Y, out position.Z);
+                        TryParse3f(pos, out position.Z, out position.Y, out position.X);
                         float.TryParse(heading, out position.HeadingDegrees);
 
                         _positions.Add(position);
@@ -205,6 +226,11 @@ namespace Gk3Main.Game
             get { return _roomCameras; }
         }
 
+        public List<SifRoomCamera> CinematicCameras
+        {
+            get { return _cinematicCameras; }
+        }
+
         public List<SifPosition> Positions
         {
             get { return _positions; }
@@ -225,6 +251,7 @@ namespace Gk3Main.Game
         private List<SifActor> _actors = new List<SifActor>();
         private List<SifModel> _models = new List<SifModel>();
         private List<SifRoomCamera> _roomCameras = new List<SifRoomCamera>();
+        private List<SifRoomCamera> _cinematicCameras = new List<SifRoomCamera>();
         private List<SifPosition> _positions = new List<SifPosition>();
         private List<string> _actions = new List<string>();
         private List<string> _soundTracks = new List<string>();

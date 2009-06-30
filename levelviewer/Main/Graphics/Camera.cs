@@ -33,6 +33,21 @@ namespace Gk3Main.Graphics
             _projection = projection;
         }
 
+        public Camera(float fov, float aspect, float near, float far)
+        {
+            _orientation = new Gk3Main.Math.Quaternion();
+            _position = new Gk3Main.Math.Vector3();
+
+            _projection = Math.Matrix.Perspective(fov, aspect, near, far);
+
+            // HACK: remove this when we can use our own matrix stuff for UnProject()!
+            Gl.glMatrixMode(Gl.GL_PROJECTION_MATRIX);
+            Gl.glLoadIdentity();
+            Glu.gluPerspective(fov * 57.2957795, aspect, near, far);
+            Gl.glMatrixMode(Gl.GL_MODELVIEW_MATRIX);
+            Gl.glLoadIdentity();
+        }
+
         public void AddRelativePositionOffset(Math.Vector3 offset)
         {
             offset = _orientation * offset;
@@ -76,11 +91,20 @@ namespace Gk3Main.Graphics
             const float maxPitch = (float)System.Math.PI * 0.49f;
             const float minPitch = (float)System.Math.PI * -0.49f;
 
-            Math.Vector3 right = _orientation * Math.Vector3.Right;
+            //Math.Vector3 right = _orientation * Math.Vector3.Right;
 
             Math.Quaternion rotation = Math.Quaternion.FromAxis(Math.Vector3.Right, radians);
 
             _orientation = _orientation * rotation;
+        }
+
+        public void SetPitchYaw(float pitch, float yaw)
+        {
+            Math.Quaternion yawq = Math.Quaternion.FromAxis(Math.Vector3.Up, yaw);
+            Math.Vector3 right = yawq * Math.Vector3.Right;
+
+            Math.Quaternion pitchq = Math.Quaternion.FromAxis(Math.Vector3.Right, pitch);
+            _orientation = yawq * pitchq;
         }
 
         public void Update()

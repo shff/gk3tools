@@ -183,15 +183,18 @@ namespace Gk3Main.Sheep
         {
             string position = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            // TODO: put the current ego's model at the specified position
+
+            // set the camera to the specified position
+            SceneManager.SetCameraToSifPosition(position);
         }
 
         private static void sheep_InspectModelUsingAngle(IntPtr vm)
         {
-            string blah1 = SheepMachine.PopStringOffStack(vm);
-            string blah2 = SheepMachine.PopStringOffStack(vm);
+            string angle = SheepMachine.PopStringOffStack(vm);
+            string model = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            SceneManager.SetCameraToCinematicCamera(angle);
         }
 
         private static void sheep_SetCameraAngleType(IntPtr vm)

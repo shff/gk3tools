@@ -72,7 +72,8 @@ class MonoMain
         Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
         Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
 
-        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, _screenWidth / _screenHeight, 1.0f, 1000.0f));
+        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 1000.0f);
+        Gk3Main.SceneManager.CurrentCamera = camera;
 
         MainMenu menu = null;
         if (_state == GameState.MainMenu)

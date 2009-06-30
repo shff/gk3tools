@@ -83,6 +83,46 @@ namespace Gk3Main
 			return true;
 		}
 
+        public static bool TestRayAABBCollision(Math.Vector3 origin,
+            Math.Vector3 direction, float[] aabb, out float distance)
+        {
+            // based on http://www.cs.utah.edu/~awilliam/box/box.pdf
+
+            distance = float.MinValue;
+            Math.Vector3 inverseDirection = new Math.Vector3(1.0f / direction.X, 1.0f / direction.Y, 1.0f / direction.Z);
+
+            int signX = inverseDirection.X < 0 ? 1 : 0;
+            int signY = inverseDirection.Y < 0 ? 1 : 0;
+            int signZ = inverseDirection.Z < 0 ? 1 : 0;
+
+            float tmin = (aabb[signX * 3 + 0] - origin.X) * inverseDirection.X;
+            float tmax = (aabb[(1 - signX) * 3 + 0] - origin.X) * inverseDirection.X;
+            float tymin = (aabb[signY * 3 + 1] - origin.Y) * inverseDirection.Y;
+            float tymax = (aabb[(1 - signY) * 3 + 1] - origin.Y) * inverseDirection.Y;
+
+            if (tmin > tymax || tymin > tmax)
+                return false;
+            if (tymin > tmin)
+                tmin = tymin;
+            if (tymax < tmax)
+                tmax = tymax;
+
+            float tzmin = (aabb[signZ * 3 + 2] - origin.Z) * inverseDirection.Z;
+            float tzmax = (aabb[(1 - signZ) * 3 + 2] - origin.Z) * inverseDirection.Z;
+
+            if (tmin > tzmax || tzmin > tmax)
+                return false;
+
+            if (tzmin > tmin)
+                tmin = tzmin;
+            if (tzmax < tmax)
+                tmax = tzmax;
+
+            distance = tmin;
+            return tmin > 0;
+
+        }
+
         public static float RollFloatingDie()
         {
             return (float)_random.NextDouble();
@@ -91,6 +131,11 @@ namespace Gk3Main
         public static int PickRandomNumber(int min, int max)
         {
             return _random.Next(min, max);
+        }
+
+        public static float DegreesToRadians(float degrees)
+        {
+            return Math.Constants.Pi * degrees / 180.0f;
         }
     }
 }

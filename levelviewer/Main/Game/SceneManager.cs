@@ -19,6 +19,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+using Gk3Main.Game;
+
 namespace Gk3Main
 {
     public enum ShadeMode
@@ -52,6 +54,9 @@ namespace Gk3Main
 
         public static void LoadSif(string sif)
         {
+            _roomPositions.Clear();
+            _roomCameras.Clear();
+
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
 
             // attempt to load a "parent" sif
@@ -86,6 +91,24 @@ namespace Gk3Main
             // load the STKs
             loadSifStks(sifResource);
             if (parentSif != null) loadSifStks(parentSif);
+
+            // load positions and room cameras
+            foreach (SifRoomCamera camera in sifResource.RoomCameras)
+                _roomCameras.Add(camera.Name, camera);
+            foreach (SifRoomCamera camera in sifResource.CinematicCameras)
+                _cinematicCameras.Add(camera.Name, camera);
+            foreach (SifPosition position in sifResource.Positions)
+                _roomPositions.Add(position.Name, position);
+
+            if (parentSif != null)
+            {
+                foreach (SifRoomCamera camera in parentSif.RoomCameras)
+                    _roomCameras.Add(camera.Name, camera);
+                foreach (SifRoomCamera camera in parentSif.CinematicCameras)
+                    _cinematicCameras.Add(camera.Name, camera);
+                foreach (SifPosition position in parentSif.Positions)
+                    _roomPositions.Add(position.Name, position);
+            }
         }
 
         public static void LoadScene(string scn)
@@ -147,6 +170,12 @@ namespace Gk3Main
                 stk.Step(Game.GameManager.TickCount);
         }
 
+        public static Graphics.Camera CurrentCamera
+        {
+            get { return _currentCamera; }
+            set { _currentCamera = value; }
+        }
+
         public static bool LightmapsEnabled
         {
             get { return _lightmapsEnabled; }
@@ -180,9 +209,18 @@ namespace Gk3Main
         /// <returns>The name of the model, or null if no collision occured.</returns>
         public static string GetCollisionModel(Math.Vector3 origin, Math.Vector3 direction, float length)
         {
+            float distance;
+            foreach (Graphics.ModelResource model in _models)
+            {
+             //   if (model.CollideRay(origin, direction, length, out distance))
+              //      return model.Name;
+            }
+
             Graphics.BspSurface surface;
             if (_currentRoom != null && _currentRoom.CollideRayWithSurfaces(origin, direction, length, out surface) == true)
                 return _currentRoom.GetModelName(surface.modelIndex);
+
+            
 
             return null;
         }
@@ -238,6 +276,33 @@ namespace Gk3Main
 
             // just return an empty list
             return new List<string>();
+        }
+
+        public static void SetCameraToSifPosition(string name)
+        {
+            if (_currentCamera != null)
+            {
+                SifPosition position = _roomPositions[name];
+                SifRoomCamera camera = _roomCameras[position.CameraName];
+
+                _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
+                //_currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
+                //_currentCamera.AdjustYaw(Utils.DegreesToRadians(camera.YawDegrees));
+                _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
+            }
+        }
+
+        public static void SetCameraToCinematicCamera(string name)
+        {
+            if (_currentCamera != null)
+            {
+                SifRoomCamera camera = _cinematicCameras[name];
+
+                _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
+               // _currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
+                //_currentCamera.AdjustYaw(Utils.DegreesToRadians(camera.YawDegrees));
+                _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
+            }
         }
 
         private static void loadSifModels(Game.SifResource sif)
@@ -306,6 +371,7 @@ namespace Gk3Main
             return null;
         }
 
+        private static Graphics.Camera _currentCamera;
         private static Graphics.SkyBox _currentSkybox;
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
@@ -313,7 +379,10 @@ namespace Gk3Main
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();
-
+        private static Dictionary<string, SifRoomCamera> _roomCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, SifRoomCamera> _cinematicCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
+        
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;
