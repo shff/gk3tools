@@ -20,14 +20,15 @@ namespace Gk3Main.Gui
             {
                 Game.VerbInfo info = Game.GameManager.Verbs[nvc.Verb];
 
-                Button b = new Button(string.Format("{0}.BMP", info.DownButton),
+                VerbButton b = new VerbButton(nvc.Verb, nvc.Script,
+                    string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
                     string.Format("{0}.BMP", info.DisableButton), null,
                     Game.GameManager.Strings.GetVerbTooltip(info.Verb));
                 b.X = new Unit(0, buttonOffsetX);
                 b.Y = new Unit(0, screenY);
-                b.OnClick += delegate { buttonClicked(nvc.Verb, nvc.Script); };
+                b.OnClick += new EventHandler(buttonClicked);
 
                 _buttons.Add(b);
 
@@ -117,10 +118,12 @@ namespace Gk3Main.Gui
             get { return _tooltipButton != null; }
         }
 
-        private void buttonClicked(string verb, string script)
+        private void buttonClicked(object sender, EventArgs e)
         {
-            Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", verb);
-            Sheep.SheepMachine.RunCommand(script);
+            VerbButton button = (VerbButton)sender;
+
+            Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", button.Verb);
+            Sheep.SheepMachine.RunCommand(button.Script);
         }
 
         private void cancelClicked()

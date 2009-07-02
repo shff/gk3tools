@@ -87,6 +87,7 @@
     <Compile Include="Gui\CursorResource.cs" />
     <Compile Include="Gui\Font.cs" />
     <Compile Include="Gui\Unit.cs" />
+    <Compile Include="Gui\VerbButton.cs" />
     <Compile Include="Gui\VerbButtonSet.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Math\Constants.cs" />
