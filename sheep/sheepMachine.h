@@ -24,6 +24,59 @@ public:
 	}
 };
 
+struct StackItem
+{
+	StackItem()
+	{
+		Type = SYM_VOID;
+		IValue = 0;
+	}
+
+	StackItem(SheepSymbolType type, int value)
+	{
+		Type = type;
+		IValue = value;
+	}
+
+	StackItem(SheepSymbolType type, float value)
+	{
+		Type = type;
+		FValue = value;
+	}
+
+	SheepSymbolType Type;
+
+	union
+	{
+		int IValue;
+		float FValue;
+	};
+};
+
+typedef std::stack<StackItem> SheepStack;
+
+struct SheepContext
+{
+	SheepContext()
+	{
+		InWaitSection = false;
+		Suspended = false;
+		FunctionOffset = 0;
+		InstructionOffset = 0;
+		CodeBuffer = NULL;
+	}
+
+	SheepStack Stack;
+	std::vector<StackItem> Variables;
+
+	bool InWaitSection;
+	bool Suspended;
+	unsigned int FunctionOffset;
+	unsigned int InstructionOffset;
+	SheepCodeBuffer* CodeBuffer;
+	IntermediateOutput* FullCode;
+};
+
 class SheepMachine : public SheepVM
 {
 public:
@@ -34,17 +87,9 @@ public:
 	void SetOutputCallback(void (*callback)(const char* message));
 	void SetCompileOutputCallback(SHP_MessageCallback callback);
 	
-	/// Allows the script machine to prepare for execution.
-	/// 'script' is assumed to be uncompiled, and will be compiled.
-	void Prepare(const std::string& script);
+	IntermediateOutput* Compile(const std::string& script);
 
-	/// Allows the script machine to prepare for execution.
-	/// 'code' is a pointer to binary code that has already been compiled.
-	/// This takes over ownership of the code!
-	void Prepare(IntermediateOutput* code);
-
-	/// Executes a function. Make sure that Prepare() has been called first!
-	void Run(const std::string& function);
+	void Run(IntermediateOutput* code, const std::string& function);
 
 	/// Runs a snippet. Returns SHEEP_SUCCESS on success, and the value
 	/// left on the stack (if any) is put into 'result'. Or returns
@@ -58,13 +103,13 @@ public:
 
 	int PopIntFromStack()
 	{
-		return getInt(m_currentStack);
+		return getInt(m_contexts.top().Stack);
 	}
 
 	float PopFloatFromStack()
 	{
-		StackItem item = m_currentStack.top();
-		m_currentStack.pop();
+		StackItem item = m_contexts.top().Stack.top();
+		m_contexts.top().Stack.pop();
 
 		if (item.Type != SYM_FLOAT)
 			throw SheepMachineException("Expected float on stack");
@@ -72,86 +117,41 @@ public:
 		return item.FValue;
 	}
 
-	std::string& PopStringFromStack()
-	{
-		StackItem item = m_currentStack.top();
-		m_currentStack.pop();
-
-		if (item.Type != SYM_STRING)
-			throw SheepMachineException("Expected float on stack");
-
-		for (std::vector<SheepStringConstant>::iterator itr = m_code->Constants.begin();
-			itr != m_code->Constants.end(); itr++)
-		{
-			if ((*itr).Offset == item.IValue)
-				return (*itr).Value;
-		}
-
-		throw SheepMachineException("Invalid string offset found on stack");
-	}
+	std::string& PopStringFromStack();
 
 	void PushIntOntoStack(int i)
 	{
-		m_currentStack.push(StackItem(SYM_INT, i));
+		m_contexts.top().Stack.push(StackItem(SYM_INT, i));
 	}
 	
 	SheepImportTable& GetImports() { return m_imports; }
 
-	bool IsInWaitSection() { return m_inWaitSection; }
-	bool IsSuspended() { return m_suspended; }
+	bool IsInWaitSection() { return m_contexts.top().InWaitSection; }
+	bool IsSuspended() { return m_contexts.top().Suspended; }
 	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
 private:
 
-	struct StackItem
-	{
-		StackItem()
-		{
-			Type = SYM_VOID;
-			IValue = 0;
-		}
+	
 
-		StackItem(SheepSymbolType type, int value)
-		{
-			Type = type;
-			IValue = value;
-		}
-
-		StackItem(SheepSymbolType type, float value)
-		{
-			Type = type;
-			FValue = value;
-		}
-
-		SheepSymbolType Type;
-
-		union
-		{
-			int IValue;
-			float FValue;
-		};
-	};
-
-	typedef std::stack<StackItem> SheepStack;
-
-	void prepareVariables();
-	void execute(SheepCodeBuffer* code, std::vector<SheepImport>& imports, unsigned int offset, unsigned int firstInstruction = 0);
+	void prepareVariables(SheepContext& context);
+	void execute(SheepContext& context);
+	void executeContextsUntilSuspendedOrFinished();
 
 	void (*m_callback)(const char* message);
 	SHP_MessageCallback m_compilerCallback;
 
-	std::vector<StackItem> m_variables;
-	IntermediateOutput* m_code;
 	SheepImportTable m_imports;
 
-	SheepStack m_currentStack;
-
-	bool m_inWaitSection;
 	SHP_EndWaitCallback m_endWaitCallback;
-	bool m_suspended;
-	unsigned int m_suspendedInstruction;
-	SheepCodeBuffer* m_suspendedCodeBuffer;
-	unsigned int m_suspendedCodeOffset;
+
+
+	typedef std::stack<SheepContext> SheepContextStack;
+	SheepContextStack m_contexts;
+
+	// we consider Call() a built-in function and not technically an import,
+	// mostly for performance reasons
+	static void CALLBACK s_call(SheepVM* vm);
 
 	static int getInt(SheepStack& stack)
 	{
@@ -437,6 +437,12 @@ private:
 			throw SheepMachineException("Invalid import function");
 		if (imports[index].Parameters.size() != numParams)
 			throw SheepMachineException("Invalid number of parameters to import function");
+		if (numParams > stack.size())
+		{
+			printf("stack size: %d numparams: %d\n", stack.size(), numParams);
+			throw SheepMachineException("Stack is not in a valid state for calling this import function");
+		}
+			
 
 		if (imports[index].Callback != NULL)
 		{

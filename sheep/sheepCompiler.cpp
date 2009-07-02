@@ -44,8 +44,8 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 	
 	try
 	{
-		SM(vm)->Prepare(script);
-		SM(vm)->Run(function);
+		IntermediateOutput* output = SM(vm)->Compile(script);
+		SM(vm)->Run(output, function);
 		
 		return SHEEP_SUCCESS;
 	}

@@ -10,6 +10,7 @@
 #include "sheepTypes.h"
 #include "sheepDisassembler.h"
 
+
 void CALLBACK s_printString(SheepVM* vm)
 {
 	std::cout << SHP_PopStringFromStack(vm) << std::endl;
@@ -153,8 +154,9 @@ int main(int argc, char** argv)
 		try
 		{
 			SheepMachine machine;
-			machine.Prepare(output);
-			machine.Run(functionToRun);
+			machine.Run(output, functionToRun);
+
+			delete output;
 		}
 		catch(SheepException& ex)
 		{
