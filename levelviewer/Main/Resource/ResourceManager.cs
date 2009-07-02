@@ -46,6 +46,8 @@ namespace Gk3Main.Resource
         {
             _name = name;
             _loaded = loaded;
+
+            _nameWithoutExtension = Utils.GetFilenameWithoutExtension(name);
         }
 
         public abstract void Dispose();
@@ -64,11 +66,17 @@ namespace Gk3Main.Resource
             get { return _name; }
         }
 
+        public string NameWithoutExtension
+        {
+            get { return _nameWithoutExtension; }
+        }
+
         public bool Loaded { get { return _loaded; } }
 
         protected bool _loaded;
         private int _referenceCount = 0;
         private string _name;
+        private string _nameWithoutExtension;
     }
 
     public class CannotFindResourceLoaderException : Exception

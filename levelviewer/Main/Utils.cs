@@ -21,7 +21,7 @@ using System.Text;
 
 namespace Gk3Main
 {
-    static class Utils
+    public static class Utils
     {
         private static Random _random = new Random();
 
@@ -121,6 +121,54 @@ namespace Gk3Main
             distance = tmin;
             return tmin > 0;
 
+        }
+
+        public static bool TestRaySphereCollision(Math.Vector3 origin,
+            Math.Vector3 direction, Math.Vector3 spherePosition, float radius, out float distance)
+        {
+            Math.Vector3 sphereToOrigin = origin - spherePosition;
+            float b = 2 * (sphereToOrigin.Dot(direction));
+            float c = sphereToOrigin.Dot(sphereToOrigin) - radius * radius;
+
+            float d = b * b - 4 * c;
+            if (d < 0)
+            {
+                distance = 0;
+                return false;
+            }
+
+            float dsqrt = (float)System.Math.Sqrt(d);
+            float q;
+
+            if (b < 0) q = (-b - dsqrt) * 0.5f;
+            else q = (-b + dsqrt) * 0.5f;
+
+            float t0 = q;
+            float t1 = c / q;
+
+            if (t0 > t1)
+            {
+                float tmp = t0;
+                t0 = t1;
+                t1 = tmp;
+            }
+
+            if (t1 < 0)
+            {
+                distance = 0;
+                return false;
+            }
+
+            if (t0 < 0)
+            {
+                distance = t1;
+            }
+            else
+            {
+                distance = t1;
+            }
+            
+            return true;
         }
 
         public static float RollFloatingDie()

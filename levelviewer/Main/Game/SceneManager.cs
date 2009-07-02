@@ -56,6 +56,9 @@ namespace Gk3Main
         {
             _roomPositions.Clear();
             _roomCameras.Clear();
+            _cinematicCameras.Clear();
+            _modelNounMap.Clear();
+            _stks.Clear();
 
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
 
@@ -109,6 +112,8 @@ namespace Gk3Main
                 foreach (SifPosition position in parentSif.Positions)
                     _roomPositions.Add(position.Name, position);
             }
+
+            Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Ambient);
         }
 
         public static void LoadScene(string scn)
@@ -212,8 +217,11 @@ namespace Gk3Main
             float distance;
             foreach (Graphics.ModelResource model in _models)
             {
-             //   if (model.CollideRay(origin, direction, length, out distance))
-              //      return model.Name;
+                if (model.CollideRay(origin, direction, length, out distance))
+                {
+                    Console.CurrentConsole.WriteLine(model.Name);
+                    return model.NameWithoutExtension;
+                }
             }
 
             Graphics.BspSurface surface;

@@ -84,7 +84,9 @@ namespace Gk3Main.Game
 
         public static void SetLocation(string location)
         {
-            SceneManager.LoadSif(location);
+            SceneManager.LoadSif(location + ".SIF");
+
+            Sheep.SheepMachine.RunSheep(string.Format("{0}_ALL.SHP", location), "PlaceEgo$");
         }
 
         public static void Load()

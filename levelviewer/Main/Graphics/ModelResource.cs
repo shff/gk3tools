@@ -157,13 +157,30 @@ namespace Gk3Main.Graphics
 
                 mesh.numSections = reader.ReadUInt32();
 
-                mesh.boundingBox = new float[6];
-                mesh.boundingBox[0] = reader.ReadSingle();
-                mesh.boundingBox[1] = reader.ReadSingle();
-                mesh.boundingBox[2] = reader.ReadSingle();
-                mesh.boundingBox[3] = reader.ReadSingle();
-                mesh.boundingBox[4] = reader.ReadSingle();
-                mesh.boundingBox[5] = reader.ReadSingle();
+                Math.Vector3 bbMin, bbMax;
+                bbMin.X = reader.ReadSingle();
+                bbMin.Y = reader.ReadSingle();
+                bbMin.Z = reader.ReadSingle();
+                bbMax.X = reader.ReadSingle();
+                bbMax.Y = reader.ReadSingle();
+                bbMax.Z = reader.ReadSingle();
+
+                bbMin = transform * bbMin;
+                bbMax = transform * bbMax;
+
+                // set the transformed bounding box back.
+                // make sure the AABB is still min < max, since the transformation
+                // may have changed stuff
+                mesh.boundingBox = new float[]
+                    {
+                        System.Math.Min(bbMin.Z, bbMax.Z),
+                        System.Math.Min(bbMin.Y, bbMax.Y),
+                        System.Math.Min(bbMin.X, bbMax.X),
+                        System.Math.Max(bbMin.Z, bbMax.Z),
+                        System.Math.Max(bbMin.Y, bbMax.Y),
+                        System.Math.Max(bbMin.X, bbMax.X)
+                    };
+
 
                 mesh.sections = new ModMeshSection[mesh.numSections];
                 for (int j = 0; j < mesh.numSections; j++)
@@ -282,7 +299,24 @@ namespace Gk3Main.Graphics
 
                 _effect.EndPass();
                 _effect.End();
+
+                foreach (ModMesh mesh in _meshes)
+                {
+                    BoundingBoxRenderer.Render(camera, mesh.boundingBox);
+                }
             }
+        }
+
+        public bool CollideRay(Math.Vector3 origin, Math.Vector3 direction, float length, out float distance)
+        {
+            foreach (ModMesh mesh in _meshes)
+            {
+                if (Gk3Main.Utils.TestRayAABBCollision(origin, direction, mesh.boundingBox, out distance))
+                    return true;
+            }
+
+            distance = float.MinValue;
+            return false;
         }
 
         public override void Dispose()
