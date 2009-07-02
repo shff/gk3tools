@@ -160,7 +160,7 @@ namespace Gk3Main.Graphics
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
-        void RenderPrimitives(PrimitiveType type, int startIndex, float[] vertices);
+        void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices);
 
         void Clear();
     }

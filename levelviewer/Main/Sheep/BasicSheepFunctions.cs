@@ -23,7 +23,7 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("GetFlag", _getFlag,
                 SymbolType.Integer, SymbolType.String);
 
-            SheepMachine.AddImport("SetLocation", new SheepFunctionDelegate(sheep_setLocation),
+            SheepMachine.AddImport("SetLocation", _setLocation,
                 SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("InitEgoPosition", _initEgoPosition,
@@ -264,6 +264,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
+        private static SheepFunctionDelegate _setLocation = new SheepFunctionDelegate(sheep_setLocation);
         private static SheepFunctionDelegate _setNounVerbCount = new SheepFunctionDelegate(sheep_SetNounVerbCount);
         private static SheepFunctionDelegate _startVoiceOver = new SheepFunctionDelegate(sheep_StartVoiceOver);
         private static SheepFunctionDelegate _sheepStartAnimation = new SheepFunctionDelegate(sheep_StartAnimation);

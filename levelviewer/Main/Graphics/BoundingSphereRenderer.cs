@@ -7,7 +7,7 @@ namespace Gk3Main.Graphics
     public class BoundingSphereRenderer
     {
         private static Effect _effect;
-        private const int _resolution = 6;
+        private const int _resolution = 12;
         private static float[] _vertices;
 
         static BoundingSphereRenderer()
@@ -58,7 +58,10 @@ namespace Gk3Main.Graphics
             
             _effect.SetParameter("ModelViewProjection", Math.Matrix.Scale(radius, radius, radius) * Math.Matrix.Translate(x, y, z) * camera.ModelView * camera.Projection);
 
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, _vertices);
+            int count = (_resolution + 1);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, count, _vertices);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count, count, _vertices);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count * 2, count, _vertices);
 
             _effect.EndPass();
             _effect.End();

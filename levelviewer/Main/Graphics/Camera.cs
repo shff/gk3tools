@@ -41,10 +41,10 @@ namespace Gk3Main.Graphics
             _projection = Math.Matrix.Perspective(fov, aspect, near, far);
 
             // HACK: remove this when we can use our own matrix stuff for UnProject()!
-            Gl.glMatrixMode(Gl.GL_PROJECTION_MATRIX);
+            Gl.glMatrixMode(Gl.GL_PROJECTION);
             Gl.glLoadIdentity();
             Glu.gluPerspective(fov * 57.2957795, aspect, near, far);
-            Gl.glMatrixMode(Gl.GL_MODELVIEW_MATRIX);
+            Gl.glMatrixMode(Gl.GL_MODELVIEW);
             Gl.glLoadIdentity();
         }
 

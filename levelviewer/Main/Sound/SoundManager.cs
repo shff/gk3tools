@@ -32,6 +32,11 @@ namespace Gk3Main.Sound
             _engine = new ISoundEngine();
             _engine.AddFileFactory(new BarnFileFactory());
             _engine.LoadPlugins(".");
+
+            _channelSounds.Add(SoundTrackChannel.Ambient, new List<ISound>());
+            _channelSounds.Add(SoundTrackChannel.Dialog, new List<ISound>());
+            _channelSounds.Add(SoundTrackChannel.Music, new List<ISound>());
+            _channelSounds.Add(SoundTrackChannel.SFX, new List<ISound>());
         }
 
         public static void Shutdown()
@@ -45,7 +50,7 @@ namespace Gk3Main.Sound
                 StopChannel(channel);
 
             ISound isound = Engine.Play2D(sound.Source, false, false, false);
-            _channelSounds[channel] = isound; // BUG: this should be adding this sound to a collection!
+            _channelSounds[channel].Add(isound);
 
             return new PlayingSound(isound);
         }
@@ -56,20 +61,23 @@ namespace Gk3Main.Sound
                 StopChannel(channel);
 
             ISound isound = Engine.Play3D(sound.Source, x, y, z, false, false, false);
-            _channelSounds[channel] = isound;// BUG: this should be adding this sound to a collection!
+            _channelSounds[channel].Add(isound);// BUG: this should be adding this sound to a collection!
 
             return new PlayingSound(isound);
         }
 
         public static void StopChannel(SoundTrackChannel channel)
         {
-            ISound sound;
-            if (_channelSounds.TryGetValue(channel, out sound))
+            List<ISound> sounds;
+            if (_channelSounds.TryGetValue(channel, out sounds))
             {
-                sound.Stop();
-                sound.Dispose();
+                foreach (ISound sound in sounds)
+                {
+                    sound.Stop();
+                    sound.Dispose();
+                }
 
-                _channelSounds[channel] = null;
+                _channelSounds[channel].Clear();
             }
         }
 
@@ -83,8 +91,8 @@ namespace Gk3Main.Sound
         private static int _numSources;
         private static int[] _sources = new int[_maxSources];
 
-        private static Dictionary<SoundTrackChannel, ISound> _channelSounds 
-            = new Dictionary<SoundTrackChannel, ISound>();
+        private static Dictionary<SoundTrackChannel, List<ISound>> _channelSounds 
+            = new Dictionary<SoundTrackChannel, List<ISound>>();
     }
 
     internal class BarnFileFactory : IFileFactory

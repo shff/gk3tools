@@ -30,28 +30,28 @@ namespace Gk3Main.Math
 
         public Vector3(float x, float y, float z)
         {
-            _x = x; _y = y; _z = z;
+            X = x; Y = y; Z = z;
         }
 
         public float Dot(Vector3 v)
         {
-            return _x * v._x + _y * v._y + _z * v._z;
+            return X * v.X + Y * v.Y + Z * v.Z;
         }
 
         public Vector3 Cross(Vector3 v)
         {
-            return new Vector3(_y * v._z - _z * v._y,
-                _z * v._x - _x * v._z,
-                _x * v._y - _y * v._x);
+            return new Vector3(Y * v.Z - Z * v.Y,
+                Z * v.X - X * v.Z,
+                X * v.Y - Y * v.X);
         }
 
-        public float X { get { return _x; } set { _x = value; } }
-        public float Y { get { return _y; } set { _y = value; } }
-        public float Z { get { return _z; } set { _z = value; } }
+       // public float X { get { return _x; } set { _x = value; } }
+       // public float Y { get { return _y; } set { _y = value; } }
+       // public float Z { get { return _z; } set { _z = value; } }
 
         public float Length
         {
-            get { return (float)System.Math.Sqrt(_x * _x + _y * _y + _z * _z); }
+            get { return (float)System.Math.Sqrt(X * X + Y * Y + Z * Z); }
         }
 
         public Vector3 Normalize()
@@ -61,22 +61,22 @@ namespace Gk3Main.Math
 
         public static Vector3 operator +(Vector3 v1, Vector3 v2)
         {
-            return new Vector3(v1._x + v2._x, v1._y + v2._y, v1._z + v2._z);
+            return new Vector3(v1.X + v2.X, v1.Y + v2.Y, v1.Z + v2.Z);
         }
 
         public static Vector3 operator -(Vector3 v1, Vector3 v2)
         {
-            return new Vector3(v1._x - v2._x, v1._y - v2._y, v1._z - v2._z); 
+            return new Vector3(v1.X - v2.X, v1.Y - v2.Y, v1.Z - v2.Z); 
         }
 
         public static Vector3 operator *(Vector3 v, float s)
         {
-            return new Vector3(v._x * s, v._y * s, v._z * s);
+            return new Vector3(v.X * s, v.Y * s, v.Z * s);
         }
 
         public static Vector3 operator /(Vector3 v, float s)
         {
-            return new Vector3(v._x / s, v._y / s, v._z / s);
+            return new Vector3(v.X / s, v.Y / s, v.Z / s);
         }
 
         public static Vector3 operator -(Vector3 v)
@@ -86,10 +86,10 @@ namespace Gk3Main.Math
 
         public override string ToString()
         {
-            return "(" + _x + ", " + _y + ", " + _z + ")";
+            return "(" + X + ", " + Y + ", " + Z + ")";
         }
 
-        private float _x, _y, _z;
+        public float X, Y, Z;
         
         public static Vector3 Forward
         {

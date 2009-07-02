@@ -305,19 +305,17 @@ namespace Gk3Main.Graphics
             glIndices.Unbind();
         }
 
-        public void RenderPrimitives(PrimitiveType type, int startIndex, float[] vertices)
+        public void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices)
         {
-            int glType, count;
+            int glType;
 
             if (type == PrimitiveType.LineStrip)
             {
                 glType = Gl.GL_LINE_STRIP;
-                count = vertices.Length / 3;
             }
             else
             {
                 glType = Gl.GL_TRIANGLES;
-                count = vertices.Length / 3;
             }
 
             Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
