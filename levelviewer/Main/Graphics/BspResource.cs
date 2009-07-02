@@ -75,6 +75,7 @@ namespace Gk3Main.Graphics
         public TextureResource textureResource;
 
         public Math.Vector4 boundingSphere;
+        public bool Hidden;
     }
 
     struct BspModel
@@ -356,10 +357,13 @@ namespace Gk3Main.Graphics
 
             for (int i = 0; i < _surfaces.Length; i++)
             {
-                BspSurface surface = _surfaces[i];
-                TextureResource lightmap = lightmaps[i];
+                if (_surfaces[i].Hidden == false)
+                {
+                    BspSurface surface = _surfaces[i];
+                    TextureResource lightmap = lightmaps[i];
 
-                drawSurface(surface, lightmap, currentEffect, camera);
+                    drawSurface(surface, lightmap, currentEffect, camera);
+                }
             }
             
             currentEffect.DisableTextureParameter("Diffuse");
@@ -420,6 +424,15 @@ namespace Gk3Main.Graphics
         public List<string> GetAllModels()
         {
             return new List<string>(_modelsNames);
+        }
+
+        public void SetSurfaceVisibility(string name, bool visible)
+        {
+            foreach (BspSurface surface in _surfaces)
+            {
+                if (_modelsNames[surface.modelIndex].Equals(name, StringComparison.OrdinalIgnoreCase))
+                    surface.Hidden = !visible;
+            }
         }
 
         private void loadTextures()

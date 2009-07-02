@@ -324,6 +324,13 @@ namespace Gk3Main
                     AddModel(model.Name + ".MOD");
                 }
 
+                if (_currentRoom != null)
+                {
+                    // hide the surface if it shouldn't be visible
+                    if (model.Type == SifModelType.HitTest || model.Hidden)
+                        _currentRoom.SetSurfaceVisibility(model.Name, false);
+                }
+
                 if (string.IsNullOrEmpty(model.Noun) == false)
                     _modelNounMap.Add(model.Name, model.Noun);
             }

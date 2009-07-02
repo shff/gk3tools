@@ -119,6 +119,7 @@ namespace Gk3Main.Gui
 
         private void buttonClicked(string verb, string script)
         {
+            Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", verb);
             Sheep.SheepMachine.RunCommand(script);
         }
 
