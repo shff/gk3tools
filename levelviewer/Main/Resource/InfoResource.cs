@@ -98,7 +98,7 @@ namespace Gk3Main.Resource
                 startIndex++;
             }
 
-            while (startIndex < lines.Length - 1 &&
+            while (startIndex < lines.Length &&
                 lines[startIndex].StartsWith("[") == false)
             {
                 string line = lines[startIndex].Trim();
@@ -139,7 +139,7 @@ namespace Gk3Main.Resource
             
             // break apart the line
             //MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+}?)|[^,]+");
-            MatchCollection matches = Regex.Matches(line, @"([\w\.]+={[^}]+})|([\w\.]+=[^,]+)|([\w\.]+)");
+            MatchCollection matches = Regex.Matches(line, @"([\w\. ]+={[^}]+})|([\w\.]+=[^,]+)|([\w\.]+)");
 
             // each match represents a piece of data, either a single 'key'
             // or something like 'key=value' (where value could be something
@@ -169,7 +169,7 @@ namespace Gk3Main.Resource
                     {
                         keyvalue = new KeyValuePair<string, string>
                         (
-                            match.Value.Substring(0, equals),
+                            match.Value.Substring(0, equals).Trim(),
                             match.Value.Substring(equals + 1)
                         );
                     }

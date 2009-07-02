@@ -27,6 +27,13 @@ namespace Gk3Main.Game
         Day3_09PM
     }
 
+    public enum Ego
+    {
+        None,
+        Gabriel,
+        Grace
+    }
+
     public static class GameManager
     {
         public static int TickCount
@@ -46,6 +53,12 @@ namespace Gk3Main.Game
         {
             get { return _currentTime; }
             set { _currentTime = value; }
+        }
+
+        public static Ego CurrentEgo
+        {
+            get { return _currentEgo; }
+            set { _currentEgo = value; }
         }
 
         public static string GetTimeBlockString(Timeblock timeblock)
@@ -84,7 +97,7 @@ namespace Gk3Main.Game
 
         public static void SetLocation(string location)
         {
-            SceneManager.LoadSif(location + ".SIF");
+            SceneManager.LoadSif(location + GetTimeBlockString(_currentTime) + ".SIF");
 
             Sheep.SheepMachine.RunSheep(string.Format("{0}_ALL.SHP", location), "PlaceEgo$");
         }
@@ -107,6 +120,7 @@ namespace Gk3Main.Game
 
         private static int _tickCount, _prevTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
+        private static Ego _currentEgo;
         private static Verbs _verbs;
         private static LocalizedStrings _strings;
     }

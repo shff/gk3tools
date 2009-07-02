@@ -58,6 +58,8 @@ namespace Gk3Main
             _roomCameras.Clear();
             _cinematicCameras.Clear();
             _modelNounMap.Clear();
+            _nvcs.Clear();
+            _nvcLogicAliases.Clear();
             _stks.Clear();
 
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
@@ -112,6 +114,8 @@ namespace Gk3Main
                 foreach (SifPosition position in parentSif.Positions)
                     _roomPositions.Add(position.Name, position);
             }
+
+            evaluateNvcLogic(_nvcLogicAliases);
 
             Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Ambient);
         }
@@ -266,9 +270,7 @@ namespace Gk3Main
                 {
                     if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
                     {
-                        // TODO: support the "custom" conditions
-                        if (nvc.Case.Equals("ALL", StringComparison.OrdinalIgnoreCase) ||
-                            nvc.Case.Equals("GRACE_ALL", StringComparison.OrdinalIgnoreCase))
+                        if (_nvcLogicAliases[nvc.Case])
                             nvcs.Add(nvc);
                     }
                 }
@@ -353,6 +355,25 @@ namespace Gk3Main
             }
         }
 
+        private static void evaluateNvcLogic(Dictionary<string, bool> aliases)
+        {
+            // build a dictionary of the logic aliases
+            foreach (NvcResource nvc in _nvcs)
+            {
+                foreach (KeyValuePair<string, string> logicAlias in nvc.Logic)
+                {
+                    aliases.Add(logicAlias.Key, Sheep.SheepMachine.RunSnippet(logicAlias.Value) > 0);
+                }
+            }
+
+            // add the "built in" ones
+            aliases.Add("ALL", true);
+            aliases.Add("GRACE_ALL", GameManager.CurrentEgo == Ego.Grace);
+            aliases.Add("GABE_ALL", GameManager.CurrentEgo == Ego.Gabriel);
+            aliases.Add("1ST_TIME", false); // TODO
+            aliases.Add("OTR_TIME", false); // TODO
+        }
+
         private static void unloadModels()
         {
             foreach (Graphics.ModelResource model in _models)
@@ -390,7 +411,8 @@ namespace Gk3Main
         private static Dictionary<string, SifRoomCamera> _roomCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifRoomCamera> _cinematicCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
-        
+        private static Dictionary<string, bool> _nvcLogicAliases = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;

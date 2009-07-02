@@ -26,6 +26,18 @@ namespace Gk3Main.Game
         public NvcResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
+            // load the Logic aliases
+            foreach (Resource.InfoSection section in _sections)
+            {
+                if (section.Name.Equals("Logic", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        _logic.Add(new KeyValuePair<string, string>(line.Attributes[0].Key, line.Attributes[0].Value.Replace("{", "").Replace("}", "")));
+                    }
+                }
+            }
+
             foreach (Resource.InfoLine line in GlobalSection.Lines)
             {
                 NounVerbCase nvc;
@@ -60,7 +72,13 @@ namespace Gk3Main.Game
             get { return _nvcs; }
         }
 
+        public List<KeyValuePair<string, string>> Logic
+        {
+            get { return _logic; }
+        }
+
         private List<NounVerbCase> _nvcs = new List<NounVerbCase>();
+        private List<KeyValuePair<string, string>> _logic = new List<KeyValuePair<string, string>>();
     }
 
     public class NvcResourceLoader : Resource.IResourceLoader

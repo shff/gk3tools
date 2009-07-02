@@ -4,9 +4,10 @@ using Tao.Sdl;
 
 class MyConsole : Gk3Main.Console
 {
-    public override void Write(string text, params object[] arg)
+    public override void Write(Gk3Main.ConsoleVerbosity verbosity, string text, params object[] arg)
     {
-        Console.WriteLine(text, arg);
+        if (verbosity >= Verbosity)
+            Console.WriteLine(text, arg);
     }
 }
 
@@ -172,6 +173,7 @@ class MonoMain
                     if (_isDemo)
                     {
                         Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
+                        Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Grace;
                         Gk3Main.SceneManager.LoadSif("CSE212P.SIF");
                         Gk3Main.Sheep.SheepMachine.RunSheep("CSE_ALL.SHP", "PlaceEgo$");
                     }
@@ -198,6 +200,7 @@ class MonoMain
                     menu.Render(Gk3Main.Game.GameManager.TickCount);
                 }
             }
+
 
             Game.VerbPickerManager.Render(Gk3Main.Game.GameManager.TickCount);
             Game.VerbPickerManager.RenderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);

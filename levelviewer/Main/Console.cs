@@ -6,14 +6,27 @@ namespace Gk3Main
 {
     public delegate bool ConsoleCommand(string[] args, Console console);
 
+    public enum ConsoleVerbosity
+    {
+        Extreme = 0,
+        Debug = 1,
+        Polite = 2,
+        Silent = 3
+    }
+
     public abstract class Console
     {
-        public void WriteLine(string text, params object[] arg)
+        public void WriteLine(ConsoleVerbosity verbosity, string text, params object[] args)
         {
-            Write(text + Environment.NewLine, arg);
+            Write(verbosity, text, args);
         }
 
-        public abstract void Write(string text, params object[] arg);
+        public void WriteLine(string text, params object[] arg)
+        {
+            Write(ConsoleVerbosity.Polite, text + Environment.NewLine, arg);
+        }
+
+        public abstract void Write(ConsoleVerbosity verbosity, string text, params object[] arg);
 
         public virtual void ReportError(string error)
         {
@@ -39,7 +52,14 @@ namespace Gk3Main
             }
         }
 
+        public ConsoleVerbosity Verbosity
+        {
+            get { return _verbosity; }
+            set { _verbosity = value; }
+        }
+
         protected Dictionary<string, ConsoleCommand> _commands = new Dictionary<string, ConsoleCommand>();
+        private ConsoleVerbosity _verbosity;
 
         public static Console CurrentConsole
         {
@@ -52,7 +72,7 @@ namespace Gk3Main
 
     public class NullConsole : Console
     {
-        public override void Write(string text, params object[] arg)
+        public override void Write(ConsoleVerbosity verbosity, string text, params object[] arg)
         {
             // do nothing
         }

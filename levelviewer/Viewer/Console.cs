@@ -43,9 +43,10 @@ namespace Viewer
             _console = console;
         }
 
-        public override void Write(string text, params object[] arg)
+        public override void Write(Gk3Main.ConsoleVerbosity verbosity, string text, params object[] arg)
         {
-            _console.Write(text, arg);
+            if (verbosity >= Verbosity)
+                _console.Write(text, arg);
         }
 
         public override void ReportError(string error)

@@ -538,7 +538,7 @@ namespace Gk3Main.Graphics
             effect.Begin();
             effect.BeginPass(0);
 
-            effect.UpdatePassParameters();
+            //effect.UpdatePassParameters();
 
             Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
             Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
@@ -561,7 +561,7 @@ namespace Gk3Main.Graphics
             int err = Gl.glGetError();
 
             if (err != Gl.GL_NO_ERROR)
-                Console.CurrentConsole.Write("error: " + err);
+                Console.CurrentConsole.WriteLine("error: " + err);
 
             effect.EndPass();
             effect.End();
