@@ -65,6 +65,7 @@
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
     <Compile Include="Game\YakResource.cs" />
+    <Compile Include="Graphics\BoundingBoxRenderer.cs" />
     <Compile Include="Graphics\BoundingSphereRenderer.cs" />
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Gui\CursorResource.cs" />
     <Compile Include="Gui\Font.cs" />
     <Compile Include="Gui\Unit.cs" />
+    <Compile Include="Gui\VerbButton.cs" />
     <Compile Include="Gui\VerbButtonSet.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Math\Constants.cs" />
