@@ -166,9 +166,9 @@ private:
 
 	static void get2Ints(SheepStack& stack, int& i1, int& i2)
 	{
-		StackItem item1 = stack.top();
-		stack.pop();
 		StackItem item2 = stack.top();
+		stack.pop();
+		StackItem item1 = stack.top();
 		stack.pop();
 		
 		if (item1.Type != SYM_INT || item2.Type != SYM_INT)
@@ -180,9 +180,9 @@ private:
 
 	static void get2Floats(SheepStack& stack, float& f1, float& f2)
 	{
-		StackItem item1 = stack.top();
-		stack.pop();
 		StackItem item2 = stack.top();
+		stack.pop();
+		StackItem item1 = stack.top();
 		stack.pop();
 		
 		if (item1.Type != SYM_FLOAT || item2.Type != SYM_FLOAT)
