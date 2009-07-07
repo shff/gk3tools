@@ -20,4 +20,15 @@ struct ci_less : std::binary_function<std::string, std::string, bool>
 	}
 };
 
+static bool CIEqual(const std::string& s1, const std::string& s2)
+{
+	std::string c1(s1);
+	std::string c2(s2);
+
+	std::transform(c1.begin(), c1.end(), c1.begin(), tolower);
+	std::transform(c2.begin(), c2.end(), c2.begin(), tolower);
+
+	return c1 == c2;
+}
+
 #endif // SHEEPCASEINSENSITIVESTRINGCOMPARE_H

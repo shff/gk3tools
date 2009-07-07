@@ -4,6 +4,7 @@
 #include "sheepImportTable.h"
 #include "sheepCodeBuffer.h"
 #include "sheepMachine.h"
+#include "sheepFileReader.h"
 
 #define SM(v) static_cast<SheepMachine*>(v)
 
@@ -47,6 +48,31 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 		IntermediateOutput* output = SM(vm)->Compile(script);
 		SM(vm)->Run(output, function);
 		
+		return SHEEP_SUCCESS;
+	}
+	catch(NoSuchFunctionException& ex)
+	{
+		return SHEEP_ERR_NO_SUCH_FUNCTION;
+	}
+	catch(SheepException& ex)
+	{
+		return SHEEP_ERROR;
+	}
+}
+
+int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
+{
+	assert(vm != NULL);
+
+	try
+	{
+		SheepFileReader* reader = new SheepFileReader(code, length);
+		IntermediateOutput* output = reader->GetIntermediateOutput();
+		SM(vm)->Run(output, function);
+		
+		delete output;
+		delete reader;
+
 		return SHEEP_SUCCESS;
 	}
 	catch(NoSuchFunctionException& ex)

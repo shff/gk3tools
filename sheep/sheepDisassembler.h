@@ -6,42 +6,11 @@
 #include <vector>
 #include <memory.h>
 #include "sheepc.h"
+#include "sheepFileReader.h"
 //#include "sheepfile.h"
 
 namespace SheepCompiler
 {
-	struct SheepHeader
-	{
-		unsigned int Magic1;
-		unsigned int Magic2;
-		unsigned int Unknown;
-		unsigned int ExtraOffset;
-		unsigned int DataOffset;
-		unsigned int DataSize;
-		unsigned int DataCount;
-
-		unsigned int* OffsetArray;
-
-		static const unsigned int SheepHeaderSize = 28;
-		static const unsigned int Magic1Value = 0x53334b47;
-		static const unsigned int Magic2Value = 0x70656568;
-	};
-
-	struct SectionHeader
-	{
-		SectionHeader() { memset(Label, 0, 12); OffsetArray = NULL; }
-
-		char Label[12];
-		unsigned int ExtraOffset;
-		unsigned int DataOffset;
-		unsigned int DataSize;
-		unsigned int DataCount;
-
-		unsigned int* OffsetArray;
-
-		static const unsigned int SectionHeaderSize = 28;
-	};
-
 	struct Import
 	{
 		unsigned short LengthOfName;
@@ -76,7 +45,7 @@ namespace SheepCompiler
 		static std::string readString(std::ifstream& file);
 		static std::string readString(std::ifstream& file, unsigned int length);
 
-		static unsigned int printNextInstruction(std::ifstream& file, std::ostream& output, std::vector<Import>& imports, std::vector<StringConstant>& constants);
+		static unsigned int printNextInstruction(const byte* code, std::ostream& output, std::vector<SheepImport>& imports, std::vector<SheepStringConstant>& constants);
 		
 		static void printDisassembly(std::ostream& output, int op, const std::string& name);
 		static void printDisassembly(std::ostream& output, int op,

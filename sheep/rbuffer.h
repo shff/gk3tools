@@ -101,6 +101,7 @@ public:
 	size_t Tell() { return m_currentOffset; }
 	const char* GetData() { return m_buffer; }
 	size_t GetSize() { return m_size; }
+	size_t GetCapacity() { return m_totalSize; }
 
 	void Rewind()
 	{

@@ -98,7 +98,7 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 	for (std::vector<SheepFunction>::iterator itr = code->Functions.begin();
 		itr != code->Functions.end(); itr++)
 	{
-		if ((*itr).Name == function)
+		if (CIEqual((*itr).Name, function))
 		{
 			sheepfunction = &(*itr);
 			break;

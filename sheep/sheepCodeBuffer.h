@@ -67,6 +67,16 @@ class SheepCodeBuffer : public ResizableBuffer
 {
 public:
 
+	SheepCodeBuffer(int size)
+		: ResizableBuffer(size)
+	{
+	}
+
+	SheepCodeBuffer()
+		: ResizableBuffer()
+	{
+	}
+
 	void WriteSheepInstruction(SheepInstruction instruction)
 	{
 		char op = (char)instruction;

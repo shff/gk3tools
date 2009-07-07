@@ -64,6 +64,7 @@ int main(int argc, char** argv)
 		SHP_Version v = SHP_GetVersion();
 
 		std::cout << "Sheep Compiler and Virtual Machine " << (int)v.Major << "." << (int)v.Minor << "." << (int)v.Revision << std::endl;
+		std::cout << "Built " << __DATE__ << " " << __TIME__ << std::endl;
 		return 0;
 	}
 

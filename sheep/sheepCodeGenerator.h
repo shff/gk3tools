@@ -13,6 +13,7 @@ class IntermediateOutput
 {
 public:
 
+	IntermediateOutput() {}
 	~IntermediateOutput();
 
 	std::vector<SheepSymbol> Symbols;
