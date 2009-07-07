@@ -71,6 +71,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("InitEgoPosition", _initEgoPosition,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("IsActorAtLocation", _isActorAtLocation,
+                SymbolType.Integer, SymbolType.String, SymbolType.String);
+
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
@@ -137,6 +140,12 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("WalkerBoundaryBlockRegion", _walkerBoundaryBlockRegion,
                 SymbolType.Void, SymbolType.Integer, SymbolType.Integer);
 
+            SheepMachine.AddImport("WalkerBoundaryBlockModel", _dummyString,
+                SymbolType.Void, SymbolType.String);
+
+            SheepMachine.AddImport("WalkerBoundaryUnblockModel", _dummyString,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("WalkTo", _walkTo,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
@@ -179,6 +188,16 @@ namespace Gk3Main.Sheep
             string location = SheepMachine.PopStringOffStack(vm);
 
             Game.GameManager.SetLocation(location);
+        }
+
+        private static void sheep_IsActorAtLocation(IntPtr vm)
+        {
+            string location = SheepMachine.PopStringOffStack(vm);
+            string actor = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_IsCurrentTime(IntPtr vm)
@@ -453,8 +472,6 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _clearFlag = new SheepFunctionDelegate(sheep_clearFlag);
         private static SheepFunctionDelegate _cutToCameraAngle = new SheepFunctionDelegate(sheep_CutToCameraAngle);
         private static SheepFunctionDelegate _getFlag = new SheepFunctionDelegate(sheep_GetFlag);
-        private static SheepFunctionDelegate _initEgoPosition = new SheepFunctionDelegate(sheep_InitEgoPosition);
-        private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
         private static SheepFunctionDelegate _finishedScreen = new SheepFunctionDelegate(sheep_FinishedScreen);
         private static SheepFunctionDelegate _getGameVariableIntDelegate = new SheepFunctionDelegate(sheep_GetGameVariableInt);
         private static SheepFunctionDelegate _getChatCount = new SheepFunctionDelegate(sheep_GetChatCount);
@@ -463,8 +480,11 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _getNounVerbCount = new SheepFunctionDelegate(sheep_GetNounVerbCount);
         private static SheepFunctionDelegate _doesGraceHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGraceHaveInvItem);
         private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
+        private static SheepFunctionDelegate _initEgoPosition = new SheepFunctionDelegate(sheep_InitEgoPosition);
         private static SheepFunctionDelegate _incNounVerbCount = new SheepFunctionDelegate(sheep_IncNounVerbCount);
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
+        private static SheepFunctionDelegate _isActorAtLocation = new SheepFunctionDelegate(sheep_IsActorAtLocation);
+        private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
         private static SheepFunctionDelegate _setForcedCameraCuts = new SheepFunctionDelegate(sheep_SetForcedCameraCuts);
