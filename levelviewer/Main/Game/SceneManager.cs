@@ -115,8 +115,6 @@ namespace Gk3Main
                     _roomPositions.Add(position.Name, position);
             }
 
-            evaluateNvcLogic(_nvcLogicAliases);
-
             Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Ambient);
         }
 
@@ -270,7 +268,7 @@ namespace Gk3Main
                 {
                     if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (_nvcLogicAliases[nvc.Case])
+                        if (evaluateNvcLogic(nvc.Case))
                             nvcs.Add(nvc);
                     }
                 }
@@ -342,7 +340,13 @@ namespace Gk3Main
             {
                 try
                 {
-                    _nvcs.Add((Game.NvcResource)Resource.ResourceManager.Load(nvcFile));
+                    Game.NvcResource nvc = (Game.NvcResource)Resource.ResourceManager.Load(nvcFile);
+                    _nvcs.Add(nvc);
+
+                    foreach (KeyValuePair<string, string> nvcLogic in nvc.Logic)
+                    {
+                        _nvcLogicAliases.Add(nvcLogic.Key, nvcLogic.Value);
+                    }
                 }
                 catch (System.IO.FileNotFoundException)
                 {
@@ -362,23 +366,20 @@ namespace Gk3Main
             }
         }
 
-        private static void evaluateNvcLogic(Dictionary<string, bool> aliases)
+        private static bool evaluateNvcLogic(string conditionName)
         {
-            // build a dictionary of the logic aliases
-            foreach (NvcResource nvc in _nvcs)
-            {
-                foreach (KeyValuePair<string, string> logicAlias in nvc.Logic)
-                {
-                    aliases.Add(logicAlias.Key, Sheep.SheepMachine.RunSnippet(logicAlias.Value) > 0);
-                }
-            }
+            if (conditionName.Equals("ALL", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (conditionName.Equals("GRACE_ALL", StringComparison.OrdinalIgnoreCase))
+                return GameManager.CurrentEgo == Ego.Grace;
+            if (conditionName.Equals("GABE_ALL", StringComparison.OrdinalIgnoreCase))
+                return GameManager.CurrentEgo == Ego.Gabriel;
+            if (conditionName.Equals("1ST_TIME") || conditionName.Equals("OTR_TIME"))
+                return false; // TODO
 
-            // add the "built in" ones
-            aliases.Add("ALL", true);
-            aliases.Add("GRACE_ALL", GameManager.CurrentEgo == Ego.Grace);
-            aliases.Add("GABE_ALL", GameManager.CurrentEgo == Ego.Gabriel);
-            aliases.Add("1ST_TIME", false); // TODO
-            aliases.Add("OTR_TIME", false); // TODO
+            // guess it was something else
+            string condition = _nvcLogicAliases[conditionName];
+            return Sheep.SheepMachine.RunSnippet(condition) > 0;
         }
 
         private static void unloadModels()
@@ -418,7 +419,7 @@ namespace Gk3Main
         private static Dictionary<string, SifRoomCamera> _roomCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifRoomCamera> _cinematicCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, bool> _nvcLogicAliases = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, string> _nvcLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;

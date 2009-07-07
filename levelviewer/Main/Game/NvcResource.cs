@@ -21,6 +21,41 @@ namespace Gk3Main.Game
         public string Script;
     }
 
+    struct NounVerbCombination
+    {
+        public NounVerbCombination(string noun, string verb)
+        {
+            Noun = noun;
+            Verb = verb;
+        }
+
+        public string Noun;
+        public string Verb;
+    }
+
+    class NounVerbComparison : IEqualityComparer<NounVerbCombination>
+    {
+        public bool Equals(NounVerbCombination nv1, NounVerbCombination nv2)
+        {
+            bool r1 = StringComparer.OrdinalIgnoreCase.Equals(nv1.Noun, nv2.Noun);
+
+            if (!r1)
+            {
+                return StringComparer.OrdinalIgnoreCase.Equals(nv1.Verb, nv2.Verb);
+            }
+            else
+            {
+                return r1;
+            }
+        }
+
+        public int GetHashCode(NounVerbCombination nv)
+        {
+            // i have no idea how good a hash this returns
+            return StringComparer.OrdinalIgnoreCase.GetHashCode(nv.Noun) ^ StringComparer.OrdinalIgnoreCase.GetHashCode(nv.Verb);
+        }
+    }
+
     public class NvcResource : Resource.InfoResource
     {
         public NvcResource(string name, System.IO.Stream stream)

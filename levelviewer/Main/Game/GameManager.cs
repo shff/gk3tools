@@ -102,6 +102,20 @@ namespace Gk3Main.Game
             Sheep.SheepMachine.RunSheep(string.Format("{0}_ALL.SHP", location), "PlaceEgo$");
         }
 
+        public static int GetNounVerbCount(string noun, string verb)
+        {
+            int count;
+            if (_nounVerbCounts.TryGetValue(new NounVerbCombination(noun, verb), out count))
+                return count;
+
+            return 0;
+        }
+
+        public static void SetNounVerbCount(string noun, string verb, int count)
+        {
+            _nounVerbCounts[new NounVerbCombination(noun, verb)] = count;
+        }
+
         public static void Load()
         {
             _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
@@ -123,5 +137,6 @@ namespace Gk3Main.Game
         private static Ego _currentEgo;
         private static Verbs _verbs;
         private static LocalizedStrings _strings;
+        private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
     }
 }
