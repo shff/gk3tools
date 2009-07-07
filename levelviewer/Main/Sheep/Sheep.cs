@@ -85,13 +85,48 @@ namespace Gk3Main.Sheep
         {
             if (_vm != IntPtr.Zero)
             {
-                using (System.IO.StreamReader reader = new System.IO.StreamReader(FileSystem.Open(filename)))
-                {
-                    string script = reader.ReadToEnd();
 
-                    if (SHP_RunScript(_vm, script, function) != SHEEP_SUCCESS)
-                        throw new SheepException("Unable to execute Sheep script");
+                System.IO.Stream s = FileSystem.Open(filename);
+                
+                // determine wether this is binary or not
+                if (s.ReadByte() == 0x47)
+                {
+                    // rewind
+                    s.Seek(0, System.IO.SeekOrigin.Begin);
+
+                    byte[] buffer = new byte[1024];
+                    System.IO.MemoryStream ms = new System.IO.MemoryStream();
+                    using (System.IO.BinaryReader reader = new System.IO.BinaryReader(s))
+                    {
+                        while (true)
+                        {
+                            int read = reader.Read(buffer, 0, buffer.Length);
+                            if (read <= 0) break;
+
+                            ms.Write(buffer, 0, read);
+                        }
+
+                        int err = SHP_RunCode(_vm, ms.ToArray(), (int)ms.Length, function);
+                        if (err != SHEEP_SUCCESS)
+                            throw new SheepException("Unable to execute Sheep script");
+                    }
                 }
+                else
+                {
+                    // rewind
+                    s.Seek(0, System.IO.SeekOrigin.Begin);
+
+                    using (System.IO.StreamReader reader = new System.IO.StreamReader(s))
+                    {
+                        string script = reader.ReadToEnd();
+
+                        int err = SHP_RunScript(_vm, script, function);
+                        if (err != SHEEP_SUCCESS)
+                            throw new SheepException("Unable to execute Sheep script");
+                    }
+                }
+
+                s.Close();
             }
             else
             {
@@ -234,6 +269,9 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern int SHP_RunScript(IntPtr vm, string script, string function);
+
+        [DllImport("sheep")]
+        private static extern int SHP_RunCode(IntPtr vm, byte[] code, int length, string function);
 
         [DllImport("sheep")]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
