@@ -44,6 +44,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("FinishedScreen", _finishedScreen,
                 SymbolType.Void);
 
+            SheepMachine.AddImport("ForceCutToCameraAngle", _cutToCameraAngle,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("GetFlag", _getFlag,
                 SymbolType.Integer, SymbolType.String);
 
@@ -91,6 +94,12 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("SetForcedCameraCuts", _setForcedCameraCuts,
                 SymbolType.Void, SymbolType.Integer);
+
+            SheepMachine.AddImport("SetGameTimer", _setGameTimer,
+                SymbolType.Void, SymbolType.String, SymbolType.String, SymbolType.Integer);
+
+            SheepMachine.AddImport("SetGameVariableInt", _setGameVariableInt,
+                SymbolType.Void, SymbolType.String, SymbolType.Integer);
 
             SheepMachine.AddImport("SetListenGas", _setListenGas,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
@@ -180,7 +189,7 @@ namespace Gk3Main.Sheep
         {
             string angleName = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            SceneManager.SetCameraToCinematicCamera(angleName);
         }
 
         private static void sheep_setLocation(IntPtr vm)
@@ -214,9 +223,9 @@ namespace Gk3Main.Sheep
         {
             string variable = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            int value = Game.GameManager.GetIntegerGameVariable(variable);
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, value);
         }
 
         private static void sheep_GetChatCount(IntPtr vm)
@@ -332,6 +341,15 @@ namespace Gk3Main.Sheep
             // TODO!
         }
 
+        private static void sheep_SetGameTimer(IntPtr vm)
+        {
+            int milliseconds = SheepMachine.PopIntOffStack(vm);
+            string verb = SheepMachine.PopStringOffStack(vm);
+            string noun = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+        }
+
         private static void sheep_SetListenGas(IntPtr vm)
         {
             string gas = SheepMachine.PopStringOffStack(vm);
@@ -354,6 +372,14 @@ namespace Gk3Main.Sheep
             int value = SheepMachine.PopIntOffStack(vm);
 
             // TODO
+        }
+
+        private static void sheep_SetGameVariableInt(IntPtr vm)
+        {
+            int value = SheepMachine.PopIntOffStack(vm);
+            string name = SheepMachine.PopStringOffStack(vm);
+
+            Game.GameManager.SetIntegerGameVariable(name, value);
         }
 
         private static void sheep_SetTalkGas(IntPtr vm)
@@ -488,6 +514,8 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
         private static SheepFunctionDelegate _setForcedCameraCuts = new SheepFunctionDelegate(sheep_SetForcedCameraCuts);
+        private static SheepFunctionDelegate _setGameTimer = new SheepFunctionDelegate(sheep_SetGameTimer);
+        private static SheepFunctionDelegate _setGameVariableInt = new SheepFunctionDelegate(sheep_SetGameVariableInt);
         private static SheepFunctionDelegate _setListenGas = new SheepFunctionDelegate(sheep_SetListenGas);
         private static SheepFunctionDelegate _setLocation = new SheepFunctionDelegate(sheep_setLocation);
         private static SheepFunctionDelegate _setNounVerbCount = new SheepFunctionDelegate(sheep_SetNounVerbCount);

@@ -268,7 +268,7 @@ namespace Gk3Main
                 {
                     if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (evaluateNvcLogic(nvc.Case))
+                        if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
                             nvcs.Add(nvc);
                     }
                 }
@@ -366,7 +366,7 @@ namespace Gk3Main
             }
         }
 
-        private static bool evaluateNvcLogic(string conditionName)
+        private static bool evaluateNvcLogic(string noun, string verb, string conditionName)
         {
             if (conditionName.Equals("ALL", StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -374,8 +374,10 @@ namespace Gk3Main
                 return GameManager.CurrentEgo == Ego.Grace;
             if (conditionName.Equals("GABE_ALL", StringComparison.OrdinalIgnoreCase))
                 return GameManager.CurrentEgo == Ego.Gabriel;
-            if (conditionName.Equals("1ST_TIME") || conditionName.Equals("OTR_TIME"))
-                return false; // TODO
+            if (conditionName.Equals("1ST_TIME", StringComparison.OrdinalIgnoreCase))
+                return GameManager.GetNounVerbCount(noun, verb) == 0;
+            if (conditionName.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase))
+                return GameManager.GetNounVerbCount(noun, verb) > 0;
 
             // guess it was something else
             string condition = _nvcLogicAliases[conditionName];

@@ -116,6 +116,20 @@ namespace Gk3Main.Game
             _nounVerbCounts[new NounVerbCombination(noun, verb)] = count;
         }
 
+        public static int GetIntegerGameVariable(string variable)
+        {
+            int value;
+            if (_integerGameVariables.TryGetValue(variable, out value))
+                return value;
+
+            return 0;
+        }
+
+        public static void SetIntegerGameVariable(string variable, int value)
+        {
+            _integerGameVariables[variable] = value;
+        }
+
         public static void Load()
         {
             _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
@@ -138,5 +152,6 @@ namespace Gk3Main.Game
         private static Verbs _verbs;
         private static LocalizedStrings _strings;
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
+        private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
     }
 }
