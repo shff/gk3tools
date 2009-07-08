@@ -346,6 +346,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sheepFileReader.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sheepFileWriter.cpp"
 				>
 			</File>
@@ -389,6 +393,10 @@
 			</File>
 			<File
 				RelativePath=".\sheepDisassembler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sheepFileReader.h"
 				>
 			</File>
 			<File
