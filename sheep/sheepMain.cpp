@@ -113,15 +113,30 @@ int main(int argc, char** argv)
 	}
 
 	std::stringstream ss;
-	std::string line;
-	while(std::getline(file, line))
+	SheepFileReader* reader = NULL;
+	char magic;
+	file.read(&magic, 1);
+	if (magic == 'G')
 	{
-		ss << line << std::endl;
-	}
+		// treat this as a compiled script
+		file.seekg(0);
 
+		reader = new SheepFileReader(file);
+	}
+	else
+	{
+		file.seekg(0);
+
+		
+		std::string line;
+		while(std::getline(file, line))
+		{
+			ss << line << std::endl;
+		}
+	}
 	file.close();
 	
-	tree.Lock(ss.str(), NULL);
+/*	tree.Lock(ss.str(), NULL);
 
 	SheepImportTable imports;
 	imports.TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
@@ -138,26 +153,57 @@ int main(int argc, char** argv)
 		{
 			std::cout << "OE: " << output->Errors[i].LineNumber << ": " << output->Errors[i].Output << std::endl;
 		}
-	}
+	}*/
 	
 	if (mode == Compiler)
 	{
-		SheepFileWriter writer(output);
-		writer.Write(outputFile);
+		SheepMachine m;
 
+		m.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
+		m.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
+
+		IntermediateOutput* output;
 		
-		
-		std::cout << "Num symbols: " << output->Symbols.size() << std::endl;
-		std::cout << "Num functions: " << output->Functions.size() << std::endl;
+		if (reader)
+			output = reader->GetIntermediateOutput();
+		else
+			output = m.Compile(ss.str());
+
+		if (output->Errors.empty() == false)
+		{
+			for (size_t i = 0; i < output->Errors.size(); i++)
+			{
+				std::cout << "Error " << output->Errors[i].LineNumber << ": " << output->Errors[i].Output << std::endl;
+			}
+		}
+		else
+		{
+			SheepFileWriter writer(output);
+			writer.Write(outputFile);
+			
+			std::cout << "Num symbols: " << output->Symbols.size() << std::endl;
+			std::cout << "Num functions: " << output->Functions.size() << std::endl;
+		}
+
+		delete output;
 	}
 	else
 	{
 		try
 		{
 			SheepMachine machine;
-			machine.Run(output, functionToRun);
 
-			delete output;
+			machine.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
+			machine.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
+
+			IntermediateOutput* output;
+		
+			if (reader)
+				output = reader->GetIntermediateOutput();
+			else
+				output = machine.Compile(ss.str());
+
+			machine.Run(output, functionToRun);
 		}
 		catch(SheepException& ex)
 		{

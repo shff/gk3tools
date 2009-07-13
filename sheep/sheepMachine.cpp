@@ -533,5 +533,10 @@ void SheepMachine::s_call(SheepVM* vm)
 	machine->prepareVariables(c);
 	machine->m_contexts.push(c);
 
-	machine->executeContextsUntilSuspendedOrFinished();
+	machine->execute(machine->m_contexts.top());
+
+	if (machine->m_contexts.top().Suspended == false)
+	{
+		machine->m_contexts.pop();
+	}
 }

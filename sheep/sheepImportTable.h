@@ -91,9 +91,9 @@ public:
 		return import;
 	}
 
-	bool TryFindImport(const std::string& name, SheepImport& import)
+	bool TryFindImport(const std::string& name, SheepImport& import) const
 	{
-		ImportMap::iterator itr = m_imports.find(name);
+		ImportMap::const_iterator itr = m_imports.find(name);
 
 		if (itr == m_imports.end())
 			return false;

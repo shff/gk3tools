@@ -14,7 +14,10 @@
 IntermediateOutput::~IntermediateOutput()
 {
 	for (std::vector<SheepFunction>::iterator itr = Functions.begin(); itr != Functions.end(); itr++)
-		delete (*itr).Code;
+	{
+		if ((*itr).Code != NULL)
+			delete (*itr).Code;
+	}
 }
 
 void IntermediateOutput::Print()
@@ -591,7 +594,8 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 		{
 			// call to an import function, so check the parameters
 			SheepImport import;
-			m_imports->TryFindImport(identifier->GetName(), import);
+			if (m_imports->TryFindImport(identifier->GetName(), import) == false)
+				throw SheepCompilerException(identifier->GetLineNumber(), "Unknown import function");
 	
 
 			std::vector<CodeTreeExpressionValueType> params;

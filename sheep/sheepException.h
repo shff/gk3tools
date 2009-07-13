@@ -45,4 +45,16 @@ private:
 	int m_lineNumber;
 };
 
+class CannotFindSheepFunctionException : public SheepException
+{
+public:
+	CannotFindSheepFunctionException(const std::string& name) throw()
+		: SheepException("Cannot find function: " + name)
+	{
+	}
+
+	virtual ~CannotFindSheepFunctionException() throw() {}
+
+};
+
 #endif // SHEEPEXCEPTION_H

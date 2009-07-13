@@ -67,10 +67,10 @@ int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
 	try
 	{
 		SheepFileReader* reader = new SheepFileReader(code, length);
+		reader->WireImportCallbacks(SM(vm)->GetImports());
 		IntermediateOutput* output = reader->GetIntermediateOutput();
 		SM(vm)->Run(output, function);
 		
-		delete output;
 		delete reader;
 
 		return SHEEP_SUCCESS;

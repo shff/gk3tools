@@ -2,7 +2,9 @@
 #define SHEEPFILEREADER_H
 
 #include "sheepc.h"
+#include "sheepTypes.h"
 #include <string>
+#include <vector>
 
 struct SheepHeader
 {
@@ -37,13 +39,17 @@ struct SectionHeader
 };
 
 class IntermediateOutput;
+class SheepImportTable;
 
 class SheepFileReader
 {
 public:
 
 	SheepFileReader(const std::string& filename);
+	SheepFileReader(std::ifstream& file);
 	SheepFileReader(const byte* data, int length);
+
+	void WireImportCallbacks(const SheepImportTable& imports);
 
 	IntermediateOutput* GetIntermediateOutput() { return m_intermediateOutput; }
 
