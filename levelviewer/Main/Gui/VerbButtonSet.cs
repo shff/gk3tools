@@ -24,7 +24,8 @@ namespace Gk3Main.Gui
                     string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
-                    string.Format("{0}.BMP", info.DisableButton), null,
+                    info.DisableButton != null ? string.Format("{0}.BMP", info.DisableButton) : null,
+                    null,
                     Game.GameManager.Strings.GetVerbTooltip(info.Verb));
                 b.X = new Unit(0, buttonOffsetX);
                 b.Y = new Unit(0, screenY);
@@ -42,7 +43,8 @@ namespace Gk3Main.Gui
                 Button b = new Button(string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
-                    string.Format("{0}.BMP", info.DisableButton), null,
+                    info.DisableButton != null ? string.Format("{0}.BMP", info.DisableButton) : null,
+                    null,
                     Game.GameManager.Strings.GetVerbTooltip(info.Verb));
                 b.X = new Unit(0, buttonOffsetX);
                 b.Y = new Unit(0, screenY);
@@ -62,6 +64,20 @@ namespace Gk3Main.Gui
             }
 
             _buttons = null;
+        }
+
+        public void KeepInsideViewport(Graphics.Viewport viewport)
+        {
+            if (_buttons.Count > 0)
+            {
+                int totalWidth = _buttons.Count * ButtonWidth;
+
+                int overflowX = (_buttons[0].X.Offset + totalWidth) - viewport.Width;
+
+                if (overflowX > 0)
+                    foreach (Button b in _buttons)
+                        b.X = new Unit(0, b.X.Offset - overflowX);
+            }
         }
 
         public void Render(int tickCount)

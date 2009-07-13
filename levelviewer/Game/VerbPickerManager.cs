@@ -56,7 +56,10 @@ namespace Game
                 List<Gk3Main.Game.NounVerbCase> nvcs = getNounVerbCasesUnderCursor(camera, x, y);
 
                 if (nvcs != null)
+                {
                     _vbs = new Gk3Main.Gui.VerbButtonSet(x, y, nvcs, true);
+                    _vbs.KeepInsideViewport(Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport);
+                }
             }
         }
 

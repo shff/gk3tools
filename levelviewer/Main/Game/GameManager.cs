@@ -98,8 +98,15 @@ namespace Gk3Main.Game
         public static void SetLocation(string location)
         {
             SceneManager.LoadSif(location + GetTimeBlockString(_currentTime) + ".SIF");
+            List<NounVerbCase> nvcs = SceneManager.GetNounVerbCasesForNoun("SCENE");
 
-            Sheep.SheepMachine.RunSheep(string.Format("{0}_ALL.SHP", location), "PlaceEgo$");
+            foreach (NounVerbCase nvc in nvcs)
+            {
+                if (nvc.Verb.Equals("ENTER", StringComparison.OrdinalIgnoreCase))
+                {
+                    Sheep.SheepMachine.RunCommand(nvc.Script);
+                }
+            }
         }
 
         public static int GetNounVerbCount(string noun, string verb)

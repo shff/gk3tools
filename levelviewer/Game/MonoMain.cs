@@ -154,6 +154,7 @@ class MonoMain
 			
             Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
 			Gk3Main.SceneManager.Render(camera);
+            Gk3Main.Sound.SoundManager.UpdateListener(camera);
 
 
             if (_state == GameState.TimeBlockSplash)

@@ -175,6 +175,23 @@ namespace Gk3Main
 
             foreach (Sound.SoundTrackResource stk in _stks)
                 stk.Step(Game.GameManager.TickCount);
+            foreach (Sound.SoundTrackResource stk in _playingSoundTracks)
+                stk.Step(Game.GameManager.TickCount);
+
+            // remove stale STKs
+            for (LinkedListNode<Sound.SoundTrackResource> node = _playingSoundTracks.First;
+                node != null;  )
+            {
+                LinkedListNode<Sound.SoundTrackResource> next = node.Next;
+
+                if (node.Value.Playing == false)
+                {
+                    Resource.ResourceManager.Unload(node.Value);
+                    _playingSoundTracks.Remove(node);
+                }
+
+                node = next;
+            }
         }
 
         public static Graphics.Camera CurrentCamera
@@ -291,7 +308,12 @@ namespace Gk3Main
             if (_currentCamera != null)
             {
                 SifPosition position = _roomPositions[name];
-                SifRoomCamera camera = _roomCameras[position.CameraName];
+                SifRoomCamera camera;
+                
+                // try to find the camera in the list of room cameras first, then cinematic
+                // cameras if not found
+                if (_roomCameras.TryGetValue(position.CameraName, out camera) == false)
+                    camera = _cinematicCameras[position.CameraName];
 
                 _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
                 //_currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
@@ -304,12 +326,39 @@ namespace Gk3Main
         {
             if (_currentCamera != null)
             {
-                SifRoomCamera camera = _cinematicCameras[name];
+                SifRoomCamera camera;
+
+                // try to find the camera in the list of cinematic cameras first, then room
+                // cameras if not found
+                if (_cinematicCameras.TryGetValue(name, out camera) == false)
+                    camera = _roomCameras[name];
 
                 _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
                // _currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
                 //_currentCamera.AdjustYaw(Utils.DegreesToRadians(camera.YawDegrees));
                 _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
+            }
+        }
+
+        public static void PlaySoundTrack(string name)
+        {
+            Sound.SoundTrackResource stk = (Sound.SoundTrackResource)Resource.ResourceManager.Load(name);
+            stk.Start(GameManager.TickCount);
+
+            _playingSoundTracks.AddFirst(stk);
+        }
+
+        public static void StopSoundTrack(string name)
+        {
+            for (LinkedListNode<Sound.SoundTrackResource> node = _playingSoundTracks.First;
+                node != null; node = node.Next)
+            {
+                if (node.Value.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    _playingSoundTracks.Remove(node);
+                    Resource.ResourceManager.Unload(node.Value);
+                    break;
+                }
             }
         }
 
@@ -378,9 +427,21 @@ namespace Gk3Main
                 return GameManager.GetNounVerbCount(noun, verb) == 0;
             if (conditionName.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase))
                 return GameManager.GetNounVerbCount(noun, verb) > 0;
+            if (conditionName.Equals("TIME_BLOCK", StringComparison.OrdinalIgnoreCase))
+                return true; // TODO: what does this case mean?
 
             // guess it was something else
             string condition = _nvcLogicAliases[conditionName];
+
+            // HACK: until we support passing variables to snippets we
+            // have to do some ugly manipulation like this to handle GetNounVerbCountInt()
+            if (condition.IndexOf("GetNounVerbCountInt", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                condition = Utils.ReplaceStringCaseInsensitive(condition, "GetNounVerbCountInt", "GetNounVerbCount");
+                condition = Utils.ReplaceStringCaseInsensitive(condition, "n$", string.Format("\"{0}\"", noun));
+                condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
+            }
+
             return Sheep.SheepMachine.RunSnippet(condition) > 0;
         }
 
@@ -422,6 +483,7 @@ namespace Gk3Main
         private static Dictionary<string, SifRoomCamera> _cinematicCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, string> _nvcLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static LinkedList<Sound.SoundTrackResource> _playingSoundTracks = new LinkedList<Sound.SoundTrackResource>();
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;

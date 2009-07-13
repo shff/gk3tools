@@ -11,7 +11,9 @@ namespace Gk3Main.Gui
             _downImage = (Graphics.TextureResource)Resource.ResourceManager.Load(downImage);
             _hoverImage = (Graphics.TextureResource)Resource.ResourceManager.Load(hoverImage);
             _upImage = (Graphics.TextureResource)Resource.ResourceManager.Load(upImage);
-            _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
+
+            if (string.IsNullOrEmpty(disabledImage) == false)
+                _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
 
             if (string.IsNullOrEmpty(clickedSound) == false)
                 _clickedSound = (Sound.Sound)Resource.ResourceManager.Load(clickedSound);
@@ -24,7 +26,9 @@ namespace Gk3Main.Gui
             _downImage = (Graphics.TextureResource)Resource.ResourceManager.Load(downImage);
             _hoverImage = (Graphics.TextureResource)Resource.ResourceManager.Load(hoverImage);
             _upImage = (Graphics.TextureResource)Resource.ResourceManager.Load(upImage);
-            _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
+
+            if (string.IsNullOrEmpty(disabledImage) == false)
+                _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
 
             if (string.IsNullOrEmpty(clickedSound) == false)
                 _clickedSound = (Sound.Sound)Resource.ResourceManager.Load(clickedSound);

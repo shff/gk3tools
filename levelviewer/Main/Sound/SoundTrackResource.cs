@@ -146,7 +146,17 @@ namespace Gk3Main.Sound
                 if (fileToLoad.EndsWith(".wav", StringComparison.OrdinalIgnoreCase) == false)
                     fileToLoad = fileToLoad + ".wav";
 
-                _sound = (Sound)Resource.ResourceManager.Load(fileToLoad);
+                try
+                {
+                    _sound = (Sound)Resource.ResourceManager.Load(fileToLoad);
+                }
+                catch
+                {
+                    // for some reason it seems like it's possible for requested sounds
+                    // not to exist!
+                    Console.CurrentConsole.WriteLine(ConsoleVerbosity.Polite, 
+                        "Unable to load sound referenced in STK: {0}", fileToLoad);
+                }
             }
 
             if (_repeat > 0)
@@ -211,6 +221,7 @@ namespace Gk3Main.Sound
         private bool _waiting;
         private int _timeToFinishWait;
         private PlayingSound? _playingSound;
+        private bool _playing;
 
         public SoundTrackResource(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -267,6 +278,7 @@ namespace Gk3Main.Sound
         {
             _timeAtStart = currentTime;
             _currentNodeIndex = 0;
+            _playing = true;
         }
 
         public void Step(int currentTime)
@@ -290,7 +302,10 @@ namespace Gk3Main.Sound
             {
                 // move to the next enabled node
                 if (findNextEnabledNode(_currentNodeIndex, out _currentNodeIndex) == false)
+                {
+                    _playing = false;
                     return;
+                }
 
                 if (_nodes[_currentNodeIndex].RepeatEnabled)
                 {
@@ -318,10 +333,13 @@ namespace Gk3Main.Sound
                         SoundTrackSoundNode node = (SoundTrackSoundNode)_nodes[_currentNodeIndex];
 
                         // TODO: set up the 3D position, fade in/out, etc
-                        if (node.Is3D)
-                            _playingSound = node.Sound.Play3D(_channel, node.X, node.Y, node.Z);
-                        else
-                            _playingSound = node.Sound.Play2D(_channel);
+                        if (node.Sound != null)
+                        {
+                            if (node.Is3D)
+                                _playingSound = node.Sound.Play3D(_channel, node.X, node.Y, node.Z);
+                            else
+                                _playingSound = node.Sound.Play2D(_channel);
+                        }
                     }
                     else if (_nodes[_currentNodeIndex].Type == SoundTrackNodeType.Prs)
                     {
@@ -332,13 +350,24 @@ namespace Gk3Main.Sound
                         SoundTrackSoundNode node = (SoundTrackSoundNode)_nodes[_currentNodeIndex + prsToPlay];
 
                         // TODO: set up the 3D position, fade in/out, etc
-                        _playingSound = node.Sound.Play2D(_channel);
+                        if (node.Sound != null)
+                        {
+                            if (node.Is3D)
+                                _playingSound = node.Sound.Play3D(_channel, node.X, node.Y, node.Z);
+                            else
+                                _playingSound = node.Sound.Play2D(_channel);
+                        }
 
                         // move to the last PRS node
                         _currentNodeIndex += prsCount - 1;
                     }
                 }
             }
+        }
+
+        public bool Playing
+        {
+            get { return _playing; }
         }
 
         private bool findNextEnabledNode(int start, out int index)

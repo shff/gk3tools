@@ -74,6 +74,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("InitEgoPosition", _initEgoPosition,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("InventoryInspect", _dummyString,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("IsActorAtLocation", _isActorAtLocation,
                 SymbolType.Integer, SymbolType.String, SymbolType.String);
 
@@ -83,7 +86,7 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("InspectModelUsingAngle", _inspectModelUsingAngle,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
-            SheepMachine.AddImport("PlaySoundTrack", _dummyString,
+            SheepMachine.AddImport("PlaySoundTrack", _playSoundTrack,
                 SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("SetActorPosition", _setActorPosition,
@@ -140,7 +143,7 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("StartVoiceOver", _startVoiceOver,
                 SymbolType.Void, SymbolType.String, SymbolType.Integer);
 
-            SheepMachine.AddImport("StopSoundTrack", _dummyString,
+            SheepMachine.AddImport("StopSoundTrack", _stopSoundTrack,
                 SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("TurnHead", _turnHead,
@@ -175,7 +178,10 @@ namespace Gk3Main.Sheep
             string function = SheepMachine.PopStringOffStack(vm);
             string file = SheepMachine.PopStringOffStack(vm);
 
-            SheepMachine.RunSheep(string.Format("{0}.shp", file), string.Format("{0}$", function));
+            if (function.EndsWith("$") == false)
+                function += "$";
+
+            SheepMachine.RunSheep(string.Format("{0}.shp", file), function);
         }
 
         private static void sheep_clearFlag(IntPtr vm)
@@ -325,6 +331,13 @@ namespace Gk3Main.Sheep
             SceneManager.SetCameraToCinematicCamera(angle);
         }
 
+        private static void sheep_PlaySoundTrack(IntPtr vm)
+        {
+            string stk = SheepMachine.PopStringOffStack(vm);
+
+            SceneManager.PlaySoundTrack(string.Format("{0}.stk", stk));
+        }
+
         private static void sheep_SetActorPosition(IntPtr vm)
         {
             string position = SheepMachine.PopStringOffStack(vm);
@@ -436,6 +449,14 @@ namespace Gk3Main.Sheep
             yak.Play();
         }
 
+        private static void sheep_StopSoundTrack(IntPtr vm)
+        {
+            string stk = SheepMachine.PopStringOffStack(vm);
+
+            SceneManager.StopSoundTrack(string.Format("{0}.stk", stk));
+        }
+
+
         private static void sheep_TurnHead(IntPtr vm)
         {
             int duration = SheepMachine.PopIntOffStack(vm);
@@ -511,6 +532,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
         private static SheepFunctionDelegate _isActorAtLocation = new SheepFunctionDelegate(sheep_IsActorAtLocation);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
+        private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
         private static SheepFunctionDelegate _setForcedCameraCuts = new SheepFunctionDelegate(sheep_SetForcedCameraCuts);
@@ -526,6 +548,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _startVoiceOver = new SheepFunctionDelegate(sheep_StartVoiceOver);
         private static SheepFunctionDelegate _sheepStartAnimation = new SheepFunctionDelegate(sheep_StartAnimation);
         private static SheepFunctionDelegate _sheepStartMoveAnimation = new SheepFunctionDelegate(sheep_StartMoveAnimation);
+        private static SheepFunctionDelegate _stopSoundTrack = new SheepFunctionDelegate(sheep_StopSoundTrack);
         private static SheepFunctionDelegate _turnHead = new SheepFunctionDelegate(sheep_TurnHead);
         private static SheepFunctionDelegate _walkerBoundaryBlockRegion = new SheepFunctionDelegate(sheep_WalkerBoundaryBlockRegion);
         private static SheepFunctionDelegate _walkTo = new SheepFunctionDelegate(sheep_WalkTo);
