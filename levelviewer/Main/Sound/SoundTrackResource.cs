@@ -149,6 +149,10 @@ namespace Gk3Main.Sound
                 try
                 {
                     _sound = (Sound)Resource.ResourceManager.Load(fileToLoad);
+
+                    _sound.Source.DefaultMinDistance = _minDist;
+                    _sound.Source.DefaultMaxDistance = _maxDist;
+                    _sound.Source.DefaultVolume = _volume;
                 }
                 catch
                 {
@@ -336,7 +340,7 @@ namespace Gk3Main.Sound
                         if (node.Sound != null)
                         {
                             if (node.Is3D)
-                                _playingSound = node.Sound.Play3D(_channel, node.X, node.Y, node.Z);
+                                _playingSound = node.Sound.Play3D(_channel, node.Z, node.Y, node.X);
                             else
                                 _playingSound = node.Sound.Play2D(_channel);
                         }

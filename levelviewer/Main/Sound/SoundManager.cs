@@ -81,6 +81,16 @@ namespace Gk3Main.Sound
             }
         }
 
+        public static void UpdateListener(Graphics.Camera camera)
+        {
+            Math.Vector3 position = camera.Position;
+            Math.Vector3 forward =  camera.Orientation * -Math.Vector3.Forward;
+            Math.Vector3 up = camera.Orientation * Math.Vector3.Up;
+
+            _engine.SetListenerPosition(position.X, position.Y, position.Z, forward.X, forward.Y, forward.Z,
+                0, 0, 0, up.X, up.Y, up.Z);
+        }
+
         internal static ISoundEngine Engine
         {
             get { return _engine; }
