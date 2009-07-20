@@ -68,8 +68,8 @@
 \|\<[^\>\|]*\>\|	{ return STRING; }
 }
 
-[a-zA-Z][a-zA-Z0-9]*[$] { return LOCALIDENTIFIER; }
-[a-zA-Z][a-zA-Z0-9]* { return IDENTIFIER; }
+[a-zA-Z][a-zA-Z0-9_]*[$] { return LOCALIDENTIFIER; }
+[a-zA-Z][a-zA-Z0-9_]* { return IDENTIFIER; }
 
 
 <INITIAL>{

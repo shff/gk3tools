@@ -5,7 +5,7 @@ COMPILER_FLAGS= -g
 LINKER_FLAGS=
 EXECUTABLE=parser
 
-SOURCES = sheepScanner.cpp sheepParser.cpp sheepCodeGenerator.cpp sheepCodeTree.cpp sheepFileWriter.cpp sheepMachine.cpp sheepMain.cpp sheepCompiler.cpp sheepDisassembler.cpp
+SOURCES = sheepScanner.cpp sheepParser.cpp sheepCodeGenerator.cpp sheepCodeTree.cpp sheepFileWriter.cpp sheepFileReader.cpp sheepMachine.cpp sheepMain.cpp sheepCompiler.cpp sheepDisassembler.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(EXECUTABLE): $(OBJECTS)
