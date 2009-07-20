@@ -62,8 +62,8 @@
 "||"	return OR;
 
 
-([0-9])+\.([0-9])+	{ return FLOAT; }
-([0-9])+		{ return INTEGER; }
+-?([0-9])+\.([0-9])+	{ return FLOAT; }
+-?([0-9])+		{ return INTEGER; }
 \"([^\"\\]|\\\")*\"	{ return STRING; }
 \|\<[^\>\|]*\>\|	{ return STRING; }
 }
