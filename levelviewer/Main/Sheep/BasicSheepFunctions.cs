@@ -23,6 +23,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("ClearMood", _dummyString,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("ContinueDialogue", _dummyInt,
+                SymbolType.Void, SymbolType.Integer);
+
             SheepMachine.AddImport("CutToCameraAngle", _cutToCameraAngle,
                 SymbolType.Void, SymbolType.String);
 
@@ -40,6 +43,9 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("EnableCameraBoundaries", _dummyVoid,
                 SymbolType.Void);
+
+            SheepMachine.AddImport("EnableModelShadow", _dummyString,
+                SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("FinishedScreen", _finishedScreen,
                 SymbolType.Void);
@@ -80,6 +86,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("IsActorAtLocation", _isActorAtLocation,
                 SymbolType.Integer, SymbolType.String, SymbolType.String);
 
+            SheepMachine.AddImport("IsActorNear", _isActorNear,
+                SymbolType.Integer, SymbolType.String, SymbolType.String, SymbolType.Float);
+
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
@@ -88,6 +97,9 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("PlaySoundTrack", _playSoundTrack,
                 SymbolType.Void, SymbolType.String);
+
+            SheepMachine.AddImport("SetActorLocation", _dummyStringString,
+                SymbolType.Void, SymbolType.String, SymbolType.String);
 
             SheepMachine.AddImport("SetActorPosition", _setActorPosition,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
@@ -137,11 +149,17 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("StartDialogueNoFidgets", _startDialogueNoFidgets,
                 SymbolType.Void, SymbolType.String, SymbolType.Integer);
 
+            SheepMachine.AddImport("StartMom", _startMom,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("StartMoveAnimation", _sheepStartMoveAnimation,
                 SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("StartVoiceOver", _startVoiceOver,
                 SymbolType.Void, SymbolType.String, SymbolType.Integer);
+
+            SheepMachine.AddImport("StopFidget", _dummyString,
+                SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("StopSoundTrack", _stopSoundTrack,
                 SymbolType.Void, SymbolType.String);
@@ -331,11 +349,22 @@ namespace Gk3Main.Sheep
             SceneManager.SetCameraToCinematicCamera(angle);
         }
 
+        private static void sheep_IsActorNear(IntPtr vm)
+        {
+            float distance = SheepMachine.PopFloatOffStack(vm);
+            string position = SheepMachine.PopStringOffStack(vm);
+            string actor = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
         private static void sheep_PlaySoundTrack(IntPtr vm)
         {
             string stk = SheepMachine.PopStringOffStack(vm);
 
-            SceneManager.PlaySoundTrack(string.Format("{0}.stk", stk));
+            SceneManager.PlaySoundTrack(Utils.MakeEndsWith(stk, ".stk"));
         }
 
         private static void sheep_SetActorPosition(IntPtr vm)
@@ -360,13 +389,20 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            // TODO
+            Game.GameManager.AddGameTimer(noun, verb, milliseconds);
         }
 
         private static void sheep_SetListenGas(IntPtr vm)
         {
             string gas = SheepMachine.PopStringOffStack(vm);
             string actor = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+        }
+
+        private static void sheep_StartMom(IntPtr vm)
+        {
+            string mom = SheepMachine.PopStringOffStack(vm);
 
             // TODO
         }
@@ -488,9 +524,11 @@ namespace Gk3Main.Sheep
         {
             string location = Sheep.SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
-
-            SheepMachine.PushIntOntoStack(vm, 0);
+            if (Game.GameManager.LastLocation != null &&
+                Game.GameManager.LastLocation.Equals(location, StringComparison.OrdinalIgnoreCase))
+                SheepMachine.PushIntOntoStack(vm, 1);
+            else
+                SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_DummyVoid(IntPtr vm)
@@ -514,6 +552,11 @@ namespace Gk3Main.Sheep
             string dummy = SheepMachine.PopStringOffStack(vm);
         }
 
+        private static void sheep_DummyInt(IntPtr vm)
+        {
+            int integer = SheepMachine.PopIntOffStack(vm);
+        }
+
         private static SheepFunctionDelegate _printStringDelegate = new SheepFunctionDelegate(sheep_PrintString);
         private static SheepFunctionDelegate _callSheep = new SheepFunctionDelegate(sheep_CallSheep);
         private static SheepFunctionDelegate _clearFlag = new SheepFunctionDelegate(sheep_clearFlag);
@@ -531,6 +574,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _incNounVerbCount = new SheepFunctionDelegate(sheep_IncNounVerbCount);
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
         private static SheepFunctionDelegate _isActorAtLocation = new SheepFunctionDelegate(sheep_IsActorAtLocation);
+        private static SheepFunctionDelegate _isActorNear = new SheepFunctionDelegate(sheep_IsActorNear);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
         private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
@@ -547,6 +591,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _startDialogueNoFidgets = new SheepFunctionDelegate(sheep_StartDialogueNoFidgets);
         private static SheepFunctionDelegate _startVoiceOver = new SheepFunctionDelegate(sheep_StartVoiceOver);
         private static SheepFunctionDelegate _sheepStartAnimation = new SheepFunctionDelegate(sheep_StartAnimation);
+        private static SheepFunctionDelegate _startMom = new SheepFunctionDelegate(sheep_StartMom);
         private static SheepFunctionDelegate _sheepStartMoveAnimation = new SheepFunctionDelegate(sheep_StartMoveAnimation);
         private static SheepFunctionDelegate _stopSoundTrack = new SheepFunctionDelegate(sheep_StopSoundTrack);
         private static SheepFunctionDelegate _turnHead = new SheepFunctionDelegate(sheep_TurnHead);
@@ -558,6 +603,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _dummyString = new SheepFunctionDelegate(sheep_DummyString);
         private static SheepFunctionDelegate _dummyStringString = new SheepFunctionDelegate(sheep_DummyStringString);
         private static SheepFunctionDelegate _dummyStringInt = new SheepFunctionDelegate(sheep_DummyStringInt);
+        private static SheepFunctionDelegate _dummyInt = new SheepFunctionDelegate(sheep_DummyInt);
         
     }
 }

@@ -286,12 +286,66 @@ namespace Gk3Main
                     if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
                     {
                         if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
-                            nvcs.Add(nvc);
+                        {
+                            // is this noun/verb combination already in the list?
+
+                            // HACK: we can't modify the collection while iterating
+                            // over it, so we have to remember what to do later.
+                            // >= 0 is the index to replace, -1 = add normally, -2 = ignore
+                            int whatToDo = -1; 
+                            for (int i = 0; i < nvcs.Count; i++)
+                            {
+                                if (nvcs[i].Noun.Equals(nvc.Noun, StringComparison.OrdinalIgnoreCase) &&
+                                    nvcs[i].Verb.Equals(nvc.Verb, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (isCustomNvcLogic(nvcs[i].Case))
+                                    {
+                                        // ignore the new nvc
+                                        whatToDo = -2;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        // replace the old nvc with this one
+                                        whatToDo = i;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (whatToDo >= 0)
+                            {
+                                nvcs.RemoveAt(whatToDo);
+                                nvcs.Add(nvc);
+                            }
+                            else if (whatToDo == -1)
+                            {
+                                nvcs.Add(nvc);
+                            }
+                        }
                     }
                 }
             }
 
             return nvcs;
+        }
+
+        public static Game.NounVerbCase? GetNounVerbCase(string noun, string verb, bool evaluate)
+        {
+            foreach (Game.NvcResource nvcResource in _nvcs)
+            {
+                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
+                {
+                    if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase) &&
+                        nvc.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase) &&
+                        (!evaluate || evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case)))
+                    {
+                        return nvc;
+                    }
+                }
+            }
+
+            return null;
         }
 
         public static List<string> GetAllModels()
@@ -413,6 +467,19 @@ namespace Gk3Main
 
                 _stks.Add(stk);
             }
+        }
+
+        private static bool isCustomNvcLogic(string condition)
+        {
+            if (condition.Equals("ALL", StringComparison.OrdinalIgnoreCase) ||
+                condition.Equals("GRACE_ALL", StringComparison.OrdinalIgnoreCase) ||
+                condition.Equals("GABE_ALL", StringComparison.OrdinalIgnoreCase) ||
+                condition.Equals("1ST_TIME", StringComparison.OrdinalIgnoreCase) ||
+                condition.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase) ||
+                condition.Equals("TIME_BLOCK", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            return true;
         }
 
         private static bool evaluateNvcLogic(string noun, string verb, string conditionName)

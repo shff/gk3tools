@@ -107,6 +107,9 @@ namespace Gk3Main.Game
                     Sheep.SheepMachine.RunCommand(nvc.Script);
                 }
             }
+
+            _lastLocation = _location;
+            _location = location;
         }
 
         public static int GetNounVerbCount(string noun, string verb)
@@ -137,6 +140,45 @@ namespace Gk3Main.Game
             _integerGameVariables[variable] = value;
         }
 
+        public static void AddGameTimer(string noun, string verb, int duration)
+        {
+            Game.GameTimer timer;
+            timer.Noun = noun;
+            timer.Verb = verb;
+            timer.Duration = duration;
+            timer.TimeAtExpiration = duration + TickCount;
+
+            // find the appropriate spot for the timer
+            for(LinkedListNode<Game.GameTimer> node = _timers.First;
+                node != null; node = node.Next)
+            {
+                // keep the list sorted by time of expiration
+                if (node.Value.TimeAtExpiration > timer.TimeAtExpiration)
+                {
+                    _timers.AddBefore(node, timer);
+                    return;
+                }
+            }
+
+            // still here? just add to the end
+            _timers.AddLast(timer);
+        }
+
+        public static Game.GameTimer? GetNextExpiredGameTimer()
+        {
+            for (LinkedListNode<Game.GameTimer> node = _timers.First;
+                node != null; node = node.Next)
+            {
+                if (node.Value.TimeAtExpiration < TickCount)
+                {
+                    _timers.Remove(node);
+                    return node.Value;
+                }
+            }
+
+            return null;
+        }
+
         public static void Load()
         {
             _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
@@ -153,12 +195,20 @@ namespace Gk3Main.Game
             get { return _strings; }
         }
 
+        public static string LastLocation
+        {
+            get { return _lastLocation; }
+        }
+
         private static int _tickCount, _prevTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
         private static Ego _currentEgo;
         private static Verbs _verbs;
+        private static string _location;
+        private static string _lastLocation;
         private static LocalizedStrings _strings;
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static LinkedList<Game.GameTimer> _timers = new LinkedList<Game.GameTimer>();
     }
 }

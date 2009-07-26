@@ -186,6 +186,17 @@ namespace Gk3Main
             return Math.Constants.Pi * degrees / 180.0f;
         }
 
+        /// <summary>
+        /// If the given string doesn't have the specified ending it is appended.
+        /// </summary>
+        public static string MakeEndsWith(string original, string ending)
+        {
+            if (original.EndsWith(ending, StringComparison.OrdinalIgnoreCase) == false)
+                return original + ending;
+
+            return original;
+        }
+
         public static string ReplaceStringCaseInsensitive(string original, string pattern, string replacement)
         {
             // based on code from http://www.codeproject.com/KB/string/fastestcscaseinsstringrep.aspx

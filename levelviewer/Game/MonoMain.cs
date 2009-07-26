@@ -173,10 +173,10 @@ class MonoMain
                     Gk3Main.SceneManager.Initialize();
                     if (_isDemo)
                     {
+                        
                         Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
                         Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Grace;
-                        Gk3Main.SceneManager.LoadSif("CSE212P.SIF");
-                        Gk3Main.Sheep.SheepMachine.RunSheep("CSE_ALL.SHP", "PlaceEgo$");
+                        Gk3Main.Game.GameManager.SetLocation("CSE");
                     }
                     else
                     {
@@ -207,6 +207,23 @@ class MonoMain
             Game.VerbPickerManager.RenderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
 
             Game.VerbPickerManager.Process();
+
+            Gk3Main.Game.GameTimer? timer;
+            while ((timer = Gk3Main.Game.GameManager.GetNextExpiredGameTimer()).HasValue)
+            {
+                Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
+                    "Timer expired- noun: {0} verb: {1}", timer.Value.Noun, timer.Value.Verb);
+
+                Gk3Main.Game.NounVerbCase? nvc = Gk3Main.SceneManager.GetNounVerbCase(timer.Value.Noun, timer.Value.Verb, true);
+
+                if (nvc.HasValue)
+                {
+                    Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
+                        "Executing timer NVC: {0}", nvc.Value.Script);
+
+                    Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Value.Script);
+                }
+            }
 
 
 			Sdl.SDL_GL_SwapBuffers();
