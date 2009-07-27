@@ -52,7 +52,7 @@ namespace Gk3Main.Graphics
         public float[] vertices;
         public float[] normals;
         public float[] texCoords;
-        public ushort[] indices;
+        public int[] indices;
     }
 
     struct ModMesh
@@ -69,6 +69,15 @@ namespace Gk3Main.Graphics
 
     class ModelResource : Resource.Resource
     {
+        static ModelResource()
+        {
+            _elements = new VertexElementSet(new VertexElement[] {
+                new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0),
+                new VertexElement(3 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
+                new VertexElement(5 * sizeof(float), VertexElementFormat.Float3, VertexElementUsage.Normal, 0)
+            });
+        }
+
         public ModelResource(string name)
             : base(name, false)
         {
@@ -216,7 +225,8 @@ namespace Gk3Main.Graphics
                     meshSection.unknown2 = reader.ReadUInt32();
 
                     // read the vertices
-                    meshSection.vertices = new float[meshSection.numVerts * 3];
+                    const int vertexStride = 3 + 3 + 2;
+                    meshSection.vertices = new float[meshSection.numVerts * vertexStride];
                     Math.Vector3 dummy = new Gk3Main.Math.Vector3();
                     for (uint k = 0; k < meshSection.numVerts; k++)
                     {
@@ -226,30 +236,30 @@ namespace Gk3Main.Graphics
 
                         dummy = transform * dummy;
 
-                        meshSection.vertices[k * 3 + 0] = dummy.Z;
-                        meshSection.vertices[k * 3 + 1] = dummy.Y;
-                        meshSection.vertices[k * 3 + 2] = dummy.X;
+                        meshSection.vertices[k * vertexStride + 0] = dummy.Z;
+                        meshSection.vertices[k * vertexStride + 1] = dummy.Y;
+                        meshSection.vertices[k * vertexStride + 2] = dummy.X;
                     }
 
                     // read the normals
                     meshSection.normals = new float[meshSection.numVerts * 3];
                     for (uint k = 0; k < meshSection.numVerts; k++)
                     {
-                        meshSection.normals[k * 3 + 0] = reader.ReadSingle();
-                        meshSection.normals[k * 3 + 1] = reader.ReadSingle();
-                        meshSection.normals[k * 3 + 2] = reader.ReadSingle();
+                        meshSection.vertices[k * vertexStride + 5] = reader.ReadSingle();
+                        meshSection.vertices[k * vertexStride + 6] = reader.ReadSingle();
+                        meshSection.vertices[k * vertexStride + 7] = reader.ReadSingle();
                     }
 
                     // read the tex coords
                     meshSection.texCoords = new float[meshSection.numVerts * 2];
                     for (uint k = 0; k < meshSection.numVerts; k++)
                     {
-                        meshSection.texCoords[k * 2 + 0] = reader.ReadSingle();
-                        meshSection.texCoords[k * 2 + 1] = reader.ReadSingle();
+                        meshSection.vertices[k * vertexStride + 3] = reader.ReadSingle();
+                        meshSection.vertices[k * vertexStride + 4] = reader.ReadSingle();
                     }
 
                     // read the indices
-                    meshSection.indices = new ushort[meshSection.numTriangles * 3];
+                    meshSection.indices = new int[meshSection.numTriangles * 3];
                     for (uint k = 0; k < meshSection.numTriangles; k++)
                     {
                         meshSection.indices[k * 3 + 0] = reader.ReadUInt16();
@@ -277,8 +287,8 @@ namespace Gk3Main.Graphics
 
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
 
-                Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                //Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+                //Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
                 foreach (ModMesh mesh in _meshes)
                 {
@@ -286,16 +296,17 @@ namespace Gk3Main.Graphics
                     {
                         section.textureResource.Bind();
 
-                        Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, section.vertices);
-                        Gl.glNormalPointer(Gl.GL_FLOAT, 0, section.normals);
-                        Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, section.texCoords);
+                        RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
+                        //Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, section.vertices);
+                        //Gl.glNormalPointer(Gl.GL_FLOAT, 0, section.normals);
+                        //Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, section.texCoords);
 
-                        Gl.glDrawElements(Gl.GL_TRIANGLES, section.indices.Length, Gl.GL_UNSIGNED_SHORT, section.indices);
+                        //Gl.glDrawElements(Gl.GL_TRIANGLES, section.indices.Length, Gl.GL_UNSIGNED_SHORT, section.indices);
                     }
                 }
 
-                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+                //Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                //Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
 
                 _effect.EndPass();
                 _effect.End();
@@ -326,6 +337,7 @@ namespace Gk3Main.Graphics
 
         private ModMesh[] _meshes;
         private Effect _effect;
+        private static VertexElementSet _elements;
     }
 
     public class ModelResourceLoader : Resource.IResourceLoader

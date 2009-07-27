@@ -14,6 +14,9 @@ namespace Gk3Main.Sound
 
         public PlayingSound(IrrKlang.ISound sound)
         {
+            if (sound == null)
+                throw new ArgumentNullException("sound");
+
             _PlayingSound = sound;
             Dummy = 0;
         }

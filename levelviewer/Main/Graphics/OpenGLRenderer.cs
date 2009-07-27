@@ -347,13 +347,16 @@ namespace Gk3Main.Graphics
                         }
                         else if (element.Usage == VertexElementUsage.TexCoord)
                         {
-                            Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+                            Gl.glClientActiveTexture(Gl.GL_TEXTURE0 + element.UsageIndex);
                             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
                             Gl.glTexCoordPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween,
                                 Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
                         }
                         else if (element.Usage == VertexElementUsage.Normal)
-                            Gl.glNormalPointer(Gl.GL_FLOAT, numBytesBetween, vertices[element.Offset / sizeof(float)]);
+                        {
+                            Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
+                            Gl.glNormalPointer(Gl.GL_FLOAT, numBytesBetween, Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
+                        }
                         else if (element.Usage == VertexElementUsage.Color)
                             Gl.glColorPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween, vertices[element.Offset / sizeof(float)]);
                     }
@@ -373,7 +376,12 @@ namespace Gk3Main.Graphics
             Gl.glDrawElements(glType, count * 2, Gl.GL_UNSIGNED_INT, indices);
 
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            for (int i = 2; i >= 0; i--)
+            {
+                Gl.glClientActiveTexture(Gl.GL_TEXTURE0 + i);
+                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            }
+            Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
         }
 
         public void Clear()

@@ -181,14 +181,8 @@ namespace Gk3Main.Graphics
     {
         public VertexElementSet(VertexElement[] elements)
         {
-            Stride = 0;
-            foreach (VertexElement element in elements)
-            {
-                Stride += element.Offset;
-            }
-
-            // add the size of the last element
-            Stride += (int)elements[elements.Length - 1].Format * sizeof(float);
+            Stride = (int)elements[elements.Length-1].Offset + 
+                (int)elements[elements.Length - 1].Format * sizeof(float);
 
             Elements = elements;
         }

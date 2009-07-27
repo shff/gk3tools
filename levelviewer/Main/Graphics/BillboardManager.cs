@@ -25,7 +25,7 @@ namespace Gk3Main.Graphics
         private static int _numBillboards;
 
         private static Effect _shader;
-        private const int _billboardVertexStride = 4 * 5;
+        private const int _billboardVertexStride = 4 * 7;
         private static VertexElementSet _elements;
         private static float[] _vertices = new float[_maxBillboards * _billboardVertexStride];
         private static int[] _indices = new int[_maxBillboards * 6];
@@ -47,7 +47,8 @@ namespace Gk3Main.Graphics
             // create the elements
             _elements = new VertexElementSet(new VertexElement[] {
                 new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0),
-                new VertexElement(3 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0)
+                new VertexElement(3 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
+                new VertexElement(5 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 1)
             });
         }
 
@@ -84,40 +85,52 @@ namespace Gk3Main.Graphics
                 _vertices[i * _billboardVertexStride + 2] = _billboards[i].Position.Z;
                 _vertices[i * _billboardVertexStride + 3] = -_billboards[i].Width * 0.5f;
                 _vertices[i * _billboardVertexStride + 4] = _billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 5] = 0;
+                _vertices[i * _billboardVertexStride + 6] = 0;
 
-                _vertices[i * _billboardVertexStride + 5] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 6] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 7] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 8] = -_billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 9] = -_billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 7] = _billboards[i].Position.X;
+                _vertices[i * _billboardVertexStride + 8] = _billboards[i].Position.Y; 
+                _vertices[i * _billboardVertexStride + 9] = _billboards[i].Position.Z;
+                _vertices[i * _billboardVertexStride + 10] = -_billboards[i].Width * 0.5f;
+                _vertices[i * _billboardVertexStride + 11] = -_billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 12] = 0;
+                _vertices[i * _billboardVertexStride + 13] = 1.0f;
 
-                _vertices[i * _billboardVertexStride + 10] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 11] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 12] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 13] = _billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 14] = _billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 14] = _billboards[i].Position.X;
+                _vertices[i * _billboardVertexStride + 15] = _billboards[i].Position.Y; 
+                _vertices[i * _billboardVertexStride + 16] = _billboards[i].Position.Z;
+                _vertices[i * _billboardVertexStride + 17] = _billboards[i].Width * 0.5f;
+                _vertices[i * _billboardVertexStride + 18] = _billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 19] = 1.0f;
+                _vertices[i * _billboardVertexStride + 20] = 0;
 
-                _vertices[i * _billboardVertexStride + 15] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 16] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 17] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 18] = _billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 19] = -_billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 21] = _billboards[i].Position.X;
+                _vertices[i * _billboardVertexStride + 22] = _billboards[i].Position.Y; 
+                _vertices[i * _billboardVertexStride + 23] = _billboards[i].Position.Z;
+                _vertices[i * _billboardVertexStride + 24] = _billboards[i].Width * 0.5f;
+                _vertices[i * _billboardVertexStride + 25] = -_billboards[i].Height * 0.5f;
+                _vertices[i * _billboardVertexStride + 26] = 1.0f;
+                _vertices[i * _billboardVertexStride + 27] = 1.0f;
             }
 
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
+            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
             _shader.SetParameter("ModelView", camera.ModelView);
             _shader.SetParameter("Projection", camera.Projection);
 
+            
             _shader.Begin();
             _shader.BeginPass(0);
 
+            Game.HelperIcons.Camera.Bind();
             RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, _numBillboards * 2, _indices, _vertices);
 
             _shader.EndPass();
             _shader.End();
 
             RendererManager.CurrentRenderer.CullMode = CullMode.CounterClockwise;
+            RendererManager.CurrentRenderer.AlphaTestEnabled = false;
 
             // reset the billboard list
             _numBillboards = 0;

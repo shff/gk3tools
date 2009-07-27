@@ -176,8 +176,8 @@ namespace Gk3Main
             // add helpers to the billboard list
             foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
             {
-                Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y, position.Value.Z),
-                    100.0f, 100.0f, null);
+                Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
+                    50.0f, 50.0f, HelperIcons.Camera);
             }
 
             // render any billboards

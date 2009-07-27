@@ -9,6 +9,28 @@ class MyConsole : Gk3Main.Console
         if (verbosity >= Verbosity)
             Console.WriteLine(text, arg);
     }
+
+    public override void ReportError(string error)
+    {
+        try
+        {
+            if (_messageBoxAvailable)
+                MessageBox(IntPtr.Zero, error, "Error", MB_ICONERROR);
+        }
+        catch (DllNotFoundException)
+        {
+            _messageBoxAvailable = false;
+        }
+        base.ReportError(error);
+    }
+
+    private const int MB_OK = 0x0;
+    private const int MB_ICONERROR = 0x10;
+
+    [System.Runtime.InteropServices.DllImport("user32")]
+    private static extern int MessageBox(IntPtr hwnd, string text, string caption, uint type);
+
+    private bool _messageBoxAvailable = true;
 }
 
 
@@ -37,6 +59,7 @@ class MonoMain
 
 		Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
         Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
+        Gk3Main.FileSystem.AddPathToSearchPath("Icons");
 		
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
@@ -51,8 +74,22 @@ class MonoMain
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
-        
-		Gk3Main.Sheep.SheepMachine.Initialize();
+
+        try
+        {
+            Gk3Main.Sheep.SheepMachine.Initialize();
+        }
+        catch (DllNotFoundException)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError("Unable to find Sheep library");
+            return;
+        }
+        catch (Exception ex)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError("Unable to initialize Sheep VM: " + ex.Message);
+            return;
+        }
+
         Gk3Main.Sound.SoundManager.Init();
 		
 		Gk3Main.SceneManager.LightmapsEnabled = true;
@@ -61,13 +98,23 @@ class MonoMain
 
         parseArgs(args);
 
-		SetupGraphics((int)_screenWidth, (int)_screenHeight, 32, false);
+        try
+        {
+            SetupGraphics((int)_screenWidth, (int)_screenHeight, 32, false);
+        }
+        catch (DllNotFoundException ex)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
+            return;
+        }
+
         Sdl.SDL_ShowCursor(0);
 
         _state = GameState.MainMenu;
 		
 
         Gk3Main.Game.GameManager.Load();
+        Gk3Main.Game.HelperIcons.Load();
         Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
         Gk3Main.Gui.CursorResource pointCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
         Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
@@ -235,7 +282,7 @@ class MonoMain
 	
 	public static void SetupGraphics(int width, int height, int depth, bool fullscreen)
 	{
-		Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
+        Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
@@ -243,9 +290,9 @@ class MonoMain
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DEPTH_SIZE, 24);
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
 
-		Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
+        Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
         Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
-		
+
         Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;

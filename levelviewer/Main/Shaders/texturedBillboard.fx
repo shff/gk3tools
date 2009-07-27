@@ -5,6 +5,7 @@ struct VS_INPUT
 {
     float4 position : POSITION;
     float2 texCoords: TEXCOORD0;
+    float2 texCoords2: TEXCOORD1;
 };
 
 struct VS_OUTPUT
@@ -19,8 +20,9 @@ VS_OUTPUT vs_main(VS_INPUT input)
     position.x += input.texCoords.x;
     position.y += input.texCoords.y;
     
+	VS_OUTPUT output;
 	output.position = mul(Projection, position);
-	output.texCoords = input.texCoords;
+	output.texCoords = input.texCoords2;
 	
 	return output;
 }
@@ -29,8 +31,7 @@ sampler2D DiffuseSampler;
 
 float4 ps_main(float2 texCoord : TEXCOORD0) : COLOR
 {
-	return float4(1.0, 1.0, 1.0, 1.0);
-	//return tex2D(DiffuseSampler, texCoord);
+	return tex2D(DiffuseSampler, texCoord);
 }
 
 technique GL
