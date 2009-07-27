@@ -1,4 +1,4 @@
-// Copyright (c) 2007 Brad Farris
+// Copyright (c) 2009 Brad Farris
 // This file is part of the GK3 Scene Viewer.
 
 // The GK3 Scene Viewer is free software; you can redistribute it and/or modify
@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Foobar; if not, write to the Free Software
+// along with the GK3 Scene Viewer; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using System;
@@ -172,6 +172,16 @@ namespace Gk3Main
             // render the models
             foreach (Graphics.ModelResource model in _models)
                 model.Render(camera);
+
+            // add helpers to the billboard list
+            foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
+            {
+                Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y, position.Value.Z),
+                    100.0f, 100.0f, null);
+            }
+
+            // render any billboards
+            Graphics.BillboardManager.RenderBillboards(camera);
 
             foreach (Sound.SoundTrackResource stk in _stks)
                 stk.Step(Game.GameManager.TickCount);
@@ -542,6 +552,8 @@ namespace Gk3Main
         private static Graphics.SkyBox _currentSkybox;
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
+        private static Math.Vector3 _egoPosition;
+        private static float _egoFacingAngle;
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
@@ -555,5 +567,6 @@ namespace Gk3Main
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;
+        private static bool _renderHelperIcons = false;
     }
 }

@@ -223,5 +223,10 @@ namespace Gk3Main
 
             return new string(chars, 0, count);
         }
+
+        public static IntPtr IncrementIntPtr(IntPtr ptr, int numBytes)
+        {
+            return (IntPtr)(ptr.ToInt64() + numBytes);
+        }
     }
 }

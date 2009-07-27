@@ -144,6 +144,59 @@ namespace Gk3Main.Graphics
         public abstract int Length { get; }
     }
 
+    public enum VertexElementFormat
+    {
+        Float = 1,
+        Float2,
+        Float3,
+        Float4
+    }
+
+    public enum VertexElementUsage
+    {
+        Position,
+        TexCoord,
+        Normal,
+        Color
+    }
+
+    public struct VertexElement
+    {
+        public VertexElement(int offset, VertexElementFormat format, 
+            VertexElementUsage usage, int usageIndex)
+        {
+            Offset = offset;
+            Format = format;
+            Usage = usage;
+            UsageIndex = usageIndex;
+        }
+
+        public int Offset;
+        public VertexElementFormat Format;
+        public VertexElementUsage Usage;
+        public int UsageIndex;
+    }
+
+    public struct VertexElementSet
+    {
+        public VertexElementSet(VertexElement[] elements)
+        {
+            Stride = 0;
+            foreach (VertexElement element in elements)
+            {
+                Stride += element.Offset;
+            }
+
+            // add the size of the last element
+            Stride += (int)elements[elements.Length - 1].Format * sizeof(float);
+
+            Elements = elements;
+        }
+
+        public VertexElement[] Elements;
+        public int Stride;
+    }
+
     public interface IRenderer
     {
         bool BlendEnabled { get; set; }
@@ -161,6 +214,8 @@ namespace Gk3Main.Graphics
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
         void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices);
+
+        void RenderIndices(VertexElementSet elements, PrimitiveType type, int startIndex, int count, int[] indices, float[] vertices);
 
         void Clear();
     }

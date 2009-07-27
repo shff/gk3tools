@@ -324,6 +324,58 @@ namespace Gk3Main.Graphics
             Gl.glDrawArrays(glType, startIndex, count);
         }
 
+        public void RenderIndices(VertexElementSet elements, PrimitiveType type, int startIndex, int count, int[] indices, float[] vertices)
+        {
+            unsafe
+            {
+                System.Runtime.InteropServices.GCHandle ptrptr=
+                    System.Runtime.InteropServices.GCHandle.Alloc(vertices,
+                    System.Runtime.InteropServices.GCHandleType.Pinned);
+
+                IntPtr verticesptr = ptrptr.AddrOfPinnedObject();
+
+                try
+                {
+                    foreach (VertexElement element in elements.Elements)
+                    {
+                        int numBytesBetween = elements.Stride;// elements.Stride - (int)element.Format * sizeof(float);
+                        if (element.Usage == VertexElementUsage.Position)
+                        {
+                            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+                            Gl.glVertexPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween,
+                                Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
+                        }
+                        else if (element.Usage == VertexElementUsage.TexCoord)
+                        {
+                            Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+                            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                            Gl.glTexCoordPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween,
+                                Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
+                        }
+                        else if (element.Usage == VertexElementUsage.Normal)
+                            Gl.glNormalPointer(Gl.GL_FLOAT, numBytesBetween, vertices[element.Offset / sizeof(float)]);
+                        else if (element.Usage == VertexElementUsage.Color)
+                            Gl.glColorPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween, vertices[element.Offset / sizeof(float)]);
+                    }
+                }
+                finally
+                {
+                    ptrptr.Free();
+                }
+            }
+
+            int glType;
+            if (type == PrimitiveType.Triangles)
+                glType = Gl.GL_TRIANGLES;
+            else
+                glType = Gl.GL_POINT;
+
+            Gl.glDrawElements(glType, count * 2, Gl.GL_UNSIGNED_INT, indices);
+
+            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+        }
+
         public void Clear()
         {
             Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
