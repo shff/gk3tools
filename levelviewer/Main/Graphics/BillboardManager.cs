@@ -123,8 +123,11 @@ namespace Gk3Main.Graphics
             _shader.Begin();
             _shader.BeginPass(0);
 
-            Game.HelperIcons.Camera.Bind();
-            RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, _numBillboards * 2, _indices, _vertices);
+            for (int i = 0; i < _numBillboards; i++)
+            {
+                _billboards[i].Texture.Bind();
+                RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, i * 6, 6, _indices, _vertices);
+            }
 
             _shader.EndPass();
             _shader.End();

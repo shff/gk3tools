@@ -373,7 +373,25 @@ namespace Gk3Main.Graphics
             else
                 glType = Gl.GL_POINT;
 
-            Gl.glDrawElements(glType, count * 2, Gl.GL_UNSIGNED_INT, indices);
+            unsafe
+            {
+                System.Runtime.InteropServices.GCHandle ptrptr =
+                   System.Runtime.InteropServices.GCHandle.Alloc(indices,
+                   System.Runtime.InteropServices.GCHandleType.Pinned);
+
+                IntPtr indicesptr = ptrptr.AddrOfPinnedObject();
+
+                try
+                {
+                    Gl.glDrawElements(glType, count, Gl.GL_UNSIGNED_INT, 
+                        Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
+                }
+                finally
+                {
+                    ptrptr.Free();
+                }
+            }
+            
 
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
             for (int i = 2; i >= 0; i--)

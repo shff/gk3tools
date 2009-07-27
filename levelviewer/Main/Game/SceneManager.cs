@@ -177,6 +177,12 @@ namespace Gk3Main
             foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
             {
                 Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
+                    50.0f, 50.0f, HelperIcons.Flag);
+            }
+
+            foreach (KeyValuePair<string, SifRoomCamera> rcamera in _roomCameras)
+            {
+                Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
                     50.0f, 50.0f, HelperIcons.Camera);
             }
 

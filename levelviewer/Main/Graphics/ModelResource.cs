@@ -287,26 +287,15 @@ namespace Gk3Main.Graphics
 
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
 
-                //Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-                //Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-
                 foreach (ModMesh mesh in _meshes)
                 {
                     foreach (ModMeshSection section in mesh.sections)
                     {
                         section.textureResource.Bind();
 
-                        RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
-                        //Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, section.vertices);
-                        //Gl.glNormalPointer(Gl.GL_FLOAT, 0, section.normals);
-                        //Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, section.texCoords);
-
-                        //Gl.glDrawElements(Gl.GL_TRIANGLES, section.indices.Length, Gl.GL_UNSIGNED_SHORT, section.indices);
+                        RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
                     }
                 }
-
-                //Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                //Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
 
                 _effect.EndPass();
                 _effect.End();
