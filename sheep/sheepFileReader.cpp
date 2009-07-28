@@ -281,7 +281,7 @@ void SheepFileReader::WireImportCallbacks(const SheepImportTable& imports)
 			if (import.Callback != NULL)
 			{
 				m_intermediateOutput->Imports[i].Callback = import.Callback;
-				break;
+				continue;
 			}
 		}
 

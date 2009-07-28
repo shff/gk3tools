@@ -504,6 +504,10 @@ void SheepMachine::s_call(SheepVM* vm)
 
 	std::string function = machine->PopStringFromStack();
 
+	// make sure there's a '$' at the end
+	if (function[function.length()-1] != '$')
+		function += '$';
+
 	// this stuff is pretty similar to what's inside Run(),
 	// the only difference is 
 
