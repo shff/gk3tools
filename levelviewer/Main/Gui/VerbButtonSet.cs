@@ -26,7 +26,7 @@ namespace Gk3Main.Gui
                     string.Format("{0}.BMP", info.UpButton),
                     info.DisableButton != null ? string.Format("{0}.BMP", info.DisableButton) : null,
                     null,
-                    Game.GameManager.Strings.GetVerbTooltip(info.Verb));
+                    info.Verb != null ? Game.GameManager.Strings.GetVerbTooltip(info.Verb) : null);
                 b.X = new Unit(0, buttonOffsetX);
                 b.Y = new Unit(0, screenY);
                 b.OnClick += new EventHandler(buttonClicked);

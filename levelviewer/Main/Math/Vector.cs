@@ -110,6 +110,11 @@ namespace Gk3Main.Math
         {
             get { return new Vector3(1.0f, 1.0f, 1.0f); }
         }
+
+        public static Vector3 Zero
+        {
+            get { return new Vector3(); }
+        }
     }
 
     public struct Vector4

@@ -194,7 +194,14 @@ namespace Gk3Main.Game
 
         public VerbInfo this[string name]
         {
-            get { return _verbs[name]; }
+            get
+            {
+                // TODO: how to we properly handle ANY_INV_ITEM?
+                if (name.Equals("ANY_INV_ITEM", StringComparison.OrdinalIgnoreCase))
+                    return new VerbInfo();
+
+                return _verbs[name];
+            }
         }
 
         private Dictionary<string, VerbInfo> _verbs = new Dictionary<string, VerbInfo>(StringComparer.OrdinalIgnoreCase);

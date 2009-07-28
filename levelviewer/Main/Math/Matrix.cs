@@ -167,6 +167,48 @@ namespace Gk3Main.Math
             return scale;
         }
 
+        public static Matrix RotateX(float angle)
+        {
+            float sine = (float)System.Math.Sin(angle);
+            float cosine = (float)System.Math.Cos(angle);
+
+            Matrix rotation = Identity;
+            rotation.M22 = cosine;
+            rotation.M23 = -sine;
+            rotation.M32 = sine;
+            rotation.M33 = cosine;
+
+            return rotation;
+        }
+
+        public static Matrix RotateY(float angle)
+        {
+            float sine = (float)System.Math.Sin(angle);
+            float cosine = (float)System.Math.Cos(angle);
+
+            Matrix rotation = Identity;
+            rotation.M11 = cosine;
+            rotation.M13 = sine;
+            rotation.M31 = -sine;
+            rotation.M33 = cosine;
+
+            return rotation;
+        }
+
+        public static Matrix RotateZ(float angle)
+        {
+            float sine = (float)System.Math.Sin(angle);
+            float cosine = (float)System.Math.Cos(angle);
+
+            Matrix rotation = Identity;
+            rotation.M11 = cosine;
+            rotation.M12 = -sine;
+            rotation.M21 = sine;
+            rotation.M22 = cosine;
+
+            return rotation;
+        }
+
         public float M11;
         public float M12;
         public float M13;

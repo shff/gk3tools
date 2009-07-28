@@ -100,6 +100,9 @@ namespace Gk3Main.Game
             SceneManager.LoadSif(location + GetTimeBlockString(_currentTime) + ".SIF");
             List<NounVerbCase> nvcs = SceneManager.GetNounVerbCasesForNoun("SCENE");
 
+            _lastLocation = _location;
+            _location = location;
+
             foreach (NounVerbCase nvc in nvcs)
             {
                 if (nvc.Verb.Equals("ENTER", StringComparison.OrdinalIgnoreCase))
@@ -107,9 +110,6 @@ namespace Gk3Main.Game
                     Sheep.SheepMachine.RunCommand(nvc.Script);
                 }
             }
-
-            _lastLocation = _location;
-            _location = location;
         }
 
         public static int GetNounVerbCount(string noun, string verb)

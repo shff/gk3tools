@@ -139,7 +139,7 @@ namespace Gk3Main.Resource
             
             // break apart the line
             //MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+}?)|[^,]+");
-            MatchCollection matches = Regex.Matches(line, @"([\w\. ]+={[^}]+})|([\w\.]+=[^,]+)|([\w\.]+)");
+            MatchCollection matches = Regex.Matches(line, @"([\w\.\t ]+={[^}]+})|([\w\.\t ]+=[^,]+)|([\w\.]+)");
 
             // each match represents a piece of data, either a single 'key'
             // or something like 'key=value' (where value could be something
