@@ -132,21 +132,7 @@ namespace Gk3Main.Graphics
             {
                 ModMesh mesh = new ModMesh();
 
-                // it's dirty hack time! I don't know the format of the LODK sections, so I can't
-                // accurately calculate how to skip it, so I've got to basically do a search for
-                // the next MESH section.
-
-                while (reader.PeekChar() != -1)
-                {
-                    mesh.heading = reader.ReadUInt32();
-                    if (mesh.heading == 0x4D455348)
-                    {
-                        break;
-                    }
-
-                    // back up 3 bytes and continue
-                    reader.BaseStream.Seek(-3, System.IO.SeekOrigin.Current);
-                }
+                mesh.heading = reader.ReadUInt32();
 
                 // if we didn't find it then we're screwed
                 if (mesh.heading != 0x4D455348)
