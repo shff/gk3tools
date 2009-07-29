@@ -55,10 +55,23 @@ namespace Gk3Main.Graphics
         public int[] indices;
     }
 
+    struct ModMeshLod
+    {
+        public uint Magic;
+        public uint Heading;
+        public uint Heading2;
+        public uint Heading3;
+
+        public ushort[] Section1;
+        public ushort[] Section2;
+        public ushort[] Section3;
+    }
+
     struct ModMesh
     {
         public uint heading;
         public float[] transform;
+        public Math.Matrix TransformMatrix;
         public uint numSections;
         public float[] boundingBox;
 
@@ -162,7 +175,7 @@ namespace Gk3Main.Graphics
                 mesh.transform[14] = reader.ReadSingle();
                 mesh.transform[15] = 1.0f;
 
-                Math.Matrix transform = new Gk3Main.Math.Matrix(mesh.transform);
+                mesh.TransformMatrix = new Gk3Main.Math.Matrix(mesh.transform);
 
                 mesh.numSections = reader.ReadUInt32();
 
@@ -174,8 +187,8 @@ namespace Gk3Main.Graphics
                 bbMax.Y = reader.ReadSingle();
                 bbMax.Z = reader.ReadSingle();
 
-                bbMin = transform * bbMin;
-                bbMax = transform * bbMax;
+                bbMin = mesh.TransformMatrix * bbMin;
+                bbMax = mesh.TransformMatrix * bbMax;
 
                 // set the transformed bounding box back.
                 // make sure the AABB is still min < max, since the transformation
@@ -195,20 +208,9 @@ namespace Gk3Main.Graphics
                 for (int j = 0; j < mesh.numSections; j++)
 		        {
                     ModMeshSection meshSection = new ModMeshSection();
-        			
-			        while(reader.PeekChar() != -1)
-			        {
-                        meshSection.heading = reader.ReadUInt32();
-        				
-				        if (meshSection.heading == 0x4D475250)
-				        {
-					        break;
-				        }
-        				
-				        // back up 3 bytes and continue
-				        reader.BaseStream.Seek(-3, System.IO.SeekOrigin.Current);
-			        }
-        			
+ 
+
+                    meshSection.heading = reader.ReadUInt32();
 			        // if we didn't find it then we're screwed
 			        if (meshSection.heading != 0x4D475250)
 			        {
@@ -234,7 +236,7 @@ namespace Gk3Main.Graphics
                         dummy.Y = reader.ReadSingle();
                         dummy.Z = reader.ReadSingle();
 
-                        dummy = transform * dummy;
+                        dummy = mesh.TransformMatrix * dummy;
 
                         meshSection.vertices[k * vertexStride + 0] = dummy.Z;
                         meshSection.vertices[k * vertexStride + 1] = dummy.Y;
@@ -269,6 +271,43 @@ namespace Gk3Main.Graphics
                     }
 
                     mesh.sections[j] = meshSection;
+
+
+                    // read the LODK sections
+                    for (uint k = 0; k < meshSection.numLODs; k++)
+                    {
+                        ModMeshLod lod = new ModMeshLod();
+                        lod.Magic = reader.ReadUInt32();
+                        lod.Heading = reader.ReadUInt32();
+                        lod.Heading2 = reader.ReadUInt32();
+                        lod.Heading3 = reader.ReadUInt32();
+
+                        if (lod.Magic != 0x4C4F444B)
+                            throw new Resource.InvalidResourceFileFormat("Unable to find LODK section");
+
+                        // read each section
+                        lod.Section1 = new ushort[lod.Heading * 4];
+                        lod.Section2 = new ushort[lod.Heading2 * 2];
+                        lod.Section3 = new ushort[lod.Heading3];
+                        for (uint l = 0; l < lod.Heading; l++)
+                        {
+                            lod.Section1[l * 4 + 0] = reader.ReadUInt16();
+                            lod.Section1[l * 4 + 1] = reader.ReadUInt16();
+                            lod.Section1[l * 4 + 2] = reader.ReadUInt16();
+                            lod.Section1[l * 4 + 3] = reader.ReadUInt16();
+                        }
+
+                        for (uint l = 0; l < lod.Heading2; l++)
+                        {
+                            lod.Section2[l * 2 + 0] = reader.ReadUInt16();
+                            lod.Section2[l * 2 + 1] = reader.ReadUInt16();
+                        }
+
+                        for (uint l = 0; l < lod.Heading3; l++)
+                        {
+                            lod.Section3[l] = reader.ReadUInt16();
+                        }
+                    }
                 }
 
                 _meshes[i] = mesh;
@@ -299,6 +338,39 @@ namespace Gk3Main.Graphics
 
                 _effect.EndPass();
                 _effect.End();
+
+                foreach (ModMesh mesh in _meshes)
+                {
+                    BoundingBoxRenderer.Render(camera, mesh.boundingBox);
+                }
+            }
+        }
+
+        public void RenderAt(Math.Vector3 position, float angle, Camera camera)
+        {
+            if (_loaded == true)
+            {
+                Gl.glEnable(Gl.GL_TEXTURE_2D);
+
+                foreach (ModMesh mesh in _meshes)
+                {
+                    foreach (ModMeshSection section in mesh.sections)
+                    {
+                        Math.Matrix world = Math.Matrix.Translate(position.X, position.Y, position.Z);
+                        _effect.SetParameter("ModelViewProjection", world * camera.ModelView * camera.Projection);
+                        _effect.Begin();
+                        _effect.BeginPass(0);
+
+                        section.textureResource.Bind();
+
+                        RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                    
+                        _effect.EndPass();
+                        _effect.End();
+                    }
+                }
+
+                
 
                 foreach (ModMesh mesh in _meshes)
                 {
