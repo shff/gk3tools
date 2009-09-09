@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,7 +117,145 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
+  <data name="AboutCopyright1" xml:space="preserve">
+    <value>Copyright 2009 Brad Farris</value>
+  </data>
+  <data name="AboutCopyright2" xml:space="preserve">
+    <value>Lizenziert nach GNU GPL</value>
+  </data>
+  <data name="AboutCredits" xml:space="preserve">
+    <value>Credits</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="CompressionNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="ListBarn" xml:space="preserve">
+    <value>Barn</value>
+  </data>
+  <data name="ListCompression" xml:space="preserve">
+    <value>Kompression</value>
+  </data>
+  <data name="ListFilename" xml:space="preserve">
+    <value>Dateiname</value>
+  </data>
+  <data name="ListSize" xml:space="preserve">
+    <value>Größe</value>
+  </data>
+  <data name="ListType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="MainMenuAbout" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="MainMenuConvertBitmaps" xml:space="preserve">
+    <value>Bitmaps konvertieren</value>
+  </data>
+  <data name="MainMenuDecompress" xml:space="preserve">
+    <value>Dateien dekomprimieren</value>
+  </data>
+  <data name="MainMenuExit" xml:space="preserve">
+    <value>Beenden</value>
+  </data>
+  <data name="MainMenuExtractAllBitmaps" xml:space="preserve">
+    <value>Alle Bitmaps entpacken</value>
+  </data>
+  <data name="MainMenuExtractAllDocs" xml:space="preserve">
+    <value>Alle .doc Dateien entpacken</value>
+  </data>
+  <data name="MainMenuExtractAllHtml" xml:space="preserve">
+    <value>Alle .html Dateien entpacken</value>
+  </data>
+  <data name="MainMenuExtractAllWavs" xml:space="preserve">
+    <value>Alle .wav Dateien entpacken</value>
+  </data>
+  <data name="MainMenuExtractSelected" xml:space="preserve">
+    <value>Ausgewählte Dateien entpacken</value>
+  </data>
+  <data name="MainMenuFile" xml:space="preserve">
+    <value>Datei</value>
+  </data>
+  <data name="MainMenuHelp" xml:space="preserve">
+    <value>Hilfe</value>
+  </data>
+  <data name="MainMenuOpenBarn" xml:space="preserve">
+    <value>Barn öffnen...</value>
+  </data>
+  <data name="MainMenuPreviewFile" xml:space="preserve">
+    <value>Vorschau</value>
+  </data>
+  <data name="MainMenuSetExtractionPath" xml:space="preserve">
+    <value>Entpackte Dateien speichern in...</value>
+  </data>
+  <data name="MainMenuTools" xml:space="preserve">
+    <value>Werkzeuge</value>
+  </data>
+  <data name="TypeAct" xml:space="preserve">
+    <value>ACT Datei</value>
+  </data>
+  <data name="TypeAnm" xml:space="preserve">
+    <value>ANM Datei</value>
+  </data>
+  <data name="TypeBmp" xml:space="preserve">
+    <value>Bitmap</value>
+  </data>
+  <data name="TypeBsp" xml:space="preserve">
+    <value>Umgebungsgeometrie</value>
+  </data>
+  <data name="TypeCur" xml:space="preserve">
+    <value>Cursor</value>
+  </data>
+  <data name="TypeDoc" xml:space="preserve">
+    <value>Microsoft-Word-Dokument</value>
+  </data>
+  <data name="TypeExe" xml:space="preserve">
+    <value>ausführbare Datei</value>
+  </data>
+  <data name="TypeFon" xml:space="preserve">
+    <value>Schriftart</value>
+  </data>
+  <data name="TypeGas" xml:space="preserve">
+    <value>GAS Datei</value>
+  </data>
+  <data name="TypeHtml" xml:space="preserve">
+    <value>HTML-Dokument</value>
+  </data>
+  <data name="TypeMod" xml:space="preserve">
+    <value>Model-Geometrie</value>
+  </data>
+  <data name="TypeMom" xml:space="preserve">
+    <value>MOM Datei</value>
+  </data>
+  <data name="TypeMul" xml:space="preserve">
+    <value>Umgebungs-Lightmap</value>
+  </data>
+  <data name="TypeNvc" xml:space="preserve">
+    <value>veränderbares Objekt</value>
+  </data>
+  <data name="TypeScn" xml:space="preserve">
+    <value>Szenen-Definition</value>
+  </data>
+  <data name="TypeSeq" xml:space="preserve">
+    <value>SEQ Datei</value>
+  </data>
+  <data name="TypeShp" xml:space="preserve">
+    <value>Sheep Skript</value>
+  </data>
+  <data name="TypeSif" xml:space="preserve">
+    <value>Szenen-Initialisierung</value>
+  </data>
+  <data name="TypeStk" xml:space="preserve">
+    <value>Soundtrack-Datei</value>
+  </data>
+  <data name="TypeTxt" xml:space="preserve">
+    <value>Textdokument</value>
+  </data>
+  <data name="TypeWav" xml:space="preserve">
+    <value>WAV-Ton</value>
+  </data>
+  <data name="TypeYak" xml:space="preserve">
+    <value>YAK Datei</value>
+  </data>
 </root>

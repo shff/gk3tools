@@ -34,6 +34,9 @@ namespace GK3BB
 			//
 			InitializeComponent();
 
+            // setup localization stuff
+            setUILabels();
+
             // load the icons
             _imageList = new ImageList();
             _imageList.Images.Add("audio", Image.FromFile("icons/audio.png"));
@@ -72,7 +75,9 @@ namespace GK3BB
 
         void AboutToolStripMenuItemClick(object sender, System.EventArgs e)
 		{
-			MessageBox.Show(UiUtils.GetAboutDialogText(), "About GK3BB", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			//MessageBox.Show(UiUtils.GetAboutDialogText(), "About GK3BB", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            About about = new About();
+            about.ShowDialog();
 		}
 		
 		void ExitToolStripMenuItemClick(object sender, System.EventArgs e)
@@ -120,9 +125,15 @@ namespace GK3BB
                         else if (file.Extension == "FON")
                             iconKey = "font";
 
+                        string compression;
+                        if (file.Compression == BarnLib.Compression.None)
+                            compression = Strings.CompressionNone;
+                        else
+                            compression = file.Compression.ToString();
+
                         ListViewItem item = new ListViewItem(new string[] {file.Name,
-                        file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
-                        file.Barn, file.Compression.ToString()}, iconKey);
+                            file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
+                            file.Barn, compression}, iconKey);
 
                         item.Tag = file;
 
@@ -328,6 +339,39 @@ namespace GK3BB
         private string getPreviewExtension(string extension)
         {
             return _previewExtensionsMap[extension.ToUpper()];
+        }
+
+        private void setUILabels()
+        {
+            // main menu stuff
+            fileToolStripMenuItem.Text = Strings.MainMenuFile;
+            toolsToolStripMenuItem.Text = Strings.MainMenuTools;
+            helpToolStripMenuItem.Text = Strings.MainMenuHelp;
+
+            // file menu stuff
+            openBarnToolStripMenuItem.Text = Strings.MainMenuOpenBarn;
+            extractSelectedFilesToolStripMenuItem.Text = Strings.MainMenuExtractSelected;
+            setExtractToPathToolStripMenuItem.Text = Strings.MainMenuSetExtractionPath;
+            previewFileToolStripMenuItem.Text = Strings.MainMenuPreviewFile;
+            convertBitmapsToolStripMenuItem.Text = Strings.MainMenuConvertBitmaps;
+            decompressFilesToolStripMenuItem.Text = Strings.MainMenuDecompress;
+            exitToolStripMenuItem.Text = Strings.MainMenuExit;
+
+            // tool menu stuff
+            extractAllBitmapsToolStripMenuItem.Text = Strings.MainMenuExtractAllBitmaps;
+            extractAllWavsToolStripMenuItem.Text = Strings.MainMenuExtractAllWavs;
+            extractAllDocsToolStripMenuItem.Text = Strings.MainMenuExtractAllDocs;
+            extractAllHtmlFilesToolStripMenuItem.Text = Strings.MainMenuExtractAllHtml;
+
+            // help menu stuff
+            aboutToolStripMenuItem.Text = Strings.MainMenuAbout;
+
+            // list columns
+            mainListView.Columns[0].Text = Strings.ListFilename;
+            mainListView.Columns[1].Text = Strings.ListSize;
+            mainListView.Columns[2].Text = Strings.ListType;
+            mainListView.Columns[3].Text = Strings.ListBarn;
+            mainListView.Columns[4].Text = Strings.ListCompression;
         }
 
         private ImageList _imageList;

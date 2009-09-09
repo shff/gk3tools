@@ -15,30 +15,30 @@ namespace GK3BB
 			_typeMap = new Dictionary<string, string>();
 		
 			// fill the extension/type map
-			_typeMap.Add("BSP", "Room geometry");
-			_typeMap.Add("MUL", "Room lightmap");
-			_typeMap.Add("WAV", "WAV audio");
-			_typeMap.Add("MOD", "Model geometry");
-			_typeMap.Add("BMP", "Bitmap");
-			_typeMap.Add("HTM", "HTML document");
-			_typeMap.Add("HTML", "HTML document");
-            _typeMap.Add("TXT", "Text document");
-            _typeMap.Add("DOC", "Word document");
-			_typeMap.Add("SCN", "Scene definition");
-            _typeMap.Add("SIF", "Scene initialization");
-			_typeMap.Add("ACT", "ACT file?");
-			_typeMap.Add("ANM", "ANM file?");
-			_typeMap.Add("GAS", "GAS file?");
-			_typeMap.Add("YAK", "YAK file");
-            _typeMap.Add("EXE", "Executable");
-            _typeMap.Add("SHP", "Sheep script");
-            _typeMap.Add("NVC", "Noun-verb-case file");
-            _typeMap.Add("FON", "Font");
-            _typeMap.Add("CUR", "Cursor?");
-            _typeMap.Add("MOM", "Mom file?");
+			_typeMap.Add("BSP", Strings.TypeBsp);
+			_typeMap.Add("MUL", Strings.TypeMul);
+			_typeMap.Add("WAV", Strings.TypeWav);
+			_typeMap.Add("MOD", Strings.TypeMod);
+			_typeMap.Add("BMP", Strings.TypeBmp);
+			_typeMap.Add("HTM", Strings.TypeHtml);
+			_typeMap.Add("HTML", Strings.TypeHtml);
+            _typeMap.Add("TXT", Strings.TypeTxt);
+            _typeMap.Add("DOC", Strings.TypeDoc);
+			_typeMap.Add("SCN", Strings.TypeScn);
+            _typeMap.Add("SIF", Strings.TypeSif);
+			_typeMap.Add("ACT", Strings.TypeAct);
+			_typeMap.Add("ANM", Strings.TypeAnm);
+			_typeMap.Add("GAS", Strings.TypeGas);
+			_typeMap.Add("YAK", Strings.TypeYak);
+            _typeMap.Add("EXE", Strings.TypeExe);
+            _typeMap.Add("SHP", Strings.TypeShp);
+            _typeMap.Add("NVC", Strings.TypeNvc);
+            _typeMap.Add("FON", Strings.TypeFon);
+            _typeMap.Add("CUR", Strings.TypeCur);
+            _typeMap.Add("MOM", Strings.TypeMom);
 
-            _typeMap.Add("SEQ", "SEQ file");
-            _typeMap.Add("STK", "Sound track file");
+            _typeMap.Add("SEQ", Strings.TypeSeq);
+            _typeMap.Add("STK", Strings.TypeStk);
             
 		}
 	

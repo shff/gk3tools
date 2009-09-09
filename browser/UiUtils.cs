@@ -16,7 +16,7 @@ namespace GK3BB
 			{
 				fsize /= 1024;
 				
-				return String.Format("{0:0.00} KB", fsize);
+				return String.Format("{0:0.00} KiB", fsize);
 			}
 			
 			return fsize + " bytes";

@@ -88,13 +88,13 @@ namespace GK3BB
             this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(35, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
             // openBarnToolStripMenuItem
             // 
             this.openBarnToolStripMenuItem.Name = "openBarnToolStripMenuItem";
-            this.openBarnToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.openBarnToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.openBarnToolStripMenuItem.Text = "Open barn...";
             this.openBarnToolStripMenuItem.Click += new System.EventHandler(this.OpenBarnToolStripMenuItemClick);
             // 
@@ -102,14 +102,14 @@ namespace GK3BB
             // 
             this.extractSelectedFilesToolStripMenuItem.Enabled = false;
             this.extractSelectedFilesToolStripMenuItem.Name = "extractSelectedFilesToolStripMenuItem";
-            this.extractSelectedFilesToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.extractSelectedFilesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.extractSelectedFilesToolStripMenuItem.Text = "Extract selected files";
             this.extractSelectedFilesToolStripMenuItem.Click += new System.EventHandler(this.extractSelectedFilesToolStripMenuItem_Click);
             // 
             // setExtractToPathToolStripMenuItem
             // 
             this.setExtractToPathToolStripMenuItem.Name = "setExtractToPathToolStripMenuItem";
-            this.setExtractToPathToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.setExtractToPathToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.setExtractToPathToolStripMenuItem.Text = "Set extract to path...";
             this.setExtractToPathToolStripMenuItem.Click += new System.EventHandler(this.setExtractToPathToolStripMenuItem_Click);
             // 
@@ -117,21 +117,21 @@ namespace GK3BB
             // 
             this.previewFileToolStripMenuItem.Enabled = false;
             this.previewFileToolStripMenuItem.Name = "previewFileToolStripMenuItem";
-            this.previewFileToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.previewFileToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.previewFileToolStripMenuItem.Text = "Preview file";
             this.previewFileToolStripMenuItem.Click += new System.EventHandler(this.previewFileToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
-            this.toolStripMenuItem2.Size = new System.Drawing.Size(186, 6);
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(176, 6);
             // 
             // convertBitmapsToolStripMenuItem
             // 
             this.convertBitmapsToolStripMenuItem.Checked = true;
             this.convertBitmapsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.convertBitmapsToolStripMenuItem.Name = "convertBitmapsToolStripMenuItem";
-            this.convertBitmapsToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.convertBitmapsToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.convertBitmapsToolStripMenuItem.Text = "Convert bitmaps";
             this.convertBitmapsToolStripMenuItem.Click += new System.EventHandler(this.convertBitmapsToolStripMenuItem_Click);
             // 
@@ -140,18 +140,18 @@ namespace GK3BB
             this.decompressFilesToolStripMenuItem.Checked = true;
             this.decompressFilesToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.decompressFilesToolStripMenuItem.Name = "decompressFilesToolStripMenuItem";
-            this.decompressFilesToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.decompressFilesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.decompressFilesToolStripMenuItem.Text = "Decompress files";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(186, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(176, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(189, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolStripMenuItemClick);
             // 
@@ -163,35 +163,35 @@ namespace GK3BB
             this.extractAllDocsToolStripMenuItem,
             this.extractAllHtmlFilesToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
-            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
             // 
             // extractAllBitmapsToolStripMenuItem
             // 
             this.extractAllBitmapsToolStripMenuItem.Enabled = false;
             this.extractAllBitmapsToolStripMenuItem.Name = "extractAllBitmapsToolStripMenuItem";
-            this.extractAllBitmapsToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.extractAllBitmapsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.extractAllBitmapsToolStripMenuItem.Text = "Extract all bitmaps";
             // 
             // extractAllWavsToolStripMenuItem
             // 
             this.extractAllWavsToolStripMenuItem.Enabled = false;
             this.extractAllWavsToolStripMenuItem.Name = "extractAllWavsToolStripMenuItem";
-            this.extractAllWavsToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.extractAllWavsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.extractAllWavsToolStripMenuItem.Text = "Extract all wavs";
             // 
             // extractAllDocsToolStripMenuItem
             // 
             this.extractAllDocsToolStripMenuItem.Enabled = false;
             this.extractAllDocsToolStripMenuItem.Name = "extractAllDocsToolStripMenuItem";
-            this.extractAllDocsToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.extractAllDocsToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.extractAllDocsToolStripMenuItem.Text = "Extract all docs";
             // 
             // extractAllHtmlFilesToolStripMenuItem
             // 
             this.extractAllHtmlFilesToolStripMenuItem.Enabled = false;
             this.extractAllHtmlFilesToolStripMenuItem.Name = "extractAllHtmlFilesToolStripMenuItem";
-            this.extractAllHtmlFilesToolStripMenuItem.Size = new System.Drawing.Size(178, 22);
+            this.extractAllHtmlFilesToolStripMenuItem.Size = new System.Drawing.Size(176, 22);
             this.extractAllHtmlFilesToolStripMenuItem.Text = "Extract all html files";
             // 
             // helpToolStripMenuItem
@@ -199,13 +199,13 @@ namespace GK3BB
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(40, 20);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(107, 22);
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.AboutToolStripMenuItemClick);
             // 
