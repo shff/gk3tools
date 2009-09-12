@@ -78,6 +78,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>About.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Strings.fr-FR.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainForm_win.resx">
       <SubType>Designer</SubType>
       <DependentUpon>MainForm_win.cs</DependentUpon>

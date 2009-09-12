@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,18 +117,145 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="richTextBox1.Text" xml:space="preserve">
-    <value>Programming
-Brad Farris ("BradDaBug")
-
-Localization
-
-German
-Sebastian Seefried ("Bambam")
-
-French
-Romain "Orc"
-
-GK3 is property of Activision Blizzard. This project is not associated with or endorsed by Activision Blizzard in any way.</value>
+  <data name="AboutCopyright1" xml:space="preserve">
+    <value>Copyright 2009 Brad Farris</value>
+  </data>
+  <data name="AboutCopyright2" xml:space="preserve">
+    <value>License sous le GNU GPL</value>
+  </data>
+  <data name="AboutCredits" xml:space="preserve">
+    <value>Credits</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="CompressionNone" xml:space="preserve">
+    <value>Aucun</value>
+  </data>
+  <data name="ListBarn" xml:space="preserve">
+    <value>Barn</value>
+  </data>
+  <data name="ListCompression" xml:space="preserve">
+    <value>Compression</value>
+  </data>
+  <data name="ListFilename" xml:space="preserve">
+    <value>Nom du fichier</value>
+  </data>
+  <data name="ListSize" xml:space="preserve">
+    <value>Taille</value>
+  </data>
+  <data name="ListType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="MainMenuAbout" xml:space="preserve">
+    <value>A propos de</value>
+  </data>
+  <data name="MainMenuConvertBitmaps" xml:space="preserve">
+    <value>Convertir en bitmap</value>
+  </data>
+  <data name="MainMenuDecompress" xml:space="preserve">
+    <value>Décompresser les fichiers</value>
+  </data>
+  <data name="MainMenuExit" xml:space="preserve">
+    <value>Quitter</value>
+  </data>
+  <data name="MainMenuExtractAllBitmaps" xml:space="preserve">
+    <value>Extraire tous les bitmaps</value>
+  </data>
+  <data name="MainMenuExtractAllDocs" xml:space="preserve">
+    <value>Extraire tous les .docs</value>
+  </data>
+  <data name="MainMenuExtractAllHtml" xml:space="preserve">
+    <value>Extraire tous les fichiers .html</value>
+  </data>
+  <data name="MainMenuExtractAllWavs" xml:space="preserve">
+    <value>Extraire tous les .wavs</value>
+  </data>
+  <data name="MainMenuExtractSelected" xml:space="preserve">
+    <value>Extraire les fichiers selectionés</value>
+  </data>
+  <data name="MainMenuFile" xml:space="preserve">
+    <value>Fichier</value>
+  </data>
+  <data name="MainMenuHelp" xml:space="preserve">
+    <value>Aide</value>
+  </data>
+  <data name="MainMenuOpenBarn" xml:space="preserve">
+    <value>Ouvrir barn...</value>
+  </data>
+  <data name="MainMenuPreviewFile" xml:space="preserve">
+    <value>Prévisualiser le fichier</value>
+  </data>
+  <data name="MainMenuSetExtractionPath" xml:space="preserve">
+    <value>Selectionner le chemin de sortie...</value>
+  </data>
+  <data name="MainMenuTools" xml:space="preserve">
+    <value>Outils</value>
+  </data>
+  <data name="TypeAct" xml:space="preserve">
+    <value>ACT Fichier</value>
+  </data>
+  <data name="TypeAnm" xml:space="preserve">
+    <value>ANM Fichier</value>
+  </data>
+  <data name="TypeBmp" xml:space="preserve">
+    <value>Bitmap</value>
+  </data>
+  <data name="TypeBsp" xml:space="preserve">
+    <value>Géométrie de la salle</value>
+  </data>
+  <data name="TypeCur" xml:space="preserve">
+    <value>Curseur</value>
+  </data>
+  <data name="TypeDoc" xml:space="preserve">
+    <value>Document Word</value>
+  </data>
+  <data name="TypeExe" xml:space="preserve">
+    <value>Executable</value>
+  </data>
+  <data name="TypeFon" xml:space="preserve">
+    <value>Police de texte</value>
+  </data>
+  <data name="TypeGas" xml:space="preserve">
+    <value>GAS Fichier</value>
+  </data>
+  <data name="TypeHtml" xml:space="preserve">
+    <value>Document HTML</value>
+  </data>
+  <data name="TypeMod" xml:space="preserve">
+    <value>Géométrie du model</value>
+  </data>
+  <data name="TypeMom" xml:space="preserve">
+    <value>MOM Fichier</value>
+  </data>
+  <data name="TypeMul" xml:space="preserve">
+    <value>Lightmaps de la salle</value>
+  </data>
+  <data name="TypeNvc" xml:space="preserve">
+    <value>Nom-verbe-case fichier</value>
+  </data>
+  <data name="TypeScn" xml:space="preserve">
+    <value>Définition de la scène</value>
+  </data>
+  <data name="TypeSeq" xml:space="preserve">
+    <value>SEQ Fichier</value>
+  </data>
+  <data name="TypeShp" xml:space="preserve">
+    <value>Sheep script</value>
+  </data>
+  <data name="TypeSif" xml:space="preserve">
+    <value>Initialisation de la scène</value>
+  </data>
+  <data name="TypeStk" xml:space="preserve">
+    <value>Fichier de musique</value>
+  </data>
+  <data name="TypeTxt" xml:space="preserve">
+    <value>Document texte</value>
+  </data>
+  <data name="TypeWav" xml:space="preserve">
+    <value>son WAV</value>
+  </data>
+  <data name="TypeYak" xml:space="preserve">
+    <value>YAK Fichier</value>
   </data>
 </root>
