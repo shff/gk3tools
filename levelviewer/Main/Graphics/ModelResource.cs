@@ -299,6 +299,35 @@ namespace Gk3Main.Graphics
                 _meshes[i] = mesh;
             }
 
+            // read the MODX stuff
+            /*
+             * The following code *seems* to correctly move through the MODX section-
+             * but until it is tested more it should stay commented. But at least
+             * this should give an idea of the format of the MODX stuff within the
+             * file, even if we don't know what it means yet.
+            uint modxMagic = reader.ReadUInt32();
+            if (modxMagic == 0x4d4f4458)
+            {
+                for (int i = 0; i < _meshes.Length; i++)
+                {
+                    for (int j = 0; j < _meshes[i].numSections; j++)
+                    {
+                        uint grpxMagic = reader.ReadUInt32();
+                        uint blah = reader.ReadUInt32();
+
+                        if (grpxMagic == 0x47525058)
+                        {
+                            for (int k = 0; k < _meshes[i].sections[j].numVerts; k++)
+                            {
+                                byte b = reader.ReadByte();
+                                reader.ReadBytes(b * 4);
+
+                            }
+                        }
+                    }
+                }
+            }*/
+
             _effect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
         }
 
