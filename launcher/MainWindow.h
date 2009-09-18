@@ -7,6 +7,7 @@ class MainWindow
 	HWND m_hwnd;
 	HWND m_label;
 	HWND m_modeList;
+	HWND m_chkFullscreen;
 	HWND m_btnGo;
 
 public:
@@ -23,9 +24,10 @@ public:
 
 private:
 
+	void launchGame(int screenWidth, int screenHeight, bool fullscreen);
 	void createChildControls(HINSTANCE instance);
 
-	static HWND createLabel(HINSTANCE instance, HWND parent, const char* text);
+	static HWND createLabel(HINSTANCE instance, HWND parent, int x, int y, const char* text);
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };
 

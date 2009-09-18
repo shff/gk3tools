@@ -10,6 +10,7 @@ std::vector<VideoDisplayMode> GetValidDisplayModes(int minimumHeight)
 
 	UINT count = d3d9->GetAdapterModeCount(D3DADAPTER_DEFAULT, D3DFMT_R5G6B5);
 
+	int previousWidth = 0, previousHeight = 0;
 	std::vector<VideoDisplayMode> modes;
 	for (UINT i = 0; i < count; i++)
 	{
@@ -17,12 +18,16 @@ std::vector<VideoDisplayMode> GetValidDisplayModes(int minimumHeight)
 		if (d3d9->EnumAdapterModes(D3DADAPTER_DEFAULT, D3DFMT_R5G6B5, i, &mode) != D3D_OK)
 			return std::vector<VideoDisplayMode>();
 
-		if (mode.Height < minimumHeight)
+		if (mode.Height < minimumHeight ||
+			(mode.Width == previousWidth && mode.Height == previousHeight))
 			continue;
 
 		VideoDisplayMode vdm;
 		vdm.Width = mode.Width;
 		vdm.Height = mode.Height;
+
+		previousWidth = mode.Width;
+		previousHeight = mode.Height;
 
 		modes.push_back(vdm);
 	}

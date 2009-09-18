@@ -3,7 +3,8 @@
 #include "MainWindow.h"
 
 const char g_szClassName[] = "gk3LauncherWindowClass";
-
+const int g_windowWidth = 250;
+const int g_windowHeight = 228;
 
 MainWindow::MainWindow(HINSTANCE instance, int cmdShow)
 {
@@ -36,8 +37,8 @@ MainWindow::MainWindow(HINSTANCE instance, int cmdShow)
         WS_EX_WINDOWEDGE,
         g_szClassName,
         "GK3 Launcher",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, 240, 320,
+        WS_POPUPWINDOW | WS_CAPTION,
+        CW_USEDEFAULT, CW_USEDEFAULT, g_windowWidth, 320,
         NULL, NULL, instance, NULL);
 
     if(m_hwnd == NULL)
@@ -83,25 +84,84 @@ void MainWindow::AddDisplayMode(int width, int height)
 void MainWindow::Go()
 {
 	// get the selected window size
+	int count = SendMessage(m_modeList, LB_GETCOUNT, NULL, NULL);
+	for (int i = 0; i < count; i++)
+	{
+		if (SendMessage(m_modeList, LB_GETSEL, (WPARAM)i, NULL) > 0)
+		{
+			int len = SendMessage(m_modeList, LB_GETTEXTLEN, (WPARAM)i, NULL);
+			
+			const char* buffer = new char[len + 1];
+			SendMessage(m_modeList, LB_GETTEXT, (WPARAM)i, (LPARAM)buffer);
 
+			int w, h;
+			sscanf(buffer, "%dx%d", &w, &h);
+
+			bool fullscreen = (SendMessage(m_chkFullscreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+
+			delete[] buffer;
+
+			launchGame(w, h, fullscreen);
+		}
+	}
+}
+
+void MainWindow::launchGame(int screenWidth, int screenHeight, bool fullscreen)
+{
+	char demoArguments[255];
+	char retailArguments[255];
+
+	if (fullscreen)
+	{
+		_snprintf(demoArguments, 255, "Gk3demo.exe -width %d -height %d", screenWidth, screenHeight);
+		_snprintf(retailArguments, 255, "GK3.exe -width %d -height %d", screenWidth, screenHeight);
+	}
+	else
+	{
+		_snprintf(demoArguments, 255, "Gk3demo.exe -width %d -height %d -window", screenWidth, screenHeight);
+		_snprintf(retailArguments, 255, "GK3.exe -width %d -height %d -window", screenWidth, screenHeight);
+	}
+
+	STARTUPINFO si;
+	FillMemory(&si, sizeof(STARTUPINFO), 0);
+	si.cb = sizeof(STARTUPINFO);
+
+	PROCESS_INFORMATION pi;
+
+	// try to start normal GK3
+	if (CreateProcess(NULL, retailArguments, NULL, NULL, false, 0, NULL, NULL, &si, &pi) != 0)
+		return;
+
+	DWORD err1 = GetLastError();
+
+	// that didn't work? try the demo
+	if (CreateProcess(NULL, demoArguments, NULL, NULL, false, 0, NULL, NULL, &si, &pi) == 0)
+	{
+		char buffer[256];
+		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL,err1, MAKELANGID(LANG_USER_DEFAULT, SUBLANG_DEFAULT), buffer, 256, NULL);
+
+		char bigbuffer[512];
+		_snprintf(bigbuffer, 512, "Unable to launch GK3: %s", buffer);
+		MessageBox(m_hwnd, bigbuffer, "Error!", MB_OK | MB_ICONERROR);
+	}
 }
 
 void MainWindow::createChildControls(HINSTANCE instance)
 {
-	m_label = createLabel(instance, m_hwnd, "Screen resolution:");
+	m_label = createLabel(instance, m_hwnd, 12, 9, "Screen resolution:");
 
-	m_modeList = CreateListbox(instance, m_hwnd, 0, 20, 200, 150);
+	m_modeList = CreateListbox(instance, m_hwnd, 12, 25, g_windowWidth - 40, 147);
 
-	CreateCheckbox(instance, m_hwnd, 0, 170, "Fullscreen", true);
+	m_chkFullscreen = CreateCheckbox(instance, m_hwnd, 12, 178, "Fullscreen", true);
 
-	m_btnGo = CreateButton(instance, m_hwnd, 0, 200, "Go!");
+	m_btnGo = CreateButton(instance, m_hwnd, 147, 195, "Go!");
 }
 
-HWND MainWindow::createLabel(HINSTANCE instance, HWND parent, const char* text)
+HWND MainWindow::createLabel(HINSTANCE instance, HWND parent, int x, int y, const char* text)
 {
 	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
 
-	HWND label = CreateWindowEx(WS_EX_CLIENTEDGE, "STATIC", text, WS_CHILD | WS_VISIBLE, 0, 0, 100, 20, parent, NULL, instance, NULL);
+	HWND label = CreateWindowEx(0, "STATIC", text, WS_CHILD | WS_VISIBLE, x, y, 100, 13, parent, NULL, instance, NULL);
 
 	SendMessage(label, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
 
@@ -120,7 +180,7 @@ HWND CreateListbox(HINSTANCE instance, HWND parent, int x, int y, int width, int
 
 HWND CreateButton(HINSTANCE instance, HWND parent, int x, int y, const char* text)
 {
-	HWND button = CreateWindowEx(WS_EX_WINDOWEDGE, "BUTTON", text, WS_CHILD | WS_VISIBLE, x, y, 100, 32, parent, NULL, instance, NULL);
+	HWND button = CreateWindowEx(WS_EX_WINDOWEDGE, "Button", text, WS_CHILD | WS_VISIBLE, x, y, 75, 23, parent, NULL, instance, NULL);
 
 	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
 	SendMessage(button, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
@@ -130,7 +190,7 @@ HWND CreateButton(HINSTANCE instance, HWND parent, int x, int y, const char* tex
 
 HWND CreateCheckbox(HINSTANCE instance, HWND parent, int x, int y, const char* text, bool checked)
 {
-	HWND checkbox = CreateWindowEx(0, "BUTTON", text, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, x, y, 100, 24, parent, NULL, instance, NULL);
+	HWND checkbox = CreateWindowEx(0, "BUTTON", text, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, x, y, 100, 17, parent, NULL, instance, NULL);
 
 	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
 	SendMessage(checkbox, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
