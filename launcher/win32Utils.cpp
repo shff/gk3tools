@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <cstdio>
 #include "win32Utils.h"
 
 
@@ -75,4 +76,12 @@ void CenterWindow(HWND window)
 		parentRect.left + parentRect.right / 2 - windowRect.right / 2,
 		parentRect.top + parentRect.bottom / 2 - windowRect.bottom / 2,
 		windowRect.right, windowRect.bottom, 0);
+}
+
+void GetErrorMessage(DWORD error, const char* prefix, char* buffer, int len)
+{
+	char errorBuffer[256];
+	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error, MAKELANGID(LANG_USER_DEFAULT, SUBLANG_DEFAULT), errorBuffer, 256, NULL);
+
+	_snprintf(buffer, len, prefix, errorBuffer);
 }

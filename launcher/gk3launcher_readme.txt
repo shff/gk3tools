@@ -20,6 +20,9 @@ A) GK3 remembers the last resolution it used and will keep using it until it is 
 Q) What about the GK3 demo? Does this launcher work with it?
 A) Yep!
 
+Q) Is this app really necessary? Couldn't I just set the resolution from the command line or registry or whatever?
+A) You could, but don't you think this is a bit easier? 
+
 Q) What's that in the Source directory?
 A) That's the source of the GK3 Launcher. You are free to look at it, change it, recompile it, and even redistribute it (under the terms of the GNU GPL).
 

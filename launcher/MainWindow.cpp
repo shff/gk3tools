@@ -1,4 +1,5 @@
 #include <windows.h>
+#include <commctrl.h>
 #include <cstdio>
 #include "MainWindow.h"
 #include "win32Utils.h"
@@ -10,6 +11,8 @@ const int g_windowHeight = 266 - 12;
 MainWindow::MainWindow(HINSTANCE instance, int cmdShow)
 {
 	m_active = false;
+
+	InitCommonControls();
 
 	// register the window class
 	WNDCLASSEX wc;
@@ -139,12 +142,9 @@ void MainWindow::launchGame(int screenWidth, int screenHeight, bool fullscreen)
 	// that didn't work? try the demo
 	if (CreateProcess(NULL, demoArguments, NULL, NULL, false, 0, NULL, NULL, &si, &pi) == 0)
 	{
-		char buffer[256];
-		FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL,err1, MAKELANGID(LANG_USER_DEFAULT, SUBLANG_DEFAULT), buffer, 256, NULL);
-
-		char bigbuffer[512];
-		_snprintf(bigbuffer, 512, "Unable to launch GK3: %s", buffer);
-		MessageBox(m_hwnd, bigbuffer, "Error!", MB_OK | MB_ICONERROR);
+		char buffer[512] = {0};
+		GetErrorMessage(err1, "Unable to launch GK3: %s", buffer, 512-1);
+		MessageBox(m_hwnd, buffer, "Error", MB_OK | MB_ICONERROR);
 	}
 }
 
@@ -157,6 +157,13 @@ void MainWindow::createChildControls(HINSTANCE instance)
 	m_chkFullscreen = CreateCheckbox(instance, m_hwnd, 12, 178, "Fullscreen", true);
 
 	m_btnGo = CreateButton(instance, m_hwnd, 147, 195, "Go!");
+
+	if (!m_label || !m_modeList || !m_chkFullscreen || !m_btnGo)
+	{
+		char buffer[512];
+		GetErrorMessage(GetLastError(), "Unable to create window: %s", buffer, 512-1);
+		MessageBox(m_hwnd, buffer, "Error", MB_OK | MB_ICONERROR);
+	}
 }
 
 

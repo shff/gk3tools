@@ -8,4 +8,6 @@ HWND CreateLabel(HINSTANCE instance, HWND parent, int x, int y, const char* text
 
 void CenterWindow(HWND window);
 
+void GetErrorMessage(DWORD error, const char* prefix, char* buffer, int len);
+
 #endif // WIN32UTILS_H

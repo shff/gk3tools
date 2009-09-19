@@ -70,8 +70,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,1,0,0
- PRODUCTVERSION 0,1,0,0
+ FILEVERSION 0,1,1,0
+ PRODUCTVERSION 0,1,1,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -87,13 +87,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "GK3 Launcher"
-            VALUE "FileVersion", "0, 1, 0, 0"
+            VALUE "FileVersion", "0, 1, 1, 0"
             VALUE "InternalName", "GK3Launcher"
             VALUE "LegalCopyright", "Copyright (C) 2009"
             VALUE "LegalTrademarks", "http://gk3tools.sourceforge.net"
             VALUE "OriginalFilename", "Gk3Launcher.exe"
             VALUE "ProductName", "GK3 Launcher"
-            VALUE "ProductVersion", "0, 1, 0, 0"
+            VALUE "ProductVersion", "0, 1, 1, 0"
         END
     END
     BLOCK "VarFileInfo"
