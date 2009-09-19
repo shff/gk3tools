@@ -1,5 +1,5 @@
-#include <sstream>
 #include <windows.h>
+#include <cstdio>
 #include "MainWindow.h"
 #include "win32Utils.h"
 
@@ -81,9 +81,9 @@ void MainWindow::ProcessMessages()
 
 void MainWindow::AddDisplayMode(int width, int height)
 {
-	std::stringstream ss;
-	ss << width << "x" << height;
-	int index = SendMessage(m_modeList, LB_ADDSTRING, 0, (LPARAM)ss.str().c_str());
+	char buffer[256] = {0};
+	_snprintf(buffer, 255, "%dx%d", width, height);
+	int index = SendMessage(m_modeList, LB_ADDSTRING, 0, (LPARAM)buffer);
 }
 
 void MainWindow::Go()
