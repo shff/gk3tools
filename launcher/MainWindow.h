@@ -27,12 +27,9 @@ private:
 	void launchGame(int screenWidth, int screenHeight, bool fullscreen);
 	void createChildControls(HINSTANCE instance);
 
-	static HWND createLabel(HINSTANCE instance, HWND parent, int x, int y, const char* text);
 	static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };
 
-HWND CreateListbox(HINSTANCE instance, HWND parent, int x, int y, int width, int height);
-HWND CreateButton(HINSTANCE instance, HWND parent, int x, int y, const char* text);
-HWND CreateCheckbox(HINSTANCE instance, HWND parent, int x, int y, const char* text, bool checked);
+
 
 #endif // MAINWINDOW_H

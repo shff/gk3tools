@@ -1,10 +1,11 @@
 #include <sstream>
 #include <windows.h>
 #include "MainWindow.h"
+#include "win32Utils.h"
 
 const char g_szClassName[] = "gk3LauncherWindowClass";
-const int g_windowWidth = 250;
-const int g_windowHeight = 228;
+const int g_windowWidth = 250 - 12;
+const int g_windowHeight = 266 - 12;
 
 MainWindow::MainWindow(HINSTANCE instance, int cmdShow)
 {
@@ -38,7 +39,7 @@ MainWindow::MainWindow(HINSTANCE instance, int cmdShow)
         g_szClassName,
         "GK3 Launcher",
         WS_POPUPWINDOW | WS_CAPTION,
-        CW_USEDEFAULT, CW_USEDEFAULT, g_windowWidth, 320,
+        CW_USEDEFAULT, CW_USEDEFAULT, g_windowWidth, g_windowHeight,
         NULL, NULL, instance, NULL);
 
     if(m_hwnd == NULL)
@@ -48,10 +49,14 @@ MainWindow::MainWindow(HINSTANCE instance, int cmdShow)
         return;
     }
 
+	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
+	SendMessage(m_hwnd, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
+
 	SetWindowLongPtr(m_hwnd, GWLP_USERDATA, (LONG_PTR)this);
 
 	createChildControls(instance);
 
+	CenterWindow(m_hwnd);
     ShowWindow(m_hwnd, cmdShow);
     UpdateWindow(m_hwnd);
 
@@ -84,25 +89,22 @@ void MainWindow::AddDisplayMode(int width, int height)
 void MainWindow::Go()
 {
 	// get the selected window size
-	int count = SendMessage(m_modeList, LB_GETCOUNT, NULL, NULL);
-	for (int i = 0; i < count; i++)
-	{
-		if (SendMessage(m_modeList, LB_GETSEL, (WPARAM)i, NULL) > 0)
-		{
-			int len = SendMessage(m_modeList, LB_GETTEXTLEN, (WPARAM)i, NULL);
+	int sel = SendMessage(m_modeList, LB_GETCURSEL, NULL, NULL);
+	if (sel != LB_ERR)
+	{	
+		int len = SendMessage(m_modeList, LB_GETTEXTLEN, (WPARAM)sel, NULL);
 			
-			const char* buffer = new char[len + 1];
-			SendMessage(m_modeList, LB_GETTEXT, (WPARAM)i, (LPARAM)buffer);
+		const char* buffer = new char[len + 1];
+		SendMessage(m_modeList, LB_GETTEXT, (WPARAM)sel, (LPARAM)buffer);
 
-			int w, h;
-			sscanf(buffer, "%dx%d", &w, &h);
+		int w, h;
+		sscanf(buffer, "%dx%d", &w, &h);
 
-			bool fullscreen = (SendMessage(m_chkFullscreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
+		bool fullscreen = (SendMessage(m_chkFullscreen, BM_GETCHECK, 0, 0) == BST_CHECKED);
 
-			delete[] buffer;
+		delete[] buffer;
 
-			launchGame(w, h, fullscreen);
-		}
+		launchGame(w, h, fullscreen);
 	}
 }
 
@@ -148,58 +150,15 @@ void MainWindow::launchGame(int screenWidth, int screenHeight, bool fullscreen)
 
 void MainWindow::createChildControls(HINSTANCE instance)
 {
-	m_label = createLabel(instance, m_hwnd, 12, 9, "Screen resolution:");
+	m_label = CreateLabel(instance, m_hwnd, 12, 9, "Screen resolution:");
 
-	m_modeList = CreateListbox(instance, m_hwnd, 12, 25, g_windowWidth - 40, 147);
+	m_modeList = CreateListbox(instance, m_hwnd, 12, 25, 210, 147);
 
 	m_chkFullscreen = CreateCheckbox(instance, m_hwnd, 12, 178, "Fullscreen", true);
 
 	m_btnGo = CreateButton(instance, m_hwnd, 147, 195, "Go!");
 }
 
-HWND MainWindow::createLabel(HINSTANCE instance, HWND parent, int x, int y, const char* text)
-{
-	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
-
-	HWND label = CreateWindowEx(0, "STATIC", text, WS_CHILD | WS_VISIBLE, x, y, 100, 13, parent, NULL, instance, NULL);
-
-	SendMessage(label, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
-
-	return label;
-}
-
-HWND CreateListbox(HINSTANCE instance, HWND parent, int x, int y, int width, int height)
-{
-	HWND listbox = CreateWindowEx(WS_EX_CLIENTEDGE, "LISTBOX", NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL, x, y, width, height, parent, NULL, instance, NULL);
-
-	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
-	SendMessage(listbox, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
-
-	return listbox;
-}
-
-HWND CreateButton(HINSTANCE instance, HWND parent, int x, int y, const char* text)
-{
-	HWND button = CreateWindowEx(WS_EX_WINDOWEDGE, "Button", text, WS_CHILD | WS_VISIBLE, x, y, 75, 23, parent, NULL, instance, NULL);
-
-	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
-	SendMessage(button, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
-
-	return button;
-}
-
-HWND CreateCheckbox(HINSTANCE instance, HWND parent, int x, int y, const char* text, bool checked)
-{
-	HWND checkbox = CreateWindowEx(0, "BUTTON", text, WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX, x, y, 100, 17, parent, NULL, instance, NULL);
-
-	HGDIOBJ hfDefault = GetStockObject(DEFAULT_GUI_FONT);
-	SendMessage(checkbox, WM_SETFONT, (WPARAM)hfDefault, MAKELPARAM(FALSE, 0));
-
-	if (checked)
-		SendMessage(checkbox, BM_SETCHECK, BST_CHECKED, 0);
-
-	return checkbox;
-}
 
 LRESULT CALLBACK MainWindow::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
