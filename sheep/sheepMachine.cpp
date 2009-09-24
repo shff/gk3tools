@@ -9,6 +9,8 @@ SheepMachine::SheepMachine()
 	m_compilerCallback = NULL;
 	m_endWaitCallback = NULL;
 
+	m_verbosityLevel = Verbosity_Silent;
+
 	// add Call() as an import
 	SheepImport* call = m_imports.NewImport("Call", SYM_VOID, s_call);
 	call->Parameters.push_back(SYM_STRING);
@@ -242,7 +244,8 @@ void SheepMachine::execute(SheepContext& context)
 	context.CodeBuffer->SeekFromStart(context.InstructionOffset);
 	while(!context.Suspended && context.CodeBuffer->Tell() < context.CodeBuffer->GetSize())
 	{
-		printf("stack size: %d\n", context.Stack.size());
+		if (m_verbosityLevel > Verbosity_Polite)
+			printf("stack size: %d\n", context.Stack.size());
 
 		if (context.InstructionOffset != context.CodeBuffer->Tell())
 			context.CodeBuffer->SeekFromStart(context.InstructionOffset);	
@@ -484,7 +487,8 @@ void SheepMachine::executeContextsUntilSuspendedOrFinished()
 {
 	while(m_contexts.empty() == false)
 	{
-		printf("Executing... (%d left)\n", m_contexts.size());
+		if (m_verbosityLevel >= Verbosity_Extreme)
+			printf("Executing... (%d left)\n", m_contexts.size());
 		execute(m_contexts.top());
 
 		if (m_contexts.empty() || m_contexts.top().Suspended)
@@ -492,10 +496,13 @@ void SheepMachine::executeContextsUntilSuspendedOrFinished()
 		
 		delete m_contexts.top().FullCode;
 		m_contexts.pop();
-		printf("Popped context... (%d left)\n", m_contexts.size());
+
+		if (m_verbosityLevel >= Verbosity_Extreme)
+			printf("Popped context... (%d left)\n", m_contexts.size());
 	}
 
-	printf("Executed everything!\n");
+	if (m_verbosityLevel >= Verbosity_Extreme)
+		printf("Executed everything!\n");
 }
 
 void SheepMachine::s_call(SheepVM* vm)

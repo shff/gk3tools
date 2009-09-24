@@ -31,7 +31,7 @@ SheepCodeTreeNode* SheepCodeTree::GetCodeTree()
 void SheepCodeTree::Lock(const std::string& script, SheepLog* log)
 {
 	if (m_locked == true)
-		throw SheepException("Sheep code tree already locked");
+		throw SheepException("Sheep code tree already locked", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 	
 	m_locked = true;
 	m_log = log;

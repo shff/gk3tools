@@ -50,13 +50,9 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 		
 		return SHEEP_SUCCESS;
 	}
-	catch(NoSuchFunctionException& ex)
-	{
-		return SHEEP_ERR_NO_SUCH_FUNCTION;
-	}
 	catch(SheepException& ex)
 	{
-		return SHEEP_ERROR;
+		return ex.GetErrorNum();
 	}
 }
 
@@ -75,13 +71,9 @@ int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
 
 		return SHEEP_SUCCESS;
 	}
-	catch(NoSuchFunctionException& ex)
-	{
-		return SHEEP_ERR_NO_SUCH_FUNCTION;
-	}
 	catch(SheepException& ex)
 	{
-		return SHEEP_ERROR;
+		return ex.GetErrorNum();
 	}
 }
 
@@ -95,7 +87,7 @@ int SHP_RunSnippet(SheepVM* vm, const char* script, int* result)
 	}
 	catch(SheepException& ex)
 	{
-		return SHEEP_ERROR;
+		return ex.GetErrorNum();
 	}
 }
 
@@ -165,4 +157,26 @@ SHP_Version SHP_GetVersion()
 	v.Revision = SHEEP_VERSION_REVISION;
 
 	return v;
+}
+
+
+int SHP_GetNumContexts(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->GetNumContexts();
+}
+
+int SHP_GetCurrentContextStackSize(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->GetCurrentContextStackSize();
+}
+
+void SHP_SetVerbosity(SheepVM* vm, int verbosity)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->SetVerbosity((SheepMachine::Verbosity)verbosity);
 }

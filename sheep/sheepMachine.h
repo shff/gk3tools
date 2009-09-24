@@ -10,7 +10,7 @@ class SheepMachineException : public SheepException
 {
 public:
 	SheepMachineException(const std::string& message)
-		: SheepException(message)
+		: SheepException(message, SHEEP_GENERIC_VM_ERROR)
 	{
 	}
 };
@@ -130,9 +130,22 @@ public:
 	bool IsSuspended() { return m_contexts.top().Suspended; }
 	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
-private:
-
+	int GetNumContexts() { return m_contexts.size(); }
+	int GetCurrentContextStackSize() { return m_contexts.top().Stack.size(); }
 	
+
+	enum Verbosity
+	{
+		Verbosity_Silent = 0,
+		Verbosity_Polite = 1,
+		Verbosity_Annoying = 2,
+		Verbosity_Extreme = 3
+	};
+
+	void SetVerbosity(Verbosity verbosity) { m_verbosityLevel = verbosity; }
+	Verbosity GetVerbosity() { return m_verbosityLevel; }
+
+private:
 
 	void prepareVariables(SheepContext& context);
 	void execute(SheepContext& context);
@@ -148,6 +161,8 @@ private:
 
 	typedef std::stack<SheepContext> SheepContextStack;
 	SheepContextStack m_contexts;
+
+	Verbosity m_verbosityLevel;
 
 	// we consider Call() a built-in function and not technically an import,
 	// mostly for performance reasons
@@ -428,7 +443,7 @@ private:
 		StackItem params[MAX_NUM_PARAMS];
 
 		if (numParams >= MAX_NUM_PARAMS)
-			throw SheepException("More than the maximum number of allowed parameters found");
+			throw SheepException("More than the maximum number of allowed parameters found", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 
 		size_t numItemsOnStack = stack.size();
 
@@ -439,7 +454,8 @@ private:
 			throw SheepMachineException("Invalid number of parameters to import function");
 		if (numParams > stack.size())
 		{
-			printf("stack size: %d numparams: %d\n", stack.size(), numParams);
+			if (m_verbosityLevel > Verbosity_Silent)
+				printf("stack size: %d numparams: %d\n", stack.size(), numParams);
 			throw SheepMachineException("Stack is not in a valid state for calling this import function");
 		}
 			

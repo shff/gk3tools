@@ -17,7 +17,7 @@ SheepFileReader::SheepFileReader(const std::string& filename)
 	std::ifstream file(filename.c_str(), std::ios_base::binary);
 	if (!file)
 	{
-		throw SheepException("Unable to open input file");
+		throw SheepException("Unable to open input file", SHEEP_ERR_FILE_NOT_FOUND);
 	}
 
 	unsigned int fileSize = getFileSize(file);
@@ -63,7 +63,7 @@ void SheepFileReader::read(const byte* data, int length)
 
 	if (header.Magic1 != SheepHeader::Magic1Value || header.Magic2 != SheepHeader::Magic2Value)
 	{
-		throw SheepException("Input file is not a valid sheep file");
+		throw SheepException("Input file is not a valid sheep file", SHEEP_ERR_INVALID_FILE_FORMAT);
 	}
 
 	READ4(&header.Unknown, offset);
@@ -85,7 +85,7 @@ void SheepFileReader::read(const byte* data, int length)
 		if (header.OffsetArray[i] >= length)
 		{
 			delete[] header.OffsetArray;
-			throw SheepException("Input file is not a valid sheep file");
+			throw SheepException("Input file is not a valid sheep file", SHEEP_ERR_INVALID_FILE_FORMAT);
 		}
 
 		// seek
@@ -232,7 +232,7 @@ void SheepFileReader::read(const byte* data, int length)
 			unsigned int currentOffset = offset;
 
 			if (codeHeader.DataCount > 1)
-				throw SheepException("Extra code sections found");
+				throw SheepException("Extra code sections found", SHEEP_ERR_INVALID_FILE_FORMAT);
 
 			// seek
 			offset = currentOffset + codeHeader.OffsetArray[0];
@@ -255,7 +255,7 @@ void SheepFileReader::read(const byte* data, int length)
 		}
 		else
 		{
-			throw SheepException("Unrecognized data section");
+			throw SheepException("Unrecognized data section", SHEEP_ERR_INVALID_FILE_FORMAT);
 			
 		}
 	}

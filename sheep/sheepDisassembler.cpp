@@ -24,7 +24,7 @@ namespace SheepCompiler
 		std::ifstream file(inputFile.c_str(), std::ios_base::binary);
 		if (!file)
 		{
-			throw SheepException("Unable to open input file");
+			throw SheepException("Unable to open input file", SHEEP_ERR_FILE_NOT_FOUND);
 		}
 
 		unsigned int fileSize = getFileSize(file);

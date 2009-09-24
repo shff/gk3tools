@@ -304,7 +304,7 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 							operation->SetValueType(EXPRVAL_INT);
 						break;
 					default:
-						throw SheepException("Unknown operation type");
+						throw SheepException("Unknown operation type", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 
 				}
 				
@@ -768,7 +768,7 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				floatOp = Or;
 				break;
 			default:
-				throw SheepException("Unknown operator type!");
+				throw SheepException("Unknown operator type!", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 			}
 
 			if (operation->GetValueType() == EXPRVAL_STRING)
@@ -828,7 +828,7 @@ SheepSymbolType SheepCodeGenerator::convertToSymbolType(CodeTreeDeclarationNodeT
 		return SYM_LABEL;
 
 	// we should never get here!
-	throw SheepException("Unknown declaration type");
+	throw SheepException("Unknown declaration type", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 }
 
 CodeTreeExpressionValueType SheepCodeGenerator::convertToExpressionValueType(SheepSymbolType type)

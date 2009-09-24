@@ -19,6 +19,11 @@ extern "C"
 #define SHEEP_SUCCESS 0
 #define SHEEP_ERROR -1
 #define SHEEP_ERR_NO_SUCH_FUNCTION -2
+#define SHEEP_ERR_FILE_NOT_FOUND -10
+#define SHEEP_ERR_INVALID_FILE_FORMAT -11
+#define SHEEP_GENERIC_COMPILER_ERROR -100
+#define SHEEP_GENERIC_VM_ERROR -200
+#define SHEEP_UNKNOWN_ERROR_PROBABLY_BUG -1000
 #define SHEEP_SUSPENDED 2
 
 #define SHEEP_TRUE 1
@@ -89,6 +94,7 @@ typedef struct {} SheepImportFunction;
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
 DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
 
+
 typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* message);
 DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
 
@@ -107,7 +113,11 @@ DECLSPEC const char* LIB_CALL SHP_PopStringFromStack(SheepVM* vm);
 DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
 
 
-
+/* these next few functions are just for debugging the Compiler and VM. They shouldn't
+be used for anything else. */
+DECLSPEC int LIB_CALL SHP_GetNumContexts(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
+DECLSPEC void LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
 
 
 /* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.
