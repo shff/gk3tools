@@ -117,12 +117,54 @@ BEGIN_TEST(booleanTest)
 	SHP_DestroyVM(vm);
 END_TEST
 
+BEGIN_TEST(conditionalTest)
+
+	SheepVM* vm = SHP_CreateNewVM();
+
+	int dummy;
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 1 && 0 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 0);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 1 && 1 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 1);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 0 && 0 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 0);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 1 || 0 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 1);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 1 || 1 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 1);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 0 || 0 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 0);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 1 && 0 || 1 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 1);
+
+	TEST_ASSERT(SHP_RunSnippet(vm, "snippet { 0 && 1 || 0 }", &dummy) == SHEEP_SUCCESS);
+	TEST_ASSERT(SHP_GetNumContexts(vm) == 0);
+	TEST_ASSERT(dummy == 0);
+
+	SHP_DestroyVM(vm);
+
+END_TEST
+
 int main()
 {
 	basicSnippetTest();
 	intOperationOrderTest();
 	floatOperationOrderTest();
 	booleanTest();
+	conditionalTest();
 
 	// TODO: there needs to me FAR more tests!
 
