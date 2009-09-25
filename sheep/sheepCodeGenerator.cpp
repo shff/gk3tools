@@ -849,7 +849,7 @@ int SheepCodeGenerator::getIndexOfImport(SheepImport &import)
 {
 	for (int i = 0; i < (int)m_usedImports.size(); i++)
 	{
-		if (m_usedImports[i].Name == import.Name)
+		if (CIEqual(m_usedImports[i].Name, import.Name))
 			return i;
 	}
 
@@ -863,7 +863,7 @@ int SheepCodeGenerator::getIndexOfVariable(SheepSymbol &symbol)
 {
 	for (int i = 0; i < (int)m_variables.size(); i++)
 	{
-		if (m_variables[i].Name == symbol.Name)
+		if (CIEqual(m_variables[i].Name, symbol.Name))
 			return i;
 	}
 

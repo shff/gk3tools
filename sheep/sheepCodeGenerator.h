@@ -5,6 +5,7 @@
 #include <map>
 #include "sheepTypes.h"
 #include "sheepCodeTree.h"
+#include "sheepCaseInsensitiveStringCompare.h"
 
 /// Class used to represent immediate output of the compiler.
 /// This can be used for a dynamic interpreter that doesn't
@@ -65,7 +66,7 @@ private:
 	int getIndexOfImport(SheepImport& import);
 	int getIndexOfVariable(SheepSymbol& symbol);
 
-	typedef std::map<std::string, SheepSymbol> SymbolMap;
+	typedef std::map<std::string, SheepSymbol, ci_less> SymbolMap;
 	SymbolMap m_symbolMap;
 	
 	/// Gets the type of symbol. Throws a SheepCompilerException if the symbol doesn't exist.

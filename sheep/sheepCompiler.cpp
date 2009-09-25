@@ -46,9 +46,14 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 	try
 	{
 		IntermediateOutput* output = SM(vm)->Compile(script);
-		SM(vm)->Run(output, function);
-		
-		return SHEEP_SUCCESS;
+		if (output->Errors.empty())
+		{
+			SM(vm)->Run(output, function);
+			
+			return SHEEP_SUCCESS;
+		}
+
+		return SHEEP_GENERIC_COMPILER_ERROR;
 	}
 	catch(SheepException& ex)
 	{
