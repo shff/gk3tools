@@ -78,6 +78,9 @@
       <SubType>Designer</SubType>
       <DependentUpon>About.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Strings.sl-SI.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Strings.ru-RU.resx">
       <SubType>Designer</SubType>
     </EmbeddedResource>

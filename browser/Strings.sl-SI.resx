@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,24 +117,145 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="richTextBox1.Text" xml:space="preserve">
-    <value>Programming
-Brad Farris ("BradDaBug")
-
-Localization
-
-German
-Sebastian Seefried ("Bambam")
-
-French
-Romain "Orc"
-
-Russian
-Boris Belchikhin
-
-Slovenian
-Daniel "Turalyon"
-
-GK3 is property of Activision Blizzard. This project is not associated with or endorsed by Activision Blizzard in any way.</value>
+  <data name="AboutCopyright1" xml:space="preserve">
+    <value>Copyright 2009 Brad Farris</value>
+  </data>
+  <data name="AboutCopyright2" xml:space="preserve">
+    <value>Pod pooblastilom GNU GPL</value>
+  </data>
+  <data name="AboutCredits" xml:space="preserve">
+    <value>Credits</value>
+  </data>
+  <data name="AboutVersion" xml:space="preserve">
+    <value>Verzija</value>
+  </data>
+  <data name="CompressionNone" xml:space="preserve">
+    <value>Brez</value>
+  </data>
+  <data name="ListBarn" xml:space="preserve">
+    <value>Barn</value>
+  </data>
+  <data name="ListCompression" xml:space="preserve">
+    <value>Compression</value>
+  </data>
+  <data name="ListFilename" xml:space="preserve">
+    <value>Ime datoteke</value>
+  </data>
+  <data name="ListSize" xml:space="preserve">
+    <value>Velikost</value>
+  </data>
+  <data name="ListType" xml:space="preserve">
+    <value>Vrsta</value>
+  </data>
+  <data name="MainMenuAbout" xml:space="preserve">
+    <value>Več</value>
+  </data>
+  <data name="MainMenuConvertBitmaps" xml:space="preserve">
+    <value>Pretvorba formata slike</value>
+  </data>
+  <data name="MainMenuDecompress" xml:space="preserve">
+    <value>Razširi datoteke</value>
+  </data>
+  <data name="MainMenuExit" xml:space="preserve">
+    <value>Izhod</value>
+  </data>
+  <data name="MainMenuExtractAllBitmaps" xml:space="preserve">
+    <value>Razpakiraj vse formate slik</value>
+  </data>
+  <data name="MainMenuExtractAllDocs" xml:space="preserve">
+    <value>Razpakiraj vse tekst datoteke</value>
+  </data>
+  <data name="MainMenuExtractAllHtml" xml:space="preserve">
+    <value>Razpakiraj vse html datoteke</value>
+  </data>
+  <data name="MainMenuExtractAllWavs" xml:space="preserve">
+    <value>Razpakiraj vse zvočne datoteke</value>
+  </data>
+  <data name="MainMenuExtractSelected" xml:space="preserve">
+    <value>Razpakiraj označene datoteke</value>
+  </data>
+  <data name="MainMenuFile" xml:space="preserve">
+    <value>Datoteka</value>
+  </data>
+  <data name="MainMenuHelp" xml:space="preserve">
+    <value>Pomoč</value>
+  </data>
+  <data name="MainMenuOpenBarn" xml:space="preserve">
+    <value>Odpri barn...</value>
+  </data>
+  <data name="MainMenuPreviewFile" xml:space="preserve">
+    <value>Predogled</value>
+  </data>
+  <data name="MainMenuSetExtractionPath" xml:space="preserve">
+    <value>Določi mesto rapakiranja...</value>
+  </data>
+  <data name="MainMenuTools" xml:space="preserve">
+    <value>Orodja</value>
+  </data>
+  <data name="TypeAct" xml:space="preserve">
+    <value>ACT Datoteka</value>
+  </data>
+  <data name="TypeAnm" xml:space="preserve">
+    <value>ANM Datoteka</value>
+  </data>
+  <data name="TypeBmp" xml:space="preserve">
+    <value>Format slike</value>
+  </data>
+  <data name="TypeBsp" xml:space="preserve">
+    <value>Geometrija prostora</value>
+  </data>
+  <data name="TypeCur" xml:space="preserve">
+    <value>Kazalec</value>
+  </data>
+  <data name="TypeDoc" xml:space="preserve">
+    <value>Dokument Microsoft Word</value>
+  </data>
+  <data name="TypeExe" xml:space="preserve">
+    <value>Executable</value>
+  </data>
+  <data name="TypeFon" xml:space="preserve">
+    <value>Police de texte</value>
+  </data>
+  <data name="TypeGas" xml:space="preserve">
+    <value>GAS Datoteka</value>
+  </data>
+  <data name="TypeHtml" xml:space="preserve">
+    <value>Dokument HTML</value>
+  </data>
+  <data name="TypeMod" xml:space="preserve">
+    <value>Geometrija modela</value>
+  </data>
+  <data name="TypeMom" xml:space="preserve">
+    <value>MOM Datoteka</value>
+  </data>
+  <data name="TypeMul" xml:space="preserve">
+    <value>Osvetlitev prostora</value>
+  </data>
+  <data name="TypeNvc" xml:space="preserve">
+    <value>Datoteka z objektnimi predikati</value>
+  </data>
+  <data name="TypeScn" xml:space="preserve">
+    <value>Scena</value>
+  </data>
+  <data name="TypeSeq" xml:space="preserve">
+    <value>SEQ Datoteka</value>
+  </data>
+  <data name="TypeShp" xml:space="preserve">
+    <value>Sheep skripta</value>
+  </data>
+  <data name="TypeSif" xml:space="preserve">
+    <value>Priprava scene</value>
+  </data>
+  <data name="TypeStk" xml:space="preserve">
+    <value>Datoteka z zvočnim zapisom</value>
+  </data>
+  <data name="TypeTxt" xml:space="preserve">
+    <value>Tekst dokument</value>
+  </data>
+  <data name="TypeWav" xml:space="preserve">
+    <value>WAV zvočna datoteka</value>
+  </data>
+  <data name="TypeYak" xml:space="preserve">
+    <value>YAK Datoteka</value>
   </data>
 </root>
