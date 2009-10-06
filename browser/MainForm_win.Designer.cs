@@ -36,6 +36,7 @@ namespace GK3BB
 		/// </summary>
 		private void InitializeComponent()
 		{
+            this.components = new System.ComponentModel.Container();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openBarnToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -60,7 +61,11 @@ namespace GK3BB
             this.typeColumn = new System.Windows.Forms.ColumnHeader();
             this.barnColumn = new System.Windows.Forms.ColumnHeader();
             this.compressionColumn = new System.Windows.Forms.ColumnHeader();
+            this.mainContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.previewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.extractFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
+            this.mainContextMenu.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -217,6 +222,7 @@ namespace GK3BB
             this.typeColumn,
             this.barnColumn,
             this.compressionColumn});
+            this.mainListView.ContextMenuStrip = this.mainContextMenu;
             this.mainListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainListView.Location = new System.Drawing.Point(0, 24);
             this.mainListView.Name = "mainListView";
@@ -249,6 +255,29 @@ namespace GK3BB
             this.compressionColumn.Text = "Compression";
             this.compressionColumn.Width = 91;
             // 
+            // mainContextMenu
+            // 
+            this.mainContextMenu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.previewToolStripMenuItem,
+            this.extractFilesToolStripMenuItem});
+            this.mainContextMenu.Name = "mainContextMenu";
+            this.mainContextMenu.Size = new System.Drawing.Size(153, 70);
+            this.mainContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.mainContextMenu_Opening);
+            // 
+            // previewToolStripMenuItem
+            // 
+            this.previewToolStripMenuItem.Name = "previewToolStripMenuItem";
+            this.previewToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.previewToolStripMenuItem.Text = "Preview";
+            this.previewToolStripMenuItem.Click += new System.EventHandler(this.previewToolStripMenuItem_Click);
+            // 
+            // extractFilesToolStripMenuItem
+            // 
+            this.extractFilesToolStripMenuItem.Name = "extractFilesToolStripMenuItem";
+            this.extractFilesToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.extractFilesToolStripMenuItem.Text = "Extract Files";
+            this.extractFilesToolStripMenuItem.Click += new System.EventHandler(this.extractFilesToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -262,6 +291,7 @@ namespace GK3BB
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.mainContextMenu.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -290,5 +320,8 @@ namespace GK3BB
 		private System.Windows.Forms.ToolStripMenuItem openBarnToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
 		private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ContextMenuStrip mainContextMenu;
+        private System.Windows.Forms.ToolStripMenuItem previewToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem extractFilesToolStripMenuItem;
 	}
 }

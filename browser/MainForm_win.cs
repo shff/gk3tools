@@ -329,6 +329,33 @@ namespace GK3BB
             }
         }
 
+        private void extractFilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            extractSelectedFilesToolStripMenuItem_Click(sender, e);
+        }
+
+        private void previewToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            previewFileToolStripMenuItem_Click(sender, e);
+        }
+
+        private void mainContextMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // count # selected files
+            int numSelected = mainListView.SelectedItems.Count;
+
+            previewToolStripMenuItem.Enabled = false;
+            if (mainListView.SelectedItems.Count == 1)
+            {
+                BarnFile bf = mainListView.SelectedItems[0].Tag as BarnFile;
+
+                if (isPreviewSupported(bf.Extension))
+                    previewToolStripMenuItem.Enabled = true;
+            }
+
+            extractFilesToolStripMenuItem.Enabled = numSelected > 0;
+        }
+
         #endregion
 
         private bool isPreviewSupported(string extension)
@@ -372,6 +399,10 @@ namespace GK3BB
             mainListView.Columns[2].Text = Strings.ListType;
             mainListView.Columns[3].Text = Strings.ListBarn;
             mainListView.Columns[4].Text = Strings.ListCompression;
+
+            // list context menu
+            extractFilesToolStripMenuItem.Text = Strings.MainMenuExtractSelected;
+            previewFileToolStripMenuItem.Text = Strings.MainMenuPreviewFile;
         }
 
         private ImageList _imageList;
@@ -379,6 +410,7 @@ namespace GK3BB
         private Dictionary<string, string> _previewExtensionsMap;
         private List<string> _temporaryFiles;
 
+       
     }
 
     class ListViewColumnSorter : System.Collections.IComparer
