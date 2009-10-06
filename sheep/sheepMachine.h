@@ -82,7 +82,7 @@ class SheepMachine : public SheepVM
 public:
 
 	SheepMachine();
-	~SheepMachine();
+	virtual ~SheepMachine();
 
 	void SetOutputCallback(void (*callback)(const char* message));
 	void SetCompileOutputCallback(SHP_MessageCallback callback);

@@ -1,5 +1,6 @@
 #include "sheepMachine.h"
 #include "sheepCodeBuffer.h"
+#include "sheepLog.h"
 
 
 
@@ -55,11 +56,23 @@ std::string& SheepMachine::PopStringFromStack()
 IntermediateOutput* SheepMachine::Compile(const std::string &script)
 {
 	SheepCodeTree tree;
-	tree.Lock(script, NULL);
+	SheepLog log;
+	tree.Lock(script, &log);
 
 	SheepCodeGenerator generator(&tree, &m_imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
 
+	// copy compiler errors into the output's output
+	std::vector<SheepLogEntry> entries = log.GetEntries();
+	for (int i = 0; i < entries.size(); i++)
+	{
+		CompilerOutput co;
+		co.LineNumber = entries[i].LineNumber;
+		co.Output = entries[i].Text;
+		output->Errors.push_back(co);
+	}
+
+	// report any errors
 	if (output->Errors.empty() == false && m_compilerCallback)
 	{
 		for (size_t i = 0; i < output->Errors.size(); i++)

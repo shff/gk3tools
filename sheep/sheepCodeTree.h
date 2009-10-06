@@ -18,6 +18,8 @@ public:
 	void Lock(const std::string& script, SheepLog* log);
 	
 	void Unlock();
+
+	void LogError(int lineNumber, const char* msg);
 	
 	const SheepCodeTreeNode* GetCodeTree() const;
 	SheepCodeTreeNode* GetCodeTree();

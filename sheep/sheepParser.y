@@ -10,11 +10,12 @@
 #define FALSE 0
 
 extern SheepCodeTreeNode* g_codeTreeRoot;
+extern SheepCodeTree* g_codeTree;
 extern int currentLine;
 
 void yyerror(const char* str)
 {
-	printf("error at line %d: %s\n", currentLine, str);
+	g_codeTree->LogError(currentLine, str);
 }
 
 char* removeQuotes(char* str)

@@ -58,6 +58,11 @@ void SheepCodeTree::Unlock()
 	g_codeTree = NULL;
 }
 
+void SheepCodeTree::LogError(int lineNumber, const char* msg)
+{
+	if (m_log) m_log->AddEntry(LOG_ERROR, lineNumber, msg);
+}
+
 void SheepCodeTree::Print()
 {
 	if (m_locked == true && g_codeTreeRoot != NULL)
