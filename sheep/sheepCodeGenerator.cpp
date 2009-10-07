@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <memory>
+#include "sheepMemoryAllocator.h"
 #include "sheepCodeTree.h"
 #include "sheepCodeGenerator.h"
 #include "sheepImportTable.h"
@@ -16,7 +17,7 @@ IntermediateOutput::~IntermediateOutput()
 	for (std::vector<SheepFunction>::iterator itr = Functions.begin(); itr != Functions.end(); itr++)
 	{
 		if ((*itr).Code != NULL)
-			delete (*itr).Code;
+			SHEEP_DELETE((*itr).Code);
 	}
 }
 
@@ -47,7 +48,7 @@ SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* im
 
 IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 {
-	std::auto_ptr<IntermediateOutput> output(new IntermediateOutput());
+	shp_auto_ptr<IntermediateOutput> output(SHEEP_NEW IntermediateOutput());
 
 	//std::map<std::string, SheepImport> usedImports;
 
@@ -389,7 +390,7 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 
 	SheepFunction func;
 	func.Name = function->GetDeclarationName();
-	func.Code = new SheepCodeBuffer();
+	func.Code = SHEEP_NEW SheepCodeBuffer();
 	func.CodeOffset = codeOffset;
 
 	SheepCodeTreeNode* child = function->GetChild(1);
@@ -412,7 +413,7 @@ SheepFunction SheepCodeGenerator::writeSnippet(SheepCodeTreeSectionNode* node)
 
 	SheepFunction func;
 	func.Name = "snippet";
-	func.Code = new SheepCodeBuffer();
+	func.Code = SHEEP_NEW SheepCodeBuffer();
 	func.CodeOffset = 0;
 
 	SheepCodeTreeNode* child = node->GetChild(0);

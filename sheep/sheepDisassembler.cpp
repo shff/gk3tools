@@ -30,11 +30,12 @@ namespace SheepCompiler
 		unsigned int fileSize = getFileSize(file);
 		std::string disassembly;
 
-		byte* buffer = new byte[fileSize];
+		//byte* buffer = new byte[fileSize];
+		byte* buffer = SHEEP_NEW_ARRAY(byte, fileSize);
 		file.read((char*)buffer, fileSize);
 		file.close();
 
-		SheepFileReader* reader = new SheepFileReader(buffer, fileSize);
+		SheepFileReader* reader = SHEEP_NEW SheepFileReader(buffer, fileSize);
 		IntermediateOutput* io = reader->GetIntermediateOutput();
 
 		// imports
@@ -124,8 +125,8 @@ namespace SheepCompiler
 			output << std::endl;
 		}
 
-		delete io;
-		delete reader;
+		SHEEP_DELETE(io);
+		SHEEP_DELETE(reader);
 
 		return output.str();
 	}
@@ -140,7 +141,8 @@ namespace SheepCompiler
 		READ4(&header.DataSize);
 		READ4(&header.DataCount);
 
-		header.OffsetArray = new unsigned int[header.DataCount];
+		//header.OffsetArray = new unsigned int[header.DataCount];
+		header.OffsetArray = SHEEP_NEW_ARRAY(unsigned int, header.DataCount);
 
 		for (unsigned int i = 0; i < header.DataCount; i++)
 			READ4(&header.OffsetArray[i]);

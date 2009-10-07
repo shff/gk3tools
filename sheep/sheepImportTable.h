@@ -5,6 +5,7 @@
 #include <vector>
 #include "sheepTypes.h"
 #include "sheepCaseInsensitiveStringCompare.h"
+#include "sheepMemoryAllocator.h"
 
 /// A list of all the imports registered with the compiler
 class SheepImportTable
@@ -15,7 +16,7 @@ public:
 	{
 		while(m_imports.empty() == false)
 		{
-			delete (*m_imports.begin()).second;
+			SHEEP_DELETE((*m_imports.begin()).second);
 			m_imports.erase(m_imports.begin());
 		}
 	}
@@ -77,14 +78,14 @@ public:
 		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT)
 			return NULL;
 		
-		SheepImport* import = new SheepImport;
+		SheepImport* import = SHEEP_NEW SheepImport;
 		import->Name = name;
 		import->ReturnType = returnType;
 		import->Callback = callback;
 		
 		if (m_imports.insert(ImportMap::value_type(name, import)).second == false)
 		{
-			delete import;
+			SHEEP_DELETE(import);
 			return NULL;
 		}
 		

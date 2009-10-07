@@ -8,16 +8,43 @@
 
 #define SM(v) static_cast<SheepMachine*>(v)
 
+static bool g_usingCustomAllocator = false;
+SHP_Allocator g_allocator;
+
+void SHP_SetAllocator(SHP_Allocator* allocator)
+{
+	g_usingCustomAllocator = true;
+
+	g_allocator.Allocator = allocator->Allocator;
+	g_allocator.Deallocator = allocator->Deallocator;
+}
+
+void* (CALLBACK defaultAllocator)(size_t size)
+{
+	return malloc(size);
+}
+
+void CALLBACK defaultDeallocator(void* ptr)
+{
+	free(ptr);
+}
+
 SheepVM* SHP_CreateNewVM()
 {
-	return new SheepMachine();
+	if (g_usingCustomAllocator == false)
+	{
+		g_allocator.Allocator = defaultAllocator;
+		g_allocator.Deallocator = defaultDeallocator;
+	}
+
+	return SHEEP_NEW SheepMachine();
 }
 
 void SHP_DestroyVM(SheepVM* vm)
 {
 	assert(vm != NULL);
 	
-	delete SM(vm);
+	SHEEP_DELETE(SM(vm));
 }
 
 void SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback)
@@ -49,9 +76,13 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 		if (output->Errors.empty())
 		{
 			SM(vm)->Run(output, function);
-			
+
 			return SHEEP_SUCCESS;
 		}
+
+		// delete the output (there's no need to delete it if it runs since
+		// the VM will take care of it for us)
+		SHEEP_DELETE(output);
 
 		return SHEEP_GENERIC_COMPILER_ERROR;
 	}
@@ -67,12 +98,12 @@ int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
 
 	try
 	{
-		SheepFileReader* reader = new SheepFileReader(code, length);
+		SheepFileReader* reader = SHEEP_NEW SheepFileReader(code, length);
 		reader->WireImportCallbacks(SM(vm)->GetImports());
 		IntermediateOutput* output = reader->GetIntermediateOutput();
 		SM(vm)->Run(output, function);
 		
-		delete reader;
+		SHEEP_DELETE(reader);
 
 		return SHEEP_SUCCESS;
 	}

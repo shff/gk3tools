@@ -186,6 +186,8 @@ public:
 		m_sectionType = type;
 	}
 
+	virtual ~SheepCodeTreeSectionNode() {}
+
 	CodeTreeSectionType GetSectionType() const { return m_sectionType; }
 
 protected:
@@ -284,6 +286,8 @@ public:
 		m_valueType = EXPRVAL_UNKNOWN;
 	}
 
+	virtual ~SheepCodeTreeExpressionNode() {}
+
 	CodeTreeExpressionType GetExpressionType() const { return m_expressionType; }
 	CodeTreeExpressionValueType GetValueType() const { return m_valueType; }
 
@@ -352,6 +356,8 @@ public:
 		m_global = global;
 	}
 	
+	virtual ~SheepCodeTreeIdentifierReferenceNode() {}
+
 	std::string GetName() const { return m_name; }
 	bool IsGlobal() const { return m_global; }
 

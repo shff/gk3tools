@@ -3,7 +3,6 @@
 #include "sheepLog.h"
 
 
-
 SheepMachine::SheepMachine()
 {
 	m_callback = NULL;
@@ -61,6 +60,8 @@ IntermediateOutput* SheepMachine::Compile(const std::string &script)
 
 	SheepCodeGenerator generator(&tree, &m_imports);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
+
+	tree.Unlock();
 
 	// copy compiler errors into the output's output
 	std::vector<SheepLogEntry> entries = log.GetEntries();
@@ -137,7 +138,7 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 
 	if (m_contexts.top().Suspended == false)
 	{
-		delete m_contexts.top().FullCode;
+		SHEEP_DELETE(m_contexts.top().FullCode);
 		m_contexts.pop();
 	}
 }
@@ -151,6 +152,8 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 
 	SheepCodeGenerator generator(&tree, &m_imports);
 	IntermediateOutput* code = generator.BuildIntermediateOutput();
+
+	tree.Unlock();
 
 	if (code->Errors.empty() == false)
 	{
@@ -195,7 +198,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 		m_contexts.top().Stack.pop();
 	}
 
-	delete m_contexts.top().FullCode;
+	SHEEP_DELETE(m_contexts.top().FullCode);
 	m_contexts.pop();
 
 	return SHEEP_SUCCESS;
@@ -507,7 +510,7 @@ void SheepMachine::executeContextsUntilSuspendedOrFinished()
 		if (m_contexts.empty() || m_contexts.top().Suspended)
 			break;
 		
-		delete m_contexts.top().FullCode;
+		SHEEP_DELETE(m_contexts.top().FullCode);
 		m_contexts.pop();
 
 		if (m_verbosityLevel >= Verbosity_Extreme)

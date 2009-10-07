@@ -4,6 +4,7 @@
 #include <cassert>
 #include <fstream>
 #include <memory.h>
+#include "sheepMemoryAllocator.h"
 
 class ResizableBuffer
 {
@@ -14,24 +15,25 @@ public:
 		m_totalSize = sizeHint;
 		m_hint = sizeHint;
 		
-		m_buffer = new char[m_hint];
+		//m_buffer = g_allocator.Allocator(sizeof(char) * m_hint);
+		m_buffer = SHEEP_NEW_ARRAY(char, m_hint);
 		
 		m_currentOffset = 0;
 	}
 	
 	~ResizableBuffer()
 	{
-		delete[] m_buffer;
+		SHEEP_DELETE_ARRAY(m_buffer);
 	}
 	
 	void Reset()
 	{
-		delete[] m_buffer;
+		SHEEP_DELETE_ARRAY(m_buffer);
 		
 		m_size = 0;
 		m_totalSize = m_hint;
 		
-		m_buffer = new char[m_hint];
+		m_buffer = SHEEP_NEW_ARRAY(char, m_hint);
 		
 		m_currentOffset = 0;
 	}
@@ -167,7 +169,8 @@ private:
 	{
 		m_totalSize += amount;
 
-		char* tmp = new char[m_totalSize];
+		//char* tmp = new char[m_totalSize];
+		char* tmp = SHEEP_NEW_ARRAY(char, m_totalSize);
 		memset(tmp, 0, m_totalSize);
 		
 		memcpy(tmp, m_buffer, m_size);

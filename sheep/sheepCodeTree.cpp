@@ -3,6 +3,7 @@
 #include "sheepScanner.h"
 #include "sheepLog.h"
 #include "sheepException.h"
+#include "sheepMemoryAllocator.h"
 
 SheepCodeTreeNode* g_codeTreeRoot = NULL;
 SheepCodeTree* g_codeTree = NULL;
@@ -53,7 +54,7 @@ void SheepCodeTree::Unlock()
 {
 	m_locked = false;
 	m_log = NULL;
-	delete g_codeTreeRoot;
+	SHEEP_DELETE(g_codeTreeRoot);
 	g_codeTreeRoot = NULL;
 	g_codeTree = NULL;
 }
@@ -105,39 +106,39 @@ SheepCodeTreeNode::~SheepCodeTreeNode()
 {
 	// delete my siblings (be careful that previous siblings get deleted too!)
 	if (m_sibling != NULL)
-		delete m_sibling;
+		SHEEP_DELETE(m_sibling);
 	
 	// delete my children
 	for (int i = 0; i < NUM_CHILD_NODES; i++)
 		if (m_children[i] != NULL)
-			delete m_children[i];
+			SHEEP_DELETE(m_children[i]);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateSymbolSection(int lineNumber)
 {
-	return new SheepCodeTreeSectionNode(SECTIONTYPE_SYMBOLS, lineNumber);
+	return SHEEP_NEW SheepCodeTreeSectionNode(SECTIONTYPE_SYMBOLS, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateCodeSection(int lineNumber)
 {
-	return new SheepCodeTreeSectionNode(SECTIONTYPE_CODE, lineNumber);
+	return SHEEP_NEW SheepCodeTreeSectionNode(SECTIONTYPE_CODE, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateSnippet(int lineNumber)
 {
-	return new SheepCodeTreeSectionNode(SECTIONTYPE_SNIPPET, lineNumber);
+	return SHEEP_NEW SheepCodeTreeSectionNode(SECTIONTYPE_SNIPPET, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber)
 {
-	SheepCodeTreeNode* node = new SheepCodeTreeDeclarationNode(type, lineNumber);
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(type, lineNumber);
 	
 	return node;
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateIntegerConstant(int value, int lineNumber)
 {
-	SheepCodeTreeConstantNode* constant = new SheepCodeTreeConstantNode(EXPRVAL_INT, lineNumber);
+	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(EXPRVAL_INT, lineNumber);
 	constant->SetIntValue(value);
 
 	return constant;
@@ -145,7 +146,7 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateIntegerConstant(int value, int lineN
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateFloatConstant(float value, int lineNumber)
 {
-	SheepCodeTreeConstantNode* constant = new SheepCodeTreeConstantNode(EXPRVAL_FLOAT, lineNumber);
+	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(EXPRVAL_FLOAT, lineNumber);
 	constant->SetFloatValue(value);
 
 	return constant;
@@ -155,7 +156,7 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateStringConstant(const std::string& va
 {
 	int offset = g_codeTree->AddStringConstant(value);
 	
-	SheepCodeTreeConstantNode* constant = new SheepCodeTreeConstantNode(EXPRVAL_STRING, lineNumber);
+	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(EXPRVAL_STRING, lineNumber);
 	constant->SetStringValue(offset);
 
 	return constant;
@@ -163,17 +164,17 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateStringConstant(const std::string& va
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateIdentifierReference(const std::string& name, bool global, int lineNumber)
 {
-	return new SheepCodeTreeIdentifierReferenceNode(name, global, lineNumber);
+	return SHEEP_NEW SheepCodeTreeIdentifierReferenceNode(name, global, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateOperation(CodeTreeOperationType type, int lineNumber)
 {
-	return new SheepCodeTreeOperationNode(type, lineNumber);
+	return SHEEP_NEW SheepCodeTreeOperationNode(type, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType type, int lineNumber)
 {
-	return new SheepCodeTreeStatementNode(type, lineNumber);
+	return SHEEP_NEW SheepCodeTreeStatementNode(type, lineNumber);
 }
 
 void SheepCodeTreeNode::AttachSibling(SheepCodeTreeNode* sibling)

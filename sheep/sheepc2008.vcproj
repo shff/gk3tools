@@ -363,6 +363,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sheepMemoryAllocator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sheepParser.cpp"
 				>
 			</File>
@@ -418,6 +422,10 @@
 			</File>
 			<File
 				RelativePath=".\sheepImportTable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\sheepLog.h"
 				>
 			</File>
 			<File

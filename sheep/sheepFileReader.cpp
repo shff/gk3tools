@@ -21,7 +21,8 @@ SheepFileReader::SheepFileReader(const std::string& filename)
 	}
 
 	unsigned int fileSize = getFileSize(file);
-	byte* data = new byte[fileSize];
+	//byte* data = new byte[fileSize];
+	byte* data = SHEEP_NEW_ARRAY(byte, fileSize);
 	file.read((char*)data, fileSize);
 	file.close();
 
@@ -32,7 +33,8 @@ SheepFileReader::SheepFileReader(const std::string& filename)
 SheepFileReader::SheepFileReader(std::ifstream& file)
 {
 	unsigned int fileSize = getFileSize(file);
-	byte* data = new byte[fileSize];
+	//byte* data = new byte[fileSize];
+	byte* data = SHEEP_NEW_ARRAY(byte, fileSize);
 	file.read((char*)data, fileSize);
 	file.close();
 
@@ -53,7 +55,7 @@ SheepFileReader::SheepFileReader(const byte* data, int length)
 
 void SheepFileReader::read(const byte* data, int length)
 {
-	m_intermediateOutput = new IntermediateOutput();
+	m_intermediateOutput = SHEEP_NEW IntermediateOutput();
 
 	// read the header
 	SheepHeader header;
@@ -72,7 +74,8 @@ void SheepFileReader::read(const byte* data, int length)
 	READ4(&header.DataSize, offset);
 	READ4(&header.DataCount, offset);
 
-	header.OffsetArray = new unsigned int[header.DataCount];
+	//header.OffsetArray = new unsigned int[header.DataCount];
+	header.OffsetArray = SHEEP_NEW_ARRAY(unsigned int, header.DataCount);
 
 	for (unsigned int i = 0; i < header.DataCount; i++)
 		READ4(&header.OffsetArray[i], offset);
@@ -249,7 +252,7 @@ void SheepFileReader::read(const byte* data, int length)
 				else
 					size = functions[j+1].CodeOffset - functions[j].CodeOffset;
 
-				functions[j].Code = new SheepCodeBuffer(size);
+				functions[j].Code = SHEEP_NEW SheepCodeBuffer(size);
 				functions[j].Code->Write((const char*)data + offset, size); 
 			}
 		}
@@ -301,7 +304,8 @@ SectionHeader SheepFileReader::readSectionHeader(const byte* data, const std::st
 	READ4(&header.DataSize, offset);
 	READ4(&header.DataCount, offset);
 
-	header.OffsetArray = new unsigned int[header.DataCount];
+	//header.OffsetArray = new unsigned int[header.DataCount];
+	header.OffsetArray = SHEEP_NEW_ARRAY(unsigned int, header.DataCount);
 
 	for (unsigned int i = 0; i < header.DataCount; i++)
 		READ4(&header.OffsetArray[i], offset);

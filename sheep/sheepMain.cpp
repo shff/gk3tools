@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 		// treat this as a compiled script
 		file.seekg(0);
 
-		reader = new SheepFileReader(file);
+		reader = SHEEP_NEW SheepFileReader(file);
 	}
 	else
 	{
@@ -185,7 +185,7 @@ int main(int argc, char** argv)
 			std::cout << "Num functions: " << output->Functions.size() << std::endl;
 		}
 
-		delete output;
+		SHEEP_DELETE(output);
 	}
 	else
 	{

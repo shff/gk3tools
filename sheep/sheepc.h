@@ -94,6 +94,16 @@ typedef struct {} SheepImportFunction;
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
 DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
 
+typedef struct SHP_Allocator
+{
+	void* (CALLBACK *Allocator)(size_t);
+	void (CALLBACK *Deallocator)(void*);
+} SHP_Allocator;
+
+/* Sets the allocator. This is optional, but if you want to set the allocator
+then this MUST Be called before any calls to SHP_CreateNewVM(). */
+DECLSPEC void LIB_CALL SHP_SetAllocator(SHP_Allocator* allocator);
+
 
 typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* message);
 DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
@@ -118,6 +128,7 @@ be used for anything else. */
 DECLSPEC int LIB_CALL SHP_GetNumContexts(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
 DECLSPEC void LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
+DECLSPEC void LIB_CALL SHP_PrintMemoryUsage();
 
 
 /* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.

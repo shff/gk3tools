@@ -17,7 +17,7 @@ SheepFileWriter::SheepFileWriter(IntermediateOutput* output)
 
 void SheepFileWriter::Write(const std::string &filename)
 {
-	m_buffer = new ResizableBuffer();
+	m_buffer = SHEEP_NEW ResizableBuffer();
 
 	const int baddummy = 0xdddddddd;
 
@@ -70,7 +70,7 @@ void SheepFileWriter::Write(const std::string &filename)
 	// save!
 	m_buffer->SaveToFile(filename);
 
-	delete m_buffer;
+	SHEEP_DELETE(m_buffer);
 	m_buffer = NULL;
 }
 
