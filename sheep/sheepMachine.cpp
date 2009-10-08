@@ -65,7 +65,7 @@ IntermediateOutput* SheepMachine::Compile(const std::string &script)
 
 	// copy compiler errors into the output's output
 	std::vector<SheepLogEntry> entries = log.GetEntries();
-	for (int i = 0; i < entries.size(); i++)
+	for (unsigned int i = 0; i < entries.size(); i++)
 	{
 		CompilerOutput co;
 		co.LineNumber = entries[i].LineNumber;
@@ -184,7 +184,6 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	m_contexts.push(c);
 	execute(m_contexts.top());
 
-	int returnValue = 0;
 	if (m_contexts.top().Stack.empty() == false)
 	{
 		if (result != NULL)
@@ -255,7 +254,6 @@ void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
 void SheepMachine::execute(SheepContext& context)
 {
 	std::vector<SheepImport> imports = context.FullCode->Imports;
-	SheepStack::size_type numItemsOnStack = context.Stack.size();
 
 	context.CodeBuffer->SeekFromStart(context.InstructionOffset);
 	while(!context.Suspended && context.CodeBuffer->Tell() < context.CodeBuffer->GetSize())

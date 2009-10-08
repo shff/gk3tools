@@ -56,7 +56,7 @@ public:
 
 private:
 
-	void read(const byte* data, int length);
+	void read(const byte* data, unsigned int length);
 
 	static unsigned int getFileSize(std::ifstream& file);
 	SectionHeader readSectionHeader(const byte* data, const std::string& name, int* bytesRead);

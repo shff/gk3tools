@@ -158,7 +158,7 @@ public:
 		if (out.good() == false)
 			throw "Uanble to open file for writing";
 		
-		out.write(m_buffer, m_size);
+		out.write(m_buffer, (std::streamsize)m_size);
 		
 		out.close();
 	}

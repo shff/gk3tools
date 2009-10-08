@@ -52,6 +52,8 @@ struct SheepAllocInfo
 
 
 SheepAllocInfo* g_allocRoot = NULL;
+size_t g_totalBytesAllocated = 0;
+size_t g_totalBytesDeallocated = 0;
 
 
 void addNewAllocInfo(SheepAllocInfo* blank, size_t size, const char* filename, int lineNumber)
@@ -70,6 +72,10 @@ void addNewAllocInfo(SheepAllocInfo* blank, size_t size, const char* filename, i
 	if (g_allocRoot)
 		g_allocRoot->Prev = blank;
 	g_allocRoot = blank;
+
+	//printf("Alloced %d bytes in %s:%d\n", size, filename, lineNumber);
+
+	g_totalBytesAllocated += size;
 }
 
 void removeAllocInfo(SheepAllocInfo* info)
@@ -86,6 +92,8 @@ void removeAllocInfo(SheepAllocInfo* info)
 
 			if (g_allocRoot == ptr)
 				g_allocRoot = ptr->Next;
+
+			g_totalBytesDeallocated += ptr->RequestedSize;
 
 			return;
 		}
@@ -165,6 +173,22 @@ void operator delete[](void* p)
 	g_allocator.Deallocator(info);
 }
 
+void operator delete(void* p, const char*, int)
+{
+	SheepAllocInfo* info = (SheepAllocInfo*)((byte*)p - sizeof(SheepAllocInfo));
+	removeAllocInfo(info);
+
+	g_allocator.Deallocator(info);
+}
+
+void operator delete[](void* p, const char*, int)
+{
+	SheepAllocInfo* info = (SheepAllocInfo*)((byte*)p - sizeof(SheepAllocInfo));
+	removeAllocInfo(info);
+
+	g_allocator.Deallocator(info);
+}
+
 
 void SHP_PrintMemoryUsage()
 {
@@ -178,6 +202,8 @@ void SHP_PrintMemoryUsage()
 		SheepAllocInfo* tmp = ptr;
 		ptr = ptr->Next;
 	}
+
+	printf("\n%d bytes allocated, %d bytes freed\n", g_totalBytesAllocated, g_totalBytesDeallocated);
 
 	printf("End of Memory Report\n\n");
 }

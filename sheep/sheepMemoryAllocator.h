@@ -16,6 +16,7 @@ extern SHP_Allocator g_allocator;
 void* operator new(size_t);
 void* operator new(size_t size, const char* filename, int lineNumber);
 void operator delete(void* p);
+void operator delete(void* p, const char*, int);
 
 #define SHEEP_NEW new(__FILE__, __LINE__)
 #define SHEEP_DELETE(p) delete p
@@ -23,6 +24,7 @@ void operator delete(void* p);
 void* operator new[](size_t);
 void* operator new[](size_t, const char*, int);
 void operator delete[](void*);
+void operator delete[](void*, const char*, int);
 
 #define SHEEP_NEW_ARRAY(T,l) new T[l]
 #define SHEEP_DELETE_ARRAY(p) delete[] p

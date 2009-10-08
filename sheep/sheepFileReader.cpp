@@ -53,7 +53,7 @@ SheepFileReader::SheepFileReader(const byte* data, int length)
 #define READ1(d,i) { memcpy(d, &data[i], 1); i+=1; }
 #define READN(d,i,n) { memcpy(d, &data[i], n); i+=n; }
 
-void SheepFileReader::read(const byte* data, int length)
+void SheepFileReader::read(const byte* data, unsigned int length)
 {
 	m_intermediateOutput = SHEEP_NEW IntermediateOutput();
 
@@ -277,7 +277,7 @@ void SheepFileReader::WireImportCallbacks(const SheepImportTable& imports)
 	assert(m_intermediateOutput != NULL);
 
 	SheepImport import;
-	for (int i = 0; i < m_intermediateOutput->Imports.size(); i++)
+	for (unsigned int i = 0; i < m_intermediateOutput->Imports.size(); i++)
 	{
 		if (imports.TryFindImport(m_intermediateOutput->Imports[i].Name, import))
 		{

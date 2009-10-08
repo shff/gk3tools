@@ -691,8 +691,6 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 	{
 		SheepCodeTreeOperationNode* operation = static_cast<SheepCodeTreeOperationNode*>(expression);
 
-		SheepInstruction op;
-
 		SheepCodeTreeExpressionNode* child1 = static_cast<SheepCodeTreeExpressionNode*>(operation->GetChild(0));
 		SheepCodeTreeExpressionNode* child2 = static_cast<SheepCodeTreeExpressionNode*>(operation->GetChild(1));
 
@@ -711,7 +709,7 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 		else
 		{
 			// just a regular ol' binary operator
-			SheepInstruction intOp, floatOp, stringOp;
+			SheepInstruction intOp, floatOp;
 
 			itemsOnStack--; // everything pops twice and pushes once
 			switch(operation->GetOperationType())

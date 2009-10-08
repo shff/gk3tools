@@ -19,8 +19,6 @@ void SheepFileWriter::Write(const std::string &filename)
 {
 	m_buffer = SHEEP_NEW ResizableBuffer();
 
-	const int baddummy = 0xdddddddd;
-
 	// how many sections are we writing?
 	int dataCount = 3;
 	if (m_intermediateOutput->Symbols.empty() == false) dataCount++;
@@ -76,18 +74,20 @@ void SheepFileWriter::Write(const std::string &filename)
 
 void SheepFileWriter::writeSectionHeader(const std::string& label, int dataOffset, int dataCount)
 {
+	const unsigned int baddummy = 0xdddddddd;
+
 	char buffer[12] = {0};
 	label.copy(buffer, 12); 
 	m_buffer->Write(buffer, 12);
 
 	m_buffer->WriteUInt(dataOffset);
 	m_buffer->WriteUInt(dataOffset);
-	m_buffer->WriteUInt(0xdddddddd);
+	m_buffer->WriteUInt(baddummy);
 	m_buffer->WriteUInt(dataCount);
 
 	// create the offset array
-	for (size_t i = 0; i < dataCount; i++)
-		m_buffer->WriteUInt(0xdddddddd);
+	for (size_t i = 0; i < (size_t)dataCount; i++)
+		m_buffer->WriteUInt(baddummy);
 }
 
 template<typename T, typename Adder>
