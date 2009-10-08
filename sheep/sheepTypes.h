@@ -16,7 +16,7 @@ enum SheepSymbolType
 	SYM_LABEL
 };
 
-static std::string SheepSymbolTypeNames[] =
+static const char* SheepSymbolTypeNames[] =
 {
 	"void",
 	"int",

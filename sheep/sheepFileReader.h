@@ -4,6 +4,7 @@
 #include "sheepc.h"
 #include "sheepTypes.h"
 #include <string>
+#include <cstring>
 #include <vector>
 
 struct SheepHeader

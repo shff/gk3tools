@@ -37,6 +37,9 @@ namespace SheepCompiler
 
 		SheepFileReader* reader = SHEEP_NEW SheepFileReader(buffer, fileSize);
 		IntermediateOutput* io = reader->GetIntermediateOutput();
+		
+		delete[] buffer;
+		buffer = NULL;
 
 		// imports
 		output << std::endl << "SysImports: " << std::endl;

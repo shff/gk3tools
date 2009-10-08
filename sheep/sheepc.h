@@ -2,8 +2,11 @@
 #define SHEEPC_H
 
 #ifdef __cplusplus
+#include <cstring>
 extern "C"
 {
+#else
+#include <string.h>	
 #endif
 
 #ifdef _MSC_VER

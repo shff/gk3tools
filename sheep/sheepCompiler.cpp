@@ -8,35 +8,11 @@
 
 #define SM(v) static_cast<SheepMachine*>(v)
 
-static bool g_usingCustomAllocator = false;
 SHP_Allocator g_allocator;
 
-void SHP_SetAllocator(SHP_Allocator* allocator)
-{
-	g_usingCustomAllocator = true;
-
-	g_allocator.Allocator = allocator->Allocator;
-	g_allocator.Deallocator = allocator->Deallocator;
-}
-
-void* (CALLBACK defaultAllocator)(size_t size)
-{
-	return malloc(size);
-}
-
-void CALLBACK defaultDeallocator(void* ptr)
-{
-	free(ptr);
-}
 
 SheepVM* SHP_CreateNewVM()
 {
-	if (g_usingCustomAllocator == false)
-	{
-		g_allocator.Allocator = defaultAllocator;
-		g_allocator.Deallocator = defaultDeallocator;
-	}
-
 	return SHEEP_NEW SheepMachine();
 }
 

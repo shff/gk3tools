@@ -1,6 +1,37 @@
-#include "sheepMemoryAllocator.h"
+#include <cstdio>
+#include <cstdlib>
 
+#include "sheepMemoryAllocator.h"
 #include "sheepc.h"
+
+static bool g_usingCustomAllocator = false;
+
+void SHP_SetAllocator(SHP_Allocator* allocator)
+{
+	g_usingCustomAllocator = true;
+
+	g_allocator.Allocator = allocator->Allocator;
+	g_allocator.Deallocator = allocator->Deallocator;
+}
+
+void* (CALLBACK defaultAllocator)(size_t size)
+{
+	return malloc(size);
+}
+
+void CALLBACK defaultDeallocator(void* ptr)
+{
+	free(ptr);
+}
+
+void makeSureAllocatorIsSet()
+{
+	if (g_usingCustomAllocator == false)
+	{
+		g_allocator.Allocator = defaultAllocator;
+		g_allocator.Deallocator = defaultDeallocator;
+	}
+}
 
 const char* g_filename;
 int g_lineNumber;
@@ -21,6 +52,7 @@ struct SheepAllocInfo
 
 
 SheepAllocInfo* g_allocRoot = NULL;
+
 
 void addNewAllocInfo(SheepAllocInfo* blank, size_t size, const char* filename, int lineNumber)
 {
@@ -67,6 +99,8 @@ void removeAllocInfo(SheepAllocInfo* info)
 
 void* operator new(size_t size)
 {
+	makeSureAllocatorIsSet();
+	
 	SheepAllocInfo* p = (SheepAllocInfo*)g_allocator.Allocator(sizeof(SheepAllocInfo) + size);
 	if (p == 0)
 		throw std::bad_alloc();
@@ -78,6 +112,8 @@ void* operator new(size_t size)
 
 void* operator new(size_t size, const char* filename, int lineNumber)
 {
+	makeSureAllocatorIsSet();
+	
 	SheepAllocInfo* p = (SheepAllocInfo*)g_allocator.Allocator(sizeof(SheepAllocInfo) + size);
 	if (p == 0)
 		throw std::bad_alloc();
@@ -89,6 +125,8 @@ void* operator new(size_t size, const char* filename, int lineNumber)
 
 void* operator new[](size_t size)
 {
+	makeSureAllocatorIsSet();
+	
 	SheepAllocInfo* p = (SheepAllocInfo*)g_allocator.Allocator(sizeof(SheepAllocInfo) + size);
 	if (p == 0)
 		throw std::bad_alloc();
@@ -100,6 +138,8 @@ void* operator new[](size_t size)
 
 void* operator new[](size_t size, const char* filename, int lineNumber)
 {
+	makeSureAllocatorIsSet();
+	
 	SheepAllocInfo* p = (SheepAllocInfo*)g_allocator.Allocator(sizeof(SheepAllocInfo) + size);
 	if (p == 0)
 		throw std::bad_alloc();
