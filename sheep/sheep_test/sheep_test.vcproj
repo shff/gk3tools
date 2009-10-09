@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DeclarationTests.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IdentifierTests.h"
 				>
 			</File>
