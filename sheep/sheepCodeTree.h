@@ -137,7 +137,7 @@ public:
 	static SheepCodeTreeNode* CreateFloatConstant(float value, int lineNumber);
 	static SheepCodeTreeNode* CreateStringConstant(const std::string& value, int lineNumber);
 
-	static SheepCodeTreeNode* CreateIdentifierReference(const std::string& name, bool global, int lineNumber);
+	static SheepCodeTreeNode* CreateIdentifierReference(const char* name, bool global, int lineNumber, char* errorBuffer, int bufferLength);
 
 	static SheepCodeTreeNode* CreateOperation(CodeTreeOperationType type, int lineNumber);
 

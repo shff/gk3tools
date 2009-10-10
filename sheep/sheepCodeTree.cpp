@@ -162,8 +162,14 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateStringConstant(const std::string& va
 	return constant;
 }
 
-SheepCodeTreeNode* SheepCodeTreeNode::CreateIdentifierReference(const std::string& name, bool global, int lineNumber)
+SheepCodeTreeNode* SheepCodeTreeNode::CreateIdentifierReference(const char* name, bool global, int lineNumber, char* errorBuffer, int bufferLength)
 {
+	if (strlen(name) > 100)
+	{
+		strncpy(errorBuffer, "Identifier is too long.", bufferLength);
+		return NULL;
+	}
+	
 	return SHEEP_NEW SheepCodeTreeIdentifierReferenceNode(name, global, lineNumber);
 }
 

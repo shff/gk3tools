@@ -139,11 +139,20 @@ closed_statement:
 	;
 	
 local_identifier:
-	LOCALIDENTIFIER { $$ = SheepCodeTreeNode::CreateIdentifierReference(yytext, false, currentLine); }
+	LOCALIDENTIFIER 
+	{
+		char errorBuffer[256];
+		$$ = SheepCodeTreeNode::CreateIdentifierReference(yytext, false, currentLine, errorBuffer, 256); 
+		if ($$ == NULL) { yyerror(errorBuffer); YYERROR; } 
+	}
 	;
 	
 global_identifier:
-	IDENTIFIER { $$ = SheepCodeTreeNode::CreateIdentifierReference(yytext, true, currentLine); }
+	IDENTIFIER 
+	{
+		char errorBuffer[256];
+		$$ = SheepCodeTreeNode::CreateIdentifierReference(yytext, true, currentLine, errorBuffer, 256); 
+	}
 	;
 	
 constant:
