@@ -21,6 +21,11 @@ void CALLBACK s_printFloat(SheepVM* vm)
 	std::cout << SHP_PopFloatFromStack(vm) << std::endl;
 }
 
+void CALLBACK s_printInt(SheepVM* vm)
+{
+	std::cout << SHP_PopIntFromStack(vm) << std::endl;
+}
+
 void CALLBACK s_isCurrentTime(SheepVM* vm)
 {
 	SHP_PopStringFromStack(vm);
@@ -161,7 +166,8 @@ int main(int argc, char** argv)
 
 		m.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
 		m.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
-
+		m.GetImports().TryAddImport("PrintInt", SYM_VOID, SYM_INT, s_printInt);
+		
 		IntermediateOutput* output;
 		
 		if (reader)
@@ -195,6 +201,7 @@ int main(int argc, char** argv)
 
 			machine.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
 			machine.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
+			machine.GetImports().TryAddImport("PrintInt", SYM_VOID, SYM_INT, s_printInt);
 
 			IntermediateOutput* output;
 		

@@ -71,12 +71,16 @@ symbol_list:
 	;
 	
 symbol_declaration:
-	INTSYM local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_INT, currentLine); $$->SetChild(0, $2); }
-	| INTSYM local_identifier BECOMES constant SEMICOLON{ $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_INT, currentLine); $$->SetChild(0, $2); $$->SetChild(1, $4); }
-	| FLOATSYM local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FLOAT, currentLine); $$->SetChild(0, $2); }
-	| FLOATSYM local_identifier BECOMES constant SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FLOAT, currentLine); $$->SetChild(0, $2); $$->SetChild(1, $4); }
-	| STRINGSYM local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_STRING, currentLine); $$->SetChild(0, $2); }
-	| STRINGSYM local_identifier BECOMES constant SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_STRING, currentLine); $$->SetChild(0, $2); $$->SetChild(1, $4); }
+	INTSYM symbol_declaration_list SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_INT, currentLine); $$->SetChild(0, $2); }
+	| FLOATSYM symbol_declaration_list SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FLOAT, currentLine); $$->SetChild(0, $2); }
+	| STRINGSYM symbol_declaration_list SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_STRING, currentLine); $$->SetChild(0, $2); }
+	;
+	
+symbol_declaration_list:
+	local_identifier { $$ = $1; }
+	| local_identifier BECOMES constant { $$ = $1;  $$->SetChild(0, $3); }
+	| symbol_declaration_list COMMA local_identifier { $$ = $1; $$->AttachSibling($3); }
+	| symbol_declaration_list COMMA local_identifier BECOMES constant { $$ = $1; $$->AttachSibling($3); $3->SetChild(0, $5); }
 	;
 	
 snippet_section:

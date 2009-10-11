@@ -107,12 +107,12 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		}
 
 		// copy the symbols into the output
-		for (SymbolMap::iterator itr = m_symbolMap.begin(); itr != m_symbolMap.end(); itr++)
+		for (std::vector<SheepSymbol>::iterator itr = m_variables.begin(); itr != m_variables.end(); itr++)
 		{
-			SheepSymbol symbol = (*itr).second;
+			SheepSymbol symbol = (*itr);
 
 			if (symbol.Type == SYM_INT || symbol.Type == SYM_FLOAT || symbol.Type == SYM_STRING)
-				output->Symbols.push_back((*itr).second);
+				output->Symbols.push_back((*itr));
 		}
 
 		// copy the imports into the output
@@ -178,41 +178,52 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 
 			while(declaration != NULL)
 			{
-				SheepSymbol symbol;
-				symbol.Name = declaration->GetDeclarationName();
-				symbol.Type = convertToSymbolType(declaration->GetDeclarationType());
-
-				SheepCodeTreeConstantNode* constant =
-						static_cast<SheepCodeTreeConstantNode*>(declaration->GetChild(1));
-
-				if (constant != NULL)
+				SheepCodeTreeIdentifierReferenceNode* identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
+				
+				while(identifier)
 				{
-					if (symbol.Type == SYM_INT)
-						symbol.InitialIntValue = constant->GetIntValue();
-					else if (symbol.Type == SYM_FLOAT)
-						symbol.InitialFloatValue = constant->GetFloatValue();
-					else if (symbol.Type == SYM_STRING)
-						symbol.InitialStringValue = constant->GetStringValue();
-					else if (symbol.Type == SYM_LOCALFUNCTION)
-					{
-						// don't do anything
-					}
-					else
-					{
-						throw SheepCompilerException(declaration->GetLineNumber(),
-							"Symbols must be 'int', 'float', or 'string'");
-					}
-				}
+					SheepSymbol symbol;
+					symbol.Name = identifier->GetName();
+					symbol.Type = convertToSymbolType(declaration->GetDeclarationType());
+					
+					
+					SheepCodeTreeConstantNode* constant =
+						static_cast<SheepCodeTreeConstantNode*>(identifier->GetChild(0));
 
-				if (m_symbolMap.insert(SymbolMap::value_type(symbol.Name, symbol)).second == false)
+					if (constant != NULL)
+					{
+						if (symbol.Type == SYM_INT)
+						{
+							symbol.InitialIntValue = constant->GetIntValue();
+						}
+						else if (symbol.Type == SYM_FLOAT)
+							symbol.InitialFloatValue = constant->GetFloatValue();
+						else if (symbol.Type == SYM_STRING)
+							symbol.InitialStringValue = constant->GetStringValue();
+						else if (symbol.Type == SYM_LOCALFUNCTION)
+						{
+							// don't do anything
+						}
+						else
+						{
+							throw SheepCompilerException(declaration->GetLineNumber(),
+								"Symbols must be 'int', 'float', or 'string'");
+						}
+					}
+					
+					if (m_symbolMap.insert(SymbolMap::value_type(symbol.Name, symbol)).second == false)
 					throw SheepCompilerException(declaration->GetLineNumber(), "Symbol already defined");
 
-				// should we add this as a variable?
-				if (section->GetSectionType() == SECTIONTYPE_SYMBOLS)
-				{
-					if (symbol.Type == SYM_INT || symbol.Type == SYM_FLOAT || symbol.Type == SYM_STRING)
-						m_variables.push_back(symbol);
+					// should we add this as a variable?
+					if (section->GetSectionType() == SECTIONTYPE_SYMBOLS)
+					{
+						if (symbol.Type == SYM_INT || symbol.Type == SYM_FLOAT || symbol.Type == SYM_STRING)
+							m_variables.push_back(symbol);
+					}
+					
+					identifier =  static_cast<SheepCodeTreeIdentifierReferenceNode*>(identifier->GetNextSibling());
 				}
+			
 
 				declaration = static_cast<SheepCodeTreeDeclarationNode*>(declaration->GetNextSibling());
 			}
@@ -387,9 +398,11 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* function, int codeOffset)
 {
 	assert(function->GetDeclarationType() == DECLARATIONTYPE_FUNCTION);
+	
+	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(0));
 
 	SheepFunction func;
-	func.Name = function->GetDeclarationName();
+	func.Name = ref->GetName();
 	func.Code = SHEEP_NEW SheepCodeBuffer();
 	func.CodeOffset = codeOffset;
 

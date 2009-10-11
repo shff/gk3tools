@@ -232,13 +232,3 @@ void SheepCodeTreeNode::PrintData()
 {
 	printf("Regular ol' node\n");
 }
-
-
-std::string SheepCodeTreeDeclarationNode::GetDeclarationName() const
-{
-	SheepCodeTreeIdentifierReferenceNode* identifier =
-		static_cast<SheepCodeTreeIdentifierReferenceNode*>(m_children[0]);
-
-	assert(identifier != NULL);
-	return identifier->GetName();
-}

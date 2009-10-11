@@ -217,7 +217,6 @@ public:
 	}
 
 	CodeTreeDeclarationNodeType GetDeclarationType() const { return m_declarationType; }
-	std::string GetDeclarationName() const;
 	
 protected:
 	
