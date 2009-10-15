@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheepVMDotNet", "SheepVMDotNet\SheepVMDotNet.csproj", "{1396DDD8-72E8-4DDE-B0D5-157666D8B18E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1396DDD8-72E8-4DDE-B0D5-157666D8B18E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1396DDD8-72E8-4DDE-B0D5-157666D8B18E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1396DDD8-72E8-4DDE-B0D5-157666D8B18E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1396DDD8-72E8-4DDE-B0D5-157666D8B18E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
