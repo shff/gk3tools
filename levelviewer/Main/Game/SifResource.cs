@@ -18,6 +18,7 @@ namespace Gk3Main.Game
     {
         Scene,
         Prop,
+        GasProp,
         HitTest
     }
 
@@ -27,6 +28,7 @@ namespace Gk3Main.Game
         public string Noun;
         public SifModelType Type;
         public bool Hidden;
+        public string Gas;
     }
 
     public struct SifRoomCamera
@@ -94,19 +96,26 @@ namespace Gk3Main.Game
                 {
                     foreach (Resource.InfoLine line in section.Lines)
                     {
-                        SifModel model;
+                        SifModel model = new SifModel();
                         string modelType;
+                        string gas;
 
                         line.TryGetAttribute("model", out model.Name);
                         line.TryGetAttribute("noun", out model.Noun);
                         line.TryGetAttribute("type", out modelType);
+                        line.TryGetAttribute("gas", out gas);
 
                         if (modelType != null)
                         {
-                            if (modelType.ToUpper() == "SCENE")
+                            if (modelType.Equals("SCENE", StringComparison.OrdinalIgnoreCase))
                                 model.Type = SifModelType.Scene;
-                            else if (modelType.ToUpper() == "PROP")
+                            else if (modelType.Equals("PROP", StringComparison.OrdinalIgnoreCase))
                                 model.Type = SifModelType.Prop;
+                            else if (modelType.Equals("GASPROP", StringComparison.OrdinalIgnoreCase))
+                            {
+                                model.Type = SifModelType.GasProp;
+                                model.Gas = gas;
+                            }
                             else
                                 model.Type = SifModelType.HitTest;
                         }

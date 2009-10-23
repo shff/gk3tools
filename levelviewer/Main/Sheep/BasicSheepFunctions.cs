@@ -89,6 +89,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("IsActorNear", _isActorNear,
                 SymbolType.Integer, SymbolType.String, SymbolType.String, SymbolType.Float);
 
+            SheepMachine.AddImport("IsCurrentEgo", _isCurrentEgo,
+                SymbolType.Integer, SymbolType.String);
+
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
@@ -143,7 +146,7 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("StartAnimation", _sheepStartAnimation,
                 SymbolType.Void, SymbolType.String);
 
-            SheepMachine.AddImport("StartDialogue", _dummyStringInt,
+            SheepMachine.AddImport("StartDialogue", _startDialogue,
                 SymbolType.Void, SymbolType.String, SymbolType.Integer);
 
             SheepMachine.AddImport("StartDialogueNoFidgets", _startDialogueNoFidgets,
@@ -231,6 +234,20 @@ namespace Gk3Main.Sheep
             // TODO
 
             SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_IsCurrentEgo(IntPtr vm)
+        {
+            string ego = SheepMachine.PopStringOffStack(vm);
+
+            if (Game.GameManager.CurrentEgo == Gk3Main.Game.Ego.Gabriel &&
+                ego.Equals("GABE", StringComparison.OrdinalIgnoreCase))
+                SheepMachine.PushIntOntoStack(vm, 1);
+            else if (Game.GameManager.CurrentEgo == Gk3Main.Game.Ego.Grace &&
+                ego.Equals("GRACE", StringComparison.OrdinalIgnoreCase))
+                SheepMachine.PushIntOntoStack(vm, 1);
+            else
+                SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_IsCurrentTime(IntPtr vm)
@@ -372,7 +389,7 @@ namespace Gk3Main.Sheep
             string position = SheepMachine.PopStringOffStack(vm);
             string actor = SheepMachine.PopStringOffStack(vm);
 
-            // TODO
+            SceneManager.SetActorPosition(actor, position);
         }
 
         private static void sheep_SetCameraAngleType(IntPtr vm)
@@ -460,12 +477,24 @@ namespace Gk3Main.Sheep
             // TODO!
         }
 
+        private static void sheep_StartDialogue(IntPtr vm)
+        {
+            int numLines = SheepMachine.PopIntOffStack(vm);
+            string licensePlate = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+            Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
+            yak.Play();
+        }
+
         private static void sheep_StartDialogueNoFidgets(IntPtr vm)
         {
             int numLines = SheepMachine.PopIntOffStack(vm);
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
-            // TODO
+            // TODO!
+            Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
+            yak.Play();
         }
 
         private static void sheep_StartMoveAnimation(IntPtr vm)
@@ -575,6 +604,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
         private static SheepFunctionDelegate _isActorAtLocation = new SheepFunctionDelegate(sheep_IsActorAtLocation);
         private static SheepFunctionDelegate _isActorNear = new SheepFunctionDelegate(sheep_IsActorNear);
+        private static SheepFunctionDelegate _isCurrentEgo = new SheepFunctionDelegate(sheep_IsCurrentEgo);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
         private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
@@ -588,6 +618,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _setTalkGas = new SheepFunctionDelegate(sheep_SetTalkGas);
         private static SheepFunctionDelegate _setTimerSeconds = new SheepFunctionDelegate(sheep_SetTimerSeconds);
         private static SheepFunctionDelegate _showSceneModel = new SheepFunctionDelegate(sheep_ShowSceneModel);
+        private static SheepFunctionDelegate _startDialogue = new SheepFunctionDelegate(sheep_StartDialogue);
         private static SheepFunctionDelegate _startDialogueNoFidgets = new SheepFunctionDelegate(sheep_StartDialogueNoFidgets);
         private static SheepFunctionDelegate _startVoiceOver = new SheepFunctionDelegate(sheep_StartVoiceOver);
         private static SheepFunctionDelegate _sheepStartAnimation = new SheepFunctionDelegate(sheep_StartAnimation);

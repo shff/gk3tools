@@ -7,7 +7,10 @@ class MyConsole : Gk3Main.Console
     public override void Write(Gk3Main.ConsoleVerbosity verbosity, string text, params object[] arg)
     {
         if (verbosity >= Verbosity)
+        {
             Console.WriteLine(text, arg);
+            System.Diagnostics.Trace.WriteLine(string.Format(text, arg));
+        }
     }
 
     public override void ReportError(string error)
@@ -68,12 +71,14 @@ class MonoMain
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
 		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader());
 
         try
         {
@@ -111,7 +116,12 @@ class MonoMain
         Sdl.SDL_ShowCursor(0);
 
         _state = GameState.MainMenu;
-		
+
+
+        Gk3Main.Resource.ResourceManager.Load("ABE_ABECS8EAT1.ACT");
+        Gk3Main.Resource.ResourceManager.Load("ABE_ABECS8GRACE2.ACT");
+        Gk3Main.Resource.ResourceManager.Load("GRA_GRA_CSE_TRYCELLAR.ACT");
+        Gk3Main.Resource.ResourceManager.Load("ABE.MOD");
 
         Gk3Main.Game.GameManager.Load();
         Gk3Main.Game.HelperIcons.Load();

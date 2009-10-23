@@ -4,42 +4,49 @@ using System.Text;
 
 namespace Gk3Main.Game
 {
-    public class GasResource
+    public class GasResource : Resource.TextResource
     {
+        private bool _playing;
+        private bool _suspended;
+        private bool _timeSinceSuspend;
+        private int _currentInstructionIndex;
         private List<GasScriptLine> _lines = new List<GasScriptLine>();
 
-        public static void Test()
+        public GasResource(string name, System.IO.Stream stream)
+            : base(name, stream)
         {
-            string blah =
-                // "  // this is a comment\n" +
-                "    COMMAND Foo,4, true\n" +
-                "// poops and strawberries\n" +
-                "  ANIM poo, FALSE, 50\n" +
-                "anim fart,FALSE,100\n" +
-                "anim foot,trUe\n" +
-                "anim ardvark\n" +
-                "FART foo, bar, baz";
-
-            GasParser parser = new GasParser(blah);
-
-            string command;
-            string dummy;
-            float dummyf;
-            bool dummyb;
-            parser.ReadString(out command);
-            parser.ReadString(out dummy);
-            parser.ReadFloat(out dummyf);
-            parser.ReadBoolean(out dummyb);
-
-            parser.NextMeaningfulLine();
-
-            parser.ReadString(out command);
-
-            GasResource gr = new GasResource();
-            gr.Parse(blah);
+            parse(Text);
         }
 
-        public void Parse(string gas)
+        public void Play()
+        {
+            _playing = true;
+            _suspended = false;
+            _currentInstructionIndex = 0;
+        }
+
+        public void Continue()
+        {
+        }
+
+        public bool Playing
+        {
+            get { return _playing; }
+        }
+
+        public bool Suspended
+        {
+            get { return _suspended; }
+        }
+
+        #region Privates
+        private bool executeNextInstruction()
+        {
+            // TODO
+            return false;
+        }
+
+        private void parse(string gas)
         {
             GasParser parser = new GasParser(gas);
 
@@ -121,6 +128,28 @@ namespace Gk3Main.Game
         {
             public GasCommand Command;
             public GasParam[] Params;
+        }
+        #endregion
+    }
+
+    public class GasResourceLoader : Resource.IResourceLoader
+    {
+        public string[] SupportedExtensions
+        {
+            get { return new string[] { "GAS" }; }
+        }
+
+        public bool EmptyResourceIfNotFound { get { return false; } }
+
+        public Resource.Resource Load(string name)
+        {
+            System.IO.Stream stream = FileSystem.Open(name);
+
+            GasResource resource = new GasResource(name, stream);
+
+            stream.Close();
+
+            return resource;
         }
     }
 
@@ -227,7 +256,10 @@ namespace Gk3Main.Game
             else
             {
                 _index = nextLine + 1;
-                moveIndexToNextText();
+                if (_index >= _gas.Length)
+                    _eof = true;
+                else
+                    moveIndexToNextText();
 
                 if (_index >= _gas.Length)
                     _eof = true;

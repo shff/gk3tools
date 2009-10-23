@@ -90,6 +90,7 @@ namespace Gk3Main
             if (parentSif != null) loadSifModels(parentSif);
 
             // load the NVCs
+            loadGlobalNvc();
             loadSifNvcs(sifResource);
             if (parentSif != null) loadSifNvcs(parentSif);
 
@@ -114,6 +115,9 @@ namespace Gk3Main
                 foreach (SifPosition position in parentSif.Positions)
                     _roomPositions.Add(position.Name, position);
             }
+
+            loadSifActorModels(sifResource);
+            if (parentSif != null) loadSifActorModels(parentSif);
 
             Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Ambient);
         }
@@ -141,6 +145,7 @@ namespace Gk3Main
                 _currentLightmaps = (Graphics.LightmapResource)Resource.ResourceManager.Load(lightmapFile);
 
                 unloadModels();
+                unloadActors();
             }
             catch (System.IO.FileNotFoundException ex)
             {
@@ -154,6 +159,25 @@ namespace Gk3Main
                 (Graphics.ModelResource)Resource.ResourceManager.Load(modelname);
 
             _models.Add(model);
+        }
+
+        public static void AddGas(string gasFileName)
+        {
+            string fileWithExtension = gasFileName;
+            if (fileWithExtension.EndsWith(".GAS", StringComparison.OrdinalIgnoreCase) == false)
+                fileWithExtension = fileWithExtension + ".GAS";
+
+            Game.GasResource gas =
+                (Game.GasResource)Resource.ResourceManager.Load(fileWithExtension);
+        }
+
+        public static void AddActor(string modelName, string noun, Math.Vector3 position, float heading)
+        {
+            Game.Actor actor = new Game.Actor(modelName, noun);
+            actor.Position = position;
+            actor.FacingAngle = heading;
+
+            _actors.Add(actor);
         }
 
         public static void Render(Graphics.Camera camera)
@@ -173,17 +197,21 @@ namespace Gk3Main
             foreach (Graphics.ModelResource model in _models)
                 model.Render(camera);
 
+            // render the actors
+            foreach (Game.Actor actor in _actors)
+                actor.Render(camera);
+
             // add helpers to the billboard list
             foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
             {
-                Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
-                    50.0f, 50.0f, HelperIcons.Flag);
+                //Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
+                //    50.0f, 50.0f, HelperIcons.Flag);
             }
 
             foreach (KeyValuePair<string, SifRoomCamera> rcamera in _roomCameras)
             {
-                Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
-                    50.0f, 50.0f, HelperIcons.Camera);
+                //Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
+                //    50.0f, 50.0f, HelperIcons.Camera);
             }
 
             // render any billboards
@@ -256,6 +284,15 @@ namespace Gk3Main
                 {
                     Console.CurrentConsole.WriteLine(model.Name);
                     return model.NameWithoutExtension;
+                }
+            }
+
+            foreach (Game.Actor actor in _actors)
+            {
+                if (actor.CollideRay(origin, direction, length, out distance))
+                {
+                    Console.CurrentConsole.WriteLine(actor.ModelName);
+                    return actor.ModelName;
                 }
             }
 
@@ -432,13 +469,39 @@ namespace Gk3Main
             }
         }
 
+        public static void SetActorPosition(string noun, Math.Vector3 position, float heading)
+        {
+            foreach (Actor actor in _actors)
+            {
+                if (actor.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+                {
+                    actor.Position = position;
+                    actor.FacingAngle = heading;
+                    break;
+                }
+            }
+        }
+
+        public static void SetActorPosition(string noun, string position)
+        {
+            SifPosition pos;
+            if (_roomPositions.TryGetValue(position, out pos))
+            {
+                SetActorPosition(noun, new Math.Vector3(pos.X, pos.Y, pos.Z), Utils.DegreesToRadians(pos.HeadingDegrees));
+            }
+        }
+
         private static void loadSifModels(Game.SifResource sif)
         {
             foreach (Game.SifModel model in sif.Models)
             {
-                if (model.Type == Gk3Main.Game.SifModelType.Prop && model.Hidden == false)
+                if ((model.Type == Gk3Main.Game.SifModelType.Prop ||
+                    model.Type == SifModelType.GasProp) && model.Hidden == false)
                 {
                     AddModel(model.Name + ".MOD");
+
+                    if (model.Type == SifModelType.GasProp)
+                        AddGas(model.Gas);
                 }
 
                 if (_currentRoom != null)
@@ -450,6 +513,31 @@ namespace Gk3Main
 
                 if (string.IsNullOrEmpty(model.Noun) == false)
                     _modelNounMap.Add(model.Name, model.Noun);
+            }
+        }
+
+        private static void loadSifActorModels(Game.SifResource sif)
+        {
+            foreach (Game.SifActor actor in sif.Actors)
+            {
+                AddActor(actor.Model, actor.Noun, Math.Vector3.Zero, 0);
+
+                if (string.IsNullOrEmpty(actor.Pos) == false)
+                    SetActorPosition(actor.Noun, actor.Pos);
+
+                if (string.IsNullOrEmpty(actor.Noun) == false)
+                    _modelNounMap.Add(actor.Model, actor.Noun);
+            }
+        }
+
+        private static void loadGlobalNvc()
+        {
+            Game.NvcResource nvc = (Game.NvcResource)Resource.ResourceManager.Load("GLB_ALL.NVC");
+            _nvcs.Add(nvc);
+
+            foreach (KeyValuePair<string, string> nvcLogic in nvc.Logic)
+            {
+                _nvcLogicAliases.Add(nvcLogic.Key, nvcLogic.Value);
             }
         }
 
@@ -528,6 +616,16 @@ namespace Gk3Main
             return Sheep.SheepMachine.RunSnippet(condition) > 0;
         }
 
+        private static void unloadActors()
+        {
+            foreach (Game.Actor actor in _actors)
+            {
+                actor.Dispose();
+            }
+
+            _actors.Clear();
+        }
+
         private static void unloadModels()
         {
             foreach (Graphics.ModelResource model in _models)
@@ -560,6 +658,7 @@ namespace Gk3Main
         private static Graphics.LightmapResource _currentLightmaps;
         private static Math.Vector3 _egoPosition;
         private static float _egoFacingAngle;
+        private static List<Game.Actor> _actors = new List<Actor>();
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
