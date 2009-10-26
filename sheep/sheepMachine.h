@@ -126,8 +126,8 @@ public:
 	
 	SheepImportTable& GetImports() { return m_imports; }
 
-	bool IsInWaitSection() { return m_contexts.top().InWaitSection; }
-	bool IsSuspended() { return m_contexts.top().Suspended; }
+	bool IsInWaitSection() { return m_contexts.empty() == false && m_contexts.top().InWaitSection; }
+	bool IsSuspended() { return m_contexts.empty() == false && m_contexts.top().Suspended; }
 	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
 	int GetNumContexts() { return m_contexts.size(); }
