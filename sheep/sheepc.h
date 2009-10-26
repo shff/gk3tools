@@ -36,6 +36,11 @@ extern "C"
 #define SHEEP_VERSION_MINOR 1
 #define SHEEP_VERSION_REVISION 0
 
+#define SHEEP_VERBOSITY_SILENT 0
+#define SHEEP_VERBOSITY_POLITE 1
+#define SHEEP_VERBOSITY_ANNOYING 2
+#define SHEEP_VERBOSITY_EXTREME 3
+
 typedef unsigned char byte;
 
 enum SHP_SymbolType
@@ -169,6 +174,7 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 */
 
 DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_IsSuspended(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_Suspend(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm);
 typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm);

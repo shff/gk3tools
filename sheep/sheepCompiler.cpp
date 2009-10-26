@@ -140,6 +140,14 @@ int SHP_IsInWaitSection(SheepVM* vm)
 	return SHEEP_FALSE;
 }
 
+int SHP_IsSuspended(SheepVM* vm)
+{
+	if (SM(vm)->IsSuspended())
+		return SHEEP_TRUE;
+
+	return SHEEP_FALSE;
+}
+
 int SHP_Suspend(SheepVM* vm)
 {
 	assert(vm != NULL);
