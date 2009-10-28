@@ -25,6 +25,9 @@ extern "C"
 #define SHEEP_ERR_FILE_NOT_FOUND -10
 #define SHEEP_ERR_INVALID_FILE_FORMAT -11
 #define SHEEP_GENERIC_COMPILER_ERROR -100
+#define SHEEP_ERR_NO_CONTEXT_AVAILABLE -101
+#define SHEEP_ERR_EMPTY_STACK -102
+#define SHEEP_ERR_WRONG_TYPE_ON_STACK -103
 #define SHEEP_GENERIC_VM_ERROR -200
 #define SHEEP_UNKNOWN_ERROR_PROBABLY_BUG -1000
 #define SHEEP_SUSPENDED 2
@@ -124,9 +127,9 @@ typedef void (CALLBACK *SHP_ImportCallback)(SheepVM* vm);
 DECLSPEC SheepImportFunction* LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_ImportCallback callback);
 DECLSPEC void LIB_CALL SHP_AddImportParameter(SheepImportFunction* import, SHP_SymbolType parameterType);
 
-DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm);
-DECLSPEC float LIB_CALL SHP_PopFloatFromStack(SheepVM* vm);
-DECLSPEC const char* LIB_CALL SHP_PopStringFromStack(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm, int* result);
+DECLSPEC int LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);
+DECLSPEC int LIB_CALL SHP_PopStringFromStack(SheepVM* vm, const char** result);
 
 DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
 

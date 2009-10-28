@@ -13,6 +13,11 @@ public:
 		: SheepException(message, SHEEP_GENERIC_VM_ERROR)
 	{
 	}
+
+	SheepMachineException(const std::string& message, int errorCode)
+		: SheepException(message, errorCode)
+	{
+	}
 };
 
 class SheepMachineInstructionException : public SheepMachineException
@@ -60,7 +65,6 @@ struct SheepContext
 	SheepContext()
 	{
 		InWaitSection = false;
-		Suspended = false;
 		FunctionOffset = 0;
 		InstructionOffset = 0;
 		CodeBuffer = NULL;
@@ -70,7 +74,6 @@ struct SheepContext
 	std::vector<StackItem> Variables;
 
 	bool InWaitSection;
-	bool Suspended;
 	unsigned int FunctionOffset;
 	unsigned int InstructionOffset;
 	SheepCodeBuffer* CodeBuffer;
@@ -103,6 +106,9 @@ public:
 
 	int PopIntFromStack()
 	{
+		if (m_contexts.empty())
+			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+
 		return getInt(m_contexts.top().Stack);
 	}
 
@@ -112,7 +118,7 @@ public:
 		m_contexts.top().Stack.pop();
 
 		if (item.Type != SYM_FLOAT)
-			throw SheepMachineException("Expected float on stack");
+			throw SheepMachineException("Expected float on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 		return item.FValue;
 	}
@@ -127,7 +133,7 @@ public:
 	SheepImportTable& GetImports() { return m_imports; }
 
 	bool IsInWaitSection() { return m_contexts.empty() == false && m_contexts.top().InWaitSection; }
-	bool IsSuspended() { return m_contexts.empty() == false && m_contexts.top().Suspended; }
+	bool IsSuspended() { return m_suspended; }
 	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
 	int GetNumContexts() { return m_contexts.size(); }
@@ -150,6 +156,7 @@ private:
 	void prepareVariables(SheepContext& context);
 	void execute(SheepContext& context);
 	void executeContextsUntilSuspendedOrFinished();
+	void executeNextInstruction(SheepContext& context);
 
 	void (*m_callback)(const char* message);
 	SHP_MessageCallback m_compilerCallback;
@@ -161,6 +168,7 @@ private:
 
 	typedef std::stack<SheepContext> SheepContextStack;
 	SheepContextStack m_contexts;
+	bool m_suspended;
 
 	Verbosity m_verbosityLevel;
 
@@ -170,24 +178,32 @@ private:
 
 	static int getInt(SheepStack& stack)
 	{
+		if (stack.empty())
+			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
+
 		StackItem item = stack.top();
 		stack.pop();
 
 		if (item.Type != SYM_INT)
-			throw SheepMachineException("Expected integer on stack");
+			throw SheepMachineException("Expected integer on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 		return item.IValue;
 	}
 
 	static void get2Ints(SheepStack& stack, int& i1, int& i2)
 	{
+		if (stack.empty())
+			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
 		StackItem item2 = stack.top();
 		stack.pop();
+
+		if (stack.empty())
+			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
 		StackItem item1 = stack.top();
 		stack.pop();
 		
 		if (item1.Type != SYM_INT || item2.Type != SYM_INT)
-			throw SheepMachineException("Expected integers on stack.");
+			throw SheepMachineException("Expected integers on stack.", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 		i1 = item1.IValue;
 		i2 = item2.IValue;
@@ -195,13 +211,18 @@ private:
 
 	static void get2Floats(SheepStack& stack, float& f1, float& f2)
 	{
+		if (stack.empty())
+			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
 		StackItem item2 = stack.top();
 		stack.pop();
+
+		if (stack.empty())
+			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
 		StackItem item1 = stack.top();
 		stack.pop();
 		
 		if (item1.Type != SYM_FLOAT || item2.Type != SYM_FLOAT)
-			throw SheepMachineException("Expected floats on stack.");
+			throw SheepMachineException("Expected floats on stack.", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 		f1 = item1.FValue;
 		f2 = item2.FValue;

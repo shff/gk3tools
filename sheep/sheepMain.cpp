@@ -13,22 +13,28 @@
 
 void CALLBACK s_printString(SheepVM* vm)
 {
-	std::cout << SHP_PopStringFromStack(vm) << std::endl;
+	const char* result;
+	SHP_PopStringFromStack(vm, &result);
+	std::cout << result << std::endl;
 }
 
 void CALLBACK s_printFloat(SheepVM* vm)
 {
-	std::cout << SHP_PopFloatFromStack(vm) << std::endl;
+	float result;
+	SHP_PopFloatFromStack(vm, &result);
+	std::cout << result << std::endl;
 }
 
 void CALLBACK s_printInt(SheepVM* vm)
 {
-	std::cout << SHP_PopIntFromStack(vm) << std::endl;
+	int result;
+	SHP_PopIntFromStack(vm, &result);
+	std::cout << result << std::endl;
 }
 
 void CALLBACK s_isCurrentTime(SheepVM* vm)
 {
-	SHP_PopStringFromStack(vm);
+	SHP_PopStringFromStack(vm, NULL);
 
 	SHP_PushIntOntoStack(vm, 0);
 }

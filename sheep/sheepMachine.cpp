@@ -8,6 +8,7 @@ SheepMachine::SheepMachine()
 	m_callback = NULL;
 	m_compilerCallback = NULL;
 	m_endWaitCallback = NULL;
+	m_suspended = false;
 
 	m_verbosityLevel = Verbosity_Silent;
 
@@ -35,11 +36,16 @@ void SheepMachine::SetCompileOutputCallback(SHP_MessageCallback callback)
 
 std::string& SheepMachine::PopStringFromStack()
 {
+	if (m_contexts.empty())
+		throw SheepMachineException("No contexts", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+	if (m_contexts.top().Stack.empty())
+		throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
+
 	StackItem item = m_contexts.top().Stack.top();
 	m_contexts.top().Stack.pop();
 
 	if (item.Type != SYM_STRING)
-		throw SheepMachineException("Expected float on stack");
+		throw SheepMachineException("Expected string on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 	IntermediateOutput* code = m_contexts.top().FullCode;
 	for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
@@ -136,7 +142,7 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 
 	execute(m_contexts.top());
 
-	if (m_contexts.top().Suspended == false)
+	if (m_suspended == false)
 	{
 		SHEEP_DELETE(m_contexts.top().FullCode);
 		m_contexts.pop();
@@ -216,21 +222,15 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 
 int SheepMachine::Suspend()
 {
-	if (m_contexts.empty() || m_contexts.top().Suspended)
-		return SHEEP_ERROR;
-
-	m_contexts.top().Suspended = true;
+	m_suspended = true;
 	return SHEEP_SUCCESS;
 }
 
 int SheepMachine::Resume()
 {
-	if (m_contexts.empty() || !m_contexts.top().Suspended)
-		return SHEEP_ERROR;
-
 	try
 	{
-		m_contexts.top().Suspended = false;
+		m_suspended = false;
 		executeContextsUntilSuspendedOrFinished();
 
 		return SHEEP_SUCCESS;
@@ -251,27 +251,24 @@ void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
 	m_endWaitCallback = callback;
 }
 
-void SheepMachine::execute(SheepContext& context)
+void SheepMachine::executeNextInstruction(SheepContext& context)
 {
-	std::vector<SheepImport> imports = context.FullCode->Imports;
+	std::vector<SheepImport>& imports = context.FullCode->Imports;
 
-	context.CodeBuffer->SeekFromStart(context.InstructionOffset);
-	while(!context.Suspended && context.CodeBuffer->Tell() < context.CodeBuffer->GetSize())
+	if (m_verbosityLevel > Verbosity_Polite)
+		printf("stack size: %d\n", context.Stack.size());
+
+	if (context.InstructionOffset != context.CodeBuffer->Tell())
+		context.CodeBuffer->SeekFromStart(context.InstructionOffset);
+
+	unsigned char instruction = context.CodeBuffer->ReadByte();
+	context.InstructionOffset++;
+
+	int iparam1, iparam2;
+	float fparam1, fparam2;
+	
+	switch(instruction)
 	{
-		if (m_verbosityLevel > Verbosity_Polite)
-			printf("stack size: %d\n", context.Stack.size());
-
-		if (context.InstructionOffset != context.CodeBuffer->Tell())
-			context.CodeBuffer->SeekFromStart(context.InstructionOffset);	
-
-		unsigned char instruction = context.CodeBuffer->ReadByte();
-		context.InstructionOffset++;
-
-		int iparam1, iparam2;
-		float fparam1, fparam2;
-
-		switch(instruction)
-		{
 		case SitnSpin:
 			break;
 		case Yield:
@@ -493,7 +490,17 @@ void SheepMachine::execute(SheepContext& context)
 			throw SheepMachineInstructionException("DebugBreakpoint instruction not supported yet.");
 		default:
 			throw SheepMachineInstructionException("Unknown instruction");
-		}
+	}
+}
+
+void SheepMachine::execute(SheepContext& context)
+{
+	std::vector<SheepImport> imports = context.FullCode->Imports;
+
+	context.CodeBuffer->SeekFromStart(context.InstructionOffset);
+	while(!m_suspended && context.CodeBuffer->Tell() < context.CodeBuffer->GetSize())
+	{
+		executeNextInstruction(context);
 	}
 }
 
@@ -505,7 +512,7 @@ void SheepMachine::executeContextsUntilSuspendedOrFinished()
 			printf("Executing... (%d left)\n", m_contexts.size());
 		execute(m_contexts.top());
 
-		if (m_contexts.empty() || m_contexts.top().Suspended)
+		if (m_suspended)
 			break;
 		
 		SHEEP_DELETE(m_contexts.top().FullCode);
@@ -560,7 +567,7 @@ void SheepMachine::s_call(SheepVM* vm)
 
 	machine->execute(machine->m_contexts.top());
 
-	if (machine->m_contexts.top().Suspended == false)
+	if (machine->m_suspended == false)
 	{
 		machine->m_contexts.pop();
 	}

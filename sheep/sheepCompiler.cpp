@@ -103,25 +103,61 @@ int SHP_RunSnippet(SheepVM* vm, const char* script, int* result)
 	}
 }
 
-int SHP_PopIntFromStack(SheepVM* vm)
+int SHP_PopIntFromStack(SheepVM* vm, int* result)
 {
 	assert(vm != NULL);
 
-	return SM(vm)->PopIntFromStack();
+	try
+	{
+		if (result)
+			*result = SM(vm)->PopIntFromStack();
+		else
+			SM(vm)->PopIntFromStack();
+
+		return SHEEP_SUCCESS;
+	}
+	catch(SheepException& ex)
+	{
+		return ex.GetErrorNum();
+	}
 }
 
-float SHP_PopFloatFromStack(SheepVM* vm)
+int SHP_PopFloatFromStack(SheepVM* vm, float* result)
 {
 	assert(vm != NULL);
 
-	return SM(vm)->PopFloatFromStack();
+	try
+	{
+		if (result)
+			*result = SM(vm)->PopFloatFromStack();
+		else
+			SM(vm)->PopFloatFromStack();
+
+		return SHEEP_SUCCESS;
+	}
+	catch(SheepException& ex)
+	{
+		return ex.GetErrorNum();
+	}
 }
 
-const char* SHP_PopStringFromStack(SheepVM* vm)
+int SHP_PopStringFromStack(SheepVM* vm, const char** result)
 {
 	assert(vm != NULL);
 
-	return SM(vm)->PopStringFromStack().c_str();
+	try
+	{
+		if (result)
+			*result = SM(vm)->PopStringFromStack().c_str();
+		else
+			SM(vm)->PopStringFromStack();
+
+		return SHEEP_SUCCESS;
+	}
+	catch(SheepException& ex)
+	{
+		return ex.GetErrorNum();
+	}
 }
 
 
