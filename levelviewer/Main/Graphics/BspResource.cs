@@ -168,9 +168,6 @@ namespace Gk3Main.Graphics
 
                 uint i3 = reader.ReadUInt16();
                 uint i4 = reader.ReadUInt16();
-
-                Console.CurrentConsole.WriteLine(string.Format("{0} {1}, {2}, {3}, {4}",
-                    _nodes[i].Left, _nodes[i].Right, _nodes[i].PlaneIndex, _nodes[i].PolygonStartIndex, _nodes[i].NumPolygons));
             }
 
             // TEMP: validate the BSP

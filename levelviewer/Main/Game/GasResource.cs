@@ -23,10 +23,20 @@ namespace Gk3Main.Game
             _playing = true;
             _suspended = false;
             _currentInstructionIndex = 0;
+
+            while (executeNextInstruction())
+            {
+                // nothing...
+            }
         }
 
         public void Continue()
         {
+            if (_suspended == false)
+                while (executeNextInstruction())
+                {
+                    // nothing...
+                }
         }
 
         public bool Playing
@@ -43,7 +53,27 @@ namespace Gk3Main.Game
         private bool executeNextInstruction()
         {
             // TODO
-            return false;
+            GasCommand command = _lines[_currentInstructionIndex].Command;
+            GasParam[] cparams = _lines[_currentInstructionIndex].Params;
+            _currentInstructionIndex++;
+
+            switch (command)
+            {
+                case GasCommand.Anim:
+                    execAnim(cparams);
+                    break;
+                case GasCommand.Loop:
+                    _currentInstructionIndex = 0;
+                    break;
+            }
+
+            // reached the end?
+            if (_currentInstructionIndex >= _lines.Count)
+            {
+                _playing = false;
+            }
+
+            return _playing && !_suspended;
         }
 
         private void parse(string gas)
@@ -86,6 +116,28 @@ namespace Gk3Main.Game
 
             return true;
         }
+
+
+        #region Instruction handlers
+
+        void execAnim(GasParam[] cparams)
+        {
+            string filename = cparams[0].StringValue;
+            bool moving = (cparams.Length > 1 ? cparams[1].BooleanValue : false);
+            int percent = (cparams.Length > 2 ? cparams[2].IntegerValue : 100);
+
+            if (percent < 100)
+            {
+                // roll a dice to see if we're even going to execute this animation
+                if (Utils.RollFloatingDie() > percent * 0.01f)
+                    return;
+            }
+
+            // TODO: play the animation
+            _suspended = true;
+        }
+
+        #endregion
 
         private enum GasCommand
         {

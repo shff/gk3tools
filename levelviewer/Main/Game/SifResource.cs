@@ -31,8 +31,17 @@ namespace Gk3Main.Game
         public string Gas;
     }
 
+    public enum SifCameraType
+    {
+        Inspect,
+        Room,
+        Cinematic,
+        Dialogue
+    }
+
     public struct SifRoomCamera
     {
+        public SifCameraType Type;
         public string Name;
         public float PitchDegrees, YawDegrees;
         public float X, Y, Z;
@@ -136,6 +145,7 @@ namespace Gk3Main.Game
                     {
                         SifRoomCamera camera;
                         camera.Name = line.Value;
+                        camera.Type = SifCameraType.Room;
 
                         string angle, pos;
                         line.TryGetAttribute("angle", out angle);
@@ -146,7 +156,7 @@ namespace Gk3Main.Game
 
                         camera.YawDegrees += 180.0f;
 
-                        _roomCameras.Add(camera);
+                        _cameras.Add(camera);
                     }
                 }
                 else if (section.Name == "CINEMATIC_CAMERAS")
@@ -155,6 +165,7 @@ namespace Gk3Main.Game
                     {
                         SifRoomCamera camera;
                         camera.Name = line.Value;
+                        camera.Type = SifCameraType.Cinematic;
 
                         string angle, pos;
                         line.TryGetAttribute("angle", out angle);
@@ -165,7 +176,27 @@ namespace Gk3Main.Game
 
                         camera.YawDegrees += 180.0f;
 
-                        _cinematicCameras.Add(camera);
+                        _cameras.Add(camera);
+                    }
+                }
+                else if (section.Name.Equals("DIALOGUE_CAMERAS", StringComparison.OrdinalIgnoreCase))
+                {
+                    foreach (Resource.InfoLine line in section.Lines)
+                    {
+                        SifRoomCamera camera;
+                        camera.Name = line.Value;
+                        camera.Type = SifCameraType.Dialogue;
+
+                        string angle, pos;
+                        line.TryGetAttribute("angle", out angle);
+                        line.TryGetAttribute("pos", out pos);
+
+                        TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
+                        TryParse3f(pos, out camera.Z, out camera.Y, out camera.X);
+
+                        camera.YawDegrees += 180.0f;
+
+                        _cameras.Add(camera);
                     }
                 }
                 else if (section.Name == "POSITIONS")
@@ -232,12 +263,7 @@ namespace Gk3Main.Game
 
         public List<SifRoomCamera> RoomCameras
         {
-            get { return _roomCameras; }
-        }
-
-        public List<SifRoomCamera> CinematicCameras
-        {
-            get { return _cinematicCameras; }
+            get { return _cameras; }
         }
 
         public List<SifPosition> Positions
@@ -259,8 +285,7 @@ namespace Gk3Main.Game
         private string _cameraBoundsModel;
         private List<SifActor> _actors = new List<SifActor>();
         private List<SifModel> _models = new List<SifModel>();
-        private List<SifRoomCamera> _roomCameras = new List<SifRoomCamera>();
-        private List<SifRoomCamera> _cinematicCameras = new List<SifRoomCamera>();
+        private List<SifRoomCamera> _cameras = new List<SifRoomCamera>();
         private List<SifPosition> _positions = new List<SifPosition>();
         private List<string> _actions = new List<string>();
         private List<string> _soundTracks = new List<string>();

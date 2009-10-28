@@ -26,6 +26,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("ContinueDialogue", _dummyInt,
                 SymbolType.Void, SymbolType.Integer);
 
+            SheepMachine.AddImport("ContinueDialogueNoFidgets", _dummyInt,
+                SymbolType.Void, SymbolType.Integer);
+
             SheepMachine.AddImport("CutToCameraAngle", _cutToCameraAngle,
                 SymbolType.Void, SymbolType.String);
 
@@ -282,7 +285,7 @@ namespace Gk3Main.Sheep
         {
             // TODO!
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, 1);
         }
 
         private static void sheep_GetEgoLocationCount(IntPtr vm)
@@ -290,10 +293,7 @@ namespace Gk3Main.Sheep
             string location = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
-            if (location.Equals("CSE", StringComparison.OrdinalIgnoreCase))
-                SheepMachine.PushIntOntoStack(vm, 1);
-            else
-                SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, 1);
         }
 
         private static void sheep_GetFlag(IntPtr vm)
@@ -482,9 +482,23 @@ namespace Gk3Main.Sheep
             int numLines = SheepMachine.PopIntOffStack(vm);
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            /*// TODO!
             Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
-            yak.Play();
+
+            if (SheepMachine.IsInWaitSection(vm))
+            {
+                SheepMachine.AddWaitHandle(vm, yak.PlayAndWait());
+            }
+            else
+            {
+                yak.Play();
+            }*/
+
+            bool waiting = SheepMachine.IsInWaitSection(vm);
+            WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
+
+            if (waiting && handle != null)
+                SheepMachine.AddWaitHandle(vm, handle);
         }
 
         private static void sheep_StartDialogueNoFidgets(IntPtr vm)
@@ -492,9 +506,24 @@ namespace Gk3Main.Sheep
             int numLines = SheepMachine.PopIntOffStack(vm);
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            /*// TODO!
             Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
-            yak.Play();
+            if (SheepMachine.IsInWaitSection(vm))
+            {
+                SheepMachine.AddWaitHandle(vm, yak.PlayAndWait());
+            }
+            else
+            {
+                yak.Play();
+            }*/
+
+            bool waiting = SheepMachine.IsInWaitSection(vm);
+            WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
+
+            if (waiting && handle != null)
+                SheepMachine.AddWaitHandle(vm, handle);
+
+            //Game.DialogManager.PlayDialogue(licensePlate, numLines, SheepMachine.IsInWaitSection(vm));
         }
 
         private static void sheep_StartMoveAnimation(IntPtr vm)

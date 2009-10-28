@@ -77,7 +77,6 @@ namespace Gk3Main.Graphics
                     else if (subsection.Unknown == 3 && subsection.DataSize != 24)
                         throw new Exception("NOT 24!!");
 
-                    Console.CurrentConsole.WriteLine("\t{0}\t{1}\t{2}", subsection.Unknown, subsection.DataSize, stream.Position);
 
                    // if (subsection.Unknown != 1)
                         reader.ReadBytes((int)subsection.DataSize);
@@ -102,8 +101,6 @@ namespace Gk3Main.Graphics
                     */
                     numSubsections++;
                 }
-
-                Console.CurrentConsole.WriteLine("Num subsections: {0}", numSubsections);
             }
         }
 

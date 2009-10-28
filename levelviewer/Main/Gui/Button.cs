@@ -70,7 +70,7 @@ namespace Gk3Main.Gui
                 if (_enabled && _mouseDown && IsMouseOverButton(_mouseX, _mouseY))
                 {
                     if (_clickedSound != null)
-                        _clickedSound.Play2D();
+                        _clickedSound.Play2D(Sound.SoundTrackChannel.UI);
                     
                     // clicked!
                     if (_onButtonClicked != null)

@@ -33,7 +33,7 @@ namespace Game
             }
 
             _ticktock = (Gk3Main.Sound.Sound)Gk3Main.Resource.ResourceManager.Load("CLOCKTIMEBLOCK.WAV");
-            _ticktock.Play2D();
+            _ticktock.Play2D(Gk3Main.Sound.SoundTrackChannel.UI);
         }
 
         public void Dispose()

@@ -4,21 +4,51 @@ using System.Text;
 
 namespace Gk3Main.Sound
 {
+    public class SoundWaitHandle : WaitHandle
+    {
+        private IrrKlang.ISound _sound;
+
+        public SoundWaitHandle(IrrKlang.ISound sound)
+        {
+            _sound = sound;
+        }
+
+        public override bool Finished
+        {
+            get
+            {
+                return _sound.Finished;
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+    }
+
     public struct PlayingSound
     {
-        public int Dummy;
+        private SoundWaitHandle _waitHandle;
 
 #if !SOUND_DISABLED
 
         internal IrrKlang.ISound _PlayingSound;
 
-        public PlayingSound(IrrKlang.ISound sound)
+        public PlayingSound(IrrKlang.ISound sound) : this(sound, false)
+        {
+        }
+
+        public PlayingSound(IrrKlang.ISound sound, bool wait)
         {
             if (sound == null)
                 throw new ArgumentNullException("sound");
 
             _PlayingSound = sound;
-            Dummy = 0;
+
+            if (wait)
+                _waitHandle = new SoundWaitHandle(sound);
+            else
+                _waitHandle = null;
         }
 
         public bool Finished
@@ -31,6 +61,11 @@ namespace Gk3Main.Sound
             get { return true; }
         }
 #endif
+
+        public SoundWaitHandle WaitHandle
+        {
+            get { return _waitHandle; }
+        }
     }
 
 
@@ -40,23 +75,23 @@ namespace Gk3Main.Sound
         public Sound(string name, System.IO.Stream stream)
             : base(name, true)
         {
-            _sound = SoundManager.Engine.AddSoundSourceFromFile(name);
+            _sound = SoundManager.AddSoundSourceFromFile(name);
         }
 
         public override void Dispose()
         {
-            SoundManager.Engine.RemoveSoundSource(_sound.Name);
+            SoundManager.RemoveSoundSource(_sound.Name);
             _sound = null;
-        }
-
-        public PlayingSound Play2D()
-        {
-            return new PlayingSound(SoundManager.Engine.Play2D(_sound, false, false, false));
         }
 
         public PlayingSound Play2D(SoundTrackChannel channel)
         {
-            return SoundManager.PlaySound2DToChannel(this, channel, false);
+            return Play2D(channel, false);
+        }
+
+        public PlayingSound Play2D(SoundTrackChannel channel, bool wait)
+        {
+            return SoundManager.PlaySound2DToChannel(this, channel, false, wait);
         }
 
         public PlayingSound Play3D(SoundTrackChannel channel, float x, float y, float z)

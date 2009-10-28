@@ -66,6 +66,7 @@
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Game\Actor.cs" />
     <Compile Include="Game\CommonStrings.cs" />
+    <Compile Include="Game\DialogManager.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameTimer.cs" />
     <Compile Include="Game\GasResource.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="Sound\SoundManager.cs" />
     <Compile Include="Sound\SoundTrackResource.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="WaitHandle.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Shaders\basic_lightmapped.fx">

@@ -7,6 +7,7 @@ namespace Gk3Main.Game
     class YakResource : Resource.TextResource
     {
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
+        private Sound.PlayingSound? _playingSound;
 
         public YakResource(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -72,7 +73,35 @@ namespace Gk3Main.Game
         public void Play()
         {
             if (_sounds.Count > 0)
-                _sounds[0].Play2D();
+            {
+                if (_playingSound.HasValue == true)
+                {
+                    Sound.SoundManager.Stop(_playingSound.Value);
+                }
+
+                _playingSound = _sounds[0].Play2D(Sound.SoundTrackChannel.Dialog);
+            }
+        }
+
+        public WaitHandle PlayAndWait()
+        {
+            if (_sounds.Count > 0)
+            {
+                if (_playingSound.HasValue == true)
+                {
+                    Sound.SoundManager.Stop(_playingSound.Value);
+                }
+
+                _playingSound = _sounds[0].Play2D(Sound.SoundTrackChannel.Dialog, true);
+                return _playingSound.Value.WaitHandle;
+            }
+
+            return null;
+        }
+
+        public bool IsFinished
+        {
+            get { return _playingSound.HasValue == false || _playingSound.Value.Finished; }
         }
     }
 

@@ -18,6 +18,7 @@ namespace Gk3Main.Sheep
     }
 
     public delegate void SheepFunctionDelegate(IntPtr vm);
+    public delegate void SheepEndWaitDelegate(IntPtr vm);
     
     public enum SymbolType
     {
@@ -38,12 +39,15 @@ namespace Gk3Main.Sheep
                 try
                 {
                     _vm = SHP_CreateNewVM();
+                    SHP_SetVerbosity(_vm, 3);
 
                     _compilerOutputDelegate = new CompilerOutputDelegate(compilerOutputCallback);
+                    _endWaitDelegate = new SheepEndWaitDelegate(endWaitCallback);
 
                     SHP_SetOutputCallback(_vm,
                         Marshal.GetFunctionPointerForDelegate(_compilerOutputDelegate));
-                    // SHP_SetOutputCallback(_vm, _compilerOutputDelegate);
+                    SHP_SetEndWaitCallback(_vm,
+                        Marshal.GetFunctionPointerForDelegate(_endWaitDelegate));
 
                     BasicSheepFunctions.Init();
                 }
@@ -182,7 +186,10 @@ namespace Gk3Main.Sheep
             if (vm == IntPtr.Zero)
                 throw new ArgumentException("vm");
 
-            return SHP_PopIntFromStack(vm);
+            int result;
+            SHP_PopIntFromStack(vm, out result);
+
+            return result;
         }
 
         public static float PopFloatOffStack(IntPtr vm)
@@ -190,7 +197,10 @@ namespace Gk3Main.Sheep
             if (vm == IntPtr.Zero)
                 throw new ArgumentException("vm");
 
-            return SHP_PopFloatFromStack(vm);
+            float result;
+            SHP_PopFloatFromStack(vm, out result);
+
+            return result;
         }
 
         public static string PopStringOffStack(IntPtr vm)
@@ -198,7 +208,9 @@ namespace Gk3Main.Sheep
             if (vm == IntPtr.Zero)
                 throw new ArgumentException("vm");
 
-            return Marshal.PtrToStringAnsi(SHP_PopStringFromStack(vm));
+            IntPtr result;
+            SHP_PopStringFromStack(vm, out result);
+            return Marshal.PtrToStringAnsi(result);
         }
 
         public static void PushIntOntoStack(IntPtr vm, int i)
@@ -209,7 +221,44 @@ namespace Gk3Main.Sheep
             SHP_PushIntOntoStack(vm, i);
         }
 
+        public static bool IsInWaitSection(IntPtr vm)
+        {
+            return SHP_IsInWaitSection(vm) != 0;
+        }
+
+        public static bool IsSuspended(IntPtr vm)
+        {
+            return SHP_IsSuspended(vm) != 0;
+        }
+
+        public static void Suspend(IntPtr vm)
+        {
+            SHP_Suspend(vm);
+        }
+
+        public static void AddWaitHandle(IntPtr vm, WaitHandle handle)
+        {
+            _currentWaitHandle.Add(handle);
+        }
+
+        public static void ResumeIfNoMoreBlockingWaits()
+        {
+            if (IsSuspended(_vm))
+            {
+                foreach (WaitHandle wait in _currentWaitHandle)
+                {
+                    if (wait.Finished == false)
+                        return;
+                }
+
+                // all waits are done, so continue on with the script
+                _currentWaitHandle.Clear();
+                SHP_Resume(_vm);
+            }
+        }
+
         private static IntPtr _vm;
+        private static List<WaitHandle> _currentWaitHandle = new List<WaitHandle>();
 
         struct CompilerOutput
         {
@@ -236,7 +285,25 @@ namespace Gk3Main.Sheep
 
             _output.Add(co);
         }
+
+        private static void endWaitCallback(IntPtr vm)
+        {
+            foreach (WaitHandle handle in _currentWaitHandle)
+            {
+                if (handle.Finished == false)
+                {
+                    // still waiting on stuff to finish, so suspend the VM
+                    SHP_Suspend(vm);
+                    return;
+                }
+            }
+
+            // everything is done!
+            _currentWaitHandle.Clear();
+        }
+
         private static CompilerOutputDelegate _compilerOutputDelegate;
+        private static SheepEndWaitDelegate _endWaitDelegate;
 
         #region Interops
 
@@ -256,13 +323,13 @@ namespace Gk3Main.Sheep
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
 
         [DllImport("sheep")]
-        private static extern int SHP_PopIntFromStack(IntPtr vm);
+        private static extern int SHP_PopIntFromStack(IntPtr vm, out int result);
 
         [DllImport("sheep")]
-        private static extern float SHP_PopFloatFromStack(IntPtr vm);
+        private static extern int SHP_PopFloatFromStack(IntPtr vm, out float result);
         
         [DllImport("sheep")]
-        private static extern IntPtr SHP_PopStringFromStack(IntPtr vm);
+        private static extern int SHP_PopStringFromStack(IntPtr vm, out IntPtr result);
 
         [DllImport("sheep")]
         private static extern void SHP_PushIntOntoStack(IntPtr vm, int i);
@@ -278,6 +345,24 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern void SHP_SetOutputCallback(IntPtr vm, IntPtr callback);
+
+        [DllImport("sheep")]
+        private static extern int SHP_IsInWaitSection(IntPtr vm);
+
+        [DllImport("sheep")]
+        private static extern int SHP_IsSuspended(IntPtr vm);
+
+        [DllImport("sheep")]
+        private static extern int SHP_Suspend(IntPtr vm);
+
+        [DllImport("sheep")]
+        private static extern int SHP_Resume(IntPtr vm);
+
+        [DllImport("sheep")]
+        private static extern void SHP_SetEndWaitCallback(IntPtr vm, IntPtr callback);
+
+        [DllImport("sheep")]
+        private static extern void SHP_SetVerbosity(IntPtr vm, int verbosity);
 
         #endregion Interops
     }

@@ -13,7 +13,8 @@ namespace Gk3Main.Sound
         SFX,
         Ambient,
         Music,
-        Dialog
+        Dialog,
+        UI
     }
 
     public class SoundException : Exception
@@ -37,6 +38,7 @@ namespace Gk3Main.Sound
             _channelSounds.Add(SoundTrackChannel.Dialog, new List<ISound>());
             _channelSounds.Add(SoundTrackChannel.Music, new List<ISound>());
             _channelSounds.Add(SoundTrackChannel.SFX, new List<ISound>());
+            _channelSounds.Add(SoundTrackChannel.UI, new List<ISound>());
         }
 
         public static void Shutdown()
@@ -44,15 +46,30 @@ namespace Gk3Main.Sound
 
         }
 
+        public static ISoundSource AddSoundSourceFromFile(string file)
+        {
+            return _engine.AddSoundSourceFromFile(file);
+        }
+
+        public static void RemoveSoundSource(string name)
+        {
+            _engine.RemoveSoundSource(name);
+        }
+
         public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel, bool clearChannel)
+        {
+            return PlaySound2DToChannel(sound, channel, clearChannel, false);
+        }
+
+        public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel, bool clearChannel, bool wait)
         {
             if (clearChannel)
                 StopChannel(channel);
 
-            ISound isound = Engine.Play2D(sound.Source, false, false, false);
+            ISound isound = _engine.Play2D(sound.Source, false, false, false);
             _channelSounds[channel].Add(isound);
 
-            return new PlayingSound(isound);
+            return new PlayingSound(isound, wait);
         }
 
         public static PlayingSound PlaySound3DToChannel(Sound sound, float x, float y, float z, SoundTrackChannel channel, bool clearChannel)
@@ -60,7 +77,7 @@ namespace Gk3Main.Sound
             if (clearChannel)
                 StopChannel(channel);
 
-            ISound isound = Engine.Play3D(sound.Source, x, y, z, false, false, false);
+            ISound isound = _engine.Play3D(sound.Source, x, y, z, false, false, false);
             _channelSounds[channel].Add(isound);// BUG: this should be adding this sound to a collection!
 
             return new PlayingSound(isound);
@@ -81,6 +98,12 @@ namespace Gk3Main.Sound
             }
         }
 
+        public static void Stop(PlayingSound sound)
+        {
+            sound._PlayingSound.Stop();
+            sound._PlayingSound.Dispose();
+        }
+
         public static void UpdateListener(Graphics.Camera camera)
         {
             Math.Vector3 position = camera.Position;
@@ -91,7 +114,7 @@ namespace Gk3Main.Sound
                 0, 0, 0, up.X, up.Y, up.Z);
         }
 
-        internal static ISoundEngine Engine
+        internal static ISoundEngine Enginez
         {
             get { return _engine; }
         }

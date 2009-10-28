@@ -55,8 +55,7 @@ namespace Gk3Main
         public static void LoadSif(string sif)
         {
             _roomPositions.Clear();
-            _roomCameras.Clear();
-            _cinematicCameras.Clear();
+            _cameras.Clear();
             _modelNounMap.Clear();
             _nvcs.Clear();
             _nvcLogicAliases.Clear();
@@ -100,18 +99,14 @@ namespace Gk3Main
 
             // load positions and room cameras
             foreach (SifRoomCamera camera in sifResource.RoomCameras)
-                _roomCameras.Add(camera.Name, camera);
-            foreach (SifRoomCamera camera in sifResource.CinematicCameras)
-                _cinematicCameras.Add(camera.Name, camera);
+                _cameras.Add(camera.Name, camera);
             foreach (SifPosition position in sifResource.Positions)
                 _roomPositions.Add(position.Name, position);
 
             if (parentSif != null)
             {
                 foreach (SifRoomCamera camera in parentSif.RoomCameras)
-                    _roomCameras.Add(camera.Name, camera);
-                foreach (SifRoomCamera camera in parentSif.CinematicCameras)
-                    _cinematicCameras.Add(camera.Name, camera);
+                    _cameras.Add(camera.Name, camera);
                 foreach (SifPosition position in parentSif.Positions)
                     _roomPositions.Add(position.Name, position);
             }
@@ -208,7 +203,7 @@ namespace Gk3Main
                 //    50.0f, 50.0f, HelperIcons.Flag);
             }
 
-            foreach (KeyValuePair<string, SifRoomCamera> rcamera in _roomCameras)
+            foreach (KeyValuePair<string, SifRoomCamera> rcamera in _cameras)
             {
                 //Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
                 //    50.0f, 50.0f, HelperIcons.Camera);
@@ -415,12 +410,7 @@ namespace Gk3Main
             if (_currentCamera != null)
             {
                 SifPosition position = _roomPositions[name];
-                SifRoomCamera camera;
-                
-                // try to find the camera in the list of room cameras first, then cinematic
-                // cameras if not found
-                if (_roomCameras.TryGetValue(position.CameraName, out camera) == false)
-                    camera = _cinematicCameras[position.CameraName];
+                SifRoomCamera camera = _cameras[position.CameraName];
 
                 _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
                 //_currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
@@ -433,12 +423,7 @@ namespace Gk3Main
         {
             if (_currentCamera != null)
             {
-                SifRoomCamera camera;
-
-                // try to find the camera in the list of cinematic cameras first, then room
-                // cameras if not found
-                if (_cinematicCameras.TryGetValue(name, out camera) == false)
-                    camera = _roomCameras[name];
+                SifRoomCamera camera = _cameras[name];
 
                 _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
                // _currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
@@ -663,8 +648,7 @@ namespace Gk3Main
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();
-        private static Dictionary<string, SifRoomCamera> _roomCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, SifRoomCamera> _cinematicCameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, SifRoomCamera> _cameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, string> _nvcLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static LinkedList<Sound.SoundTrackResource> _playingSoundTracks = new LinkedList<Sound.SoundTrackResource>();
