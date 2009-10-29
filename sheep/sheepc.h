@@ -28,6 +28,7 @@ extern "C"
 #define SHEEP_ERR_NO_CONTEXT_AVAILABLE -101
 #define SHEEP_ERR_EMPTY_STACK -102
 #define SHEEP_ERR_WRONG_TYPE_ON_STACK -103
+#define SHEEP_ERR_CANT_RESUME -104
 #define SHEEP_GENERIC_VM_ERROR -200
 #define SHEEP_UNKNOWN_ERROR_PROBABLY_BUG -1000
 #define SHEEP_SUSPENDED 2
@@ -100,6 +101,7 @@ struct SHP_Version
 };
 
 typedef struct {} SheepVM;
+typedef struct {} SheepVMContext;
 typedef struct {} SheepImportFunction;
 
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
@@ -132,6 +134,8 @@ DECLSPEC int LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);
 DECLSPEC int LIB_CALL SHP_PopStringFromStack(SheepVM* vm, const char** result);
 
 DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
+
+DECLSPEC SheepVMContext* LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
 
 
 /* these next few functions are just for debugging the Compiler and VM. They shouldn't
@@ -178,9 +182,9 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 
 DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_IsSuspended(SheepVM* vm);
-DECLSPEC int LIB_CALL SHP_Suspend(SheepVM* vm);
-DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm);
-typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm);
+DECLSPEC SheepVMContext* LIB_CALL SHP_Suspend(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm, SheepVMContext* context);
+typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);
 DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
 
 

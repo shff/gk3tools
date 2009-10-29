@@ -18,7 +18,7 @@ namespace Gk3Main.Sheep
     }
 
     public delegate void SheepFunctionDelegate(IntPtr vm);
-    public delegate void SheepEndWaitDelegate(IntPtr vm);
+    public delegate void SheepEndWaitDelegate(IntPtr vm, IntPtr context);
     
     public enum SymbolType
     {
@@ -173,7 +173,7 @@ namespace Gk3Main.Sheep
                 int err = SHP_RunScript(_vm, sheep, "main$");
 
                 if (err != 0)
-                    throw new SheepException("Unable to execute snippet");
+                    throw new SheepException("Unable to execute snippet: " + err.ToString());
             }
             else
             {
@@ -209,7 +209,10 @@ namespace Gk3Main.Sheep
                 throw new ArgumentException("vm");
 
             IntPtr result;
-            SHP_PopStringFromStack(vm, out result);
+            int r = SHP_PopStringFromStack(vm, out result);
+            if (r != 0)
+                throw new SheepException("Unable to pop string: " + r.ToString());
+
             return Marshal.PtrToStringAnsi(result);
         }
 
@@ -226,39 +229,59 @@ namespace Gk3Main.Sheep
             return SHP_IsInWaitSection(vm) != 0;
         }
 
-        public static bool IsSuspended(IntPtr vm)
-        {
-            return SHP_IsSuspended(vm) != 0;
-        }
-
         public static void Suspend(IntPtr vm)
         {
             SHP_Suspend(vm);
         }
 
-        public static void AddWaitHandle(IntPtr vm, WaitHandle handle)
+        public static void AddWaitHandle(IntPtr vm, IntPtr context, WaitHandle handle)
         {
-            _currentWaitHandle.Add(handle);
+            if (_waitHandles.ContainsKey(context) == false)
+                _waitHandles.Add(context, new List<WaitHandle>());
+
+            _waitHandles[context].Add(handle);
         }
 
         public static void ResumeIfNoMoreBlockingWaits()
         {
-            if (IsSuspended(_vm))
+            List<IntPtr> deadWaits = new List<IntPtr>();
+
+            foreach (var wait in _waitHandles)
             {
-                foreach (WaitHandle wait in _currentWaitHandle)
+                bool canResume = true;
+                foreach (var l in wait.Value)
                 {
-                    if (wait.Finished == false)
-                        return;
+                    if (l.Finished == false)
+                    {
+                        canResume = false;
+                        break;
+                    }
                 }
 
-                // all waits are done, so continue on with the script
-                _currentWaitHandle.Clear();
-                SHP_Resume(_vm);
+                if (canResume)
+                {
+                    SHP_Resume(_vm, wait.Key);
+                    deadWaits.Add(wait.Key);
+                }
+            }
+
+            // remove old waits
+            foreach (var wait in deadWaits)
+            {
+                // remove dead waits as long as no new waits
+                // were added after resuming
+                if (_waitHandles[wait].Count == 0) 
+                    _waitHandles.Remove(wait);
             }
         }
 
+        public static IntPtr GetCurrentContext(IntPtr vm)
+        {
+            return SHP_GetCurrentContext(vm);
+        }
+
         private static IntPtr _vm;
-        private static List<WaitHandle> _currentWaitHandle = new List<WaitHandle>();
+        private static Dictionary<IntPtr, List<WaitHandle>> _waitHandles = new Dictionary<IntPtr, List<WaitHandle>>();
 
         struct CompilerOutput
         {
@@ -286,20 +309,23 @@ namespace Gk3Main.Sheep
             _output.Add(co);
         }
 
-        private static void endWaitCallback(IntPtr vm)
+        private static void endWaitCallback(IntPtr vm, IntPtr context)
         {
-            foreach (WaitHandle handle in _currentWaitHandle)
+            if (_waitHandles.ContainsKey(context))
             {
-                if (handle.Finished == false)
+                foreach (var wait in _waitHandles[context])
                 {
-                    // still waiting on stuff to finish, so suspend the VM
-                    SHP_Suspend(vm);
-                    return;
+                    if (wait.Finished == false)
+                    {
+                        // still waiting on stuff to finish, so suspend the VM
+                        SHP_Suspend(vm);
+                        return;
+                    }
                 }
-            }
 
-            // everything is done!
-            _currentWaitHandle.Clear();
+                // everything is done!
+                _waitHandles[context].Clear();
+            }
         }
 
         private static CompilerOutputDelegate _compilerOutputDelegate;
@@ -335,6 +361,9 @@ namespace Gk3Main.Sheep
         private static extern void SHP_PushIntOntoStack(IntPtr vm, int i);
 
         [DllImport("sheep")]
+        private static extern IntPtr SHP_GetCurrentContext(IntPtr vm);
+
+        [DllImport("sheep")]
         private static extern int SHP_RunScript(IntPtr vm, string script, string function);
 
         [DllImport("sheep")]
@@ -350,13 +379,10 @@ namespace Gk3Main.Sheep
         private static extern int SHP_IsInWaitSection(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern int SHP_IsSuspended(IntPtr vm);
+        private static extern IntPtr SHP_Suspend(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern int SHP_Suspend(IntPtr vm);
-
-        [DllImport("sheep")]
-        private static extern int SHP_Resume(IntPtr vm);
+        private static extern int SHP_Resume(IntPtr vm, IntPtr context);
 
         [DllImport("sheep")]
         private static extern void SHP_SetEndWaitCallback(IntPtr vm, IntPtr callback);

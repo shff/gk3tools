@@ -176,26 +176,33 @@ int SHP_IsInWaitSection(SheepVM* vm)
 	return SHEEP_FALSE;
 }
 
-int SHP_IsSuspended(SheepVM* vm)
-{
-	if (SM(vm)->IsSuspended())
-		return SHEEP_TRUE;
-
-	return SHEEP_FALSE;
-}
-
-int SHP_Suspend(SheepVM* vm)
+SheepVMContext* SHP_Suspend(SheepVM* vm)
 {
 	assert(vm != NULL);
 
-	return SM(vm)->Suspend();
+	try
+	{
+		return (SheepVMContext*)SM(vm)->Suspend();
+	}
+	catch(SheepException& ex)
+	{
+		return NULL;
+	}
 }
 
-int SHP_Resume(SheepVM* vm)
+int SHP_Resume(SheepVM* vm, SheepVMContext* context)
 {
 	assert(vm != NULL);
 
-	return SM(vm)->Resume();
+	try
+	{
+		SM(vm)->Resume((SheepContext*)context);
+		return SHEEP_SUCCESS;
+	}
+	catch(SheepException& ex)
+	{
+		return ex.GetErrorNum();
+	}
 }
 
 void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)
@@ -203,6 +210,11 @@ void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)
 	assert(vm != NULL);
 
 	return SM(vm)->SetEndWaitCallback(callback);
+}
+
+SheepVMContext* SHP_GetCurrentContext(SheepVM* vm)
+{
+	return (SheepVMContext*)SM(vm)->GetCurrentContext();
 }
 
 SHP_Version SHP_GetVersion()

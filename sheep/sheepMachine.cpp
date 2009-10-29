@@ -8,13 +8,17 @@ SheepMachine::SheepMachine()
 	m_callback = NULL;
 	m_compilerCallback = NULL;
 	m_endWaitCallback = NULL;
-	m_suspended = false;
 
 	m_verbosityLevel = Verbosity_Silent;
+
+	m_executingDepth = 0;
 
 	// add Call() as an import
 	SheepImport* call = m_imports.NewImport("Call", SYM_VOID, s_call);
 	call->Parameters.push_back(SYM_STRING);
+
+	m_parentContext = NULL;
+	m_currentContext = NULL;
 }
 
 SheepMachine::~SheepMachine()
@@ -36,18 +40,18 @@ void SheepMachine::SetCompileOutputCallback(SHP_MessageCallback callback)
 
 std::string& SheepMachine::PopStringFromStack()
 {
-	if (m_contexts.empty())
+	if (m_currentContext == NULL)
 		throw SheepMachineException("No contexts", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
-	if (m_contexts.top().Stack.empty())
+	if (m_currentContext->Stack.empty())
 		throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
 
-	StackItem item = m_contexts.top().Stack.top();
-	m_contexts.top().Stack.pop();
+	StackItem item = m_currentContext->Stack.top();
+	m_currentContext->Stack.pop();
 
 	if (item.Type != SYM_STRING)
 		throw SheepMachineException("Expected string on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
-	IntermediateOutput* code = m_contexts.top().FullCode;
+	IntermediateOutput* code = m_currentContext->FullCode;
 	for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
 		itr != code->Constants.end(); itr++)
 	{
@@ -92,19 +96,19 @@ IntermediateOutput* SheepMachine::Compile(const std::string &script)
 }
 
 
-void SheepMachine::prepareVariables(SheepContext& context)
+void SheepMachine::prepareVariables(SheepContext* context)
 {
-	assert(context.FullCode != NULL);
+	assert(context->FullCode != NULL);
 
-	for (std::vector<SheepSymbol>::iterator itr = context.FullCode->Symbols.begin();
-		itr != context.FullCode->Symbols.end(); itr++)
+	for (std::vector<SheepSymbol>::iterator itr = context->FullCode->Symbols.begin();
+		itr != context->FullCode->Symbols.end(); itr++)
 	{
 		if ((*itr).Type == SYM_INT)
-			context.Variables.push_back(StackItem(SYM_INT, (*itr).InitialIntValue));
+			context->Variables.push_back(StackItem(SYM_INT, (*itr).InitialIntValue));
 		else if ((*itr).Type == SYM_FLOAT)
-			context.Variables.push_back(StackItem(SYM_FLOAT, (*itr).InitialFloatValue));
+			context->Variables.push_back(StackItem(SYM_FLOAT, (*itr).InitialFloatValue));
 		else if ((*itr).Type == SYM_STRING)
-			context.Variables.push_back(StackItem(SYM_STRING, (*itr).InitialStringValue));
+			context->Variables.push_back(StackItem(SYM_STRING, (*itr).InitialStringValue));
 		else
 			throw SheepMachineException("Unsupported variable type");
 	}
@@ -131,21 +135,29 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 		throw NoSuchFunctionException(function);
 
 
-	SheepContext c;
-	c.FullCode = code;
-	c.CodeBuffer = sheepfunction->Code;
-	c.FunctionOffset = sheepfunction->CodeOffset;
-	c.InstructionOffset = 0;
+	SheepContext* c = new SheepContext();
+	c->FullCode = code;
+	c->CodeBuffer = sheepfunction->Code;
+	c->FunctionOffset = sheepfunction->CodeOffset;
+	c->InstructionOffset = 0;
 	
 	prepareVariables(c);
-	m_contexts.push(c);
 
-	execute(m_contexts.top());
+	addContext(c);
 
-	if (m_suspended == false)
+	m_executingDepth++;
+	execute(c);
+	m_executingDepth--;
+
+	if (c->UserSuspended == false && c->ChildSuspended == false)
 	{
-		SHEEP_DELETE(m_contexts.top().FullCode);
-		m_contexts.pop();
+		SHEEP_DELETE(c->FullCode);
+		removeContext(c);
+
+		if (c->Parent == NULL)
+		{
+			SHEEP_DELETE(c);
+		}
 	}
 }
  
@@ -181,30 +193,32 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 		return SHEEP_ERROR;
 	}
 
-	SheepContext c;
-	c.FullCode = code;
-	c.CodeBuffer = code->Functions[0].Code;
-	c.FunctionOffset = code->Functions[0].CodeOffset;
-	c.InstructionOffset = 0;
+	SheepContext* c = new SheepContext();
+	c->FullCode = code;
+	c->CodeBuffer = code->Functions[0].Code;
+	c->FunctionOffset = code->Functions[0].CodeOffset;
+	c->InstructionOffset = 0;
 	
-	m_contexts.push(c);
-	execute(m_contexts.top());
+	addContext(c);
+	m_executingDepth++;
+	execute(c);
+	m_executingDepth--;
 
-	if (m_contexts.top().Stack.empty() == false)
+	if (c->Stack.empty() == false)
 	{
 		if (result != NULL)
 		{
-			if (m_contexts.top().Stack.top().Type == SYM_INT)
-				*result = m_contexts.top().Stack.top().IValue;
-			else if (m_contexts.top().Stack.top().Type == SYM_FLOAT)
-				*result = (int)m_contexts.top().Stack.top().FValue;
+			if (c->Stack.top().Type == SYM_INT)
+				*result = c->Stack.top().IValue;
+			else if (c->Stack.top().Type == SYM_FLOAT)
+				*result = (int)c->Stack.top().FValue;
 		}
 
-		m_contexts.top().Stack.pop();
+		c->Stack.pop();
 	}
 
-	SHEEP_DELETE(m_contexts.top().FullCode);
-	m_contexts.pop();
+	SHEEP_DELETE(c->FullCode);
+	removeContext(c);
 
 	return SHEEP_SUCCESS;
 
@@ -220,29 +234,37 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	}
 }
 
-int SheepMachine::Suspend()
+SheepContext* SheepMachine::Suspend()
 {
-	m_suspended = true;
-	return SHEEP_SUCCESS;
+	if (m_currentContext == NULL)
+		throw SheepMachineException("No context available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+
+	m_currentContext->UserSuspended = true;
+	return m_currentContext;
 }
 
-int SheepMachine::Resume()
+void SheepMachine::Resume(SheepContext* context)
 {
-	try
-	{
-		m_suspended = false;
-		executeContextsUntilSuspendedOrFinished();
+	//if (m_executingDepth != 0)
+	//	throw SheepMachineException("Cannot resume while execution is happening", SHEEP_ERR_CANT_RESUME);
 
-		return SHEEP_SUCCESS;
-	}
-	catch(SheepException& ex)
+	context->UserSuspended = false;
+
+	if (context->ChildSuspended == false)
 	{
-		if (m_compilerCallback)
+		execute(context);
+
+		if (context->ChildSuspended == false && context->UserSuspended == false)
 		{
-			m_compilerCallback(0, ex.GetMessage().c_str());
+			if (context->Parent != NULL &&
+				context->Parent->ChildSuspended == true &&
+				context->Parent->UserSuspended == false &&
+				context->Parent->AreAnyChildrenSuspended() == false)
+			{
+				context->Parent->ChildSuspended = false;
+				Resume(context->Parent);
+			}
 		}
-
-		return SHEEP_ERROR;
 	}
 }
 
@@ -251,18 +273,23 @@ void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
 	m_endWaitCallback = callback;
 }
 
-void SheepMachine::executeNextInstruction(SheepContext& context)
+void SheepMachine::executeNextInstruction(SheepContext* context)
 {
-	std::vector<SheepImport>& imports = context.FullCode->Imports;
+	// make sure the current context is the one we're working on
+	// so that when the user tries to push/pop the stack it will
+	// be the right one
+	m_currentContext = context;
+
+	std::vector<SheepImport>& imports = context->FullCode->Imports;
 
 	if (m_verbosityLevel > Verbosity_Polite)
-		printf("stack size: %d\n", context.Stack.size());
+		printf("stack size: %d\n", context->Stack.size());
 
-	if (context.InstructionOffset != context.CodeBuffer->Tell())
-		context.CodeBuffer->SeekFromStart(context.InstructionOffset);
+	if (context->InstructionOffset != context->CodeBuffer->Tell())
+		context->CodeBuffer->SeekFromStart(context->InstructionOffset);
 
-	unsigned char instruction = context.CodeBuffer->ReadByte();
-	context.InstructionOffset++;
+	unsigned char instruction = context->CodeBuffer->ReadByte();
+	context->InstructionOffset++;
 
 	int iparam1, iparam2;
 	float fparam1, fparam2;
@@ -274,31 +301,31 @@ void SheepMachine::executeNextInstruction(SheepContext& context)
 		case Yield:
 			throw SheepMachineInstructionException("Yield instruction not supported yet.");
 		case CallSysFunctionV:
-			context.InstructionOffset += 4;
-			callVoidFunction(context.Stack, imports, context.CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
+			callVoidFunction(context->Stack, imports, context->CodeBuffer->ReadInt());
 			break;
 		case CallSysFunctionI:
-			context.InstructionOffset += 4;
-			callIntFunction(context.Stack, imports, context.CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
+			callIntFunction(context->Stack, imports, context->CodeBuffer->ReadInt());
 			break;
 		case CallSysFunctionF:
 		case CallSysFunctionS:
 			throw SheepMachineInstructionException("Function calling not supported yet.");
 		case Branch:
 		case BranchGoto:
-			context.InstructionOffset = context.CodeBuffer->ReadInt() - context.FunctionOffset;
+			context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
 			break;
 		case BranchIfZero:
-			if (context.Stack.top().Type == SYM_INT)
+			if (context->Stack.top().Type == SYM_INT)
 			{
-				if (context.Stack.top().IValue == 0)
-					context.InstructionOffset = context.CodeBuffer->ReadInt() - context.FunctionOffset;
+				if (context->Stack.top().IValue == 0)
+					context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
 				else
 				{
-					context.CodeBuffer->ReadInt(); // throw it away
-					context.InstructionOffset += 4;
+					context->CodeBuffer->ReadInt(); // throw it away
+					context->InstructionOffset += 4;
 				}
-				context.Stack.pop();
+				context->Stack.pop();
 			}
 			else
 			{
@@ -306,184 +333,192 @@ void SheepMachine::executeNextInstruction(SheepContext& context)
 			}
 			break;
 		case BeginWait:
-			context.InWaitSection = true;
+			context->InWaitSection = true;
 			break;
 		case EndWait:
-			context.InWaitSection = false;
-			if (m_endWaitCallback) m_endWaitCallback(this);
+			context->InWaitSection = false;
+			// see if any child contexts are suspended
+			if (context->AreAnyChildrenSuspended() == false)
+			{
+				if (m_endWaitCallback) m_endWaitCallback(this, (SheepVMContext*)context);
+			}
+			else
+			{
+				context->ChildSuspended = true;
+			}
 			break;
 		case ReturnV:
 			return;
 		case StoreI:
-			storeI(context.Stack, context.Variables, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			storeI(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case StoreF:
-			storeF(context.Stack, context.Variables, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			storeF(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case StoreS:
-			storeS(context.Stack, context.Variables, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			storeS(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case LoadI:
-			loadI(context.Stack, context.Variables, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			loadI(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case LoadF:
-			loadF(context.Stack, context.Variables, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			loadF(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case LoadS:
 			throw SheepMachineInstructionException("Loading string variables not supported yet.");
 		case PushI:
-			context.Stack.push(StackItem(SYM_INT, context.CodeBuffer->ReadInt()));
-			context.InstructionOffset += 4;
+			context->Stack.push(StackItem(SYM_INT, context->CodeBuffer->ReadInt()));
+			context->InstructionOffset += 4;
 			break;
 		case PushF:
-			context.Stack.push(StackItem(SYM_FLOAT, context.CodeBuffer->ReadFloat()));
-			context.InstructionOffset += 4;
+			context->Stack.push(StackItem(SYM_FLOAT, context->CodeBuffer->ReadFloat()));
+			context->InstructionOffset += 4;
 			break;
 		case PushS:
-			context.Stack.push(StackItem(SYM_STRING, context.CodeBuffer->ReadInt()));
-			context.InstructionOffset += 4;
+			context->Stack.push(StackItem(SYM_STRING, context->CodeBuffer->ReadInt()));
+			context->InstructionOffset += 4;
 			break;
 		case Pop:
-			context.Stack.pop();
+			context->Stack.pop();
 			break;
 		case AddI:
-			addI(context.Stack);
+			addI(context->Stack);
 			break;
 		case AddF:
-			addF(context.Stack);
+			addF(context->Stack);
 			break;
 		case SubtractI:
-			subI(context.Stack);
+			subI(context->Stack);
 			break;
 		case SubtractF:
-			subF(context.Stack);
+			subF(context->Stack);
 			break;
 		case MultiplyI:
-			mulI(context.Stack);
+			mulI(context->Stack);
 			break;
 		case MultiplyF:
-			mulF(context.Stack);
+			mulF(context->Stack);
 			break;
 		case DivideI:
-			divI(context.Stack);
+			divI(context->Stack);
 			break;
 		case DivideF:
-			divF(context.Stack);
+			divF(context->Stack);
 			break;
 		case NegateI:
-			negI(context.Stack);
+			negI(context->Stack);
 			break;
 		case NegateF:
-			negF(context.Stack);
+			negF(context->Stack);
 			break;
 		case IsEqualI:
-			get2Ints(context.Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2);
 			if (iparam1 == iparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsEqualF:
-			get2Floats(context.Stack, fparam1, fparam2);
+			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 == fparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case NotEqualI:
-			get2Ints(context.Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2);
 			if (iparam1 != iparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case NotEqualF:
-			get2Floats(context.Stack, fparam1, fparam2);
+			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 != fparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsGreaterI:
-			get2Ints(context.Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2);
 			if (iparam1 > iparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsGreaterF:
-			get2Floats(context.Stack, fparam1, fparam2);
+			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 > fparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsLessI:
-			get2Ints(context.Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2);
 			if (iparam1 < iparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsLessF:
-			get2Floats(context.Stack, fparam1, fparam2);
+			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 < fparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsGreaterEqualI:
-			get2Ints(context.Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2);
 			if (iparam1 >= iparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsGreaterEqualF:
-			get2Floats(context.Stack, fparam1, fparam2);
+			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 >= fparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsLessEqualI:
-			get2Ints(context.Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2);
 			if (iparam1 <= iparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsLessEqualF:
-			get2Floats(context.Stack, fparam1, fparam2);
+			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 <= fparam2)
-				context.Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SYM_INT, 1));
 			else
-				context.Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IToF:
-			itof(context.Stack, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			itof(context->Stack, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case FToI:
-			ftoi(context.Stack, context.CodeBuffer->ReadInt());
-			context.InstructionOffset += 4;
+			ftoi(context->Stack, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
 			break;
 		case And:
-			andi(context.Stack);
+			andi(context->Stack);
 			break;
 		case Or:
-			ori(context.Stack);
+			ori(context->Stack);
 			break;
 		case Not:
-			noti(context.Stack);
+			noti(context->Stack);
 			break;
 		case GetString:
-			if (context.Stack.top().Type != SYM_STRING)
+			if (context->Stack.top().Type != SYM_STRING)
 				throw SheepMachineException("Expected string on stack");
 			break;
 		case DebugBreakpoint:
@@ -493,37 +528,70 @@ void SheepMachine::executeNextInstruction(SheepContext& context)
 	}
 }
 
-void SheepMachine::execute(SheepContext& context)
+void SheepMachine::execute(SheepContext* context)
 {
-	std::vector<SheepImport> imports = context.FullCode->Imports;
+	std::vector<SheepImport> imports = context->FullCode->Imports;
 
-	context.CodeBuffer->SeekFromStart(context.InstructionOffset);
-	while(!m_suspended && context.CodeBuffer->Tell() < context.CodeBuffer->GetSize())
+	context->CodeBuffer->SeekFromStart(context->InstructionOffset);
+	while(!context->UserSuspended && !context->ChildSuspended && context->CodeBuffer->Tell() < context->CodeBuffer->GetSize())
 	{
 		executeNextInstruction(context);
 	}
 }
 
-void SheepMachine::executeContextsUntilSuspendedOrFinished()
+
+void SheepMachine::addContext(SheepContext* context)
 {
-	while(m_contexts.empty() == false)
+	if (m_parentContext == NULL)
+		m_parentContext = context;
+	else
 	{
-		if (m_verbosityLevel >= Verbosity_Extreme)
-			printf("Executing... (%d left)\n", m_contexts.size());
-		execute(m_contexts.top());
+		assert(m_currentContext != NULL);
+		SheepContext* itr = m_currentContext->FirstChild;
+		if (itr == NULL)
+		{
+			m_currentContext->FirstChild = context;
+			context->Parent = m_currentContext;
+		}
+		else
+		{
+			while(itr->Sibling != NULL)
+			{
+				itr = itr->Sibling;
+			}
+			assert(itr != NULL);
 
-		if (m_suspended)
-			break;
-		
-		SHEEP_DELETE(m_contexts.top().FullCode);
-		m_contexts.pop();
-
-		if (m_verbosityLevel >= Verbosity_Extreme)
-			printf("Popped context... (%d left)\n", m_contexts.size());
+			itr->Sibling = context;
+			context->Parent = itr->Parent;
+		}
 	}
+}
 
-	if (m_verbosityLevel >= Verbosity_Extreme)
-		printf("Executed everything!\n");
+void SheepMachine::removeContext(SheepContext* context)
+{
+	if (m_parentContext == context)
+		m_parentContext = NULL;
+	else
+	{
+		SheepContext* parent = context->Parent;
+		assert(parent != NULL);
+		SheepContext* itr = parent->FirstChild;
+		if (itr == context)
+		{
+			parent->FirstChild = itr->Sibling;
+		}
+		else
+		{
+			while(itr->Sibling != context)
+			{
+				itr = itr->Sibling;
+			}
+			assert(itr != NULL);
+			assert(itr->Sibling = context);
+
+			itr->Sibling = context->Sibling;
+		}
+	}
 }
 
 void SheepMachine::s_call(SheepVM* vm)
@@ -542,8 +610,8 @@ void SheepMachine::s_call(SheepVM* vm)
 
 	// find the requsted function
 	SheepFunction* sheepfunction = NULL;
-	for (std::vector<SheepFunction>::iterator itr = machine->m_contexts.top().FullCode->Functions.begin();
-		itr != machine->m_contexts.top().FullCode->Functions.end(); itr++)
+	for (std::vector<SheepFunction>::iterator itr = machine->m_currentContext->FullCode->Functions.begin();
+		itr != machine->m_currentContext->FullCode->Functions.end(); itr++)
 	{
 		if ((*itr).Name == function)
 		{
@@ -555,20 +623,28 @@ void SheepMachine::s_call(SheepVM* vm)
 	if (sheepfunction == NULL)
 		throw NoSuchFunctionException(function);
 
-	SheepContext c = machine->m_contexts.top();
-	c.CodeBuffer = sheepfunction->Code;
-	c.FunctionOffset = sheepfunction->CodeOffset;
-	c.InstructionOffset = 0;
+	SheepContext* c = SHEEP_NEW(SheepContext);
+	*c = *machine->m_currentContext;
+	c->CodeBuffer = sheepfunction->Code;
+	c->FunctionOffset = sheepfunction->CodeOffset;
+	c->InstructionOffset = 0;
 	// TODO: this context should share variables with the previous context
 	// so that the functions within the same scripts can modify the same global variables
 	
 	machine->prepareVariables(c);
-	machine->m_contexts.push(c);
+	machine->addContext(c);
 
-	machine->execute(machine->m_contexts.top());
+	machine->m_executingDepth++;
+	machine->execute(c);
+	machine->m_executingDepth--;
 
-	if (machine->m_suspended == false)
+	if (c->UserSuspended == false && c->ChildSuspended == false)
 	{
-		machine->m_contexts.pop();
+		machine->removeContext(c);
+
+		if (c->Parent == NULL)
+		{
+			SHEEP_DELETE(c);
+		}
 	}
 }

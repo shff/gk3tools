@@ -23,10 +23,10 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("ClearMood", _dummyString,
                 SymbolType.Void, SymbolType.String);
 
-            SheepMachine.AddImport("ContinueDialogue", _dummyInt,
+            SheepMachine.AddImport("ContinueDialogue", _continueDialogue,
                 SymbolType.Void, SymbolType.Integer);
 
-            SheepMachine.AddImport("ContinueDialogueNoFidgets", _dummyInt,
+            SheepMachine.AddImport("ContinueDialogueNoFidgets", _continueDialogueNoFidgets,
                 SymbolType.Void, SymbolType.Integer);
 
             SheepMachine.AddImport("CutToCameraAngle", _cutToCameraAngle,
@@ -213,6 +213,28 @@ namespace Gk3Main.Sheep
             string flag = SheepMachine.PopStringOffStack(vm);
  
             // TODO!
+        }
+
+        private static void sheep_ContinueDialogue(IntPtr vm)
+        {
+            int numLines = SheepMachine.PopIntOffStack(vm);
+
+            bool waiting = SheepMachine.IsInWaitSection(vm);
+            WaitHandle handle = Game.DialogManager.ContinueDialogue(numLines, waiting);
+
+            if (waiting && handle != null)
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
+        }
+
+        private static void sheep_ContinueDialogueNoFidgets(IntPtr vm)
+        {
+            int numLines = SheepMachine.PopIntOffStack(vm);
+
+            bool waiting = SheepMachine.IsInWaitSection(vm);
+            WaitHandle handle = Game.DialogManager.ContinueDialogue(numLines, waiting);
+
+            if (waiting && handle != null)
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
         }
 
         private static void sheep_CutToCameraAngle(IntPtr vm)
@@ -498,7 +520,7 @@ namespace Gk3Main.Sheep
             WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
 
             if (waiting && handle != null)
-                SheepMachine.AddWaitHandle(vm, handle);
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
         }
 
         private static void sheep_StartDialogueNoFidgets(IntPtr vm)
@@ -521,7 +543,7 @@ namespace Gk3Main.Sheep
             WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
 
             if (waiting && handle != null)
-                SheepMachine.AddWaitHandle(vm, handle);
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
 
             //Game.DialogManager.PlayDialogue(licensePlate, numLines, SheepMachine.IsInWaitSection(vm));
         }
@@ -618,6 +640,8 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _printStringDelegate = new SheepFunctionDelegate(sheep_PrintString);
         private static SheepFunctionDelegate _callSheep = new SheepFunctionDelegate(sheep_CallSheep);
         private static SheepFunctionDelegate _clearFlag = new SheepFunctionDelegate(sheep_clearFlag);
+        private static SheepFunctionDelegate _continueDialogue = new SheepFunctionDelegate(sheep_ContinueDialogue);
+        private static SheepFunctionDelegate _continueDialogueNoFidgets = new SheepFunctionDelegate(sheep_ContinueDialogueNoFidgets);
         private static SheepFunctionDelegate _cutToCameraAngle = new SheepFunctionDelegate(sheep_CutToCameraAngle);
         private static SheepFunctionDelegate _getFlag = new SheepFunctionDelegate(sheep_GetFlag);
         private static SheepFunctionDelegate _finishedScreen = new SheepFunctionDelegate(sheep_FinishedScreen);

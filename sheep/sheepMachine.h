@@ -65,19 +65,45 @@ struct SheepContext
 	SheepContext()
 	{
 		InWaitSection = false;
+		UserSuspended = false;
+		ChildSuspended = false;
 		FunctionOffset = 0;
 		InstructionOffset = 0;
 		CodeBuffer = NULL;
+
+		Parent = NULL;
+		FirstChild = NULL;
+		Sibling = NULL;
 	}
 
 	SheepStack Stack;
 	std::vector<StackItem> Variables;
 
 	bool InWaitSection;
+	bool UserSuspended;
+	bool ChildSuspended;
 	unsigned int FunctionOffset;
 	unsigned int InstructionOffset;
 	SheepCodeBuffer* CodeBuffer;
 	IntermediateOutput* FullCode;
+
+	SheepContext* Parent;
+	SheepContext* FirstChild;
+	SheepContext* Sibling;
+
+	bool AreAnyChildrenSuspended()
+	{
+		SheepContext* child = FirstChild;
+		while(child != NULL)
+		{
+			if (child->UserSuspended || child->ChildSuspended)
+				return true;
+
+			child = child->Sibling;
+		}
+
+		return false;
+	}
 };
 
 class SheepMachine : public SheepVM
@@ -100,22 +126,24 @@ public:
 	int RunSnippet(const std::string& snippet, int* result);
 
 	/// Resumes where the code left off.
-	/// Returns SHEEP_SUCCESS on success, or SHEEP_ERROR on error.
-	int Resume();
-	int Suspend();
+	void Resume(SheepContext* context);
+	SheepContext* Suspend();
 
 	int PopIntFromStack()
 	{
-		if (m_contexts.empty())
+		if (m_currentContext == NULL)
 			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
 
-		return getInt(m_contexts.top().Stack);
+		return getInt(m_currentContext->Stack);
 	}
 
 	float PopFloatFromStack()
 	{
-		StackItem item = m_contexts.top().Stack.top();
-		m_contexts.top().Stack.pop();
+		if (m_currentContext == NULL)
+			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+
+		StackItem item = m_currentContext->Stack.top();
+		m_currentContext->Stack.pop();
 
 		if (item.Type != SYM_FLOAT)
 			throw SheepMachineException("Expected float on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
@@ -127,17 +155,20 @@ public:
 
 	void PushIntOntoStack(int i)
 	{
-		m_contexts.top().Stack.push(StackItem(SYM_INT, i));
+		if (m_currentContext == NULL)
+			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+
+		m_currentContext->Stack.push(StackItem(SYM_INT, i));
 	}
 	
 	SheepImportTable& GetImports() { return m_imports; }
 
-	bool IsInWaitSection() { return m_contexts.empty() == false && m_contexts.top().InWaitSection; }
-	bool IsSuspended() { return m_suspended; }
+	bool IsInWaitSection() { return m_currentContext != NULL && m_currentContext->InWaitSection; }
 	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
-	int GetNumContexts() { return m_contexts.size(); }
-	int GetCurrentContextStackSize() { return m_contexts.top().Stack.size(); }
+	int GetNumContexts() { return 0; }
+	int GetCurrentContextStackSize() { return m_currentContext->Stack.size(); }
+	SheepContext* GetCurrentContext() { return m_currentContext; }
 	
 
 	enum Verbosity
@@ -153,22 +184,23 @@ public:
 
 private:
 
-	void prepareVariables(SheepContext& context);
-	void execute(SheepContext& context);
-	void executeContextsUntilSuspendedOrFinished();
-	void executeNextInstruction(SheepContext& context);
+	void prepareVariables(SheepContext* context);
+	void execute(SheepContext* context);
+	void executeNextInstruction(SheepContext* context);
+
+	void addContext(SheepContext* context);
+	void removeContext(SheepContext* context);
 
 	void (*m_callback)(const char* message);
 	SHP_MessageCallback m_compilerCallback;
 
+	SheepContext* m_parentContext;
+	SheepContext* m_currentContext;
+	int m_executingDepth;
+
 	SheepImportTable m_imports;
 
 	SHP_EndWaitCallback m_endWaitCallback;
-
-
-	typedef std::stack<SheepContext> SheepContextStack;
-	SheepContextStack m_contexts;
-	bool m_suspended;
 
 	Verbosity m_verbosityLevel;
 
