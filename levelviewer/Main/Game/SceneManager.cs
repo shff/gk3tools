@@ -166,9 +166,9 @@ namespace Gk3Main
                 (Game.GasResource)Resource.ResourceManager.Load(fileWithExtension);
         }
 
-        public static void AddActor(string modelName, string noun, Math.Vector3 position, float heading)
+        public static void AddActor(string modelName, string noun, Math.Vector3 position, float heading, bool isEgo)
         {
-            Game.Actor actor = new Game.Actor(modelName, noun);
+            Game.Actor actor = new Game.Actor(modelName, noun, isEgo);
             actor.Position = position;
             actor.FacingAngle = heading;
 
@@ -275,7 +275,7 @@ namespace Gk3Main
             float distance;
             foreach (Graphics.ModelResource model in _models)
             {
-                if (model.CollideRay(origin, direction, length, out distance))
+                if (model.CollideRay(Math.Vector3.Zero, origin, direction, length, out distance))
                 {
                     Console.CurrentConsole.WriteLine(model.Name);
                     return model.NameWithoutExtension;
@@ -405,6 +405,21 @@ namespace Gk3Main
             return new List<string>();
         }
 
+        public static void SetEgoToSifPosition(string name)
+        {
+            SifPosition position = _roomPositions[name];
+
+            foreach (Actor a in _actors)
+            {
+                if (a.IsEgo)
+                {
+                    a.Position = new Math.Vector3(position.X, position.Y, position.Z);
+                    a.FacingAngle = Utils.DegreesToRadians(position.HeadingDegrees);
+                    return;
+                }
+            }
+        }
+
         public static void SetCameraToSifPosition(string name)
         {
             if (_currentCamera != null)
@@ -418,6 +433,8 @@ namespace Gk3Main
                 _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
             }
         }
+
+        
 
         public static void SetCameraToCinematicCamera(string name)
         {
@@ -505,7 +522,7 @@ namespace Gk3Main
         {
             foreach (Game.SifActor actor in sif.Actors)
             {
-                AddActor(actor.Model, actor.Noun, Math.Vector3.Zero, 0);
+                AddActor(actor.Model, actor.Noun, Math.Vector3.Zero, 0, actor.IsEgo);
 
                 if (string.IsNullOrEmpty(actor.Pos) == false)
                     SetActorPosition(actor.Noun, actor.Pos);
@@ -581,19 +598,37 @@ namespace Gk3Main
                 return GameManager.CurrentEgo == Ego.Gabriel;
             if (conditionName.Equals("1ST_TIME", StringComparison.OrdinalIgnoreCase))
                 return GameManager.GetNounVerbCount(noun, verb) == 0;
+            if (conditionName.Equals("2CD_TIME", StringComparison.OrdinalIgnoreCase))
+                return GameManager.GetNounVerbCount(noun, verb) == 1;
             if (conditionName.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase))
                 return GameManager.GetNounVerbCount(noun, verb) > 0;
             if (conditionName.Equals("TIME_BLOCK", StringComparison.OrdinalIgnoreCase))
                 return true; // TODO: what does this case mean?
+            if (conditionName.Equals("TIME_BLOCK_OVERRIDE", StringComparison.OrdinalIgnoreCase))
+                return true; // TODO: what does this case mean?
+            if (conditionName.Equals("DIALOGUE_TOPICS_LEFT", StringComparison.OrdinalIgnoreCase))
+                return false; // TODO
+            if (conditionName.Equals("NOT_DIALOGUE_TOPICS_LEFT", StringComparison.OrdinalIgnoreCase))
+                return false;
 
             // guess it was something else
-            string condition = _nvcLogicAliases[conditionName];
+            string condition;
+            if (_nvcLogicAliases.ContainsKey(conditionName))
+                condition = _nvcLogicAliases[conditionName];
+            else
+                condition = _nvcLogicAliases["G_" + conditionName];
 
             // HACK: until we support passing variables to snippets we
             // have to do some ugly manipulation like this to handle GetNounVerbCountInt()
             if (condition.IndexOf("GetNounVerbCountInt", StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "GetNounVerbCountInt", "GetNounVerbCount");
+                condition = Utils.ReplaceStringCaseInsensitive(condition, "n$", string.Format("\"{0}\"", noun));
+                condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
+            }
+            if (condition.IndexOf("GetTopicCountInt", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                condition = Utils.ReplaceStringCaseInsensitive(condition, "GetTopicCountInt", "GetTopicCount");
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "n$", string.Format("\"{0}\"", noun));
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
             }
@@ -641,8 +676,6 @@ namespace Gk3Main
         private static Graphics.SkyBox _currentSkybox;
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
-        private static Math.Vector3 _egoPosition;
-        private static float _egoFacingAngle;
         private static List<Game.Actor> _actors = new List<Actor>();
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);

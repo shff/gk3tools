@@ -153,6 +153,8 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 	{
 		SHEEP_DELETE(c->FullCode);
 		removeContext(c);
+		if (m_currentContext == c)
+			m_currentContext = NULL;
 
 		if (c->Parent == NULL)
 		{
@@ -219,6 +221,8 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 
 	SHEEP_DELETE(c->FullCode);
 	removeContext(c);
+	if (m_currentContext == c)
+		m_currentContext = NULL;
 
 	return SHEEP_SUCCESS;
 
@@ -256,6 +260,10 @@ void SheepMachine::Resume(SheepContext* context)
 
 		if (context->ChildSuspended == false && context->UserSuspended == false)
 		{
+			removeContext(context);
+			if (m_currentContext == context)
+				m_currentContext = NULL;
+
 			if (context->Parent != NULL &&
 				context->Parent->ChildSuspended == true &&
 				context->Parent->UserSuspended == false &&
@@ -273,6 +281,32 @@ void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
 	m_endWaitCallback = callback;
 }
 
+void SheepMachine::PrintStackTrace()
+{
+	SheepContext* context = m_currentContext;
+	while(context != NULL)
+	{
+		// find the function
+		SheepFunction* sheepfunction = NULL;
+		for (std::vector<SheepFunction>::iterator itr = context->FullCode->Functions.begin();
+			itr != context->FullCode->Functions.end(); itr++)
+		{
+			if ((*itr).CodeOffset == context->FunctionOffset)
+			{
+				sheepfunction = &(*itr);
+				break;
+			}
+		}
+
+		if (sheepfunction != NULL)
+		{
+			printf("%s:%x,%x\n", sheepfunction->Name.c_str(), context->FunctionOffset + context->InstructionOffset, context->InstructionOffset);
+		}
+
+		context = context->Parent;
+	}
+}
+
 void SheepMachine::executeNextInstruction(SheepContext* context)
 {
 	// make sure the current context is the one we're working on
@@ -282,7 +316,28 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 
 	std::vector<SheepImport>& imports = context->FullCode->Imports;
 
-	if (m_verbosityLevel > Verbosity_Polite)
+	if (m_verbosityLevel > Verbosity_Annoying)
+	{
+		printf("stack size: %d:", context->Stack.size());
+		
+		SheepStack tmp;
+		while(context->Stack.empty() == false)
+		{
+			printf("%d, ", context->Stack.top().Type);
+
+			tmp.push(context->Stack.top());
+			context->Stack.pop();
+		}
+
+		printf("\n");
+
+		while(tmp.empty() == false)
+		{
+			context->Stack.push(tmp.top());
+			tmp.pop();
+		}
+	}
+	else if (m_verbosityLevel > Verbosity_Polite)
 		printf("stack size: %d\n", context->Stack.size());
 
 	if (context->InstructionOffset != context->CodeBuffer->Tell())
@@ -329,7 +384,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			}
 			else
 			{
-				throw SheepMachineException("Expected integer on stack");
+				throw SheepMachineException("BranchIfZero instruction expected integer on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 			}
 			break;
 		case BeginWait:
@@ -417,7 +472,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			negF(context->Stack);
 			break;
 		case IsEqualI:
-			get2Ints(context->Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2, IsEqualI);
 			if (iparam1 == iparam2)
 				context->Stack.push(StackItem(SYM_INT, 1));
 			else
@@ -431,7 +486,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case NotEqualI:
-			get2Ints(context->Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2, NotEqualI);
 			if (iparam1 != iparam2)
 				context->Stack.push(StackItem(SYM_INT, 1));
 			else
@@ -445,7 +500,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsGreaterI:
-			get2Ints(context->Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2, IsGreaterI);
 			if (iparam1 > iparam2)
 				context->Stack.push(StackItem(SYM_INT, 1));
 			else
@@ -459,7 +514,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsLessI:
-			get2Ints(context->Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2, IsLessI);
 			if (iparam1 < iparam2)
 				context->Stack.push(StackItem(SYM_INT, 1));
 			else
@@ -473,7 +528,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsGreaterEqualI:
-			get2Ints(context->Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2, IsGreaterEqualI);
 			if (iparam1 >= iparam2)
 				context->Stack.push(StackItem(SYM_INT, 1));
 			else
@@ -487,7 +542,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				context->Stack.push(StackItem(SYM_INT, 0));
 			break;
 		case IsLessEqualI:
-			get2Ints(context->Stack, iparam1, iparam2);
+			get2Ints(context->Stack, iparam1, iparam2, IsLessEqualI);
 			if (iparam1 <= iparam2)
 				context->Stack.push(StackItem(SYM_INT, 1));
 			else
@@ -539,58 +594,74 @@ void SheepMachine::execute(SheepContext* context)
 	}
 }
 
+void addAsSibling(SheepContext* child, SheepContext* toAdd)
+{
+	SheepContext* itr = child;
+	while(itr->Sibling != NULL)
+	{
+		itr = itr->Sibling;
+	}
+
+	itr->Sibling = toAdd;
+	itr->Parent = child->Parent;
+}
+
 
 void SheepMachine::addContext(SheepContext* context)
 {
 	if (m_parentContext == NULL)
 		m_parentContext = context;
+	else if (m_currentContext == NULL)
+	{
+		addAsSibling(m_parentContext, context);
+	}
 	else
 	{
-		assert(m_currentContext != NULL);
-		SheepContext* itr = m_currentContext->FirstChild;
-		if (itr == NULL)
+		if (m_currentContext->FirstChild == NULL)
 		{
 			m_currentContext->FirstChild = context;
 			context->Parent = m_currentContext;
 		}
 		else
 		{
-			while(itr->Sibling != NULL)
-			{
-				itr = itr->Sibling;
-			}
-			assert(itr != NULL);
-
-			itr->Sibling = context;
-			context->Parent = itr->Parent;
+			addAsSibling(m_currentContext->FirstChild, context);
 		}
 	}
 }
 
+
 void SheepMachine::removeContext(SheepContext* context)
 {
-	if (m_parentContext == context)
-		m_parentContext = NULL;
+	assert(m_parentContext != NULL);
+	assert(context != NULL);
+
+	SheepContext* firstSibling = NULL;
+	if (context->Parent == NULL)
+		firstSibling = m_parentContext;
 	else
+		firstSibling = context->Parent->FirstChild;
+
+	SheepContext* itr = firstSibling, *prev = NULL;
+
+	while(itr != NULL)
 	{
-		SheepContext* parent = context->Parent;
-		assert(parent != NULL);
-		SheepContext* itr = parent->FirstChild;
 		if (itr == context)
 		{
-			parent->FirstChild = itr->Sibling;
-		}
-		else
-		{
-			while(itr->Sibling != context)
+			if (context->Parent == NULL && prev == NULL)
 			{
-				itr = itr->Sibling;
+				// this was the root
+				m_parentContext = context->Sibling;
+				return;
 			}
-			assert(itr != NULL);
-			assert(itr->Sibling = context);
 
-			itr->Sibling = context->Sibling;
+			if (prev == NULL)
+				context->Parent->FirstChild = context->Sibling;
+			else
+				prev->Sibling = context->Sibling;
 		}
+
+		prev = itr;
+		itr = itr->Sibling;
 	}
 }
 

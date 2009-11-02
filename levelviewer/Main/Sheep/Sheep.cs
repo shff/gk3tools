@@ -111,8 +111,11 @@ namespace Gk3Main.Sheep
                         }
 
                         int err = SHP_RunCode(_vm, ms.ToArray(), (int)ms.Length, function);
-                        if (err != SHEEP_SUCCESS)
+                        if (err != SHEEP_SUCCESS && err != SHEEP_SUSPENDED)
+                        {
+                            SHP_PrintStackTrace(_vm);
                             throw new SheepException("Unable to execute Sheep script");
+                        }
                     }
                 }
                 else
@@ -335,6 +338,7 @@ namespace Gk3Main.Sheep
 
         const int SHEEP_SUCCESS = 0;
         const int SHEEP_ERROR = -1;
+        const int SHEEP_SUSPENDED = 2;
 
         [DllImport("sheep")]
         private static extern IntPtr SHP_CreateNewVM();
@@ -389,6 +393,9 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern void SHP_SetVerbosity(IntPtr vm, int verbosity);
+
+        [DllImport("sheep")]
+        private static extern void SHP_PrintStackTrace(IntPtr vm);
 
         #endregion Interops
     }

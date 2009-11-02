@@ -61,6 +61,12 @@ namespace Gk3Main.Game
             set { _currentEgo = value; }
         }
 
+        public static string CurrentLocation
+        {
+            get { return _location; }
+            set { _location = value; }
+        }
+
         public static string GetTimeBlockString(Timeblock timeblock)
         {
             switch (timeblock)
@@ -140,6 +146,43 @@ namespace Gk3Main.Game
             _integerGameVariables[variable] = value;
         }
 
+        public static int GetChatCount(string noun)
+        {
+            if (_chatCounts.ContainsKey(noun) == false)
+                return 0;
+
+            return _chatCounts[noun];
+        }
+
+        public static void IncrementChatCount(string noun)
+        {
+            if (_chatCounts.ContainsKey(noun) == false)
+                _chatCounts[noun] = 1;
+            else
+            {
+                int c = _chatCounts[noun];
+                _chatCounts[noun] = c;
+            }
+        }
+
+        public static void SetFlag(string name)
+        {
+            if (_flags.ContainsKey(name))
+                _flags[name] = true;
+            else
+            {
+                _flags.Add(name, true);
+            }
+        }
+
+        public static bool GetFlag(string name)
+        {
+            if (_flags.ContainsKey(name))
+                return _flags[name];
+
+            return false;
+        }
+
         public static void AddGameTimer(string noun, string verb, int duration)
         {
             Game.GameTimer timer;
@@ -209,6 +252,8 @@ namespace Gk3Main.Game
         private static LocalizedStrings _strings;
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, int> _chatCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();
         private static LinkedList<Game.GameTimer> _timers = new LinkedList<Game.GameTimer>();
     }
 }

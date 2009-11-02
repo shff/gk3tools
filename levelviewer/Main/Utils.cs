@@ -83,7 +83,7 @@ namespace Gk3Main
 			return true;
 		}
 
-        public static bool TestRayAABBCollision(Math.Vector3 origin,
+        public static bool TestRayAABBCollision(Math.Vector3 aabbOffset, Math.Vector3 origin,
             Math.Vector3 direction, float[] aabb, out float distance)
         {
             // based on http://www.cs.utah.edu/~awilliam/box/box.pdf
@@ -95,10 +95,10 @@ namespace Gk3Main
             int signY = inverseDirection.Y < 0 ? 1 : 0;
             int signZ = inverseDirection.Z < 0 ? 1 : 0;
 
-            float tmin = (aabb[signX * 3 + 0] - origin.X) * inverseDirection.X;
-            float tmax = (aabb[(1 - signX) * 3 + 0] - origin.X) * inverseDirection.X;
-            float tymin = (aabb[signY * 3 + 1] - origin.Y) * inverseDirection.Y;
-            float tymax = (aabb[(1 - signY) * 3 + 1] - origin.Y) * inverseDirection.Y;
+            float tmin = (aabb[signX * 3 + 0] + aabbOffset.X - origin.X) * inverseDirection.X;
+            float tmax = (aabb[(1 - signX) * 3 + 0] + aabbOffset.X - origin.X) * inverseDirection.X;
+            float tymin = (aabb[signY * 3 + 1] + aabbOffset.Y - origin.Y) * inverseDirection.Y;
+            float tymax = (aabb[(1 - signY) * 3 + 1] + aabbOffset.Y - origin.Y) * inverseDirection.Y;
 
             if (tmin > tymax || tymin > tmax)
                 return false;
@@ -107,8 +107,8 @@ namespace Gk3Main
             if (tymax < tmax)
                 tmax = tymax;
 
-            float tzmin = (aabb[signZ * 3 + 2] - origin.Z) * inverseDirection.Z;
-            float tzmax = (aabb[(1 - signZ) * 3 + 2] - origin.Z) * inverseDirection.Z;
+            float tzmin = (aabb[signZ * 3 + 2] + aabbOffset.Z - origin.Z) * inverseDirection.Z;
+            float tzmax = (aabb[(1 - signZ) * 3 + 2] + aabbOffset.Z - origin.Z) * inverseDirection.Z;
 
             if (tmin > tzmax || tzmin > tmax)
                 return false;
@@ -183,7 +183,7 @@ namespace Gk3Main
 
         public static float DegreesToRadians(float degrees)
         {
-            return Math.Constants.Pi * degrees / 180.0f;
+            return degrees * Math.Constants.RadiansPerDegree;
         }
 
         /// <summary>

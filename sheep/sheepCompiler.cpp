@@ -85,6 +85,9 @@ int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
 	}
 	catch(SheepException& ex)
 	{
+		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
+			printf("%s\n", ex.GetMessage().c_str());
+
 		return ex.GetErrorNum();
 	}
 }
@@ -227,6 +230,13 @@ SHP_Version SHP_GetVersion()
 	return v;
 }
 
+
+void SHP_PrintStackTrace(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->PrintStackTrace();
+}
 
 int SHP_GetNumContexts(SheepVM* vm)
 {

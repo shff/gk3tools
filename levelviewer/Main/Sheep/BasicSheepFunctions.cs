@@ -38,10 +38,16 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("DisableModelShadow", _dummyString,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("DoesEgoHaveInvItem", _doesEgoHaveInvItem,
+                SymbolType.Integer, SymbolType.String);
+
             SheepMachine.AddImport("DoesGraceHaveInvItem", _doesGraceHaveInvItemDelegate,
                 SymbolType.Integer, SymbolType.String);
 
             SheepMachine.AddImport("DoesGabeHaveInvItem", _doesGabeHaveInvItemDelegate,
+                SymbolType.Integer, SymbolType.String);
+
+            SheepMachine.AddImport("DoesModelExist", _doesModelExistDelegate,
                 SymbolType.Integer, SymbolType.String);
 
             SheepMachine.AddImport("EnableCameraBoundaries", _dummyVoid,
@@ -74,6 +80,15 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("GetNounVerbCount", _getNounVerbCount,
                 SymbolType.Integer, SymbolType.String, SymbolType.String);
 
+            SheepMachine.AddImport("GetRandomInt", _getRandomInt,
+                SymbolType.Integer, SymbolType.Integer, SymbolType.Integer);
+
+            SheepMachine.AddImport("GetTopicCount", _getTopicCount,
+                SymbolType.Integer, SymbolType.String, SymbolType.String);
+
+            SheepMachine.AddImport("GetTopicCountInt", _getTopicCountInt,
+                SymbolType.Integer, SymbolType.Integer, SymbolType.Integer);
+
             SheepMachine.AddImport("HideModel", _dummyString,
                 SymbolType.Void, SymbolType.String);
 
@@ -86,6 +101,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("InventoryInspect", _dummyString,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("IsActiveInvItem", _isActiveInvItem,
+                SymbolType.Integer, SymbolType.String);
+
             SheepMachine.AddImport("IsActorAtLocation", _isActorAtLocation,
                 SymbolType.Integer, SymbolType.String, SymbolType.String);
 
@@ -93,6 +111,9 @@ namespace Gk3Main.Sheep
                 SymbolType.Integer, SymbolType.String, SymbolType.String, SymbolType.Float);
 
             SheepMachine.AddImport("IsCurrentEgo", _isCurrentEgo,
+                SymbolType.Integer, SymbolType.String);
+
+            SheepMachine.AddImport("IsCurrentLocation", _isCurrentLocation,
                 SymbolType.Integer, SymbolType.String);
 
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
@@ -112,6 +133,12 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("SetCameraAngleType", _setCameraAngleType,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
+
+            SheepMachine.AddImport("SetDefaultDialogueCamera", _dummyString,
+                SymbolType.Void, SymbolType.String);
+
+            SheepMachine.AddImport("SetFlag", _setFlag,
+                SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("SetForcedCameraCuts", _setForcedCameraCuts,
                 SymbolType.Void, SymbolType.Integer);
@@ -188,6 +215,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("WalkToAnimation", _dummyStringString,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
+            SheepMachine.AddImport("WasEgoEverInLocation", _wasEgoEverInLocation,
+                SymbolType.Integer, SymbolType.String);
+
             SheepMachine.AddImport("WasLastLocation", _wasLastLocation,
                 SymbolType.Integer, SymbolType.String);
         }
@@ -251,6 +281,15 @@ namespace Gk3Main.Sheep
             Game.GameManager.SetLocation(location);
         }
 
+        private static void sheep_IsActiveInvItem(IntPtr vm)
+        {
+            string item = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
         private static void sheep_IsActorAtLocation(IntPtr vm)
         {
             string location = SheepMachine.PopStringOffStack(vm);
@@ -266,7 +305,7 @@ namespace Gk3Main.Sheep
             string ego = SheepMachine.PopStringOffStack(vm);
 
             if (Game.GameManager.CurrentEgo == Gk3Main.Game.Ego.Gabriel &&
-                ego.Equals("GABE", StringComparison.OrdinalIgnoreCase))
+                ego.Equals("GABRIEL", StringComparison.OrdinalIgnoreCase))
                 SheepMachine.PushIntOntoStack(vm, 1);
             else if (Game.GameManager.CurrentEgo == Gk3Main.Game.Ego.Grace &&
                 ego.Equals("GRACE", StringComparison.OrdinalIgnoreCase))
@@ -274,6 +313,17 @@ namespace Gk3Main.Sheep
             else
                 SheepMachine.PushIntOntoStack(vm, 0);
         }
+
+        private static void sheep_IsCurrentLocation(IntPtr vm)
+        {
+            string location = SheepMachine.PopStringOffStack(vm);
+
+            if (Game.GameManager.CurrentLocation.Equals(location, StringComparison.OrdinalIgnoreCase))
+                SheepMachine.PushIntOntoStack(vm, 1);
+            else
+                SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
 
         private static void sheep_IsCurrentTime(IntPtr vm)
         {
@@ -298,16 +348,16 @@ namespace Gk3Main.Sheep
         {
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            int c = Game.GameManager.GetChatCount(noun);
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, c);
         }
 
         private static void sheep_GetEgoCurrentLocationCount(IntPtr vm)
         {
             // TODO!
 
-            SheepMachine.PushIntOntoStack(vm, 1);
+            SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_GetEgoLocationCount(IntPtr vm)
@@ -315,16 +365,16 @@ namespace Gk3Main.Sheep
             string location = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
-            SheepMachine.PushIntOntoStack(vm, 1);
+            SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_GetFlag(IntPtr vm)
         {
             string name = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            int flag = Game.GameManager.GetFlag(name) ? 1 : 0;
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, flag);
         }
 
         private static void sheep_GetNounVerbCount(IntPtr vm)
@@ -337,7 +387,55 @@ namespace Gk3Main.Sheep
             SheepMachine.PushIntOntoStack(vm, count);
         }
 
+        private static void sheep_GetRandomInt(IntPtr vm)
+        {
+            int upper = SheepMachine.PopIntOffStack(vm);
+            int lower = SheepMachine.PopIntOffStack(vm);
+
+            int num = Utils.PickRandomNumber(lower, upper);
+
+            SheepMachine.PushIntOntoStack(vm, num);
+        }
+
+        private static void sheep_GetTopicCount(IntPtr vm)
+        {
+            string verb = SheepMachine.PopStringOffStack(vm);
+            string noun = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_GetTopicCountInt(IntPtr vm)
+        {
+            int verb = SheepMachine.PopIntOffStack(vm);
+            int noun = SheepMachine.PopIntOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
         private static void sheep_DoesGraceHaveInvItem(IntPtr vm)
+        {
+            string item = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_DoesModelExist(IntPtr vm)
+        {
+            string model = SheepMachine.PopStringOffStack(vm);
+
+            // TODO!
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_DoesEgoHaveInvItem(IntPtr vm)
         {
             string item = SheepMachine.PopStringOffStack(vm);
 
@@ -375,6 +473,7 @@ namespace Gk3Main.Sheep
             string position = SheepMachine.PopStringOffStack(vm);
 
             // TODO: put the current ego's model at the specified position
+            SceneManager.SetEgoToSifPosition(position);
 
             // set the camera to the specified position
             SceneManager.SetCameraToSifPosition(position);
@@ -455,6 +554,13 @@ namespace Gk3Main.Sheep
             Game.GameManager.SetNounVerbCount(noun, verb, count);
         }
 
+        private static void sheep_SetFlag(IntPtr vm)
+        {
+            string flag = SheepMachine.PopStringOffStack(vm);
+
+            Game.GameManager.SetFlag(flag);
+        }
+
         private static void sheep_SetForcedCameraCuts(IntPtr vm)
         {
             int value = SheepMachine.PopIntOffStack(vm);
@@ -504,18 +610,6 @@ namespace Gk3Main.Sheep
             int numLines = SheepMachine.PopIntOffStack(vm);
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
-            /*// TODO!
-            Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
-
-            if (SheepMachine.IsInWaitSection(vm))
-            {
-                SheepMachine.AddWaitHandle(vm, yak.PlayAndWait());
-            }
-            else
-            {
-                yak.Play();
-            }*/
-
             bool waiting = SheepMachine.IsInWaitSection(vm);
             WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
 
@@ -528,24 +622,11 @@ namespace Gk3Main.Sheep
             int numLines = SheepMachine.PopIntOffStack(vm);
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
-            /*// TODO!
-            Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
-            if (SheepMachine.IsInWaitSection(vm))
-            {
-                SheepMachine.AddWaitHandle(vm, yak.PlayAndWait());
-            }
-            else
-            {
-                yak.Play();
-            }*/
-
             bool waiting = SheepMachine.IsInWaitSection(vm);
             WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
 
             if (waiting && handle != null)
                 SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
-
-            //Game.DialogManager.PlayDialogue(licensePlate, numLines, SheepMachine.IsInWaitSection(vm));
         }
 
         private static void sheep_StartMoveAnimation(IntPtr vm)
@@ -600,6 +681,15 @@ namespace Gk3Main.Sheep
             // TODO
         }
 
+        private static void sheep_WasEgoEverInLocation(IntPtr vm)
+        {
+            string location = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
         private static void sheep_WasLastLocation(IntPtr vm)
         {
             string location = Sheep.SheepMachine.PopStringOffStack(vm);
@@ -643,6 +733,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _continueDialogue = new SheepFunctionDelegate(sheep_ContinueDialogue);
         private static SheepFunctionDelegate _continueDialogueNoFidgets = new SheepFunctionDelegate(sheep_ContinueDialogueNoFidgets);
         private static SheepFunctionDelegate _cutToCameraAngle = new SheepFunctionDelegate(sheep_CutToCameraAngle);
+        private static SheepFunctionDelegate _doesEgoHaveInvItem = new SheepFunctionDelegate(sheep_DoesEgoHaveInvItem);
         private static SheepFunctionDelegate _getFlag = new SheepFunctionDelegate(sheep_GetFlag);
         private static SheepFunctionDelegate _finishedScreen = new SheepFunctionDelegate(sheep_FinishedScreen);
         private static SheepFunctionDelegate _getGameVariableIntDelegate = new SheepFunctionDelegate(sheep_GetGameVariableInt);
@@ -650,18 +741,25 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _getEgoLocationCount = new SheepFunctionDelegate(sheep_GetEgoLocationCount);
         private static SheepFunctionDelegate _getEgoCurrentLocationCount = new SheepFunctionDelegate(sheep_GetEgoCurrentLocationCount);
         private static SheepFunctionDelegate _getNounVerbCount = new SheepFunctionDelegate(sheep_GetNounVerbCount);
+        private static SheepFunctionDelegate _getRandomInt = new SheepFunctionDelegate(sheep_GetRandomInt);
+        private static SheepFunctionDelegate _getTopicCount = new SheepFunctionDelegate(sheep_GetTopicCount);
+        private static SheepFunctionDelegate _getTopicCountInt = new SheepFunctionDelegate(sheep_GetTopicCountInt);
         private static SheepFunctionDelegate _doesGraceHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGraceHaveInvItem);
         private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
+        private static SheepFunctionDelegate _doesModelExistDelegate = new SheepFunctionDelegate(sheep_DoesModelExist);
         private static SheepFunctionDelegate _initEgoPosition = new SheepFunctionDelegate(sheep_InitEgoPosition);
         private static SheepFunctionDelegate _incNounVerbCount = new SheepFunctionDelegate(sheep_IncNounVerbCount);
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
+        private static SheepFunctionDelegate _isActiveInvItem = new SheepFunctionDelegate(sheep_IsActiveInvItem);
         private static SheepFunctionDelegate _isActorAtLocation = new SheepFunctionDelegate(sheep_IsActorAtLocation);
         private static SheepFunctionDelegate _isActorNear = new SheepFunctionDelegate(sheep_IsActorNear);
         private static SheepFunctionDelegate _isCurrentEgo = new SheepFunctionDelegate(sheep_IsCurrentEgo);
+        private static SheepFunctionDelegate _isCurrentLocation = new SheepFunctionDelegate(sheep_IsCurrentLocation);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
         private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);
+        private static SheepFunctionDelegate _setFlag = new SheepFunctionDelegate(sheep_SetFlag);
         private static SheepFunctionDelegate _setForcedCameraCuts = new SheepFunctionDelegate(sheep_SetForcedCameraCuts);
         private static SheepFunctionDelegate _setGameTimer = new SheepFunctionDelegate(sheep_SetGameTimer);
         private static SheepFunctionDelegate _setGameVariableInt = new SheepFunctionDelegate(sheep_SetGameVariableInt);
@@ -681,6 +779,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _turnHead = new SheepFunctionDelegate(sheep_TurnHead);
         private static SheepFunctionDelegate _walkerBoundaryBlockRegion = new SheepFunctionDelegate(sheep_WalkerBoundaryBlockRegion);
         private static SheepFunctionDelegate _walkTo = new SheepFunctionDelegate(sheep_WalkTo);
+        private static SheepFunctionDelegate _wasEgoEverInLocation = new SheepFunctionDelegate(sheep_WasEgoEverInLocation);
         private static SheepFunctionDelegate _wasLastLocation = new SheepFunctionDelegate(sheep_WasLastLocation);
 
         private static SheepFunctionDelegate _dummyVoid = new SheepFunctionDelegate(sheep_DummyVoid);

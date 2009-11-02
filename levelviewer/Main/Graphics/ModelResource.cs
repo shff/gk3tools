@@ -356,7 +356,7 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMesh mesh in _meshes)
                 {
-                    BoundingBoxRenderer.Render(camera, mesh.boundingBox);
+                    BoundingBoxRenderer.Render(camera, Math.Vector3.Zero, mesh.boundingBox);
                 }
             }
         }
@@ -371,7 +371,8 @@ namespace Gk3Main.Graphics
                 {
                     foreach (ModMeshSection section in mesh.sections)
                     {
-                        Math.Matrix world = Math.Matrix.Translate(position.X, position.Y, position.Z);
+                        Math.Matrix world = Math.Matrix.RotateY(angle) 
+                            * Math.Matrix.Translate(position.X, position.Y, position.Z);
                         _effect.SetParameter("ModelViewProjection", world * camera.ModelView * camera.Projection);
                         _effect.Begin();
                         _effect.BeginPass(0);
@@ -389,16 +390,16 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMesh mesh in _meshes)
                 {
-                    BoundingBoxRenderer.Render(camera, mesh.boundingBox);
+                    BoundingBoxRenderer.Render(camera, position, mesh.boundingBox);
                 }
             }
         }
 
-        public bool CollideRay(Math.Vector3 origin, Math.Vector3 direction, float length, out float distance)
+        public bool CollideRay(Math.Vector3 modelPosition, Math.Vector3 origin, Math.Vector3 direction, float length, out float distance)
         {
             foreach (ModMesh mesh in _meshes)
             {
-                if (Gk3Main.Utils.TestRayAABBCollision(origin, direction, mesh.boundingBox, out distance))
+                if (Gk3Main.Utils.TestRayAABBCollision(modelPosition, origin, direction, mesh.boundingBox, out distance))
                     return true;
             }
 

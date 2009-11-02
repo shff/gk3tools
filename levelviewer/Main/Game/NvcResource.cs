@@ -197,7 +197,8 @@ namespace Gk3Main.Game
             get
             {
                 // TODO: how to we properly handle ANY_INV_ITEM?
-                if (name.Equals("ANY_INV_ITEM", StringComparison.OrdinalIgnoreCase))
+                if (name.Equals("ANY_INV_ITEM", StringComparison.OrdinalIgnoreCase) ||
+                    name.Equals("TIMER_EXP", StringComparison.OrdinalIgnoreCase))
                     return new VerbInfo();
 
                 return _verbs[name];

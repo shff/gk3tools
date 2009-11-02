@@ -4,6 +4,7 @@
 #include <stack>
 #include "sheepCodeGenerator.h"
 #include "sheepImportTable.h"
+#include "sheepCodeBuffer.h"
 #include "sheepException.h"
 
 class SheepMachineException : public SheepException
@@ -169,6 +170,7 @@ public:
 	int GetNumContexts() { return 0; }
 	int GetCurrentContextStackSize() { return m_currentContext->Stack.size(); }
 	SheepContext* GetCurrentContext() { return m_currentContext; }
+	void PrintStackTrace();
 	
 
 	enum Verbosity
@@ -217,12 +219,16 @@ private:
 		stack.pop();
 
 		if (item.Type != SYM_INT)
-			throw SheepMachineException("Expected integer on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
+		{
+			char buffer[256];
+			_snprintf(buffer, 256, "Expected integer on stack; found %d", item.Type);
+			throw SheepMachineException(buffer, SHEEP_ERR_WRONG_TYPE_ON_STACK);
+		}
 
 		return item.IValue;
 	}
 
-	static void get2Ints(SheepStack& stack, int& i1, int& i2)
+	static void get2Ints(SheepStack& stack, int& i1, int& i2, SheepInstruction instruction)
 	{
 		if (stack.empty())
 			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
@@ -235,7 +241,11 @@ private:
 		stack.pop();
 		
 		if (item1.Type != SYM_INT || item2.Type != SYM_INT)
-			throw SheepMachineException("Expected integers on stack.", SHEEP_ERR_WRONG_TYPE_ON_STACK);
+		{
+			char buffer[256];
+			_snprintf(buffer, 256, "Expected integers on stack during %x instruction. Found: %d, %d\n", instruction, item1.Type, item2.Type);
+			throw SheepMachineException(buffer, SHEEP_ERR_WRONG_TYPE_ON_STACK);
+		}
 
 		i1 = item1.IValue;
 		i2 = item2.IValue;
@@ -317,7 +327,7 @@ private:
 	static void addI(SheepStack& stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2);
+		get2Ints(stack, i1, i2, AddI);
 
 		stack.push(StackItem(SYM_INT, i1 + i2));
 	}
@@ -333,7 +343,7 @@ private:
 	static void subI(SheepStack& stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2);
+		get2Ints(stack, i1, i2, SubtractI);
 
 		stack.push(StackItem(SYM_INT, i1 - i2));
 	}
@@ -349,7 +359,7 @@ private:
 	static void mulI(SheepStack& stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2);
+		get2Ints(stack, i1, i2, MultiplyI);
 
 		stack.push(StackItem(SYM_INT, i1 * i2));
 	}
@@ -365,7 +375,7 @@ private:
 	static void divI(SheepStack& stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2);
+		get2Ints(stack, i1, i2, DivideI);
 
 		stack.push(StackItem(SYM_INT, i1 / i2));
 	}
@@ -451,7 +461,7 @@ private:
 	static void andi(SheepStack& stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2);
+		get2Ints(stack, i1, i2, And);
 
 		stack.push(StackItem(SYM_INT, i1 && i2 ? 1 : 0));
 	}
@@ -459,7 +469,7 @@ private:
 	static void ori(SheepStack& stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2);
+		get2Ints(stack, i1, i2, Or);
 
 		stack.push(StackItem(SYM_INT, i1 || i2 ? 1 : 0));
 	}

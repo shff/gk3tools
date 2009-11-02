@@ -227,6 +227,13 @@ namespace SheepCompiler
 				"Branch");
 			return 5;
 		}
+		else if (op == BranchGoto)
+		{
+			memcpy(param, &code[1], 4);
+			printDisassembly(output, op, param[0], param[1], param[2], param[3],
+				"BranchGoto");
+			return 5;
+		}
 		else if (op == BranchIfZero)
 		{
 			memcpy(param, &code[1], 4);

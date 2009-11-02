@@ -20,7 +20,7 @@ namespace Gk3Main.Gui
             {
                 Game.VerbInfo info = Game.GameManager.Verbs[nvc.Verb];
 
-                VerbButton b = new VerbButton(nvc.Verb, nvc.Script,
+                VerbButton b = new VerbButton(nvc.Noun, nvc.Verb, nvc.Script,
                     string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
@@ -140,6 +140,11 @@ namespace Gk3Main.Gui
 
             Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", button.Verb);
             Sheep.SheepMachine.RunCommand(button.Script);
+
+            if (button.Verb.Equals("Z_CHAT", StringComparison.OrdinalIgnoreCase))
+            {
+                Game.GameManager.IncrementChatCount(button.Noun);
+            }
         }
 
         private void cancelClicked()

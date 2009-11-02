@@ -144,6 +144,7 @@ DECLSPEC int LIB_CALL SHP_GetNumContexts(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
 DECLSPEC void LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
 DECLSPEC void LIB_CALL SHP_PrintMemoryUsage();
+DECLSPEC void LIB_CALL SHP_PrintStackTrace(SheepVM* vm);
 
 
 /* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.
