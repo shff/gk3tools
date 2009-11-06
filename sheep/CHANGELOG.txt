@@ -1,5 +1,9 @@
 SheepC and libsheep Changelog
 -----------------------------
 
+0.2.0 (2009-11-06)
+    Lots of bug fixes
+    Initial support for "waiting"
+
 0.1.0 (2008-12-20)
     Initial release
