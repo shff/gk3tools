@@ -1,0 +1,161 @@
+Intro To Sheep
+==============
+
+This is a crash course in the Sheep language. As you read this keep in mind that Sheep is designed to be stupid simple. So easy an artist- or even a designer- could do it.
+
+Here is an example Hello World program:
+
+code
+{
+	main$()
+	{
+		PrintString("Hello, World!");
+	}
+}
+
+
+Every Sheep script must have one and only one "code" section. The only thing allowed inside this section are functions. Here, in this example, main$() is the function. Note the $ at the end of the name. That is required for all local identifiers, including functions and variables.
+
+Also note that main$() could just as easily have been called foo$() or DoThatVoodoo$(). There is nothing significant about a function called main$(). The only advantage of calling the function main$() is that our implentation of the VM will automatically look for functions called main$() when running scripts if a function name is not provided. But this is just a handy shortcut provided by our VM and has nothing to do with the Sheep language itself.
+
+PrintString() is an external function that prints the given string. It is not a built-in function or intrinsic function or anything like that, so it could just as easily be print() or WriteLine() or any other name, as long as the VM running the script has the function registered.
+
+Note: PrintString() is what Gabriel Knight 3 uses to print strings, so that's what this example uses.
+
+Here is a slightly more complicated version of Hello World:
+
+symbols
+{
+	string howdy = "Y hello, thar!"
+}
+code
+{
+	main$()
+	{
+		PrintString(howdy);
+	}
+}
+
+There is a new section now, the "symbols" section. ALL variables used in the script must be declared here. ALL of them. There is no such thing as a "local" variable in Sheep. All variables are global.
+
+There are three types of variables in Sheep: integers, floating point numbers, and strings. Declaring variables in Sheep works just about the same as C/C++:
+
+symbols
+{
+	// automatically initialized to 0
+	int myInteger;
+	
+	// initialized to 5
+	int myOtherInteger = 5;
+	
+	// automatically initialized to 0
+	float someFloat;
+	
+	// initialized to -5.4
+	float yetAnotherVariable = -5.4;
+}
+
+By the way, comments in Sheep are identical to comments in C/C++. /* */ denote block comments, and // denote line comments.
+
+Flow Control
+------------
+
+The only flow control Sheep provides is with "if...else" and "goto." Since our implemention doesn't support "goto" yet we'll focus only on "if...else."
+
+if...else works exactly like C:
+
+if (someIntegerIDeclaredEarlier > 5)
+{
+	PrintString("It's greater than five");
+}
+else if (foo == 3 && bar == 603 || baz != -50)
+{
+	PrintString("Some other condition");
+}
+else
+{
+	PrintString("something else");
+}
+
+There are no loops (like "while" or "for") in Sheep (though it should be possible to do all the looping you want using "goto"... if it were implemented, that is).
+
+
+Waiting
+-------
+
+Waiting is probably the main feature that makes Sheep a bit different from most other scripting languages. To understand waiting you must first understand the following truth:
+
+* All external Sheep functions return immediately. *
+
+Or, to put it a different way:
+
+* No external Sheep functions are allowed to block execution. *
+
+Many functions like PrintString() (or print() or printf() or WriteLine() or whatever you want to call it) follow this rule perfectly. It is unlikely that it will ever take more than a few milliseconds to print the string to whatever the output is, and as far as we're concerned that's immediate enough.
+
+Here is a second universal truth:
+
+* Any external function that cannot return immediately must execute asynchronously. *
+
+Let's imagine a function called Sleep() which pauses the script for a certain number of seconds before continuing. According to the above rule Sleep() must execute asynchronously. That defeats the purpose of having Sleep() in the first place, right?
+
+Waiting allows Sheep scripts to halt execution until an asynchronous call is finished. Take a look at this code:
+
+PrintString("Hello...");
+Sleep(5);
+PrintString("World!");
+
+If you were to execute this code as-is it would print "Hello..." and then immediately print "World!", without waiting the desired 5 seconds. Now look at this code:
+
+PrintString("Hello...");
+wait
+{
+	Sleep(5);
+}
+PrintString("World!");
+
+Now the code executes the way we want. The "wait" section tells the VM to wait until *everything* within that section has finished executing before continuing. "Hello..." prints, five seconds pass, and then "World!" prints.
+
+You can put several lines inside wait sections, like this:
+
+PrintString("Y");
+wait
+{
+	PrintString("hello");
+	Sleep(5);
+	PrintString("thar");
+}
+PrintString("!!!!");
+
+The output of the script would look like this:
+
+Y
+hello
+thar
+
+(... then five seconds later...)
+
+!!!!
+
+When the VM gets to the end of a wait section it waits until *all* functions within that section have finished.
+
+TIP: If you just want to wait on a single function, like this:
+
+PrintString("Hello...");
+wait
+{
+	Sleep(5);
+}
+PrintString("World!");
+
+you can you a shorter form of the syntax:
+
+PrintString("Hello...");
+wait Sleep(5);
+PrintString("World!");
+
+
+Object Oriented Programming
+---------------------------
+
+Sheep doesn't do OOP. It only supports functions and the basic datatypes described above (int, float, string).

@@ -1,0 +1,122 @@
+Using the Sheep Library
+=======================
+
+Note: THIS ASSUMES YOU'RE FAMILIAR WITH THE SHEEP LANGUAGE, OR HAVE AT LEAST READ THE "Intro to Sheep" DOCUMENT!
+
+Warning: The Sheep library is still immature. The API is subject to change without warning. DO NOT rely on the Sheep library for any important production work.
+
+
+Initializing Sheep
+------------------
+
+The very first thing you have to do is create a new VM. Use SHP_CreateNewVM():
+
+SheepVM* myVM = SHP_CreateNewVM();
+
+When you're done with it be sure to destroy it:
+
+SHP_DestroyVM(myVM);
+
+Once you have your VM you probably want to wire up some helpful callbacks:
+
+void messageCallback(int linenumber, const char* message)
+{
+	printf("message from line %d: %s\n", linenumber, message);
+}
+
+SHP_SetOutputCallback(myVM, messageCallback);
+
+Now whenever the Sheep VM encounters a compiler error you'll know about and get some helpful info about it.
+
+
+Adding External Functions
+-------------------------
+
+You'll need to register external functions before your scripts can use them. First:
+
+void MyImport_Callback(SheepVM* vm)
+{
+}
+
+SheepImportFunction* f = SHP_AddImport(myVM, "MyImport", Void, MyImport_Callback);
+
+This adds a new external function called "MyImport" that returns nothing and takes no paramters. If you want to return an integer:
+
+SheepImportFunction* f = SHP_AddImport(myVM, "MyImport", Int);
+
+If you want MyImport() to have some parameters, use SHP_AddImportParameter():
+
+SHP_AddImportParameter(f, Int);
+SHP_AddImportParameter(f, String);
+
+This adds two paramters, an integer and a string. So now, inside a Sheep script, a call to MyImport() might look like this:
+
+x = MyImport(5, "foo");
+
+
+Managing the Stack
+------------------
+
+When you write your external functions you retrieve paramters by popping them off the stack, and return values by pushing them onto the stack.
+
+void MyImport_Callback(SheepVM* vm)
+{
+	const char* param3;
+	int param2;
+	float param1;
+	
+	SHP_PopStringFromStack(vm, &param3);
+	SHP_PopIntFromStack(vm, &param2);
+	SHP_PopFloatFromStack(vm, &param1);
+	
+	// do some stuff...
+	
+	// return 5 to the script
+	SHP_PushIntOntoStack(vm, 5);
+}
+
+Note that paramters are popped off in right-to-left order. A call to this import within the script would look something like this:
+
+MyImport(5.4, 6, "foo");
+
+
+Waiting
+-------
+
+When writing an exteral function that must behave asynchronously, the function should check if the script is inside a wait section, and if it is then get the current context of the executing script, and remember it. Then once the script encounters the end of the wait section the script should make sure all asynchronous actions that happened during the wait section are finished. If not, suspend.
+
+For example:
+
+void playSound_Callback(SheepVM* vm)
+{
+	const char* sound;
+	SHP_PopStringFromStack(vm, &sound);
+	
+	// begin playing the sound
+	
+	if (SHP_IsInWaitSection(vm))
+	{
+		SheepVMContext* c = SHP_GetCurrentContext(vm);
+		
+		// associate "c" with the playing sound so that
+		// later we can check to see if the sound is
+		// finished, and if not we can suspend the context.
+	}
+}
+
+// this is our "end-wait-section" callback. it gets called
+// whenever a script encounters the end of a wait section.
+// Register the callback with SHP_SetEndWaitCallback().
+void endWait_Callback(SheepVM* vm, SheepVMContext* context)
+{
+	// we have the context, so look for any asynchronous
+	// actions associated with that context
+	
+	// if we find an asynchronous action that isnt' finished
+	// then suspend
+	if (/* check for unfinished asynchronous actions */)
+		SHP_Suspend(vm);
+}
+
+
+Now all that is left to do is check for asynchronous actions that have finished. This can be done through polling or events or whatever. The VM doesn't care. All the VM cares about is that SHP_Resume() gets called when all the asynchronous events associated with the end of a wait section have finished.
