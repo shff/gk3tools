@@ -358,6 +358,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sheepMemoryAllocator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\sheepParser.cpp"
 				>
 			</File>

@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <new>
 
 #include "sheepMemoryAllocator.h"
 #include "sheepc.h"
