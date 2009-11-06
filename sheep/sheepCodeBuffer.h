@@ -77,6 +77,8 @@ public:
 	{
 	}
 
+	virtual ~SheepCodeBuffer() { }
+
 	void WriteSheepInstruction(SheepInstruction instruction)
 	{
 		char op = (char)instruction;
