@@ -1,3 +1,4 @@
+#include <sstream>
 #include "sheepMachine.h"
 #include "sheepCodeBuffer.h"
 #include "sheepLog.h"
@@ -167,8 +168,12 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 {
 	try
 	{
+		std::stringstream ss;
+		ss << "snippet { " << snippet << "}";
+
+
 	SheepCodeTree tree;
-	tree.Lock(snippet, NULL);
+	tree.Lock(ss.str(), NULL);
 
 	SheepCodeGenerator generator(&tree, &m_imports);
 	IntermediateOutput* code = generator.BuildIntermediateOutput();
