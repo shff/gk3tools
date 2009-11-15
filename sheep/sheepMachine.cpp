@@ -20,6 +20,8 @@ SheepMachine::SheepMachine()
 
 	m_parentContext = NULL;
 	m_currentContext = NULL;
+
+	m_tag = NULL;
 }
 
 SheepMachine::~SheepMachine()

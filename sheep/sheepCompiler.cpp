@@ -23,6 +23,20 @@ void SHP_DestroyVM(SheepVM* vm)
 	SHEEP_DELETE(SM(vm));
 }
 
+void SHP_SetVMTag(SheepVM* vm, void* tag)
+{
+	assert(vm != NULL);
+
+	SM(vm)->SetTag(tag);
+}
+
+void* SHP_GetVMTag(SheepVM* vm)
+{
+	assert(vm != NULL);
+
+	return SM(vm)->GetTag();
+}
+
 void SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback)
 {
 	assert(vm != NULL);

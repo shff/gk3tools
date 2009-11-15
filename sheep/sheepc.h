@@ -107,6 +107,12 @@ typedef struct {} SheepImportFunction;
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
 DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
 
+/// Sets the "tag" data. A tag can be a pointer whatever you want (including NULL).
+/// The VM doesn't use it for anything; it's only for your convenience.
+DECLSPEC void LIB_CALL SHP_SetVMTag(SheepVM* vm, void* tag);
+/// Gets the "tag" data.
+DECLSPEC void* LIB_CALL SHP_GetVMTag(SheepVM* vm);
+
 typedef struct SHP_Allocator
 {
 	void* (CALLBACK *Allocator)(size_t);

@@ -184,6 +184,9 @@ public:
 	void SetVerbosity(Verbosity verbosity) { m_verbosityLevel = verbosity; }
 	Verbosity GetVerbosity() { return m_verbosityLevel; }
 
+	void SetTag(void* tag) { m_tag = tag; }
+	void* GetTag() { return m_tag; }
+
 private:
 
 	void prepareVariables(SheepContext* context);
@@ -205,6 +208,8 @@ private:
 	SHP_EndWaitCallback m_endWaitCallback;
 
 	Verbosity m_verbosityLevel;
+
+	void* m_tag;
 
 	// we consider Call() a built-in function and not technically an import,
 	// mostly for performance reasons
