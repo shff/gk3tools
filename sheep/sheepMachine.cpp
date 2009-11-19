@@ -258,38 +258,46 @@ int SheepMachine::Resume(SheepContext* context)
 	assert(context != NULL);
 	assert(context->Dead == false);
 
-	if (context->UserSuspended == false)
-		throw SheepMachineException("Can't resume because context is not suspended", SHEEP_ERR_CANT_RESUME);
-
 	context->UserSuspended = false;
 
 	if (context->ChildSuspended == false)
 	{
+		// not waiting on anything, so run some code
 		execute(context);
 
-		if (context->ChildSuspended == false && context->UserSuspended == false)
+		if (context->ChildSuspended == false &&
+			context->UserSuspended == false)
 		{
+			SheepContext* parent = context->Parent;
+			bool parentIsDead = parent && parent->Dead;
+
+			// this context is all finished
 			context->Dead = true;
 			context->FullCode->Release();
-			
-			removeContext(context);
+			context->FullCode = NULL;
 			if (m_currentContext == context)
 				m_currentContext = NULL;
 
-			if (context->Parent != NULL &&
-				context->Parent->ChildSuspended == true &&
-				context->Parent->UserSuspended == false &&
-				context->Parent->AreAnyChildrenSuspended() == false)
+			// delete the context if it has no children
+			if (context->FirstChild == NULL)
 			{
-				SheepContext* parent = context->Parent;
-				
+				// remember that removeContext() will delete
+				// the parent if it is dead and has no children
+				removeContext(context);
 				SHEEP_DELETE(context);
+			}
 
+			// this context may have a parent that was waiting on the context
+			// that just finished
+			if (parent != NULL &&
+				parentIsDead == false &&
+				parent->ChildSuspended == true &&
+				parent->UserSuspended == false &&
+				parent->AreAnyChildrenSuspended() == false)
+			{
 				parent->ChildSuspended = false;
 				return Resume(parent);
 			}
-
-			SHEEP_DELETE(context);
 
 			return SHEEP_SUCCESS;
 		}
@@ -634,6 +642,23 @@ void addAsSibling(SheepContext* child, SheepContext* toAdd)
 	toAdd->Parent = child->Parent;
 }
 
+void updateChildrensParent(SheepContext* firstChild, SheepContext* newParent)
+{
+	SheepContext* itr = firstChild;
+	while(itr->Sibling != NULL)
+	{
+		itr->Parent = newParent;
+		itr = itr->Sibling;
+	}
+
+	itr = newParent->FirstChild;
+	while(itr->Sibling != NULL)
+	{
+		itr = itr->Sibling;
+	}
+	itr->Sibling = firstChild;
+}
+
 
 void SheepMachine::addContext(SheepContext* context)
 {
@@ -662,6 +687,7 @@ void SheepMachine::removeContext(SheepContext* context)
 {
 	assert(m_parentContext != NULL);
 	assert(context != NULL);
+	assert(context->FirstChild == NULL);
 
 	SheepContext* firstSibling = NULL;
 	if (context->Parent == NULL)
@@ -679,15 +705,28 @@ void SheepMachine::removeContext(SheepContext* context)
 			{
 				// this was the root
 				m_parentContext = context->Sibling;
-				return;
+				break;
 			}
 
 			if (prev == NULL)
 				context->Parent->FirstChild = context->Sibling;
 			else
 				prev->Sibling = context->Sibling;
+
+			if (context->Parent != NULL && 
+				context->Parent->Dead && 
+				context->Parent->FirstChild == NULL)
+			{
+				// we were the last child, and the parent
+				// is dead, so remove the parent
+				removeContext(context->Parent);
+				SHEEP_DELETE(context->Parent);
+			}
+
+			break;
 		}
 
+		// haven't found the context we're looking for, so continue on...
 		prev = itr;
 		itr = itr->Sibling;
 	}
@@ -702,9 +741,6 @@ void SheepMachine::s_call(SheepVM* vm)
 	// make sure there's a '$' at the end
 	if (function[function.length()-1] != '$')
 		function += '$';
-
-	// this stuff is pretty similar to what's inside Run(),
-	// the only difference is 
 
 
 	// find the requsted function
@@ -731,6 +767,7 @@ void SheepMachine::s_call(SheepVM* vm)
 	// TODO: this context should share variables with the previous context
 	// so that the functions within the same scripts can modify the same global variables
 	
+
 	machine->prepareVariables(c);
 	machine->addContext(c);
 
@@ -740,7 +777,8 @@ void SheepMachine::s_call(SheepVM* vm)
 
 	if (c->UserSuspended == false && c->ChildSuspended == false)
 	{
-		machine->removeContext(c);
+		if (c->FirstChild == NULL)
+			machine->removeContext(c);
 		c->FullCode->Release();
 
 		SHEEP_DELETE(c);
