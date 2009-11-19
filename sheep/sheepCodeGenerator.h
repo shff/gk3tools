@@ -6,16 +6,21 @@
 #include "sheepTypes.h"
 #include "sheepCodeTree.h"
 #include "sheepCaseInsensitiveStringCompare.h"
+#include "sheepMemoryAllocator.h"
 
 /// Class used to represent immediate output of the compiler.
 /// This can be used for a dynamic interpreter that doesn't
 /// want to have to parse full .shp files when interpreting.
 class IntermediateOutput
 {
+	int m_numRefs;
 public:
 
-	IntermediateOutput() {}
+	IntermediateOutput() { m_numRefs = 1; }
 	~IntermediateOutput();
+
+	void AddRef() { m_numRefs++; }
+	void Release() { m_numRefs--; if (m_numRefs <= 0) SHEEP_DELETE(this); }
 
 	std::vector<SheepSymbol> Symbols;
 	std::vector<SheepStringConstant> Constants;

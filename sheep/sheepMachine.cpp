@@ -138,7 +138,7 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 		throw NoSuchFunctionException(function);
 
 
-	SheepContext* c = new SheepContext();
+	SheepContext* c = SHEEP_NEW SheepContext();
 	c->FullCode = code;
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
@@ -154,15 +154,12 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 
 	if (c->UserSuspended == false && c->ChildSuspended == false)
 	{
-		SHEEP_DELETE(c->FullCode);
+		c->FullCode->Release();
 		removeContext(c);
 		if (m_currentContext == c)
 			m_currentContext = NULL;
 
-		if (c->Parent == NULL)
-		{
-			SHEEP_DELETE(c);
-		}
+		SHEEP_DELETE(c);
 	}
 }
  
@@ -202,7 +199,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 		return SHEEP_ERROR;
 	}
 
-	SheepContext* c = new SheepContext();
+	SheepContext* c = SHEEP_NEW SheepContext();
 	c->FullCode = code;
 	c->CodeBuffer = code->Functions[0].Code;
 	c->FunctionOffset = code->Functions[0].CodeOffset;
@@ -226,8 +223,10 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 		c->Stack.pop();
 	}
 
-	SHEEP_DELETE(c->FullCode);
+	c->FullCode->Release();
 	removeContext(c);
+	SHEEP_DELETE(c);
+
 	if (m_currentContext == c)
 		m_currentContext = NULL;
 
@@ -254,10 +253,13 @@ SheepContext* SheepMachine::Suspend()
 	return m_currentContext;
 }
 
-void SheepMachine::Resume(SheepContext* context)
+int SheepMachine::Resume(SheepContext* context)
 {
-	//if (m_executingDepth != 0)
-	//	throw SheepMachineException("Cannot resume while execution is happening", SHEEP_ERR_CANT_RESUME);
+	assert(context != NULL);
+	assert(context->Dead == false);
+
+	if (context->UserSuspended == false)
+		throw SheepMachineException("Can't resume because context is not suspended", SHEEP_ERR_CANT_RESUME);
 
 	context->UserSuspended = false;
 
@@ -267,6 +269,9 @@ void SheepMachine::Resume(SheepContext* context)
 
 		if (context->ChildSuspended == false && context->UserSuspended == false)
 		{
+			context->Dead = true;
+			context->FullCode->Release();
+			
 			removeContext(context);
 			if (m_currentContext == context)
 				m_currentContext = NULL;
@@ -276,10 +281,26 @@ void SheepMachine::Resume(SheepContext* context)
 				context->Parent->UserSuspended == false &&
 				context->Parent->AreAnyChildrenSuspended() == false)
 			{
-				context->Parent->ChildSuspended = false;
-				Resume(context->Parent);
+				SheepContext* parent = context->Parent;
+				
+				SHEEP_DELETE(context);
+
+				parent->ChildSuspended = false;
+				return Resume(parent);
 			}
+
+			SHEEP_DELETE(context);
+
+			return SHEEP_SUCCESS;
 		}
+		else
+		{
+			return SHEEP_SUSPENDED;
+		}
+	}
+	else
+	{
+		return SHEEP_SUSPENDED;
 	}
 }
 
@@ -610,7 +631,7 @@ void addAsSibling(SheepContext* child, SheepContext* toAdd)
 	}
 
 	itr->Sibling = toAdd;
-	itr->Parent = child->Parent;
+	toAdd->Parent = child->Parent;
 }
 
 
@@ -706,6 +727,7 @@ void SheepMachine::s_call(SheepVM* vm)
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
 	c->InstructionOffset = 0;
+	c->FullCode->AddRef();
 	// TODO: this context should share variables with the previous context
 	// so that the functions within the same scripts can modify the same global variables
 	
@@ -719,10 +741,8 @@ void SheepMachine::s_call(SheepVM* vm)
 	if (c->UserSuspended == false && c->ChildSuspended == false)
 	{
 		machine->removeContext(c);
+		c->FullCode->Release();
 
-		if (c->Parent == NULL)
-		{
-			SHEEP_DELETE(c);
-		}
+		SHEEP_DELETE(c);
 	}
 }

@@ -75,6 +75,8 @@ struct SheepContext
 		Parent = NULL;
 		FirstChild = NULL;
 		Sibling = NULL;
+
+		Dead = false;
 	}
 
 	SheepStack Stack;
@@ -91,6 +93,8 @@ struct SheepContext
 	SheepContext* Parent;
 	SheepContext* FirstChild;
 	SheepContext* Sibling;
+
+	bool Dead;
 
 	bool AreAnyChildrenSuspended()
 	{
@@ -127,7 +131,7 @@ public:
 	int RunSnippet(const std::string& snippet, int* result);
 
 	/// Resumes where the code left off.
-	void Resume(SheepContext* context);
+	int Resume(SheepContext* context);
 	SheepContext* Suspend();
 
 	int PopIntFromStack()

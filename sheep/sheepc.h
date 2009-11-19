@@ -37,7 +37,7 @@ extern "C"
 #define SHEEP_FALSE 0
 
 #define SHEEP_VERSION_MAJOR 0
-#define SHEEP_VERSION_MINOR 2
+#define SHEEP_VERSION_MINOR 3
 #define SHEEP_VERSION_REVISION 0
 
 #define SHEEP_VERBOSITY_SILENT 0
@@ -188,7 +188,6 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 */
 
 DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
-DECLSPEC int LIB_CALL SHP_IsSuspended(SheepVM* vm);
 DECLSPEC SheepVMContext* LIB_CALL SHP_Suspend(SheepVM* vm);
 DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm, SheepVMContext* context);
 typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);

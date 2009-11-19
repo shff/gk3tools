@@ -21,7 +21,7 @@ public:
 		m_currentOffset = 0;
 	}
 	
-	~ResizableBuffer()
+	virtual ~ResizableBuffer()
 	{
 		SHEEP_DELETE_ARRAY(m_buffer);
 	}
@@ -175,7 +175,7 @@ private:
 		
 		memcpy(tmp, m_buffer, m_size);
 
-		delete[] m_buffer;
+		SHEEP_DELETE_ARRAY(m_buffer);
 		m_buffer = tmp;
 	}
 

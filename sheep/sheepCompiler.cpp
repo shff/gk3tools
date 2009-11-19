@@ -213,8 +213,7 @@ int SHP_Resume(SheepVM* vm, SheepVMContext* context)
 
 	try
 	{
-		SM(vm)->Resume((SheepContext*)context);
-		return SHEEP_SUCCESS;
+		return SM(vm)->Resume((SheepContext*)context);
 	}
 	catch(SheepException& ex)
 	{

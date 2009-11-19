@@ -26,7 +26,7 @@ void* operator new[](size_t, const char*, int);
 void operator delete[](void*);
 void operator delete[](void*, const char*, int);
 
-#define SHEEP_NEW_ARRAY(T,l) new T[l]
+#define SHEEP_NEW_ARRAY(T,l) new(__FILE__, __LINE__) T[l]
 #define SHEEP_DELETE_ARRAY(p) delete[] p
 
 // provide a custom "auto_ptr" that uses our delete
