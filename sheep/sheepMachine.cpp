@@ -659,11 +659,29 @@ void updateChildrensParent(SheepContext* firstChild, SheepContext* newParent)
 	itr->Sibling = firstChild;
 }
 
+void validateContextTree(SheepContext* context)
+{
+	SheepContext* itr = context->FirstChild;
+	while(itr != NULL)
+	{
+		assert(itr->Parent == context);
+		assert(itr->FirstChild != context->FirstChild);
+
+		itr = itr->Sibling;
+	}
+}
 
 void SheepMachine::addContext(SheepContext* context)
 {
+	assert(context->Parent == NULL);
+	assert(context->FirstChild == NULL);
+	assert(context->Sibling == NULL);
+
 	if (m_parentContext == NULL)
+	{
+		// tree doesn't exist yet, so make this context the root
 		m_parentContext = context;
+	}
 	else if (m_currentContext == NULL)
 	{
 		addAsSibling(m_parentContext, context);
@@ -680,6 +698,11 @@ void SheepMachine::addContext(SheepContext* context)
 			addAsSibling(m_currentContext->FirstChild, context);
 		}
 	}
+
+#ifndef NDEBUG
+	if (m_parentContext)
+		validateContextTree(m_parentContext);
+#endif
 }
 
 
@@ -730,7 +753,14 @@ void SheepMachine::removeContext(SheepContext* context)
 		prev = itr;
 		itr = itr->Sibling;
 	}
+
+#ifndef NDEBUG
+	if (m_parentContext)
+		validateContextTree(m_parentContext);
+#endif
 }
+
+
 
 void SheepMachine::s_call(SheepVM* vm)
 {
@@ -764,6 +794,9 @@ void SheepMachine::s_call(SheepVM* vm)
 	c->FunctionOffset = sheepfunction->CodeOffset;
 	c->InstructionOffset = 0;
 	c->FullCode->AddRef();
+	c->Sibling = NULL;
+	c->FirstChild = NULL;
+	c->Parent = NULL;
 	// TODO: this context should share variables with the previous context
 	// so that the functions within the same scripts can modify the same global variables
 	
