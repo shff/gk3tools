@@ -126,8 +126,6 @@ namespace Gk3Main.Graphics
 
             if (header.minorVersion == 9 && header.majorVersion == 1)
             {
-                // read through the "extension" header,
-                // which is completely unknown right now
                 ModHeaderExtension headerExtension;
                 headerExtension.isBillboard = reader.ReadUInt32() != 0;
                 headerExtension.useCenterForBillboard = reader.ReadUInt32() != 0;

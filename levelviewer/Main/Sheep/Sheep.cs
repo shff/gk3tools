@@ -249,10 +249,10 @@ namespace Gk3Main.Sheep
         {
             List<IntPtr> deadWaits = new List<IntPtr>();
 
-            foreach (var wait in _waitHandles)
+            foreach (KeyValuePair<IntPtr, List<WaitHandle>> wait in _waitHandles)
             {
                 bool canResume = true;
-                foreach (var l in wait.Value)
+                foreach (WaitHandle l in wait.Value)
                 {
                     if (l.Finished == false)
                     {
@@ -269,7 +269,7 @@ namespace Gk3Main.Sheep
             }
 
             // remove old waits
-            foreach (var wait in deadWaits)
+            foreach (IntPtr wait in deadWaits)
             {
                 // remove dead waits as long as no new waits
                 // were added after resuming
@@ -316,7 +316,7 @@ namespace Gk3Main.Sheep
         {
             if (_waitHandles.ContainsKey(context))
             {
-                foreach (var wait in _waitHandles[context])
+                foreach (WaitHandle wait in _waitHandles[context])
                 {
                     if (wait.Finished == false)
                     {

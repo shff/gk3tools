@@ -59,15 +59,19 @@
     <Compile Include="Console.cs" />
     <Compile Include="FileSystem\barn.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
+    <Compile Include="Game\Actor.cs" />
     <Compile Include="Game\CommonStrings.cs" />
+    <Compile Include="Game\DialogManager.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameTimer.cs" />
+    <Compile Include="Game\GasResource.cs" />
     <Compile Include="Game\HelperIcons.cs" />
     <Compile Include="Game\NvcResource.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
     <Compile Include="Game\YakResource.cs" />
+    <Compile Include="Graphics\ActResource.cs" />
     <Compile Include="Graphics\BillboardManager.cs" />
     <Compile Include="Graphics\BoundingBoxRenderer.cs" />
     <Compile Include="Graphics\BoundingSphereRenderer.cs" />
@@ -103,6 +107,7 @@
     <Compile Include="Sound\SoundManager.cs" />
     <Compile Include="Sound\SoundTrackResource.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="WaitHandle.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Shaders\basic_lightmapped.fx">

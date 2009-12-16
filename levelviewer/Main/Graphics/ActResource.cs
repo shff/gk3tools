@@ -103,7 +103,6 @@ namespace Gk3Main.Graphics
                         ushort groupIndex = reader.ReadUInt16();
                         ushort numVertices = reader.ReadUInt16();
 
-                        // TODO: read the bitfield
                         byte[] bitfield = reader.ReadBytes(numVertices / 4 + 1);
 
                         for (ushort j = 0; j < numVertices; j++)
