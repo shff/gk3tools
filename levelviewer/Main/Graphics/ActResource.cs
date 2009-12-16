@@ -9,26 +9,42 @@ namespace Gk3Main.Graphics
         public uint Magic;
         public ushort Version1;
         public ushort Version2;
-        public uint NumSections;
-        public uint Unknown;
+        public uint NumFrames;
+        public uint NumMeshes;
         public uint DataSize;
         public string ModelName;
     }
 
     struct ActSectionHeader
     {
-        public ushort Unknown;
+        public ushort MeshIndex;
         public uint DataSize;
     }
 
     struct ActSubsectionHeader
     {
-        public byte Unknown;
+        public byte Type;
         public uint DataSize;
+    }
+
+    enum ActSubsectionType
+    {
+        Group = 0,
+        DeltaGroup,
+        Transform,
+        BoundingBox
     }
 
     public class ActResource : Resource.Resource
     {
+        private enum VertexChangeType
+        {
+            None = 0,
+            Short,
+            Long,
+            Absolute
+        }
+
         public ActResource(string name, System.IO.Stream stream)
             : base(name, true)
         {
@@ -43,62 +59,92 @@ namespace Gk3Main.Graphics
 
             header.Version1 = reader.ReadUInt16();
             header.Version2 = reader.ReadUInt16();
-            header.NumSections = reader.ReadUInt32();
-            header.Unknown = reader.ReadUInt32();
+            header.NumFrames = reader.ReadUInt32();
+            header.NumMeshes = reader.ReadUInt32();
             header.DataSize = reader.ReadUInt32();
             header.ModelName = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
 
             // read the offsets
-            uint[] offsets = new uint[header.NumSections];
-            for (int i = 0; i < header.NumSections; i++)
+            uint[] offsets = new uint[header.NumFrames];
+            for (int i = 0; i < header.NumFrames; i++)
             {
                 offsets[i] = reader.ReadUInt32();
             }
 
-            for (int i = 0; i < header.NumSections; i++)
+            for (int i = 0; i < header.NumFrames; i++)
             {
                 stream.Seek(currentStreamPosition + offsets[i], System.IO.SeekOrigin.Begin);
 
                 ActSectionHeader sectionHeader;
-                sectionHeader.Unknown = reader.ReadUInt16();
+                sectionHeader.MeshIndex = reader.ReadUInt16();
                 sectionHeader.DataSize = reader.ReadUInt32();
-
-                
 
                 int numSubsections = 0;
                 while (stream.Position < currentStreamPosition + offsets[i] + sectionHeader.DataSize)
                 {
                     ActSubsectionHeader subsection;
-                    subsection.Unknown = reader.ReadByte();
+                    subsection.Type = reader.ReadByte();
                     subsection.DataSize = reader.ReadUInt32();
 
-                    if (subsection.Unknown == 2 && subsection.DataSize != 48)
-                        throw new Exception("NOT 48!!!");
-                    else if (subsection.Unknown == 3 && subsection.DataSize != 24)
-                        throw new Exception("NOT 24!!");
-
-
-                   // if (subsection.Unknown != 1)
-                        reader.ReadBytes((int)subsection.DataSize);
-                   /* else
+                    if (subsection.Type == (byte)ActSubsectionType.Group)
                     {
-                        //if (subsection.Unknown != 1 && subsection.DataSize % 4 != 0)
-                        //   Console.CurrentConsole.WriteLine("Not divisible by 4! {0} {1}", subsection.DataSize, subsection.Unknown);
+                        ushort groupIndex = reader.ReadUInt16();
+                        ushort numVertices = reader.ReadUInt16();
 
-                        // seems like unknown = 1 means there's a good chance there's a sub-subsection
-                        long pos = stream.Position;
-                        while (stream.Position < pos + subsection.DataSize)
+                        for (ushort j = 0; j < numVertices; j++)
                         {
-                            ActSectionHeader subsubsection;
-                            subsubsection.Unknown = reader.ReadUInt16();
-                            subsubsection.DataSize = reader.ReadUInt32();
-
-                            reader.ReadBytes((int)subsubsection.DataSize);
-
-                            Console.CurrentConsole.WriteLine("\t\t{0}\t{1}", subsubsection.Unknown, subsubsection.DataSize);
+                            reader.ReadSingle();
+                            reader.ReadSingle();
+                            reader.ReadSingle();
                         }
                     }
-                    */
+                    else if (subsection.Type == (byte)ActSubsectionType.DeltaGroup)
+                    {
+                        ushort groupIndex = reader.ReadUInt16();
+                        ushort numVertices = reader.ReadUInt16();
+
+                        // TODO: read the bitfield
+                        byte[] bitfield = reader.ReadBytes(numVertices / 4 + 1);
+
+                        for (ushort j = 0; j < numVertices; j++)
+                        {
+                            int type = getDeltaType(j, bitfield);
+                            if (type == (int)VertexChangeType.None)
+                            {
+                                // nothing
+                            }
+                            else if (type == (int)VertexChangeType.Short)
+                            {
+                                // TODO: read and handle the data
+                                reader.ReadByte();
+                                reader.ReadByte();
+                                reader.ReadByte();
+                            }
+                            else if (type == (int)VertexChangeType.Long)
+                            {
+                                reader.ReadUInt16();
+                                reader.ReadUInt16();
+                                reader.ReadUInt16();
+                            }
+                            else if (type == (int)VertexChangeType.Absolute)
+                            {
+                                reader.ReadSingle();
+                                reader.ReadSingle();
+                                reader.ReadSingle();
+                            }
+                        }
+                    }
+                    else if (subsection.Type == (byte)ActSubsectionType.Transform)
+                    {
+                        // TODO: Read the 4x3 matrix
+                        reader.ReadBytes(sizeof(float) * 4 * 3);
+                    }
+                    else if (subsection.Type == (byte)ActSubsectionType.BoundingBox)
+                    {
+                        // TODO: read the bounding box
+                        reader.ReadBytes(sizeof(float) * 6);
+                    }
+
                     numSubsections++;
                 }
             }
@@ -106,6 +152,31 @@ namespace Gk3Main.Graphics
 
         public override void Dispose()
         {
+        }
+
+        private int getDeltaType(int index, byte[] mask)
+        {
+            return (mask[index / 4] >> ((index & 3) * 2)) & 0x3;
+        }
+
+        private float uncompress(ushort data)
+        {
+            // data is stored as s1i7f8
+
+            // read the sign
+            int sign = data & 0x8000;
+
+            // get the fraction part
+            float fract = (data & 0xff) / 256.0f;
+
+            // get the whole part
+            int i = (data & 0x7fff) >> 8;
+
+            // combine everything
+            float f = i + fract;
+            if (sign != 0) f = -f;
+
+            return f;
         }
     }
 

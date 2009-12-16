@@ -32,8 +32,18 @@ namespace Gk3Main.Graphics
         public ushort unknown1;
         public uint numMeshes;
         public uint size;
-        public float unknown2;
+        public float lodDistance;
         public uint unknown3;
+    }
+
+    struct ModHeaderExtension
+    {
+        public bool isBillboard;
+        public bool useCenterForBillboard;
+        public float centerX;
+        public float centerY;
+        public float centerZ;
+        public bool smooth;
     }
 
     struct ModMeshSection
@@ -42,12 +52,12 @@ namespace Gk3Main.Graphics
         public string texture;
         public TextureResource textureResource;
 
-        public uint unknown1;
-        public uint numFaces;
+        public uint color;
+        public bool smooth;
         public uint numVerts;
         public uint numTriangles;
         public uint numLODs;
-        public uint unknown2;
+        public bool axes;
 
         public float[] vertices;
         public float[] normals;
@@ -111,19 +121,20 @@ namespace Gk3Main.Graphics
             header.unknown1 = reader.ReadUInt16();
             header.numMeshes = reader.ReadUInt32();
             header.size = reader.ReadUInt32();
-            header.unknown2 = reader.ReadUInt32();
+            header.lodDistance = reader.ReadSingle();
             header.unknown3 = reader.ReadUInt32();
 
             if (header.minorVersion == 9 && header.majorVersion == 1)
             {
                 // read through the "extension" header,
                 // which is completely unknown right now
-                reader.ReadUInt32();
-                reader.ReadUInt32();
-                reader.ReadUInt32();
-                reader.ReadUInt32();
-                reader.ReadUInt32();
-                reader.ReadUInt32();
+                ModHeaderExtension headerExtension;
+                headerExtension.isBillboard = reader.ReadUInt32() != 0;
+                headerExtension.useCenterForBillboard = reader.ReadUInt32() != 0;
+                headerExtension.centerX = reader.ReadSingle();
+                headerExtension.centerY = reader.ReadSingle();
+                headerExtension.centerZ = reader.ReadSingle();
+                headerExtension.smooth = reader.ReadUInt32() != 0;
             }
 
             // read the meshes
@@ -205,12 +216,12 @@ namespace Gk3Main.Graphics
 
                     meshSection.texture = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
                     meshSection.textureResource = (TextureResource)Resource.ResourceManager.Load(meshSection.texture + ".BMP");
-                    meshSection.unknown1 = reader.ReadUInt32();
-                    meshSection.numFaces = reader.ReadUInt32();
+                    meshSection.color = reader.ReadUInt32();
+                    meshSection.smooth = reader.ReadUInt32() != 0;
                     meshSection.numVerts = reader.ReadUInt32();
                     meshSection.numTriangles = reader.ReadUInt32();
                     meshSection.numLODs = reader.ReadUInt32();
-                    meshSection.unknown2 = reader.ReadUInt32();
+                    meshSection.axes = reader.ReadUInt32() != 0;
 
                     // read the vertices
                     const int vertexStride = 3 + 3 + 2;
@@ -365,15 +376,17 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
+                Math.Matrix world = Math.Matrix.RotateY(angle) 
+                    * Math.Matrix.Translate(position.X, position.Y, position.Z)
+                    * camera.ModelViewProjection;
+
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
 
                 foreach (ModMesh mesh in _meshes)
                 {
                     foreach (ModMeshSection section in mesh.sections)
                     {
-                        Math.Matrix world = Math.Matrix.RotateY(angle) 
-                            * Math.Matrix.Translate(position.X, position.Y, position.Z);
-                        _effect.SetParameter("ModelViewProjection", world * camera.ModelView * camera.Projection);
+                        _effect.SetParameter("ModelViewProjection", world);
                         _effect.Begin();
                         _effect.BeginPass(0);
 

@@ -54,9 +54,17 @@ namespace Gk3Main.Math
             return result;
         }
 
+        [Obsolete("Use Multiply() instead since it's faster")]
         public static Matrix operator *(Matrix m1, Matrix m2)
         {
             Matrix result;
+            Multiply(ref m1, ref m2, out result);
+
+            return result;
+        }
+
+        public static void Multiply(ref Matrix m1, ref Matrix m2, out Matrix result)
+        {
             result.M11 = m1.M11 * m2.M11 + m1.M12 * m2.M21 + m1.M13 * m2.M31 + m1.M14 * m2.M41;
             result.M12 = m1.M11 * m2.M12 + m1.M12 * m2.M22 + m1.M13 * m2.M32 + m1.M14 * m2.M42;
             result.M13 = m1.M11 * m2.M13 + m1.M12 * m2.M23 + m1.M13 * m2.M33 + m1.M14 * m2.M43;
@@ -73,10 +81,7 @@ namespace Gk3Main.Math
             result.M42 = m1.M41 * m2.M12 + m1.M42 * m2.M22 + m1.M43 * m2.M32 + m1.M44 * m2.M42;
             result.M43 = m1.M41 * m2.M13 + m1.M42 * m2.M23 + m1.M43 * m2.M33 + m1.M44 * m2.M43;
             result.M44 = m1.M41 * m2.M14 + m1.M42 * m2.M24 + m1.M43 * m2.M34 + m1.M44 * m2.M44;
-
-            return result;
         }
-
 
         /*public static Matrix Invert(Matrix matrix)
         {
