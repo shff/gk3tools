@@ -60,6 +60,29 @@ namespace Gk3Main.Math
             angle = (float)System.Math.Acos(q.S) * 2.0f;
         }
 
+        public static float CalcYaw(ref Quaternion q)
+        {
+            float x = q._v.X;
+            float y = q._v.Y;
+            float z = q._v.Z;
+            float w = q._s;
+
+            float test = x * y + z * w;
+            if (test > 0.499)
+            {
+                return 2.0f * (float)System.Math.Atan2(x, w);
+            }
+            if (test < -0.499)
+            {
+                return -2.0f * (float)System.Math.Atan2(x, w);
+            }
+
+            float sx = x * x;
+            float sy = y * y;
+            float sz = z * z;
+            return (float)System.Math.Atan2(2.0f * y * w - 2 * x * z, 1.0f - 2.0f * sy - 2.0f * sz);
+        }
+
         public static Quaternion operator *(Quaternion quat1, Quaternion quat2)
         {
             return new Quaternion(quat1.S * quat2.V.X + quat1.V.X * quat2.S + quat1.V.Y * quat2.V.Z - quat1.V.Z * quat2.V.Y,

@@ -79,6 +79,11 @@ namespace Gk3Main.Graphics
             set { _orientation = value; }
         }
 
+        public float CalcYaw()
+        {
+            return Math.Quaternion.CalcYaw(ref _orientation);
+        }
+
         public void AdjustYaw(float radians)
         {
             Math.Quaternion rotation = Math.Quaternion.FromAxis(Math.Vector3.Up, radians);
@@ -116,13 +121,15 @@ namespace Gk3Main.Graphics
             up = _orientation * up;
 
             Gl.glLoadIdentity();
+            Gl.glScalef(1.0f, 1.0f, -1.0f);
             Glu.gluLookAt(_position.X, _position.Y, _position.Z,
                 _position.X + forward.X, _position.Y + forward.Y, _position.Z + forward.Z,
                 up.X, up.Y, up.Z);
 
             // calculate the ModelViewProjection matrix
             _modelView = Math.Matrix.LookAt(_position, forward, up);
-            _modelViewProjection = _modelView * _projection;
+            //_modelViewProjection = _modelView * _projection;
+            Math.Matrix.Multiply(ref _modelView, ref _projection, out _modelViewProjection);
 
             _frustum = new Frustum(_modelViewProjection);
         }
@@ -165,6 +172,13 @@ namespace Gk3Main.Graphics
         public Frustum Frustum
         {
             get { return _frustum; }
+        }
+
+        public void CreateBillboardMatrix(Math.Vector3 position, bool includePosition, out Math.Matrix matrix)
+        {
+            matrix = Math.Matrix.Translate(-position) *
+                Math.Matrix.RotateY(CalcYaw()) *
+                Math.Matrix.Translate(position);
         }
 
         private Math.Quaternion _orientation;

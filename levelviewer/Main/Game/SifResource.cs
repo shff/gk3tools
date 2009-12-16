@@ -152,9 +152,7 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("pos", out pos);
 
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
-                        TryParse3f(pos, out camera.Z, out camera.Y, out camera.X);
-
-                        camera.YawDegrees += 180.0f;
+                        TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
 
                         _cameras.Add(camera);
                     }
@@ -172,9 +170,7 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("pos", out pos);
 
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
-                        TryParse3f(pos, out camera.Z, out camera.Y, out camera.X);
-
-                        camera.YawDegrees += 180.0f;
+                        TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
 
                         _cameras.Add(camera);
                     }
@@ -192,9 +188,7 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("pos", out pos);
 
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
-                        TryParse3f(pos, out camera.Z, out camera.Y, out camera.X);
-
-                        camera.YawDegrees += 180.0f;
+                        TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
 
                         _cameras.Add(camera);
                     }
@@ -211,7 +205,7 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("heading", out heading);
                         line.TryGetAttribute("camera", out position.CameraName);
 
-                        TryParse3f(pos, out position.Z, out position.Y, out position.X);
+                        TryParse3f(pos, out position.X, out position.Y, out position.Z);
                         float.TryParse(heading, out position.HeadingDegrees);
 
                         _positions.Add(position);

@@ -61,24 +61,24 @@ namespace Gk3Main.Graphics
             uint[] indices = new uint[]
             {
                 // front
-                0, 1, 2,
-                1, 3, 2,
+                2, 1, 0,
+                2, 3, 1,
 
                 // right
-                2, 3, 7,
-                2, 7, 6,
+                7, 3, 2,
+                6, 7, 2,
 
                 // left
-                5, 1, 0,
-                5, 0, 4,
+                0, 1, 5,
+                4, 0, 5,
 
                 // up
-                1, 5, 3,
-                3, 5, 7,
+                3, 5, 1,
+                7, 5, 3,
 
                 // back
-                4, 6, 7,
-                4, 7, 5
+                7, 6, 4,
+                5, 7, 4
             };
 
             _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(vertices, 0);

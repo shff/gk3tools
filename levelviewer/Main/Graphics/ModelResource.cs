@@ -80,12 +80,20 @@ namespace Gk3Main.Graphics
     struct ModMesh
     {
         public uint heading;
-        public float[] transform;
         public Math.Matrix TransformMatrix;
         public uint numSections;
         public float[] boundingBox;
 
         public ModMeshSection[] sections;
+
+        public Math.Vector3 CalcBoundingBoxCenter()
+        {
+            return new Math.Vector3(
+                boundingBox[3] + boundingBox[0],
+                boundingBox[4] + boundingBox[1],
+                boundingBox[5] + boundingBox[2])
+                * 0.5f;
+        }
     }
 
     #endregion
@@ -133,6 +141,12 @@ namespace Gk3Main.Graphics
                 headerExtension.centerY = reader.ReadSingle();
                 headerExtension.centerZ = reader.ReadSingle();
                 headerExtension.smooth = reader.ReadUInt32() != 0;
+
+                _isBillboard = headerExtension.isBillboard;
+                _useBillboardCenter = headerExtension.useCenterForBillboard;
+                _billboardCenter.X = headerExtension.centerX;
+                _billboardCenter.Y = headerExtension.centerY;
+                _billboardCenter.Z = headerExtension.centerZ;
             }
 
             // read the meshes
@@ -149,28 +163,28 @@ namespace Gk3Main.Graphics
                     throw new Resource.InvalidResourceFileFormat("Not a valid model file! Unable to find MESH section!");
                 }
 
-                mesh.transform = new float[16];
-                mesh.transform[0] = reader.ReadSingle();
-                mesh.transform[1] = reader.ReadSingle();
-                mesh.transform[2] = reader.ReadSingle();
-                mesh.transform[3] = 0;
+                float[] transform = new float[16];
+                transform[0] = reader.ReadSingle();
+                transform[1] = reader.ReadSingle();
+                transform[2] = reader.ReadSingle();
+                transform[3] = 0;
 
-                mesh.transform[4] = reader.ReadSingle();
-                mesh.transform[5] = reader.ReadSingle();
-                mesh.transform[6] = reader.ReadSingle();
-                mesh.transform[7] = 0;
+                transform[4] = reader.ReadSingle();
+                transform[5] = reader.ReadSingle();
+                transform[6] = reader.ReadSingle();
+                transform[7] = 0;
 
-                mesh.transform[8] = reader.ReadSingle();
-                mesh.transform[9] = reader.ReadSingle();
-                mesh.transform[10] = reader.ReadSingle();
-                mesh.transform[11] = 0;
+                transform[8] = reader.ReadSingle();
+                transform[9] = reader.ReadSingle();
+                transform[10] = reader.ReadSingle();
+                transform[11] = 0;
                  
-                mesh.transform[12] = reader.ReadSingle();
-                mesh.transform[13] = reader.ReadSingle();
-                mesh.transform[14] = reader.ReadSingle();
-                mesh.transform[15] = 1.0f;
+                transform[12] = reader.ReadSingle();
+                transform[13] = reader.ReadSingle();
+                transform[14] = reader.ReadSingle();
+                transform[15] = 1.0f;
 
-                mesh.TransformMatrix = new Gk3Main.Math.Matrix(mesh.transform);
+                mesh.TransformMatrix = new Gk3Main.Math.Matrix(transform);
 
                 mesh.numSections = reader.ReadUInt32();
 
@@ -182,20 +196,23 @@ namespace Gk3Main.Graphics
                 bbMax.Y = reader.ReadSingle();
                 bbMax.Z = reader.ReadSingle();
 
-                bbMin = mesh.TransformMatrix * bbMin;
-                bbMax = mesh.TransformMatrix * bbMax;
+                if (!_isBillboard)
+                {
+                    bbMin = mesh.TransformMatrix * bbMin;
+                    bbMax = mesh.TransformMatrix * bbMax;
+                }
 
                 // set the transformed bounding box back.
                 // make sure the AABB is still min < max, since the transformation
                 // may have changed stuff
                 mesh.boundingBox = new float[]
                     {
-                        System.Math.Min(bbMin.Z, bbMax.Z),
-                        System.Math.Min(bbMin.Y, bbMax.Y),
                         System.Math.Min(bbMin.X, bbMax.X),
-                        System.Math.Max(bbMin.Z, bbMax.Z),
+                        System.Math.Min(bbMin.Y, bbMax.Y),
+                        System.Math.Min(bbMin.Z, bbMax.Z),
+                        System.Math.Max(bbMin.X, bbMax.X),
                         System.Math.Max(bbMin.Y, bbMax.Y),
-                        System.Math.Max(bbMin.X, bbMax.X)
+                        System.Math.Max(bbMin.Z, bbMax.Z)
                     };
 
 
@@ -231,11 +248,12 @@ namespace Gk3Main.Graphics
                         dummy.Y = reader.ReadSingle();
                         dummy.Z = reader.ReadSingle();
 
-                        dummy = mesh.TransformMatrix * dummy;
+                        if (_isBillboard == false)
+                            dummy = mesh.TransformMatrix * dummy;
 
-                        meshSection.vertices[k * vertexStride + 0] = dummy.Z;
+                        meshSection.vertices[k * vertexStride + 0] = dummy.X;
                         meshSection.vertices[k * vertexStride + 1] = dummy.Y;
-                        meshSection.vertices[k * vertexStride + 2] = dummy.X;
+                        meshSection.vertices[k * vertexStride + 2] = dummy.Z;
                     }
 
                     // read the normals
@@ -344,24 +362,60 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
-                _effect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
-                _effect.Begin();
-                _effect.BeginPass(0);
-
-                Gl.glEnable(Gl.GL_TEXTURE_2D);
-
-                foreach (ModMesh mesh in _meshes)
+                if (!_isBillboard)
                 {
-                    foreach (ModMeshSection section in mesh.sections)
-                    {
-                        section.textureResource.Bind();
+                    _effect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
+                    _effect.Begin();
+                    _effect.BeginPass(0);
 
-                        RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                    Gl.glEnable(Gl.GL_TEXTURE_2D);
+
+                    foreach (ModMesh mesh in _meshes)
+                    {
+                        foreach (ModMeshSection section in mesh.sections)
+                        {
+                            section.textureResource.Bind();
+
+                            RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                        }
+                    }
+
+                    _effect.EndPass();
+                    _effect.End();
+                }
+                else
+                {
+                    // render the model as a billboard
+                    for (int i = 0; i < _meshes.Length; i++)
+                    {
+                        Math.Vector3 meshPosition;
+                        if (_useBillboardCenter)
+                        {
+                            meshPosition = _billboardCenter;
+                        }
+                        else
+                        {
+                            meshPosition = _meshes[i].CalcBoundingBoxCenter();
+                        }
+                        
+                        Math.Matrix billboardMatrix;
+                        camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
+
+                        _effect.SetParameter("ModelViewProjection", billboardMatrix * _meshes[i].TransformMatrix * camera.ModelViewProjection);
+                        _effect.Begin();
+                        _effect.BeginPass(0);
+
+                        foreach (ModMeshSection section in _meshes[i].sections)
+                        {
+                            section.textureResource.Bind();
+
+                            RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                        }
+
+                        _effect.EndPass();
+                        _effect.End();
                     }
                 }
-
-                _effect.EndPass();
-                _effect.End();
 
                 foreach (ModMesh mesh in _meshes)
                 {
@@ -425,6 +479,9 @@ namespace Gk3Main.Graphics
 
         private ModMesh[] _meshes;
         private Effect _effect;
+        private bool _isBillboard;
+        private bool _useBillboardCenter;
+        private Math.Vector3 _billboardCenter;
         private static VertexElementSet _elements;
     }
 

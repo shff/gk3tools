@@ -204,9 +204,9 @@ namespace Gk3Main.Graphics
             _vertices = new float[header.numVertices * 3];
             for (uint i = 0; i < header.numVertices; i++)
             {
-                _vertices[i * 3 + 2] = reader.ReadSingle();
-                _vertices[i * 3 + 1] = reader.ReadSingle();
                 _vertices[i * 3 + 0] = reader.ReadSingle();
+                _vertices[i * 3 + 1] = reader.ReadSingle();
+                _vertices[i * 3 + 2] = reader.ReadSingle();
             }
 
             // read the texture vertices
@@ -245,9 +245,9 @@ namespace Gk3Main.Graphics
             for (int i = 0; i < header.numSurfaces; i++)
             {
                 // throw junk away
-                _surfaces[i].boundingSphere.Z = reader.ReadSingle();
-                _surfaces[i].boundingSphere.Y = reader.ReadSingle();
                 _surfaces[i].boundingSphere.X = reader.ReadSingle();
+                _surfaces[i].boundingSphere.Y = reader.ReadSingle();
+                _surfaces[i].boundingSphere.Z = reader.ReadSingle();
                 _surfaces[i].boundingSphere.W = reader.ReadSingle();
 
                 reader.ReadBytes(12);

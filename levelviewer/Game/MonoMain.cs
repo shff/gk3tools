@@ -181,13 +181,13 @@ class MonoMain
                         if (keys[Sdl.SDLK_LSHIFT] != 0 ||
                             keys[Sdl.SDLK_RSHIFT] != 0)
                         {
-                            camera.AdjustYaw(-rmx * 0.01f);
-                            camera.AdjustPitch(-rmy * 0.01f);
+                            camera.AdjustYaw(rmx * 0.01f);
+                            camera.AdjustPitch(rmy * 0.01f);
                         }
                         else
                         {
-                            camera.AdjustYaw(-rmx * 0.01f);
-                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * -rmy);
+                            camera.AdjustYaw(rmx * 0.01f);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * rmy);
                         }
                     }
 

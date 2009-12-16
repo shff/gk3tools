@@ -83,21 +83,35 @@ namespace Gk3Main.Graphics
             float uw = src.Width / texture.ActualPixelWidth;
             float vw = src.Height / texture.ActualPixelHeight;
 
-            Gl.glBegin(Gl.GL_QUADS);
+            _workingBuffer1[0] = x;
+            _workingBuffer1[1] = y;
+            _workingBuffer2[0] = u;
+            _workingBuffer2[1] = v;
 
-            Gl.glTexCoord2f(u, v);
-            Gl.glVertex3f(x, y, 0);
+            _workingBuffer1[2] = x + src.Width;
+            _workingBuffer1[3] = y;
+            _workingBuffer2[2] = u + uw;
+            _workingBuffer2[3] = v;
 
-            Gl.glTexCoord2f(u + uw, v);
-            Gl.glVertex3f(x + src.Width, y, 0);
+            _workingBuffer1[4] = _workingBuffer1[2];
+            _workingBuffer1[5] = y + src.Height;
+            _workingBuffer2[4] = u + uw;
+            _workingBuffer2[5] = v + vw;
 
-            Gl.glTexCoord2f(u + uw, v + vw);
-            Gl.glVertex3f(x + src.Width, y + src.Height, 0);
+            _workingBuffer1[6] = x;
+            _workingBuffer1[7] = _workingBuffer1[5];
+            _workingBuffer2[6] = u;
+            _workingBuffer2[7] = v + vw;
 
-            Gl.glTexCoord2f(u, v + vw);
-            Gl.glVertex3f(x, y + src.Height, 0);
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glVertexPointer(2, Gl.GL_FLOAT, 0, _workingBuffer1);
+            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
 
-            Gl.glEnd();
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
+
+            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
             if (wasIn2D == false) End2D();
         }
@@ -123,21 +137,36 @@ namespace Gk3Main.Graphics
             float x2 = x1 + dest.Width * screenWidth;
             float y2 = y1 + dest.Height * _viewport[3];
 
-            Gl.glBegin(Gl.GL_QUADS);
 
-            Gl.glTexCoord2f(u, v);
-            Gl.glVertex3f(x1, y1, 0);
+            _workingBuffer1[0] = x1;
+            _workingBuffer1[1] = y1;
+            _workingBuffer2[0] = u;
+            _workingBuffer2[1] = v;
 
-            Gl.glTexCoord2f(u + uw, v);
-            Gl.glVertex3f(x2, y1, 0);
+            _workingBuffer1[2] = x2;
+            _workingBuffer1[3] = y1;
+            _workingBuffer2[2] = u + uw;
+            _workingBuffer2[3] = v;
 
-            Gl.glTexCoord2f(u + uw, v + vw);
-            Gl.glVertex3f(x2, y2, 0);
+            _workingBuffer1[4] = _workingBuffer1[2];
+            _workingBuffer1[5] = y2;
+            _workingBuffer2[4] = u + uw;
+            _workingBuffer2[5] = v + vw;
 
-            Gl.glTexCoord2f(u, v + vw);
-            Gl.glVertex3f(x1, y2, 0);
+            _workingBuffer1[6] = x1;
+            _workingBuffer1[7] = _workingBuffer1[5];
+            _workingBuffer2[6] = u;
+            _workingBuffer2[7] = v + vw;
 
-            Gl.glEnd();
+            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glVertexPointer(2, Gl.GL_FLOAT, 0, _workingBuffer1);
+            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
+
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
+
+            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
+            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
             if (wasIn2D == false) End2D();
         }

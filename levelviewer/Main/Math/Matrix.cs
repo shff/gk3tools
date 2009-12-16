@@ -83,8 +83,9 @@ namespace Gk3Main.Math
             result.M44 = m1.M41 * m2.M14 + m1.M42 * m2.M24 + m1.M43 * m2.M34 + m1.M44 * m2.M44;
         }
 
-        /*public static Matrix Invert(Matrix matrix)
+       /* public static Matrix Invert(Matrix matrix)
         {
+
             float n23 = matrix.M33 * matrix.M44 - matrix.M34 * matrix.M43;
             float n22 = matrix.M32 * matrix.M44 - matrix.M34 * matrix.M42;
             float n21 = matrix.M32 * matrix.M43 - matrix.M33 * matrix.m42;
@@ -128,7 +129,10 @@ namespace Gk3Main.Math
         {
             float f = 1.0f / (float)System.Math.Tan(fov * 0.5f);
 
-            Matrix m;
+            /*this is old right-handed code, but since
+             * GK3 uses left-handed we decided not to use it anymore
+             * 
+             * Matrix m;
             m.M11 = f / aspect;
             m.M12 = 0;
             m.M13 = 0;
@@ -147,11 +151,43 @@ namespace Gk3Main.Math
             m.M41 = 0;
             m.M42 = 0;
             m.M43 = (near * far) / (near - far);
+            m.M44 = 0;*/
+
+            Matrix m;
+            m.M11 = f / aspect;
+            m.M12 = 0;
+            m.M13 = 0;
+            m.M14 = 0;
+
+            m.M21 = 0;
+            m.M22 = f;
+            m.M23 = 0;
+            m.M24 = 0;
+
+            m.M31 = 0;
+            m.M32 = 0;
+            m.M33 = far / (far - near);
+            m.M34 = 1.0f;
+
+            m.M41 = 0;
+            m.M42 = 0;
+            m.M43 = (-near * far) / (far - near);
             m.M44 = 0;
 
             return m;
         }
 
+        public static Matrix Translate(Vector3 position)
+        {
+            Matrix translation = Identity;
+            translation.M41 = position.X;
+            translation.M42 = position.Y;
+            translation.M43 = position.Z;
+
+            return translation;
+        }
+
+        [Obsolete("Use Translate(Vector3) instead")]
         public static Matrix Translate(float x, float y, float z)
         {
             Matrix translation = Identity;
@@ -160,6 +196,14 @@ namespace Gk3Main.Math
             translation.M43 = z;
             
             return translation;
+        }
+
+        public static void Translate(ref Vector3 position, out Matrix result)
+        {
+            result = Identity;
+            result.M41 = position.X;
+            result.M42 = position.Y;
+            result.M43 = position.Z;
         }
 
         public static Matrix Scale(float x, float y, float z)

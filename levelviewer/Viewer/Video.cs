@@ -23,6 +23,7 @@ namespace Viewer
             Glu.gluPerspective(60.0f, ratio, 1.0f, 5000.0f);
 
             Gl.glMatrixMode(Gl.GL_MODELVIEW);
+            Gl.glScalef(1.0f, 1.0f, -1.0f);
             Glu.gluLookAt(0, 0, 0, 0, 0, 1.0f, 0, 1.0f, 0);
             #endregion
 
