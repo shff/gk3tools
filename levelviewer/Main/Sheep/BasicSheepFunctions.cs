@@ -119,6 +119,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
+            SheepMachine.AddImport("IsWalkingActorNear", _isWalkingActorNear,
+                SymbolType.Integer, SymbolType.String, SymbolType.String, SymbolType.Float);
+
             SheepMachine.AddImport("InspectModelUsingAngle", _inspectModelUsingAngle,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
@@ -181,6 +184,9 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("StartDialogueNoFidgets", _startDialogueNoFidgets,
                 SymbolType.Void, SymbolType.String, SymbolType.Integer);
+
+            SheepMachine.AddImport("StartIdleFidget", _dummyString,
+                SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("StartMom", _startMom,
                 SymbolType.Void, SymbolType.String);
@@ -333,6 +339,17 @@ namespace Gk3Main.Sheep
                 SheepMachine.PushIntOntoStack(vm, 1);
             else
                 SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_IsWalkingActorNear(IntPtr vm)
+        {
+            float distance = SheepMachine.PopFloatOffStack(vm);
+            string position = SheepMachine.PopStringOffStack(vm);
+            string actor = SheepMachine.PopStringOffStack(vm);
+
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_GetGameVariableInt(IntPtr vm)
@@ -756,6 +773,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _isCurrentEgo = new SheepFunctionDelegate(sheep_IsCurrentEgo);
         private static SheepFunctionDelegate _isCurrentLocation = new SheepFunctionDelegate(sheep_IsCurrentLocation);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
+        private static SheepFunctionDelegate _isWalkingActorNear = new SheepFunctionDelegate(sheep_IsWalkingActorNear);
         private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);

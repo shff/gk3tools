@@ -56,7 +56,7 @@ namespace Gk3Main.Graphics
             _effect.Begin();
             _effect.BeginPass(0);
             
-            _effect.SetParameter("ModelViewProjection", Math.Matrix.Scale(radius, radius, radius) * Math.Matrix.Translate(x, y, z) * camera.ModelView * camera.Projection);
+            _effect.SetParameter("ModelViewProjection", Math.Matrix.Scale(radius, radius, radius) * Math.Matrix.Translate(x, y, z) * camera.View * camera.Projection);
 
             int count = (_resolution + 1);
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, count, _vertices);

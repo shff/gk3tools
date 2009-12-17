@@ -263,7 +263,13 @@ namespace Gk3Main.Sheep
 
                 if (canResume)
                 {
-                    SHP_Resume(_vm, wait.Key);
+                    // remove the context from the list
+                    wait.Value.Clear();
+                        
+                    // resume
+                    int result = SHP_Resume(_vm, wait.Key);
+                    if (result != SHEEP_SUCCESS && result != SHEEP_SUSPENDED)
+                        throw new SheepException("Unable to resume");
                     deadWaits.Add(wait.Key);
                 }
             }

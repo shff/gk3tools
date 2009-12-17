@@ -598,25 +598,41 @@ namespace Gk3Main
                 return GameManager.CurrentEgo == Ego.Gabriel;
             if (conditionName.Equals("1ST_TIME", StringComparison.OrdinalIgnoreCase))
                 return GameManager.GetNounVerbCount(noun, verb) == 0;
-            if (conditionName.Equals("2CD_TIME", StringComparison.OrdinalIgnoreCase))
+            if (conditionName.Equals("2CD_TIME", StringComparison.OrdinalIgnoreCase) ||
+                conditionName.Equals("2ND_TIME", StringComparison.OrdinalIgnoreCase))
                 return GameManager.GetNounVerbCount(noun, verb) == 1;
+            if (conditionName.Equals("3RD_TIME", StringComparison.OrdinalIgnoreCase))
+                return GameManager.GetNounVerbCount(noun, verb) == 2;
             if (conditionName.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase))
                 return GameManager.GetNounVerbCount(noun, verb) > 0;
             if (conditionName.Equals("TIME_BLOCK", StringComparison.OrdinalIgnoreCase))
                 return true; // TODO: what does this case mean?
             if (conditionName.Equals("TIME_BLOCK_OVERRIDE", StringComparison.OrdinalIgnoreCase))
                 return true; // TODO: what does this case mean?
+            if (conditionName.Equals("DIALOGUE_TOPICS_INTRO", StringComparison.OrdinalIgnoreCase))
+                return false; // TODO
+            if (conditionName.Equals("DIALOGUE_TOPICS_NOT_INTRO", StringComparison.OrdinalIgnoreCase))
+                return false; // TODO
             if (conditionName.Equals("DIALOGUE_TOPICS_LEFT", StringComparison.OrdinalIgnoreCase))
                 return false; // TODO
             if (conditionName.Equals("NOT_DIALOGUE_TOPICS_LEFT", StringComparison.OrdinalIgnoreCase))
-                return false;
+                return false; // TODO
+            if (conditionName.Equals("CLOSE_UP", StringComparison.OrdinalIgnoreCase))
+                return false; // TODO
+            if (conditionName.Equals("NOT_CLOSEUP", StringComparison.OrdinalIgnoreCase))
+                return false; // TODO
+            if (conditionName.Equals("IN_INVENTORY", StringComparison.OrdinalIgnoreCase))
+                return false; // TODO
 
             // guess it was something else
             string condition;
             if (_nvcLogicAliases.ContainsKey(conditionName))
                 condition = _nvcLogicAliases[conditionName];
             else
-                condition = _nvcLogicAliases["G_" + conditionName];
+            {
+                if (_nvcLogicAliases.TryGetValue("G_" + conditionName, out condition) == false)
+                    return false; // apparently some cases just don't exist anywhere
+            }
 
             // HACK: until we support passing variables to snippets we
             // have to do some ugly manipulation like this to handle GetNounVerbCountInt()

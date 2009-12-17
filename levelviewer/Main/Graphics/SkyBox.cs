@@ -94,7 +94,7 @@ namespace Gk3Main.Graphics
             _skyboxEffect.EnableTextureParameter("Diffuse");
             _skyboxEffect.SetParameter("Diffuse", _cubeMap);
 
-            Math.Matrix modelViewProjection = Math.Matrix.Translate(camera.Position.X, camera.Position.Y, camera.Position.Z) * camera.ModelView * camera.Projection;
+            Math.Matrix modelViewProjection = Math.Matrix.Translate(camera.Position.X, camera.Position.Y, camera.Position.Z) * camera.View * camera.Projection;
             _skyboxEffect.SetParameter("ModelViewProjection", modelViewProjection);
 
             _cubeMap.Bind();

@@ -116,7 +116,7 @@ namespace Gk3Main.Graphics
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
             RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
-            _shader.SetParameter("ModelView", camera.ModelView);
+            _shader.SetParameter("ModelView", camera.View);
             _shader.SetParameter("Projection", camera.Projection);
 
             

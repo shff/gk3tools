@@ -152,7 +152,7 @@ namespace Gk3Main.Graphics
             return new Math.Vector3((float)x, (float)y, (float)z);
         }
 
-        public Math.Matrix ModelViewProjection
+        public Math.Matrix ViewProjection
         {
             get { return _modelViewProjection; }
         }
@@ -163,7 +163,7 @@ namespace Gk3Main.Graphics
             set { _projection = value; }
         }
 
-        public Math.Matrix ModelView
+        public Math.Matrix View
         {
             get { return _modelView; }
             set { _modelView = value; }

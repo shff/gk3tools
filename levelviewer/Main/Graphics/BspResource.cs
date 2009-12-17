@@ -530,7 +530,7 @@ namespace Gk3Main.Graphics
             if (camera.Frustum.IsSphereOutside(surface.boundingSphere))
                 return;
 
-            effect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
+            effect.SetParameter("ModelViewProjection", camera.ViewProjection);
             effect.SetParameter("Diffuse", surface.textureResource);
 
             if (lightmap != null)

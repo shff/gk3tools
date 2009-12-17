@@ -83,6 +83,7 @@ namespace Gk3Main.Graphics
         public Math.Matrix TransformMatrix;
         public uint numSections;
         public float[] boundingBox;
+        public float[] TransformedBoundingBox;
 
         public ModMeshSection[] sections;
 
@@ -196,13 +197,9 @@ namespace Gk3Main.Graphics
                 bbMax.Y = reader.ReadSingle();
                 bbMax.Z = reader.ReadSingle();
 
-                if (!_isBillboard)
-                {
-                    bbMin = mesh.TransformMatrix * bbMin;
-                    bbMax = mesh.TransformMatrix * bbMax;
-                }
+                Math.Vector3 transformedBBMin = mesh.TransformMatrix * bbMin;
+                Math.Vector3 transformedBBMax = mesh.TransformMatrix * bbMax; 
 
-                // set the transformed bounding box back.
                 // make sure the AABB is still min < max, since the transformation
                 // may have changed stuff
                 mesh.boundingBox = new float[]
@@ -214,6 +211,16 @@ namespace Gk3Main.Graphics
                         System.Math.Max(bbMin.Y, bbMax.Y),
                         System.Math.Max(bbMin.Z, bbMax.Z)
                     };
+
+                mesh.TransformedBoundingBox = new float[]
+                {
+                    System.Math.Min(transformedBBMin.X, transformedBBMax.X),
+                    System.Math.Min(transformedBBMin.Y, transformedBBMax.Y),
+                    System.Math.Min(transformedBBMin.Z, transformedBBMax.Z),
+                    System.Math.Max(transformedBBMin.X, transformedBBMax.X),
+                    System.Math.Max(transformedBBMin.Y, transformedBBMax.Y),
+                    System.Math.Max(transformedBBMin.Z, transformedBBMax.Z)
+                };
 
 
                 mesh.sections = new ModMeshSection[mesh.numSections];
@@ -247,9 +254,6 @@ namespace Gk3Main.Graphics
                         dummy.X = reader.ReadSingle();
                         dummy.Y = reader.ReadSingle();
                         dummy.Z = reader.ReadSingle();
-
-                        if (_isBillboard == false)
-                            dummy = mesh.TransformMatrix * dummy;
 
                         meshSection.vertices[k * vertexStride + 0] = dummy.X;
                         meshSection.vertices[k * vertexStride + 1] = dummy.Y;
@@ -327,11 +331,6 @@ namespace Gk3Main.Graphics
             }
 
             // read the MODX stuff
-            /*
-             * The following code *seems* to correctly move through the MODX section-
-             * but until it is tested more it should stay commented. But at least
-             * this should give an idea of the format of the MODX stuff within the
-             * file, even if we don't know what it means yet.
             uint modxMagic = reader.ReadUInt32();
             if (modxMagic == 0x4d4f4458)
             {
@@ -340,20 +339,25 @@ namespace Gk3Main.Graphics
                     for (int j = 0; j < _meshes[i].numSections; j++)
                     {
                         uint grpxMagic = reader.ReadUInt32();
-                        uint blah = reader.ReadUInt32();
+                        uint numVertices = reader.ReadUInt32();
 
                         if (grpxMagic == 0x47525058)
                         {
-                            for (int k = 0; k < _meshes[i].sections[j].numVerts; k++)
+                            for (int k = 0; k < numVertices; k++)
                             {
                                 byte b = reader.ReadByte();
-                                reader.ReadBytes(b * 4);
-
+                                
+                                for (int l = 0; l < b; l++)
+                                {
+                                    byte meshIndex = reader.ReadByte();
+                                    byte groupIndex = reader.ReadByte();
+                                    ushort polyIndex = reader.ReadUInt16();
+                                }
                             }
                         }
                     }
                 }
-            }*/
+            }
 
             _effect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
         }
@@ -364,24 +368,25 @@ namespace Gk3Main.Graphics
             {
                 if (!_isBillboard)
                 {
-                    _effect.SetParameter("ModelViewProjection", camera.ModelViewProjection);
-                    _effect.Begin();
-                    _effect.BeginPass(0);
-
+                    
                     Gl.glEnable(Gl.GL_TEXTURE_2D);
 
                     foreach (ModMesh mesh in _meshes)
                     {
+                        _effect.SetParameter("ModelViewProjection", mesh.TransformMatrix * camera.ViewProjection);
+                        _effect.Begin();
+                        _effect.BeginPass(0);
+
                         foreach (ModMeshSection section in mesh.sections)
                         {
                             section.textureResource.Bind();
 
                             RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
                         }
-                    }
 
-                    _effect.EndPass();
-                    _effect.End();
+                        _effect.EndPass();
+                        _effect.End();
+                    }
                 }
                 else
                 {
@@ -401,7 +406,7 @@ namespace Gk3Main.Graphics
                         Math.Matrix billboardMatrix;
                         camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
 
-                        _effect.SetParameter("ModelViewProjection", billboardMatrix * _meshes[i].TransformMatrix * camera.ModelViewProjection);
+                        _effect.SetParameter("ModelViewProjection",  billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
                         _effect.Begin();
                         _effect.BeginPass(0);
 
@@ -419,7 +424,7 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMesh mesh in _meshes)
                 {
-                    BoundingBoxRenderer.Render(camera, Math.Vector3.Zero, mesh.boundingBox);
+                    BoundingBoxRenderer.Render(camera, Math.Vector3.Zero, mesh.TransformedBoundingBox);
                 }
             }
         }
@@ -428,17 +433,18 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
-                Math.Matrix world = Math.Matrix.RotateY(angle) 
-                    * Math.Matrix.Translate(position.X, position.Y, position.Z)
-                    * camera.ModelViewProjection;
+                Math.Matrix world = Math.Matrix.RotateY(angle)
+                    * Math.Matrix.Translate(position);
 
                 Gl.glEnable(Gl.GL_TEXTURE_2D);
 
                 foreach (ModMesh mesh in _meshes)
                 {
+                    Math.Matrix worldview = mesh.TransformMatrix * world * camera.ViewProjection;
+
                     foreach (ModMeshSection section in mesh.sections)
                     {
-                        _effect.SetParameter("ModelViewProjection", world);
+                        _effect.SetParameter("ModelViewProjection", worldview);
                         _effect.Begin();
                         _effect.BeginPass(0);
 
@@ -455,7 +461,7 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMesh mesh in _meshes)
                 {
-                    BoundingBoxRenderer.Render(camera, position, mesh.boundingBox);
+                    BoundingBoxRenderer.Render(camera, position, mesh.TransformedBoundingBox);
                 }
             }
         }
@@ -464,7 +470,7 @@ namespace Gk3Main.Graphics
         {
             foreach (ModMesh mesh in _meshes)
             {
-                if (Gk3Main.Utils.TestRayAABBCollision(modelPosition, origin, direction, mesh.boundingBox, out distance))
+                if (Gk3Main.Utils.TestRayAABBCollision(modelPosition, origin, direction, mesh.TransformedBoundingBox, out distance))
                     return true;
             }
 
