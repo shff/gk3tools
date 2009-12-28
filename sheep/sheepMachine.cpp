@@ -168,7 +168,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	try
 	{
 		std::stringstream ss;
-		ss << "snippet { " << snippet << "}";
+		ss << "symbols { int result$; } code { snippet$() { result$ = " << snippet << "; } }";
 
 
 	SheepCodeTree tree;
@@ -204,24 +204,15 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	c->CodeBuffer = code->Functions[0].Code;
 	c->FunctionOffset = code->Functions[0].CodeOffset;
 	c->InstructionOffset = 0;
+	prepareVariables(c);
 	
 	addContext(c);
 	m_executingDepth++;
 	execute(c);
 	m_executingDepth--;
 
-	if (c->Stack.empty() == false)
-	{
-		if (result != NULL)
-		{
-			if (c->Stack.top().Type == SYM_INT)
-				*result = c->Stack.top().IValue;
-			else if (c->Stack.top().Type == SYM_FLOAT)
-				*result = (int)c->Stack.top().FValue;
-		}
-
-		c->Stack.pop();
-	}
+	if (result != NULL)
+		*result = c->Variables[0].IValue;
 
 	c->FullCode->Release();
 	removeContext(c);
@@ -256,7 +247,10 @@ SheepContext* SheepMachine::Suspend()
 int SheepMachine::Resume(SheepContext* context)
 {
 	assert(context != NULL);
-	assert(context->Dead == false);
+	if (context->Dead == true)
+	{
+		throw SheepMachineException("Cannot resume context because it's dead", SHEEP_ERR_CANT_RESUME);
+	}
 
 	context->UserSuspended = false;
 
@@ -398,6 +392,10 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case CallSysFunctionI:
 			context->InstructionOffset += 4;
 			callIntFunction(context->Stack, imports, context->CodeBuffer->ReadInt());
+			if (context->Stack.top().Type != SYM_INT)
+			{
+				throw SheepMachineException("CallSysFunctionI instruction requires integer on stack afterwards", SHEEP_ERR_WRONG_TYPE_ON_STACK);
+			}
 			break;
 		case CallSysFunctionF:
 		case CallSysFunctionS:
