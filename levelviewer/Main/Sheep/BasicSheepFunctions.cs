@@ -605,7 +605,8 @@ namespace Gk3Main.Sheep
         {
             float seconds = SheepMachine.PopFloatOffStack(vm);
 
-            // TODO
+            if (SheepMachine.IsInWaitSection(vm))
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), new Game.TimedWaitHandle((int)(seconds * 1000))); 
         }
 
         private static void sheep_ShowSceneModel(IntPtr vm)
@@ -660,7 +661,16 @@ namespace Gk3Main.Sheep
 
             // TODO!
             Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", id));
-            yak.Play();
+
+            if (SheepMachine.IsInWaitSection(vm))
+            {
+                WaitHandle wait = yak.PlayAndWait();
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), wait);
+            }
+            else
+            {
+                yak.Play();
+            }
         }
 
         private static void sheep_StopSoundTrack(IntPtr vm)

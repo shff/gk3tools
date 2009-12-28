@@ -184,6 +184,13 @@ namespace Gk3Main.Sheep
             }
         }
 
+        public static void RunScript(string script, string function)
+        {
+            int err = SHP_RunScript(_vm, script, function);
+            if (err != SHEEP_SUCCESS)
+                throw new SheepException("Unable to execute Sheep script");
+        }
+
         public static int PopIntOffStack(IntPtr vm)
         {
             if (vm == IntPtr.Zero)
@@ -266,10 +273,7 @@ namespace Gk3Main.Sheep
                     // remove the context from the list
                     wait.Value.Clear();
                         
-                    // resume
-                    int result = SHP_Resume(_vm, wait.Key);
-                    if (result != SHEEP_SUCCESS && result != SHEEP_SUSPENDED)
-                        throw new SheepException("Unable to resume");
+                    // add it to the list of dead waits so it can be resumed
                     deadWaits.Add(wait.Key);
                 }
             }
@@ -277,6 +281,11 @@ namespace Gk3Main.Sheep
             // remove old waits
             foreach (IntPtr wait in deadWaits)
             {
+                // resume
+                int result = SHP_Resume(_vm, wait);
+                if (result != SHEEP_SUCCESS && result != SHEEP_SUSPENDED)
+                    throw new SheepException("Unable to resume");
+
                 // remove dead waits as long as no new waits
                 // were added after resuming
                 if (_waitHandles[wait].Count == 0) 
@@ -287,6 +296,15 @@ namespace Gk3Main.Sheep
         public static IntPtr GetCurrentContext(IntPtr vm)
         {
             return SHP_GetCurrentContext(vm);
+        }
+
+        public static void GetVersion(out int major, out int minor, out int rev)
+        {
+            SHP_Version v = SHP_GetVersion();
+
+            major = v.Major;
+            minor = v.Minor;
+            rev = v.Revision;
         }
 
         private static IntPtr _vm;
@@ -346,6 +364,13 @@ namespace Gk3Main.Sheep
         const int SHEEP_ERROR = -1;
         const int SHEEP_SUSPENDED = 2;
 
+        private struct SHP_Version
+        {
+            public byte Major;
+            public byte Minor;
+            public byte Revision;
+        }
+
         [DllImport("sheep")]
         private static extern IntPtr SHP_CreateNewVM();
 
@@ -402,6 +427,9 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern void SHP_PrintStackTrace(IntPtr vm);
+
+        [DllImport("sheep")]
+        private static extern SHP_Version SHP_GetVersion();
 
         #endregion Interops
     }

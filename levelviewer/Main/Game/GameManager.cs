@@ -192,29 +192,29 @@ namespace Gk3Main.Game
             timer.TimeAtExpiration = duration + TickCount;
 
             // find the appropriate spot for the timer
-            for(LinkedListNode<Game.GameTimer> node = _timers.First;
+            for(LinkedListNode<Game.GameTimer> node = _gameTimers.First;
                 node != null; node = node.Next)
             {
                 // keep the list sorted by time of expiration
                 if (node.Value.TimeAtExpiration > timer.TimeAtExpiration)
                 {
-                    _timers.AddBefore(node, timer);
+                    _gameTimers.AddBefore(node, timer);
                     return;
                 }
             }
 
             // still here? just add to the end
-            _timers.AddLast(timer);
+            _gameTimers.AddLast(timer);
         }
 
         public static Game.GameTimer? GetNextExpiredGameTimer()
         {
-            for (LinkedListNode<Game.GameTimer> node = _timers.First;
+            for (LinkedListNode<Game.GameTimer> node = _gameTimers.First;
                 node != null; node = node.Next)
             {
                 if (node.Value.TimeAtExpiration < TickCount)
                 {
-                    _timers.Remove(node);
+                    _gameTimers.Remove(node);
                     return node.Value;
                 }
             }
@@ -254,6 +254,6 @@ namespace Gk3Main.Game
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, int> _chatCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();
-        private static LinkedList<Game.GameTimer> _timers = new LinkedList<Game.GameTimer>();
-    }
+        private static LinkedList<GameTimer> _gameTimers = new LinkedList<GameTimer>();
+        }
 }
