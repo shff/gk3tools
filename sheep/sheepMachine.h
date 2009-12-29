@@ -7,7 +7,7 @@
 #include "sheepCodeBuffer.h"
 #include "sheepException.h"
 
-#ifndef _snprintf
+#ifndef _MSC_VER
 #define _snprintf snprintf
 #endif
 
@@ -223,7 +223,7 @@ private:
 	// mostly for performance reasons
 	static void CALLBACK s_call(SheepVM* vm);
 
-	static int getInt(SheepStack& stack)
+	static int getInt(SheepStack& stack, bool string = false)
 	{
 		if (stack.empty())
 			throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
@@ -231,10 +231,16 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (item.Type != SYM_INT)
+		if (string == false && item.Type != SYM_INT)
 		{
 			char buffer[256];
 			_snprintf(buffer, 256, "Expected integer on stack; found %d", item.Type);
+			throw SheepMachineException(buffer, SHEEP_ERR_WRONG_TYPE_ON_STACK);
+		}
+		else if (string == true && item.Type != SYM_STRING)
+		{
+			char buffer[256];
+			_snprintf(buffer, 256, "Expected string on stack; found %d", item.Type);
 			throw SheepMachineException(buffer, SHEEP_ERR_WRONG_TYPE_ON_STACK);
 		}
 
@@ -310,7 +316,7 @@ private:
 
 	static void storeS(SheepStack& stack, std::vector<StackItem>& variables, int variable)
 	{
-		int value = getInt(stack);
+		int value = getInt(stack, true);
 
 		if (variable >= variables.size() ||
 			variables[variable].Type != SYM_STRING)
@@ -335,6 +341,15 @@ private:
 			throw SheepMachineException("Invalid variable");
 
 		stack.push(StackItem(SYM_FLOAT, variables[variable].FValue));
+	}
+
+	static void loadS(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	{
+		if (variable >= variables.size() ||
+			variables[variable].Type != SYM_STRING)
+			throw SheepMachineException("Invalid variable");
+
+		stack.push(StackItem(SYM_STRING, variables[variable].IValue));
 	}
 
 	static void addI(SheepStack& stack)

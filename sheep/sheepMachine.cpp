@@ -459,7 +459,9 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			context->InstructionOffset += 4;
 			break;
 		case LoadS:
-			throw SheepMachineInstructionException("Loading string variables not supported yet.");
+			loadS(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			context->InstructionOffset += 4;
+			break;
 		case PushI:
 			context->Stack.push(StackItem(SYM_INT, context->CodeBuffer->ReadInt()));
 			context->InstructionOffset += 4;
