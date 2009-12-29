@@ -34,8 +34,8 @@ char* removeQuotes(char* str)
 
 %}
 
-%token <id> IDENTIFIER <id> LOCALIDENTIFIER <intVal> INTEGER <floatVal> FLOAT <stringVal> STRING
-%token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS SNIP WAIT
+%token IDENTIFIER LOCALIDENTIFIER INTEGER FLOAT STRING
+%token INTSYM FLOATSYM STRINGSYM CODE SYMBOLS WAIT
 %token RETURN IF ELSE GOTO
 %token COLON SEMICOLON DOLLAR LPAREN RPAREN LBRACE RBRACE QUOTE COMMA
 %token EQUALS NOTEQUAL BECOMES PLUS MINUS TIMES DIVIDE LESSTHAN GREATERTHAN NOT OR AND
@@ -56,7 +56,6 @@ sheep:
 	| symbol_section code_section { g_codeTreeRoot = $1; if ($1 && $2) $1->AttachSibling($2); }
 	| symbol_section { g_codeTreeRoot = $1; }
 	| code_section { g_codeTreeRoot = $1; }
-	| snippet_section { g_codeTreeRoot = $1; }
 	;
 
 symbol_section:
@@ -82,10 +81,6 @@ symbol_declaration_list:
 	| symbol_declaration_list COMMA local_identifier { $$ = $1; $$->AttachSibling($3); }
 	| symbol_declaration_list COMMA local_identifier BECOMES constant { $$ = $1; $$->AttachSibling($3); $3->SetChild(0, $5); }
 	;
-	
-snippet_section:
-	SNIP LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateSnippet(currentLine); }
-	| SNIP LBRACE expr RBRACE { $$ = SheepCodeTreeNode::CreateSnippet(currentLine); $$->SetChild(0, $3); }
 	
 code_section:
 	CODE LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateCodeSection(currentLine); }

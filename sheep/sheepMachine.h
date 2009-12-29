@@ -7,6 +7,10 @@
 #include "sheepCodeBuffer.h"
 #include "sheepException.h"
 
+#ifndef _snprintf
+#define _snprintf snprintf
+#endif
+
 class SheepMachineException : public SheepException
 {
 public:

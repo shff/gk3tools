@@ -53,7 +53,6 @@ private:
 	void buildSymbolMap(SheepCodeTreeNode* node);
 	void determineExpressionTypes(SheepCodeTreeNode* node);
 	SheepFunction writeFunction(SheepCodeTreeDeclarationNode* node, int codeOffset);
-	SheepFunction writeSnippet(SheepCodeTreeSectionNode* node);
 	void writeCode(SheepFunction& function, SheepCodeTreeNode* node);
 	void writeStatement(SheepFunction& function, SheepCodeTreeStatementNode* statement);
 	int writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);

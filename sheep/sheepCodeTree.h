@@ -1,6 +1,7 @@
 #ifndef SHEEPCODETREE_H
 #define SHEEPCODETREE_H
 
+#include <cstdio>
 #include <cassert>
 #include <string>
 #include <map>
@@ -62,8 +63,7 @@ enum CodeTreeNodeType
 enum CodeTreeSectionType
 {
 	SECTIONTYPE_SYMBOLS,
-	SECTIONTYPE_CODE,
-	SECTIONTYPE_SNIPPET
+	SECTIONTYPE_CODE
 };
 
 enum CodeTreeDeclarationNodeType
@@ -127,7 +127,6 @@ public:
 
 	static SheepCodeTreeNode* CreateSymbolSection(int lineNumber);
 	static SheepCodeTreeNode* CreateCodeSection(int lineNumber);
-	static SheepCodeTreeNode* CreateSnippet(int lineNumber);
 
 	static SheepCodeTreeNode* CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber);
 	static SheepCodeTreeNode* CreateStatement(int lineNumber);
@@ -198,8 +197,6 @@ protected:
 			printf("Symbols section\n");
 		else if (m_sectionType == SECTIONTYPE_CODE)
 			printf("Code section\n");
-		else if (m_sectionType == SECTIONTYPE_SNIPPET)
-			printf("Snippet\n");
 		else
 			printf("UNKNOWN SECTION TYPE!\n");
 	}

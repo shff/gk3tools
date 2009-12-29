@@ -32,8 +32,6 @@
 "else"		return ELSE;
 "goto"		return GOTO;
 
-"snippet"	return SNIP;
-
 ":"		return COLON;
 ";"		return SEMICOLON;
 ","		return COMMA;

@@ -9,11 +9,13 @@ SOURCES = sheepScanner.cpp sheepParser.cpp sheepCodeGenerator.cpp sheepCodeTree.
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(EXECUTABLE): $(OBJECTS)
-	flex -i -o sheepScanner.cpp sheepScanner.l
-	bison -d -o sheepParser.cpp sheepParser.y
-	$(CPPC) $(COMPILER_FLAGS) -c sheepScanner.cpp
-	$(CPPC) $(COMPILER_FLAGS) -c sheepParser.cpp
 	$(LINKER) $(LINKER_FLAGS) $(OBJECTS) -o $@
+	
+sheepScanner.cpp:
+	flex -i -o sheepScanner.cpp sheepScanner.l
+	
+sheepParser.cpp: sheepScanner.cpp
+	bison -d -o sheepParser.cpp sheepParser.y
 	
 .cpp.o:
 	$(CPPC) $(COMPILER_FLAGS) -c $< -o $@

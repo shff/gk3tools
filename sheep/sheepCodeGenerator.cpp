@@ -69,8 +69,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		SheepCodeTreeSectionNode* section = static_cast<SheepCodeTreeSectionNode*>(root);
 		while(section != NULL)
 		{
-			if (section->GetSectionType() == SECTIONTYPE_CODE ||
-				section->GetSectionType() == SECTIONTYPE_SNIPPET)
+			if (section->GetSectionType() == SECTIONTYPE_CODE)
 				determineExpressionTypes(section->GetChild(0));
 
 			// iterate over each function/snippet and output a SheepFunction object
@@ -96,11 +95,6 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 
 					function = static_cast<SheepCodeTreeDeclarationNode*>(function->GetNextSibling());
 				}
-			}
-			else if (section->GetSectionType() == SECTIONTYPE_SNIPPET)
-			{
-				SheepFunction func = writeSnippet(section);
-				output->Functions.push_back(func);
 			}
 
 			section = static_cast<SheepCodeTreeSectionNode*>(section->GetNextSibling());
@@ -416,22 +410,6 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	func.Code->WriteSheepInstruction(SitnSpin);
 	func.Code->WriteSheepInstruction(SitnSpin);
 	func.Code->WriteSheepInstruction(SitnSpin);
-
-	return func;
-}
-
-SheepFunction SheepCodeGenerator::writeSnippet(SheepCodeTreeSectionNode* node)
-{
-	assert(node->GetSectionType() == SECTIONTYPE_SNIPPET);
-
-	SheepFunction func;
-	func.Name = "snippet";
-	func.Code = SHEEP_NEW SheepCodeBuffer();
-	func.CodeOffset = 0;
-
-	SheepCodeTreeNode* child = node->GetChild(0);
-
-	writeCode(func, child);
 
 	return func;
 }
