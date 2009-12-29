@@ -106,9 +106,17 @@ namespace Gk3Main
             if (parentSif != null)
             {
                 foreach (SifRoomCamera camera in parentSif.RoomCameras)
-                    _cameras.Add(camera.Name, camera);
+                {
+                    // only add if it doesn't exist yet
+                    if (_cameras.ContainsKey(camera.Name) == false)
+                        _cameras.Add(camera.Name, camera);
+                }
                 foreach (SifPosition position in parentSif.Positions)
-                    _roomPositions.Add(position.Name, position);
+                {
+                    // only add if it doesn't exist yet
+                    if (_roomPositions.ContainsKey(position.Name) == false)
+                        _roomPositions.Add(position.Name, position);
+                }
             }
 
             loadSifActorModels(sifResource);

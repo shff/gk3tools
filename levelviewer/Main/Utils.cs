@@ -228,5 +228,13 @@ namespace Gk3Main
         {
             return (IntPtr)(ptr.ToInt64() + numBytes);
         }
+
+        public static bool TryParseInt(string str, int startIndex, int length, out int result)
+        {
+            // TODO: replace this with something that doesn't generate garbage
+
+            string s = str.Substring(startIndex, length);
+            return int.TryParse(s, out result);
+        }
     }
 }

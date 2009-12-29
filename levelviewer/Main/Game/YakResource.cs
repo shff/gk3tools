@@ -4,55 +4,34 @@ using System.Text;
 
 namespace Gk3Main.Game
 {
-    class YakResource : Resource.TextResource
+    class YakResource : AnimationResource
     {
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
         private Sound.PlayingSound? _playingSound;
+        private int _timeAtPlayStart;
+        private int _cueTime = -1;
 
         public YakResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
-            string[] lines = Text.Split('\n');
-
-            bool inSoundSection = false;
-            bool expectingLineCount = false;
-            foreach (string line in lines)
+            foreach (AnimationResourceSection section in Sections)
             {
-                if (string.IsNullOrEmpty(line))
-                    continue;
-
-                if (line.StartsWith("[SOUNDS]", StringComparison.OrdinalIgnoreCase))
+                if (section.SectionName.Equals("SOUNDS", StringComparison.OrdinalIgnoreCase))
                 {
-                    inSoundSection = true;
-                    expectingLineCount = true;
-                }
-                else if (line.StartsWith("[GK3]", StringComparison.OrdinalIgnoreCase))
-                {
-                    inSoundSection = false;
-                    expectingLineCount = true;
-                }
-                else
-                {
-                    if (expectingLineCount)
+                    foreach (AnimationResourceSectionLine line in section.Lines)
                     {
-                        expectingLineCount = false;
-                        continue;
+                        string soundName = line.Params[0].StringValue;
+                        _sounds.Add(new Sound.Sound(soundName, FileSystem.Open(soundName)));
                     }
-                    else if (inSoundSection)
+                }
+                else if (section.SectionName.Equals("GK3", StringComparison.OrdinalIgnoreCase))
+                {
+                    // look for then DIALOGUECUE
+                    for (int i = 0; i < section.Lines.Count; i++)
                     {
-                        // the format seems to be:
-                        // FRAME, SOUND FILE, #
-
-                        // TODO: load everything, not just the sound file!
-                        int firstCommaPos = line.IndexOf(",");
-                        int secondCommaPos = line.IndexOf(",", firstCommaPos + 1);
-
-                        if (firstCommaPos >= 0 && secondCommaPos > firstCommaPos)
-                        {
-                            string soundName = line.Substring(firstCommaPos + 1, secondCommaPos - firstCommaPos - 1);
-
-                            _sounds.Add(new Sound.Sound(soundName, FileSystem.Open(soundName)));
-                        }
+                        if (section.Lines[i].Params[0].StringValue != null &&
+                            section.Lines[i].Params[0].StringValue.Equals("DIALOGUECUE", StringComparison.OrdinalIgnoreCase))
+                            _cueTime = section.Lines[i].FrameNum * MillisecondsPerFrame;
                     }
                 }
             }
@@ -79,6 +58,7 @@ namespace Gk3Main.Game
                     Sound.SoundManager.Stop(_playingSound.Value);
                 }
 
+                _timeAtPlayStart = GameManager.TickCount;
                 _playingSound = _sounds[0].Play2D(Sound.SoundTrackChannel.Dialog);
             }
         }
@@ -92,16 +72,43 @@ namespace Gk3Main.Game
                     Sound.SoundManager.Stop(_playingSound.Value);
                 }
 
+                _timeAtPlayStart = GameManager.TickCount;
                 _playingSound = _sounds[0].Play2D(Sound.SoundTrackChannel.Dialog, true);
+
                 return _playingSound.Value.WaitHandle;
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Gets whether the YAK is still playing
+        /// </summary>
+        public bool IsPlaying
+        {
+            get 
+            {
+                return _playingSound.HasValue == true &&
+                    _playingSound.Value.Finished == false; 
+            }
+        }
+
+        /// <summary>
+        /// Gets whether the YAK has progressed far enough that another YAK can begin.
+        /// </summary>
+        /// <remarks>
+        /// It's possible for YAKs to overlap. Just because a YAK is finished doesn't
+        /// mean it isn't still playing.
+        /// </remarks>
         public bool IsFinished
         {
-            get { return _playingSound.HasValue == false || _playingSound.Value.Finished; }
+            get 
+            {
+                if (_cueTime >= 0)
+                    return GameManager.TickCount > _timeAtPlayStart + _cueTime;
+                
+                return !IsPlaying;
+            }
         }
     }
 

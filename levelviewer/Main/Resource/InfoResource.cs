@@ -87,7 +87,7 @@ namespace Gk3Main.Resource
                 while (lines[startIndex].StartsWith("[") == false) startIndex++;
 
                 // now we should be at a section header, so parse it
-                Match match = Regex.Match(lines[startIndex], @"^\[([\w|(|)]+)(?:={(.+)})?]");
+                Match match = Regex.Match(lines[startIndex], @"^\[([\w|(|)]+)(?:={(.+)})?]?");
 
                 if (match.Success == false)
                     throw new InfoResourceException("??", lines[startIndex] + " fails regex");

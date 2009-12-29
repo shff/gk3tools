@@ -6,11 +6,9 @@ namespace Gk3Main.Game
 {
     public static class DialogManager
     {
-        //private static LinkedList<YakResource> _yaks = new LinkedList<YakResource>();
-        //private static LinkedListNode<YakResource> _lastYak = null;
-        private static YakResource _lastYak;
-        private static string _lastLicensePlateWithoutSuffix;
-        private static int _startingLine;
+        private static LinkedList<YakResource> _yaks = new LinkedList<YakResource>();
+        private static LinkedListNode<YakResource> _lastYak = null;
+        private static string _lastLicensePlate;
         private static int _numLinesToPlay;
         private static int _linesPlayed;
 
@@ -28,7 +26,7 @@ namespace Gk3Main.Game
 
                     return true;*/
 
-                    return _lastYak == null || _lastYak.IsFinished;
+                    return _lastYak == null || _lastYak.Value.IsFinished;
                 }
                 set
                 {
@@ -41,17 +39,15 @@ namespace Gk3Main.Game
 
         public static WaitHandle PlayDialogue(string licensePlate, int numLines, bool wait)
         {
-            if (_lastYak != null)
-            {
-                Resource.ResourceManager.Unload(_lastYak);
-            }
+            YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
+            _lastYak = new LinkedListNode<YakResource>(yak);
+            _yaks.AddLast(yak);
 
-            _lastYak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
-            _startingLine = getLicensePlateEndingNumber(licensePlate, out _lastLicensePlateWithoutSuffix);
+            _lastLicensePlate = licensePlate;
             _numLinesToPlay = numLines;
             _linesPlayed = 1;
 
-            _lastYak.Play();
+            yak.Play();
 
             if (wait)
                 return _waitHandle;
@@ -73,46 +69,65 @@ namespace Gk3Main.Game
 
         public static void Step()
         {
-            if (_lastYak != null && _lastYak.IsFinished)
-            {
-                Resource.ResourceManager.Unload(_lastYak);
-                _lastYak = null;
-            }
-            
-            if (_lastYak == null)
+            // if the last played yak is finished then see if there are more yaks to play
+            if (_lastYak != null && _lastYak.Value.IsFinished)
             {
                 if (_numLinesToPlay > _linesPlayed)
                 {
                     // load the new yak
-                    int yakNumToPlay = _startingLine + _linesPlayed;
-                    _lastYak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}{1}.YAK", _lastLicensePlateWithoutSuffix, yakNumToPlay));
+                    _lastLicensePlate = incrementLicensePlate(_lastLicensePlate, 1);
+                    
+                    YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", _lastLicensePlate));
+                    _lastYak = new LinkedListNode<YakResource>(yak);
+                    _yaks.AddLast(_lastYak);
 
                     // play the yak
-                    _lastYak.Play();
+                    yak.Play();
 
                     _linesPlayed++;
                 }
             }
+
+            // remove any finished yaks
+            for (LinkedListNode<YakResource> yakNode = _yaks.First; yakNode != null; )
+            {
+                if (yakNode.Value.IsPlaying == false)
+                {
+                    // remove it
+                    Resource.ResourceManager.Unload(yakNode.Value);
+
+                    if (_lastYak == yakNode)
+                    {
+                        _lastYak = null;
+
+                        if (_numLinesToPlay == _linesPlayed)
+                        {
+                            _numLinesToPlay = 0;
+                            _linesPlayed = 0;
+                        }
+                    }
+
+                    LinkedListNode<YakResource> next = yakNode.Next;
+                    _yaks.Remove(yakNode);
+                    yakNode = next;
+                }
+                else
+                {
+                    yakNode = yakNode.Next;
+                }
+            }
         }
 
-        private static int getLicensePlateEndingNumber(string licensePlate, out string licenseWithoutNumber)
+        private static string incrementLicensePlate(string licensePlate, int numLines)
         {
-            int index;
-            for (index = licensePlate.Length - 1; index >= 0; index--)
-            {
-                if (char.IsDigit(licensePlate, index) == false)
-                    break;
-            }
-            index++;
+            const string digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-            if (index >= 0 && index < licensePlate.Length)
-            {
-                licenseWithoutNumber = licensePlate.Substring(0, index);
-                return int.Parse(licensePlate.Substring(index));
-            }
+            // get the last character
+            char last = licensePlate[licensePlate.Length - 1];
+            int digit = digits.IndexOf(char.ToUpper(last)) + numLines;
 
-            licenseWithoutNumber = null;
-            return 0;
+            // build the new plate #
+            return licensePlate.Substring(0, licensePlate.Length - 1) + digits[digit];
         }
     }
 }

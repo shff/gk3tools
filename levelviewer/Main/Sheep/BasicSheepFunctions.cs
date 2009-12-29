@@ -119,6 +119,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("IsCurrentTime", _isCurrentTimeDelegate,
                 SymbolType.Integer, SymbolType.String);
 
+            SheepMachine.AddImport("IsTopLayerInventory", _isTopLayerInventory, 
+                SymbolType.Integer);
+
             SheepMachine.AddImport("IsWalkingActorNear", _isWalkingActorNear,
                 SymbolType.Integer, SymbolType.String, SymbolType.String, SymbolType.Float);
 
@@ -339,6 +342,13 @@ namespace Gk3Main.Sheep
                 SheepMachine.PushIntOntoStack(vm, 1);
             else
                 SheepMachine.PushIntOntoStack(vm, 0);
+        }
+
+        private static void sheep_IsTopLayerInventory(IntPtr vm)
+        {
+            // TODO
+
+            SheepMachine.PushIntOntoStack(vm, 0);
         }
 
         private static void sheep_IsWalkingActorNear(IntPtr vm)
@@ -783,6 +793,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _isCurrentEgo = new SheepFunctionDelegate(sheep_IsCurrentEgo);
         private static SheepFunctionDelegate _isCurrentLocation = new SheepFunctionDelegate(sheep_IsCurrentLocation);
         private static SheepFunctionDelegate _isCurrentTimeDelegate = new SheepFunctionDelegate(sheep_IsCurrentTime);
+        private static SheepFunctionDelegate _isTopLayerInventory = new SheepFunctionDelegate(sheep_IsTopLayerInventory);
         private static SheepFunctionDelegate _isWalkingActorNear = new SheepFunctionDelegate(sheep_IsWalkingActorNear);
         private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
