@@ -35,8 +35,10 @@ namespace Gk3Main.Graphics
         BoundingBox
     }
 
-    public class ActResource : Resource.Resource
+    class ActResource : Resource.Resource
     {
+        const int _millisecondsPerFrame = 67;
+
         private enum VertexChangeType
         {
             None = 0,
@@ -44,6 +46,16 @@ namespace Gk3Main.Graphics
             Long,
             Absolute
         }
+
+        private struct ActFrame
+        {
+            public int FrameNum;
+            public Math.Matrix Transform;
+        }
+
+        private string _modelName;
+        private ActFrame[] _frames;
+        private uint _numMeshes;
 
         public ActResource(string name, System.IO.Stream stream)
             : base(name, true)
@@ -63,6 +75,10 @@ namespace Gk3Main.Graphics
             header.NumMeshes = reader.ReadUInt32();
             header.DataSize = reader.ReadUInt32();
             header.ModelName = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
+
+            _modelName = header.ModelName;
+            _numMeshes = header.NumMeshes;
+            _frames = new ActFrame[header.NumFrames];
 
             // read the offsets
             uint[] offsets = new uint[header.NumFrames];
@@ -135,8 +151,30 @@ namespace Gk3Main.Graphics
                     }
                     else if (subsection.Type == (byte)ActSubsectionType.Transform)
                     {
-                        // TODO: Read the 4x3 matrix
-                        reader.ReadBytes(sizeof(float) * 4 * 3);
+                        // read the 4x3 transform matrix
+                        float[] transform = new float[16];
+                        transform[0] = reader.ReadSingle();
+                        transform[1] = reader.ReadSingle();
+                        transform[2] = reader.ReadSingle();
+                        transform[3] = 0;
+
+                        transform[4] = reader.ReadSingle();
+                        transform[5] = reader.ReadSingle();
+                        transform[6] = reader.ReadSingle();
+                        transform[7] = 0;
+
+                        transform[8] = reader.ReadSingle();
+                        transform[9] = reader.ReadSingle();
+                        transform[10] = reader.ReadSingle();
+                        transform[11] = 0;
+
+                        transform[12] = reader.ReadSingle();
+                        transform[13] = reader.ReadSingle();
+                        transform[14] = reader.ReadSingle();
+                        transform[15] = 1.0f;
+
+                        _frames[i].FrameNum = i;
+                        _frames[i].Transform = new Math.Matrix(transform);
                     }
                     else if (subsection.Type == (byte)ActSubsectionType.BoundingBox)
                     {
@@ -151,6 +189,23 @@ namespace Gk3Main.Graphics
 
         public override void Dispose()
         {
+        }
+
+        public void Animate(ModelResource model, int timeSinceStart)
+        {
+            if (model.Name.Equals(_modelName, StringComparison.OrdinalIgnoreCase) == false ||
+                model.Meshes.Length != _numMeshes)
+                throw new ArgumentException("The model is not compatible with this animation");
+
+            int frame = timeSinceStart / _millisecondsPerFrame;
+            int nextFrame = (frame == _frames.Length - 1 ? 0 : frame + 1);
+            float percent = (float)(timeSinceStart - frame * _millisecondsPerFrame) / _millisecondsPerFrame;
+
+            for (int i = 0; i < model.Meshes.Length; i++)
+            {
+                // TODO: handle all the different kinds of animation frames
+                model.Meshes[i].AnimatedTransformMatrix = model.Meshes[i].TransformMatrix * _frames[frame].Transform;
+            }
         }
 
         private int getDeltaType(int index, byte[] mask)

@@ -10,12 +10,22 @@ namespace Gk3Main.Game
         private bool _suspended;
         private bool _timeSinceSuspend;
         private int _currentInstructionIndex;
+        private WaitHandle _currentWait;
         private List<GasScriptLine> _lines = new List<GasScriptLine>();
+        private Dictionary<string, AnmResource> _animations = new Dictionary<string, AnmResource>();
 
         public GasResource(string name, System.IO.Stream stream)
             : base(name, stream)
         {
             parse(Text);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (AnmResource anm in _animations.Values)
+                Resource.ResourceManager.Unload(anm);
         }
 
         public void Play()
@@ -32,6 +42,12 @@ namespace Gk3Main.Game
 
         public void Continue()
         {
+            if (_suspended && _currentWait != null && _currentWait.Finished)
+            {
+                _suspended = false;
+                _currentWait = null;
+            }
+
             if (_suspended == false)
                 while (executeNextInstruction())
                 {
@@ -88,6 +104,14 @@ namespace Gk3Main.Game
                     // figure out which command this is
                     if (command.Equals("Anim", StringComparison.OrdinalIgnoreCase))
                         parseAnim(parser);
+                    else if (command.Equals("Loop", StringComparison.OrdinalIgnoreCase))
+                    {
+                        GasScriptLine line;
+                        line.Command = GasCommand.Loop;
+                        line.Params = null;
+
+                        _lines.Add(line);
+                    }
                 }
 
                 if (parser.NextMeaningfulLine())
@@ -133,7 +157,19 @@ namespace Gk3Main.Game
                     return;
             }
 
-            // TODO: play the animation
+            AnmResource anm;
+            if (_animations.ContainsKey(filename))
+                anm = _animations[filename];
+            else
+            {
+                // animation isn't loaded yet, so load it
+                anm = (AnmResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
+                _animations.Add(filename, anm);
+            }
+
+            // play the animation
+            _currentWait = anm.PlayAndWait();
+
             _suspended = true;
         }
 
@@ -236,7 +272,7 @@ namespace Gk3Main.Game
             int nextComma = _gas.IndexOf(',', _index);
 
             if (nextSpaceOrEol < 0)
-                s = _gas.Substring(_index);
+                s = _gas.Substring(_index).Trim();
             else
             {
                 if (nextComma > 0 && nextComma < nextSpaceOrEol)
@@ -333,7 +369,7 @@ namespace Gk3Main.Game
             return true;
         }
 
-        private static char[] _whitespaceChars = new char[] { ' ', '\n' };
+        private static char[] _whitespaceChars = new char[] { ' ', '\r', '\n' };
         private int findNextSpaceOrEndOfLine()
         {
             // get the index of the next space or EOL

@@ -81,8 +81,16 @@ namespace Gk3Main.Game
                 {
                     if (int.TryParse(line, out currentSectionLineCount))
                     {
-                        expectingLineCount = false;
-                        linesReadInCurrentSection = 0;
+                        if (currentSectionLineCount == 0)
+                        {
+                            expectingLineCount = false;
+                            expectingSectionHeader = true;
+                        }
+                        else
+                        {
+                            expectingLineCount = false;
+                            linesReadInCurrentSection = 0;
+                        }
                         
                         // was this the header?
                         if (readingFileHeaderSection)

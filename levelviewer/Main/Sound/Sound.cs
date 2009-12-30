@@ -72,14 +72,21 @@ namespace Gk3Main.Sound
 #if !SOUND_DISABLED
     public class Sound : Resource.Resource
     {
+        private bool _disposed = false;
+
         public Sound(string name, System.IO.Stream stream)
             : base(name, true)
         {
             _sound = SoundManager.AddSoundSourceFromFile(name);
+
+            if (_sound == null)
+                throw new Exception("Sound source returned from Irrklang was null");
         }
 
         public override void Dispose()
         {
+            _disposed = true;
+
             SoundManager.RemoveSoundSource(_sound.Name);
             _sound = null;
         }
@@ -91,17 +98,26 @@ namespace Gk3Main.Sound
 
         public PlayingSound Play2D(SoundTrackChannel channel, bool wait)
         {
+            if (_disposed) throw new ObjectDisposedException("Sound");
+
             return SoundManager.PlaySound2DToChannel(this, channel, false, wait);
         }
 
         public PlayingSound Play3D(SoundTrackChannel channel, float x, float y, float z)
         {
+            if (_disposed) throw new ObjectDisposedException("Sound");
+
             return SoundManager.PlaySound3DToChannel(this, x, y, z, channel, false);
         }
 
         internal IrrKlang.ISoundSource Source
         {
-            get { return _sound; }
+            get 
+            { 
+                if (_disposed) throw new ObjectDisposedException("Sound"); 
+                
+                return _sound; 
+            }
         }
 
         private IrrKlang.ISoundSource _sound;

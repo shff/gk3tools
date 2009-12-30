@@ -569,7 +569,16 @@ namespace Gk3Main.Sheep
         {
             string mom = SheepMachine.PopStringOffStack(vm);
 
-            // TODO
+            bool isInWaitSection = SheepMachine.IsInWaitSection(vm);
+            if (isInWaitSection)
+            {
+                WaitHandle wait = Game.DialogManager.PlayMom(mom, true);
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), wait);
+            }
+            else
+            {
+                Game.DialogManager.PlayMom(mom, false);
+            }
         }
 
         private static void sheep_SetNounVerbCount(IntPtr vm)
@@ -639,7 +648,7 @@ namespace Gk3Main.Sheep
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
             bool waiting = SheepMachine.IsInWaitSection(vm);
-            WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
+            WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, false, waiting);
 
             if (waiting && handle != null)
                 SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
@@ -651,7 +660,7 @@ namespace Gk3Main.Sheep
             string licensePlate = SheepMachine.PopStringOffStack(vm);
 
             bool waiting = SheepMachine.IsInWaitSection(vm);
-            WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, waiting);
+            WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, false, waiting);
 
             if (waiting && handle != null)
                 SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);

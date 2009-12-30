@@ -172,6 +172,9 @@ namespace Gk3Main
 
             Game.GasResource gas =
                 (Game.GasResource)Resource.ResourceManager.Load(fileWithExtension);
+
+            _modelGases.Add(gas);
+            gas.Play();
         }
 
         public static void AddActor(string modelName, string noun, Math.Vector3 position, float heading, bool isEgo)
@@ -239,6 +242,10 @@ namespace Gk3Main
 
                 node = next;
             }
+
+            // run any GASes
+            for (int i = 0; i < _modelGases.Count; i++)
+                _modelGases[i].Continue();
         }
 
         public static Graphics.Camera CurrentCamera
@@ -702,6 +709,7 @@ namespace Gk3Main
         private static Graphics.LightmapResource _currentLightmaps;
         private static List<Game.Actor> _actors = new List<Actor>();
         private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
+        private static List<Game.GasResource> _modelGases = new List<GasResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();

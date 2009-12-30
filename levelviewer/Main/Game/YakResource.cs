@@ -21,7 +21,7 @@ namespace Gk3Main.Game
                     foreach (AnimationResourceSectionLine line in section.Lines)
                     {
                         string soundName = line.Params[0].StringValue;
-                        _sounds.Add(new Sound.Sound(soundName, FileSystem.Open(soundName)));
+                        _sounds.Add((Sound.Sound)Resource.ResourceManager.Load(soundName, "WAV"));
                     }
                 }
                 else if (section.SectionName.Equals("GK3", StringComparison.OrdinalIgnoreCase))

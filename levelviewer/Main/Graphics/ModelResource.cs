@@ -63,6 +63,10 @@ namespace Gk3Main.Graphics
         public float[] normals;
         public float[] texCoords;
         public int[] indices;
+
+        // these are used when a model is animated.
+        public float[] AnimatedVertices;
+        public float[] AnimatedNormals;
     }
 
     struct ModMeshLod
@@ -81,6 +85,7 @@ namespace Gk3Main.Graphics
     {
         public uint heading;
         public Math.Matrix TransformMatrix;
+        public Math.Matrix? AnimatedTransformMatrix;
         public uint numSections;
         public float[] boundingBox;
         public float[] TransformedBoundingBox;
@@ -440,7 +445,12 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMesh mesh in _meshes)
                 {
-                    Math.Matrix worldview = mesh.TransformMatrix * world * camera.ViewProjection;
+                    Math.Matrix worldview;
+                    
+                    if (mesh.AnimatedTransformMatrix.HasValue)
+                        worldview = mesh.AnimatedTransformMatrix.Value * world * camera.ViewProjection;
+                    else
+                        worldview = mesh.TransformMatrix * world * camera.ViewProjection;
 
                     foreach (ModMeshSection section in mesh.sections)
                     {
@@ -481,6 +491,11 @@ namespace Gk3Main.Graphics
         public override void Dispose()
         {
             // nothing
+        }
+
+        public ModMesh[] Meshes
+        {
+            get { return _meshes; }
         }
 
         private ModMesh[] _meshes;

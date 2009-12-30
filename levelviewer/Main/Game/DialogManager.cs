@@ -8,6 +8,8 @@ namespace Gk3Main.Game
     {
         private static LinkedList<YakResource> _yaks = new LinkedList<YakResource>();
         private static LinkedListNode<YakResource> _lastYak = null;
+        private static MomResource _lastMom = null;
+        private static bool _waitingOnMom;
         private static string _lastLicensePlate;
         private static int _numLinesToPlay;
         private static int _linesPlayed;
@@ -18,15 +20,12 @@ namespace Gk3Main.Game
             {
                 get
                 {
-                    /*for (var itr = _yaks.First; itr != null; itr = itr.Next)
-                    {
-                        if (itr.Value.IsFinished == false)
-                            return false;
-                    }
+                    if (_waitingOnMom == true && _lastMom != null && _lastMom.IsFinished == false)
+                        return false;
+                    if (_lastYak != null && _lastYak.Value.IsFinished == false)
+                        return false;
 
-                    return true;*/
-
-                    return _lastYak == null || _lastYak.Value.IsFinished;
+                    return true;
                 }
                 set
                 {
@@ -37,13 +36,15 @@ namespace Gk3Main.Game
 
         private static DialogWaitHandle _waitHandle = new DialogWaitHandle();
 
-        public static WaitHandle PlayDialogue(string licensePlate, int numLines, bool wait)
+        public static WaitHandle PlayDialogue(string licensePlate, int numLines, bool plateHasLanguageCode, bool wait)
         {
-            YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", licensePlate));
+            if (plateHasLanguageCode == false)
+                licensePlate = "E" + licensePlate;
+
+            YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("{0}.YAK", licensePlate));
             _lastYak = new LinkedListNode<YakResource>(yak);
             _yaks.AddLast(yak);
-
-            _lastLicensePlate = licensePlate;
+            _lastLicensePlate = licensePlate.Substring(1); // remove the language code
             _numLinesToPlay = numLines;
             _linesPlayed = 1;
 
@@ -67,8 +68,28 @@ namespace Gk3Main.Game
             return null;
         }
 
+        public static WaitHandle PlayMom(string momFile, bool wait)
+        {
+            _lastMom = (Game.MomResource)Resource.ResourceManager.Load(string.Format("E{0}.MOM", momFile));
+            _lastMom.Play();
+
+            if (wait)
+            {
+                _waitingOnMom = true;
+                return _waitHandle;
+            }
+
+            return null;
+        }
+
         public static void Step()
         {
+            // continue the Mom
+            if (_lastMom != null)
+            {
+                _lastMom.Step();
+            }
+
             // if the last played yak is finished then see if there are more yaks to play
             if (_lastYak != null && _lastYak.Value.IsFinished)
             {
@@ -115,6 +136,13 @@ namespace Gk3Main.Game
                 {
                     yakNode = yakNode.Next;
                 }
+            }
+
+            // if the Mom is finished then get rid of it
+            if (_lastMom != null && _lastMom.IsFinished)
+            {
+                Resource.ResourceManager.Unload(_lastMom);
+                _lastMom = null;
             }
         }
 

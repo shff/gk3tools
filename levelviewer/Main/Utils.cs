@@ -231,6 +231,12 @@ namespace Gk3Main
 
         public static bool TryParseInt(string str, int startIndex, int length, out int result)
         {
+            if (length < 0)
+            {
+                result = 0;
+                return false;
+            }
+
             // TODO: replace this with something that doesn't generate garbage
 
             string s = str.Substring(startIndex, length);

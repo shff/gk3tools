@@ -41,6 +41,11 @@ namespace Gk3Main.Game
             get { return _tickCount; }
         }
 
+        public static int ElapsedTickCount
+        {
+            get { return _tickCount - _prevTickCount; }
+        }
+
         public static float SecsPerFrame
         {
             get

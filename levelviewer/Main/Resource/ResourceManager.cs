@@ -93,6 +93,26 @@ namespace Gk3Main.Resource
 
     public class ResourceManager
     {
+        public static Resource Load(string filename, string overrideExtension)
+        {
+            Resource resource;
+            if (_resources.TryGetValue(filename, out resource) == false)
+            {
+                // find the resource loader for this extension
+                IResourceLoader loader = getLoaderForExtension(overrideExtension);
+
+                if (loader == null)
+                    throw new CannotFindResourceLoaderException(
+                        "Cannot find loader for " + filename);
+
+                resource = loader.Load(filename);
+                resource.ReferenceCount++;
+                _resources.Add(filename, resource);
+            }
+
+            return resource;
+        }
+
         public static Resource Load(string filename)
         {
             Resource resource;
@@ -177,7 +197,12 @@ namespace Gk3Main.Resource
 
             string extension = filename.Substring(dot + 1).ToUpper();
 
-            IResourceLoader loader;
+            return getLoaderForExtension(extension);
+        }
+
+        private static IResourceLoader getLoaderForExtension(string extension)
+        {
+             IResourceLoader loader;
             if (_loaders.TryGetValue(extension, out loader) == true)
                 return loader;
 

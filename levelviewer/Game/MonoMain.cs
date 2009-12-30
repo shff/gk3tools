@@ -78,11 +78,20 @@ class MonoMain
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.AnmLoader());
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader());
 
         try
         {
             Gk3Main.Sheep.SheepMachine.Initialize();
+
+            int major, minor, rev;
+            Gk3Main.Sheep.SheepMachine.GetVersion(out major, out minor, out rev);
+            Gk3Main.Console.CurrentConsole.WriteLine("Using Sheep v{0}.{1}.{2}", major, minor, rev);
+
+            string test = "symbols { int result$; } code { snippet$() { result$ = (result$ == 4); } }";
+            Gk3Main.Sheep.SheepMachine.RunScript(test, "snippet$");
         }
         catch (DllNotFoundException)
         {
@@ -116,12 +125,6 @@ class MonoMain
         Sdl.SDL_ShowCursor(0);
 
         _state = GameState.MainMenu;
-
-
-        Gk3Main.Resource.ResourceManager.Load("ABE_ABECS8EAT1.ACT");
-        Gk3Main.Resource.ResourceManager.Load("ABE_ABECS8GRACE2.ACT");
-        Gk3Main.Resource.ResourceManager.Load("GRA_GRA_CSE_TRYCELLAR.ACT");
-        Gk3Main.Resource.ResourceManager.Load("ABE.MOD");
 
         Gk3Main.Game.GameManager.Load();
         Gk3Main.Game.HelperIcons.Load();
