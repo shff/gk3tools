@@ -98,6 +98,18 @@ namespace Gk3Main.Game
                 line.TryGetAttribute("target", out nvc.Target);
                 line.TryGetAttribute("script", out nvc.Script);
 
+                // remove any { } around the script
+                // (normally they wouldn't mess anything up, but there are a few
+                // that have no ; at the end, and those will mess up)
+                int firstBracket = nvc.Script.IndexOf("{");
+                int lastBracket = nvc.Script.LastIndexOf("}");
+                if (firstBracket >= 0 && lastBracket >= 0)
+                    nvc.Script = nvc.Script.Substring(firstBracket + 1, lastBracket - firstBracket - 1);
+                else if (firstBracket >= 0)
+                    nvc.Script = nvc.Script.Substring(firstBracket + 1);
+                else if (lastBracket >= 0)
+                    nvc.Script = nvc.Script.Substring(0, lastBracket);
+
                 _nvcs.Add(nvc);
             }
         }

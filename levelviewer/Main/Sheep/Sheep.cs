@@ -165,12 +165,10 @@ namespace Gk3Main.Sheep
 
         public static void RunCommand(string command)
         {
-            string sheep = string.Format("code {{ main$() {{ {0} }} }}", command);
+            string sheep = string.Format("code {{ main$() {{ {0}; }} }}", command);
 
             if (_vm != IntPtr.Zero)
             {
-                int result;
-
                 _output.Clear();
 
                 int err = SHP_RunScript(_vm, sheep, "main$");
