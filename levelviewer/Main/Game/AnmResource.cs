@@ -30,6 +30,7 @@ namespace Gk3Main.Game
     {
         List<Graphics.ActResource> _acts = new List<Gk3Main.Graphics.ActResource>();
         AnimationResourceSection _actionSection;
+        AnimationResourceSection _mtexturesSection;
         private int _timeElapsedSinceStart;
 
         public AnmResource(string name, System.IO.Stream stream)
@@ -39,6 +40,8 @@ namespace Gk3Main.Game
             {
                 if (section.SectionName.Equals("ACTIONS", StringComparison.OrdinalIgnoreCase))
                     _actionSection = section;
+                else if (section.SectionName.Equals("MTEXTURES", StringComparison.OrdinalIgnoreCase))
+                    _mtexturesSection = section;
             }
         }
 
@@ -85,18 +88,25 @@ namespace Gk3Main.Game
             int startIndex, count;
 
             // play actions
-            GetAllFramesSince(_actionSection, timeSinceStart, duration, out startIndex, out count);
-
-            for (int i = startIndex; i < startIndex + count; i++)
+            if (_actionSection != null)
             {
-                string actName = _actionSection.Lines[i].Params[0].StringValue;
+                GetAllFramesSince(_actionSection, timeSinceStart, duration, out startIndex, out count);
 
-                // load the action
-                Graphics.ActResource act = (Graphics.ActResource)Resource.ResourceManager.Load(string.Format("{0}.ACT", actName));
-                _acts.Add(act);
+                for (int i = startIndex; i < startIndex + count; i++)
+                {
+                    string actName = _actionSection.Lines[i].Params[0].StringValue;
 
-                // TODO: play the action
-                
+                    // load the action
+                    Graphics.ActResource act = (Graphics.ActResource)Resource.ResourceManager.Load(string.Format("{0}.ACT", actName));
+                    _acts.Add(act);
+
+                    // TODO: play the action
+                }
+            }
+
+            if (_mtexturesSection != null)
+            {
+                // TODO
             }
         }
     }

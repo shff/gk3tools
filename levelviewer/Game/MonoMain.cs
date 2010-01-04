@@ -114,7 +114,7 @@ class MonoMain
 
         try
         {
-            SetupGraphics((int)_screenWidth, (int)_screenHeight, 32, false);
+            SetupGraphics((int)_screenWidth, (int)_screenHeight, 16, false);
         }
         catch (DllNotFoundException ex)
         {
@@ -133,8 +133,8 @@ class MonoMain
         Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
         Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
 
-        Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
-        Gk3Main.SceneManager.CurrentCamera = camera;
+        //Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
+       // Gk3Main.SceneManager.CurrentCamera = camera;
 
         MainMenu menu = null;
         if (_state == GameState.MainMenu)
@@ -153,6 +153,8 @@ class MonoMain
 
 		while(MainLoop())
 		{
+            Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+
             int oldmx = mx, oldmy = my;
             oldButtons = buttons;
 			buttons = Sdl.SDL_GetMouseState(out mx, out my);
@@ -169,33 +171,36 @@ class MonoMain
 
             if (Game.Input.LeftMousePressed)
             {
-                if (Game.Input.RightMousePressed)
+                if (camera != null)
                 {
-                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
+                    if (Game.Input.RightMousePressed)
                     {
-                        camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
-                        camera.AddPositionOffset(0, -rmy, 0);
-                    }
-                }
-                else
-                {
-                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
-                    {
-                        if (keys[Sdl.SDLK_LSHIFT] != 0 ||
-                            keys[Sdl.SDLK_RSHIFT] != 0)
+                        if (Game.VerbPickerManager.VerbButtonsVisible == false)
                         {
-                            camera.AdjustYaw(rmx * 0.01f);
-                            camera.AdjustPitch(rmy * 0.01f);
-                        }
-                        else
-                        {
-                            camera.AdjustYaw(rmx * 0.01f);
-                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * rmy);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
+                            camera.AddPositionOffset(0, -rmy, 0);
                         }
                     }
+                    else
+                    {
+                        if (Game.VerbPickerManager.VerbButtonsVisible == false)
+                        {
+                            if (keys[Sdl.SDLK_LSHIFT] != 0 ||
+                                keys[Sdl.SDLK_RSHIFT] != 0)
+                            {
+                                camera.AdjustYaw(rmx * 0.01f);
+                                camera.AdjustPitch(rmy * 0.01f);
+                            }
+                            else
+                            {
+                                camera.AdjustYaw(rmx * 0.01f);
+                                camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * rmy);
+                            }
+                        }
 
-                    if (Game.Input.LeftMousePressedFirstTime)
-                        Game.VerbPickerManager.MouseDown(0, mx, my);
+                        if (Game.Input.LeftMousePressedFirstTime)
+                            Game.VerbPickerManager.MouseDown(0, mx, my);
+                    }
                 }
 
                 if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMousePressedFirstTime)
@@ -203,7 +208,7 @@ class MonoMain
             }
             else if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMouseReleasedFirstTime)
                 menu.OnMouseUp(0);
-            else if (Game.Input.LeftMouseReleasedFirstTime)
+            else if (Game.Input.LeftMouseReleasedFirstTime && camera != null)
                 Game.VerbPickerManager.MouseUp(camera, 0, mx, my);
 
 
@@ -213,8 +218,9 @@ class MonoMain
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
             Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
-			Gk3Main.SceneManager.Render(camera);
-            Gk3Main.Sound.SoundManager.UpdateListener(camera);
+			Gk3Main.SceneManager.Render();
+            if (camera != null)
+                Gk3Main.Sound.SoundManager.UpdateListener(camera);
 
             Gk3Main.Game.DialogManager.Step();
             Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
@@ -301,9 +307,18 @@ class MonoMain
 	{
         Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
-        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
-        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
-        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 8);
+        if (depth == 16)
+        {
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 5);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 6);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 5);
+        }
+        else
+        {
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 8);
+        }
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DEPTH_SIZE, 24);
         Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
 
@@ -314,8 +329,9 @@ class MonoMain
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;
         Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestFunction = Gk3Main.Graphics.CompareFunction.Greater;
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.9f;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestFunction = Gk3Main.Graphics.CompareFunction.GreaterOrEqual;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.5f;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.SetBlendFunctions(Gk3Main.Graphics.BlendMode.SourceAlpha, Gk3Main.Graphics.BlendMode.InverseSourceAlpha);
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;
 	}

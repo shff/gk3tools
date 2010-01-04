@@ -384,7 +384,7 @@ namespace Gk3Main.Sheep
         {
             // TODO!
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, 1);
         }
 
         private static void sheep_GetEgoLocationCount(IntPtr vm)

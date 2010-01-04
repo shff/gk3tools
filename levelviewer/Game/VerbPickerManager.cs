@@ -71,7 +71,7 @@ namespace Game
 
         public static void RenderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
         {
-            if (_vbs != null)
+            if (_vbs != null || camera == null)
             {
                 point.Render(mx, my);
                 return;
@@ -97,6 +97,9 @@ namespace Game
 
         private static List<Gk3Main.Game.NounVerbCase> getNounVerbCasesUnderCursor(Gk3Main.Graphics.Camera camera, int mx, int my)
         {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
             // TODO: replace this junk with our own matrix unproject stuff and get rid of the OpenGL stuff
             Gk3Main.Math.Vector3 unprojected = camera.Unproject(new Gk3Main.Math.Vector3(mx, my, 0));
             

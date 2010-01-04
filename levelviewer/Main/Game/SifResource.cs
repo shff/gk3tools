@@ -45,6 +45,8 @@ namespace Gk3Main.Game
         public string Name;
         public float PitchDegrees, YawDegrees;
         public float X, Y, Z;
+
+        public Graphics.Camera Camera;
     }
 
     public struct SifPosition
@@ -154,6 +156,10 @@ namespace Gk3Main.Game
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
                         TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
 
+                        camera.Camera = GameManager.CreateCameraWithDefaults();
+                        camera.Camera.Position = new Gk3Main.Math.Vector3(camera.X, camera.Y, camera.Z);
+                        camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
+
                         _cameras.Add(camera);
                     }
                 }
@@ -165,12 +171,21 @@ namespace Gk3Main.Game
                         camera.Name = line.Value;
                         camera.Type = SifCameraType.Cinematic;
 
-                        string angle, pos;
+                        string angle, pos, fov;
+
                         line.TryGetAttribute("angle", out angle);
                         line.TryGetAttribute("pos", out pos);
+                        line.TryGetAttribute("fov", out fov);
 
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
                         TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
+                        float ffov;
+                        if (float.TryParse(fov, out ffov) == false)
+                            ffov = 60.0f;
+
+                        camera.Camera = GameManager.CreateCameraWithDefaults(Utils.DegreesToRadians(ffov));
+                        camera.Camera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
+                        camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
 
                         _cameras.Add(camera);
                     }
@@ -183,12 +198,20 @@ namespace Gk3Main.Game
                         camera.Name = line.Value;
                         camera.Type = SifCameraType.Dialogue;
 
-                        string angle, pos;
+                        string angle, pos, fov;
                         line.TryGetAttribute("angle", out angle);
                         line.TryGetAttribute("pos", out pos);
+                        line.TryGetAttribute("fov", out fov);
 
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
                         TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
+                        float ffov;
+                        if (float.TryParse(fov, out ffov) == false)
+                            ffov = 60.0f;
+
+                        camera.Camera = GameManager.CreateCameraWithDefaults(Utils.DegreesToRadians(ffov));
+                        camera.Camera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
+                        camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
 
                         _cameras.Add(camera);
                     }

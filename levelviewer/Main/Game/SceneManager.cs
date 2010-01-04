@@ -52,16 +52,29 @@ namespace Gk3Main
             ///_verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
         }
 
+        public static void LoadSif(string location, string timeblock)
+        {
+            try
+            {
+                LoadSif(location + timeblock + ".SIF");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // try something else...
+                LoadSif(location + ".SIF");
+            }
+        }
+
         public static void LoadSif(string sif)
         {
+            Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
+
             _roomPositions.Clear();
             _cameras.Clear();
             _modelNounMap.Clear();
             _nvcs.Clear();
             _nvcLogicAliases.Clear();
             _stks.Clear();
-
-            Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
 
             // attempt to load a "parent" sif
             Gk3Main.Game.SifResource parentSif = null;
@@ -94,6 +107,7 @@ namespace Gk3Main
             if (parentSif != null) loadSifNvcs(parentSif);
 
             // load the STKs
+            Sound.SoundManager.StopChannel(Sound.SoundTrackChannel.Music);
             loadSifStks(sifResource);
             if (parentSif != null) loadSifStks(parentSif);
 
@@ -186,42 +200,49 @@ namespace Gk3Main
             _actors.Add(actor);
         }
 
+        public static void Render()
+        {
+            Render(_currentCamera);
+        }
+
         public static void Render(Graphics.Camera camera)
         {
             if (camera != null)
+            {
                 camera.Update();
 
-            // render the skybox
-            if (_currentSkybox != null)
-                _currentSkybox.Render(camera);
+                // render the skybox
+                if (_currentSkybox != null)
+                    _currentSkybox.Render(camera);
 
-            // render the room
-            if (camera != null && _currentRoom != null)
-                _currentRoom.Render(camera, _currentLightmaps);
+                // render the room
+                if (camera != null && _currentRoom != null)
+                    _currentRoom.Render(camera, _currentLightmaps);
 
-            // render the models
-            foreach (Graphics.ModelResource model in _models)
-                model.Render(camera);
+                // render the models
+                foreach (Graphics.ModelResource model in _models)
+                    model.Render(camera);
 
-            // render the actors
-            foreach (Game.Actor actor in _actors)
-                actor.Render(camera);
+                // render the actors
+                foreach (Game.Actor actor in _actors)
+                    actor.Render(camera);
 
-            // add helpers to the billboard list
-            foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
-            {
-                //Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
-                //    50.0f, 50.0f, HelperIcons.Flag);
+                // add helpers to the billboard list
+                foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
+                {
+                    //Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
+                    //    50.0f, 50.0f, HelperIcons.Flag);
+                }
+
+                foreach (KeyValuePair<string, SifRoomCamera> rcamera in _cameras)
+                {
+                    //Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
+                    //    50.0f, 50.0f, HelperIcons.Camera);
+                }
+
+                // render any billboards
+                Graphics.BillboardManager.RenderBillboards(camera);
             }
-
-            foreach (KeyValuePair<string, SifRoomCamera> rcamera in _cameras)
-            {
-                //Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
-                //    50.0f, 50.0f, HelperIcons.Camera);
-            }
-
-            // render any billboards
-            Graphics.BillboardManager.RenderBillboards(camera);
 
             foreach (Sound.SoundTrackResource stk in _stks)
                 stk.Step(Game.GameManager.TickCount);
@@ -437,7 +458,7 @@ namespace Gk3Main
 
         public static void SetCameraToSifPosition(string name)
         {
-            if (_currentCamera != null)
+            /*if (_currentCamera != null)
             {
                 SifPosition position = _roomPositions[name];
                 SifRoomCamera camera = _cameras[position.CameraName];
@@ -446,22 +467,34 @@ namespace Gk3Main
                 //_currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
                 //_currentCamera.AdjustYaw(Utils.DegreesToRadians(camera.YawDegrees));
                 _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
-            }
+            }*/
+
+            SifPosition position = _roomPositions[name];
+            SifRoomCamera camera = _cameras[position.CameraName];
+
+            _currentCamera = GameManager.CreateCameraWithDefaults();
+            _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
+            _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
         }
 
         
 
         public static void SetCameraToCinematicCamera(string name)
         {
-            if (_currentCamera != null)
+            /*if (_currentCamera != null)
             {
                 SifRoomCamera camera = _cameras[name];
 
-                _currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
+                //_currentCamera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
                // _currentCamera.AdjustPitch(Utils.DegreesToRadians(camera.PitchDegrees));
                 //_currentCamera.AdjustYaw(Utils.DegreesToRadians(camera.YawDegrees));
-                _currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
-            }
+                //_currentCamera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
+
+                _currentCamera = camera.Camera;
+            }*/
+
+            SifRoomCamera camera = _cameras[name];
+            _currentCamera = camera.Camera;
         }
 
         public static void PlaySoundTrack(string name)

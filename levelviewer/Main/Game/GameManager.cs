@@ -108,7 +108,7 @@ namespace Gk3Main.Game
 
         public static void SetLocation(string location)
         {
-            SceneManager.LoadSif(location + GetTimeBlockString(_currentTime) + ".SIF");
+            SceneManager.LoadSif(location, GetTimeBlockString(_currentTime));
             List<NounVerbCase> nvcs = SceneManager.GetNounVerbCasesForNoun("SCENE");
 
             _lastLocation = _location;
@@ -246,6 +246,16 @@ namespace Gk3Main.Game
         public static string LastLocation
         {
             get { return _lastLocation; }
+        }
+
+        public static Graphics.Camera CreateCameraWithDefaults()
+        {
+            return CreateCameraWithDefaults(Math.Constants.SixtyDegreesInRadians);
+        }
+
+        public static Graphics.Camera CreateCameraWithDefaults(float fov)
+        {
+            return new Gk3Main.Graphics.Camera(fov, Graphics.RendererManager.CurrentRenderer.Viewport.Aspect, 5.0f, 5000.0f);
         }
 
         private static int _tickCount, _prevTickCount;

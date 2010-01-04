@@ -79,7 +79,7 @@ namespace Gk3Main.Game
                 if (command.Equals("DIALOGUE", StringComparison.OrdinalIgnoreCase))
                 {
                     string yak = _gk3Section.Lines[i].Params[1].StringValue;
-                    DialogManager.PlayDialogue(yak, 1, true, false);
+                    DialogManager.PlayDialogue(yak, 1, yak.StartsWith("E", StringComparison.OrdinalIgnoreCase), false);
                 }
             }
         }
