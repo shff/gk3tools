@@ -167,6 +167,12 @@ namespace Gk3Main.Graphics
             set { if (value) Gl.glEnable(Gl.GL_DEPTH_TEST); else Gl.glDisable(Gl.GL_DEPTH_TEST); }
         }
 
+        public bool DepthWriteEnabled
+        {
+            get { int enabled; Gl.glGetIntegerv(Gl.GL_DEPTH_WRITEMASK, out enabled); return enabled != 0; }
+            set { Gl.glDepthMask(value ? 1 : 0); }
+        }
+
         public CullMode CullMode
         {
             get
@@ -231,6 +237,8 @@ namespace Gk3Main.Graphics
                     Gl.glAlphaFunc(Gl.GL_ALWAYS, AlphaTestReference);
                 else if (value == CompareFunction.Greater)
                     Gl.glAlphaFunc(Gl.GL_GREATER, AlphaTestReference);
+                else if (value == CompareFunction.GreaterOrEqual)
+                    Gl.glAlphaFunc(Gl.GL_GEQUAL, AlphaTestReference);
             }
         }
 
@@ -286,6 +294,57 @@ namespace Gk3Main.Graphics
         public IndexBuffer CreateIndexBuffer(uint[] data)
         {
             return new GlIndexBuffer(data);
+        }
+
+        public void SetBlendFunctions(BlendMode source, BlendMode destination)
+        {
+            int glSource = Gl.GL_ZERO, glDest = Gl.GL_ZERO;
+
+            switch (source)
+            {
+                case BlendMode.Zero:
+                    glSource = Gl.GL_ZERO;
+                    break;
+                case BlendMode.One:
+                    glSource = Gl.GL_ONE;
+                    break;
+                case BlendMode.SourceAlpha:
+                    glSource = Gl.GL_SRC_ALPHA;
+                    break;
+                case BlendMode.InverseSourceAlpha:
+                    glSource = Gl.GL_ONE_MINUS_SRC_ALPHA;
+                    break;
+                case BlendMode.DestinationAlpha:
+                    glSource = Gl.GL_DST_ALPHA;
+                    break;
+                case BlendMode.InverseDestinationAlpha:
+                    glSource = Gl.GL_ONE_MINUS_DST_ALPHA;
+                    break;
+            }
+
+            switch (destination)
+            {
+                case BlendMode.Zero:
+                    glDest = Gl.GL_ZERO;
+                    break;
+                case BlendMode.One:
+                    glDest = Gl.GL_ONE;
+                    break;
+                case BlendMode.SourceAlpha:
+                    glDest = Gl.GL_SRC_ALPHA;
+                    break;
+                case BlendMode.InverseSourceAlpha:
+                    glDest = Gl.GL_ONE_MINUS_SRC_ALPHA;
+                    break;
+                case BlendMode.DestinationAlpha:
+                    glDest = Gl.GL_DST_ALPHA;
+                    break;
+                case BlendMode.InverseDestinationAlpha:
+                    glDest = Gl.GL_ONE_MINUS_DST_ALPHA;
+                    break;
+            }
+
+            Gl.glBlendFunc(glSource, glDest);
         }
 
         public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)

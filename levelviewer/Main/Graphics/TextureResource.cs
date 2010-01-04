@@ -65,7 +65,7 @@ namespace Gk3Main.Graphics
             reader.BaseStream.Seek(currentStreamPosition, System.IO.SeekOrigin.Begin);
 
             if (header == Gk3BitmapHeader)
-                LoadGk3Bitmap(reader, out _pixels, out _width, out _height);
+                LoadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
             else
                 LoadWindowsBitmap(reader, out _pixels, out _width, out _height);
 
@@ -78,7 +78,7 @@ namespace Gk3Main.Graphics
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
 
             if (IsGk3Bitmap(reader))
-                LoadGk3Bitmap(reader, out _pixels, out _width, out _height);
+                LoadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
             else
                 LoadWindowsBitmap(reader, out _pixels, out _width, out _height);
 
@@ -93,7 +93,7 @@ namespace Gk3Main.Graphics
 
             // load the color info
             if (IsGk3Bitmap(colorReader))
-                LoadGk3Bitmap(colorReader, out _pixels, out _width, out _height);
+                LoadGk3Bitmap(colorReader, out _pixels, out _width, out _height, out _containsAlpha);
             else
                 LoadWindowsBitmap(colorReader, out _pixels, out _width, out _height);
 
@@ -101,7 +101,7 @@ namespace Gk3Main.Graphics
             byte[] alphaPixels;
             int alphaWidth, alphaHeight;
             if (IsGk3Bitmap(alphaReader))
-                LoadGk3Bitmap(alphaReader, out alphaPixels, out alphaWidth, out alphaHeight);
+                LoadGk3Bitmap(alphaReader, out alphaPixels, out alphaWidth, out alphaHeight, out _containsAlpha);
             else
                 LoadWindowsBitmap(alphaReader, out alphaPixels, out alphaWidth, out alphaHeight);
 
@@ -202,6 +202,8 @@ namespace Gk3Main.Graphics
         public int ActualPixelWidth { get { return _actualPixelWidth; } }
         public int ActualPixelHeight { get { return _actualPixelHeight; } }
 
+        public bool ContainsAlpha { get { return _containsAlpha; } }
+
         /// <summary>
         /// Determines whether the bitmap is a GK3 bitmap or not.
         /// </summary>
@@ -225,10 +227,11 @@ namespace Gk3Main.Graphics
             return false;
         }
 
-        protected static void LoadGk3Bitmap(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height)
+        protected static void LoadGk3Bitmap(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height, out bool containsAlpha)
         {
             const string errorMessage = "This is not a valid GK3 bitmap";
 
+            containsAlpha = false;
             uint header = reader.ReadUInt32();
 
             if (header != Gk3BitmapHeader)
@@ -254,7 +257,13 @@ namespace Gk3Main.Graphics
                     pixels[currentPixel + 2] = b;
 
                     if (r == 255 && g == 0 && b == 255)
+                    {
+                        pixels[currentPixel + 0] = 0;
+                        pixels[currentPixel + 1] = 0;
+                        pixels[currentPixel + 2] = 0;
                         pixels[currentPixel + 3] = 0;
+                        containsAlpha = true;
+                    }
                     else
                         pixels[currentPixel + 3] = 255;
                 }
@@ -364,7 +373,6 @@ namespace Gk3Main.Graphics
             return n + 1;
         }
 
-        
         private static void convert565(ushort pixel, out byte r, out byte g, out byte b)
         {
             int tr = ((pixel & 0xF800) >> 11);
@@ -385,6 +393,7 @@ namespace Gk3Main.Graphics
 
         private float _actualWidth, _actualHeight;
         private int _actualPixelWidth, _actualPixelHeight;
+        private bool _containsAlpha;
 
         private static TextureResource _defaultTexture;
 

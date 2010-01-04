@@ -31,6 +31,16 @@ namespace Gk3Main.Graphics
         NotEqual
     }
 
+    public enum BlendMode
+    {
+        Zero,
+        One,
+        SourceAlpha,
+        InverseSourceAlpha,
+        DestinationAlpha,
+        InverseDestinationAlpha
+    }
+
     public struct Viewport
     {
         private int _x, _y, _width, _height;
@@ -65,6 +75,11 @@ namespace Gk3Main.Graphics
         {
             get { return _height; }
             set { _height = value; }
+        }
+
+        public float Aspect
+        {
+            get { return (float)_width / _height; }
         }
 
         public Math.Vector4 Vector
@@ -196,15 +211,19 @@ namespace Gk3Main.Graphics
         bool BlendEnabled { get; set; }
         bool AlphaTestEnabled { get; set; }
         bool DepthTestEnabled { get; set; }
+        bool DepthWriteEnabled { get; set; }
         CullMode CullMode { get; set; }
         Viewport Viewport { get; set; }
         CompareFunction AlphaTestFunction { get; set; }
         float AlphaTestReference { get; set; }
 
+
         Effect CreateEffect(string name, System.IO.Stream stream);
 
         VertexBuffer CreateVertexBuffer(float[] data, int stride);
         IndexBuffer CreateIndexBuffer(uint[] data);
+
+        void SetBlendFunctions(BlendMode source, BlendMode destination);
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
         void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices);

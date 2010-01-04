@@ -384,9 +384,15 @@ namespace Gk3Main.Graphics
 
                         foreach (ModMeshSection section in mesh.sections)
                         {
+                            if (section.textureResource.ContainsAlpha)
+                                RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+
                             section.textureResource.Bind();
 
                             RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+
+                            if (section.textureResource.ContainsAlpha)
+                                RendererManager.CurrentRenderer.AlphaTestEnabled = false;   
                         }
 
                         _effect.EndPass();
@@ -417,9 +423,15 @@ namespace Gk3Main.Graphics
 
                         foreach (ModMeshSection section in _meshes[i].sections)
                         {
+                            if (section.textureResource.ContainsAlpha)
+                                RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+
                             section.textureResource.Bind();
 
                             RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+
+                            if (section.textureResource.ContainsAlpha)
+                                RendererManager.CurrentRenderer.AlphaTestEnabled = false;
                         }
 
                         _effect.EndPass();
@@ -454,6 +466,9 @@ namespace Gk3Main.Graphics
 
                     foreach (ModMeshSection section in mesh.sections)
                     {
+                        if (section.textureResource.ContainsAlpha)
+                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+
                         _effect.SetParameter("ModelViewProjection", worldview);
                         _effect.Begin();
                         _effect.BeginPass(0);
@@ -464,6 +479,9 @@ namespace Gk3Main.Graphics
                     
                         _effect.EndPass();
                         _effect.End();
+
+                        if (section.textureResource.ContainsAlpha)
+                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
                     }
                 }
 

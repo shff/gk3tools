@@ -533,6 +533,13 @@ namespace Gk3Main.Graphics
             effect.SetParameter("ModelViewProjection", camera.ViewProjection);
             effect.SetParameter("Diffuse", surface.textureResource);
 
+            if (surface.textureResource.ContainsAlpha)
+            {
+                // this little surface has alpha info, so we need to render 2 passes
+                // to get it to look smooth. 1st pass is with just alpha testing...
+                RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+            }
+
             if (lightmap != null)
                 effect.SetParameter("Lightmap", lightmap);
 
@@ -575,6 +582,48 @@ namespace Gk3Main.Graphics
 
             effect.EndPass();
             effect.End();
+
+            if (surface.textureResource.ContainsAlpha)
+            {
+                // time for the 2nd path with alpha testing disabled, alpha blending true, and depth writing disabled
+                RendererManager.CurrentRenderer.AlphaTestEnabled = false;
+                RendererManager.CurrentRenderer.BlendEnabled = true;
+                RendererManager.CurrentRenderer.DepthWriteEnabled = false;
+
+                effect.Begin();
+                effect.BeginPass(0);
+
+                //effect.UpdatePassParameters();
+
+                Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
+                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
+
+                if (lightmap != null)
+                {
+                    Gl.glActiveTexture(Gl.GL_TEXTURE1);
+                    Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
+                    Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
+
+                    Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
+                    Gl.glActiveTexture(Gl.GL_TEXTURE0);
+                }
+
+                Gl.glGetError();
+
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
+
+                err = Gl.glGetError();
+
+                if (err != Gl.GL_NO_ERROR)
+                    Console.CurrentConsole.WriteLine("error: " + err);
+
+                effect.EndPass();
+                effect.End();
+
+                RendererManager.CurrentRenderer.BlendEnabled = false;
+                RendererManager.CurrentRenderer.DepthWriteEnabled = true;
+            }
 
             //BoundingSphereRenderer.Render(camera, surface.boundingSphere.X, surface.boundingSphere.Y, surface.boundingSphere.Z, surface.boundingSphere.W);
         }
