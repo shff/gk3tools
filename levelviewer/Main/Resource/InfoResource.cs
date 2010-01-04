@@ -43,31 +43,32 @@ namespace Gk3Main.Resource
 
         public static bool TryParse2f(string str, out float f1, out float f2)
         {
+            int firstBracket = str.IndexOf('{');
+            int comma = str.IndexOf(',');
+            int lastBracket = str.IndexOf('}');
+
+            if (Utils.TryParseFloat(str, firstBracket + 1, comma - firstBracket - 1, out f1) &&
+                Utils.TryParseFloat(str, comma + 1, lastBracket - comma - 1, out f2))
+                return true;
+
             f1 = f2 = 0;
-            Match match = Regex.Match(str, @"{(-?[\d]+.?[\d]+),[\s]*(-?[\d]+.?[\d]+)}");
-
-            if (match.Success == false) return false;
-
-            if (float.TryParse(match.Groups[1].Value, out f1) == false ||
-                float.TryParse(match.Groups[2].Value, out f2) == false)
-                return false;
-
-            return true;
+            return false;
         }
 
         public static bool TryParse3f(string str, out float f1, out float f2, out float f3)
         {
+            int firstBracket = str.IndexOf('{');
+            int firstComma = str.IndexOf(',');
+            int secondComma = str.IndexOf(',', firstComma + 1);
+            int lastBracket = str.IndexOf('}');
+
+            if (Utils.TryParseFloat(str, firstBracket + 1, firstComma - firstBracket - 1, out f1) &&
+                Utils.TryParseFloat(str, firstComma + 1, secondComma - firstComma - 1, out f2) &&
+                Utils.TryParseFloat(str, secondComma + 1, lastBracket - secondComma - 1, out f3))
+                return true;
+
             f1 = f2 = f3 = 0;
-            Match match = Regex.Match(str, @"{(-?[\d]+.?[\d]+),[\s]*(-?[\d]+.?[\d]+),[\s]*(-?[\d]+.?[\d]+)}");
-
-            if (match.Success == false) return false;
-
-            if (float.TryParse(match.Groups[1].Value, out f1) == false ||
-                float.TryParse(match.Groups[2].Value, out f2) == false ||
-                float.TryParse(match.Groups[3].Value, out f3) == false)
-                return false;
-
-            return true;
+            return false;
         }
 
         public InfoSection GlobalSection { get { return _globalSection; } }

@@ -72,6 +72,9 @@ namespace Gk3Main.Graphics
 
         public static void RenderBillboards(Camera camera)
         {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
             if (_shader == null)
                 _shader = (Effect)Resource.ResourceManager.Load("texturedBillboard.fx");
 

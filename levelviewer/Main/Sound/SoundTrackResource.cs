@@ -218,7 +218,7 @@ namespace Gk3Main.Sound
 
     class SoundTrackResource : Resource.InfoResource
     {
-        private SoundTrackChannel _channel;
+        private SoundTrackChannel _channel = SoundTrackChannel.Music;
         private List<ISoundTrackNode> _nodes = new List<ISoundTrackNode>();
         private int _currentNodeIndex;
         private int _timeAtStart;

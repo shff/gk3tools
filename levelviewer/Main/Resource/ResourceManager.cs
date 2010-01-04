@@ -129,12 +129,19 @@ namespace Gk3Main.Resource
                 resource.ReferenceCount++;
                 _resources.Add(filename, resource);
             }
+            else
+            {
+                resource.ReferenceCount++;
+            }
             
             return resource;
         }
 
         public static void Unload(Resource resource)
         {
+            if (resource.ReferenceCount <= 0)
+                throw new InvalidOperationException("Resource reference count was already 0.");
+
             resource.ReferenceCount--;
 
             if (resource.ReferenceCount < 1)

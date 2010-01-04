@@ -242,5 +242,27 @@ namespace Gk3Main
             string s = str.Substring(startIndex, length);
             return int.TryParse(s, out result);
         }
+
+        public static bool TryParseFloat(string str, int startIndex, int length, out float result)
+        {
+            if (length < 0)
+            {
+                result = 0;
+                return false;
+            }
+
+            // TODO: replace this with something that doesn't generate garbage
+
+            string s = str.Substring(startIndex, length);
+            return float.TryParse(s, out result);
+        }
+
+        public static bool TryParseFloat(string str, int startIndex, out float result)
+        {
+            // TODO: replace this with something that doesn't generate garbage
+
+            string s = str.Substring(startIndex);
+            return float.TryParse(s, out result);
+        }
     }
 }

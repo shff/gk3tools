@@ -106,6 +106,9 @@ namespace Gk3Main.Sound
 
         public static void UpdateListener(Graphics.Camera camera)
         {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
             Math.Vector3 position = camera.Position;
             Math.Vector3 forward =  camera.Orientation * -Math.Vector3.Forward;
             Math.Vector3 up = camera.Orientation * Math.Vector3.Up;
