@@ -186,6 +186,11 @@ namespace Gk3Main
             return degrees * Math.Constants.RadiansPerDegree;
         }
 
+        public static bool IsPowerOfTwo(int n)
+        {
+            return (n & (n - 1)) == 0;
+        }
+
         /// <summary>
         /// If the given string doesn't have the specified ending it is appended.
         /// </summary>

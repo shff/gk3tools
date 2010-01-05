@@ -176,7 +176,7 @@ namespace Gk3Main.Graphics
             bool wasIn2D = _in2D;
             if (_in2D == false) Go2D();
 
-            TextureResource texture = TextureResource.DefaultTexture;
+            TextureResource texture = RendererManager.CurrentRenderer.DefaultTexture;
             texture.Bind();
 
 

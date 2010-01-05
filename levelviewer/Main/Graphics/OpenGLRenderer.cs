@@ -97,8 +97,22 @@ namespace Gk3Main.Graphics
 
         public override void SetParameter(string name, TextureResource parameter)
         {
+            if (parameter == null)
+                throw new ArgumentNullException("parameter");
+            GlTexture glTexture = (GlTexture)parameter;
+
             IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
-            CgGl.cgGLSetTextureParameter(param, parameter.OpenGlTexture);
+            CgGl.cgGLSetTextureParameter(param, glTexture.OpenGlTexture);
+        }
+
+        public override void SetParameter(string name, CubeMapResource parameter)
+        {
+            if (parameter == null)
+                throw new ArgumentNullException("parameter");
+            GlCubeMap glTexture = (GlCubeMap)parameter;
+
+            IntPtr param = Cg.cgGetNamedEffectParameter(_effect, name);
+            CgGl.cgGLSetTextureParameter(param, glTexture.OpenGlTexture);
         }
 
         public override void DisableTextureParameter(string name)
@@ -129,9 +143,315 @@ namespace Gk3Main.Graphics
 
     }
 
+    public class GlTexture : TextureResource
+    {
+        private int _glTexture;
+
+        /// <summary>
+        /// Creates a 1x1 white texture
+        /// </summary>
+        internal GlTexture(bool loaded)
+            : base("default_white", loaded)
+        {
+            // create a 1x1 white pixel
+            _pixels = new byte[] { 255, 255, 255, 255 };
+            _width = 1;
+            _height = 1;
+
+            convertToOpenGlTexture(false, true);
+        }
+
+        internal GlTexture(string name, int glTexture, bool loaded)
+            : base(name, loaded)
+        {
+            _glTexture = glTexture;
+        }
+
+        public GlTexture(string name, System.IO.Stream stream)
+            : base(name, stream)
+        {
+            convertToOpenGlTexture(true, false);
+        }
+
+        public GlTexture(string name, System.IO.Stream stream, bool clamp)
+            : base(name, stream)
+        {
+            convertToOpenGlTexture(true, clamp);
+        }
+
+        public GlTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
+            :base(name, colorStream, alphaStream)
+        {
+            convertToOpenGlTexture(true, true);
+        }
+
+        public override void Bind()
+        {
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+        }
+
+        public int OpenGlTexture { get { return _glTexture; } }
+
+        private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp)
+        {
+            byte[] pixels = _pixels;
+            _actualPixelWidth = _width;
+            _actualPixelHeight = _height;
+
+            _actualWidth = 1.0f;
+            _actualHeight = 1.0f;
+
+            if (resizeToPowerOfTwo &&
+                ((_width & (_width - 1)) != 0 ||
+                (_height & (_height - 1)) != 0))
+            {
+                _actualPixelWidth = getNextPowerOfTwo(_width);
+                _actualPixelHeight = getNextPowerOfTwo(_height);
+
+                _actualWidth = _width / (float)_actualPixelWidth;
+                _actualHeight = _height / (float)_actualPixelHeight;
+
+                pixels = new byte[_actualPixelWidth * _actualPixelHeight * 4];
+
+                for (int y = 0; y < _actualPixelHeight; y++)
+                {
+                    for (int x = 0; x < _actualPixelWidth; x++)
+                    {
+                        if (x < _width && y < _height)
+                        {
+                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = _pixels[(y * _width + x) * 4 + 0];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = _pixels[(y * _width + x) * 4 + 1];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = _pixels[(y * _width + x) * 4 + 2];
+                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = _pixels[(y * _width + x) * 4 + 3];
+                        }
+                        else
+                        {
+                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = 0;
+                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = 0;
+                        }
+                    }
+                }
+            }
+
+            Gl.glEnable(Gl.GL_TEXTURE_2D);
+
+            int[] textures = new int[1];
+            textures[0] = 0;
+            Gl.glGenTextures(1, textures);
+            _glTexture = textures[0];
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+
+            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
+                Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+
+            if (clamp)
+            {
+                Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
+                Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
+            }
+        }
+    }
+
+    public class GlUpdatableTexture : UpdatableTexture
+    {
+        private int _glTexture;
+
+        public GlUpdatableTexture(string name, int width, int height)
+            : base(name, width, height)
+        {
+            if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
+                Gk3Main.Utils.IsPowerOfTwo(height) == false)
+                throw new ArgumentException("Width and height must be power-of-two");
+
+            Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Gl.glGenTextures(1, out _glTexture);
+
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+        }
+
+        public override void Update(byte[] pixels)
+        {
+            if (pixels.Length != _width * _height * 4)
+                throw new ArgumentException("Pixel array is not the expected length");
+
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+
+            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, _width, _height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+        }
+
+        public override void Bind()
+        {
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+        }
+
+        public int OpenGlTexture { get { return _glTexture; } }
+    }
+
+    public class GlCubeMap : CubeMapResource
+    {
+        private int _glTexture;
+
+        public GlCubeMap(string name, string front, string back, string left, string right,
+            string up, string down)
+            : base(name)
+        {
+            System.IO.Stream frontStream = null;
+            System.IO.Stream backStream = null;
+            System.IO.Stream leftStream = null;
+            System.IO.Stream rightStream = null;
+            System.IO.Stream upStream = null;
+            System.IO.Stream downStream = null;
+
+            frontStream = FileSystem.Open(front);
+            backStream = FileSystem.Open(back);
+            leftStream = FileSystem.Open(left);
+            rightStream = FileSystem.Open(right);
+            upStream = FileSystem.Open(up);
+
+            try
+            {
+                downStream = FileSystem.Open(down);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // oh well, we tried.
+            }
+
+            try
+            {
+                Gl.glGetError();
+                Gl.glGenTextures(1, out _glTexture);
+                Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP);
+                Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
+
+                int internalFormat = Gl.GL_RGBA;
+
+                byte[] pixels;
+                int width, height;
+                loadFace(new System.IO.BinaryReader(frontStream), out pixels, out width, out height);
+                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+                loadFace(new System.IO.BinaryReader(backStream), out pixels, out width, out height);
+                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+                loadFace(new System.IO.BinaryReader(rightStream), out pixels, out width, out height);
+                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+                loadFace(new System.IO.BinaryReader(leftStream), out pixels, out width, out height);
+                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+                loadFace(new System.IO.BinaryReader(upStream), out pixels, out width, out height);
+                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+                if (downStream != null)
+                {
+                    loadFace(new System.IO.BinaryReader(downStream), out pixels, out width, out height);
+                    Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+                }
+                else
+                {
+                    // apparently the "down" face isn't needed. we'll just reuse the top.
+                    Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+                }
+
+                Gl.glTexParameterf(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+                Gl.glTexParameterf(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+
+                Gl.glTexParameteri(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
+                Gl.glTexParameteri(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
+
+                if (Gl.glGetError() != Gl.GL_NO_ERROR)
+                    throw new InvalidOperationException();
+            }
+            finally
+            {
+                frontStream.Close();
+                backStream.Close();
+                leftStream.Close();
+                rightStream.Close();
+                upStream.Close();
+
+                if (downStream != null)
+                    downStream.Close();
+            }
+        }
+
+        public override void Bind()
+        {
+            Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP);
+            Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
+            //Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, 0);
+        }
+
+        public override void Unbind()
+        {
+            Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP);
+        }
+
+        public int OpenGlTexture { get { return _glTexture; } }
+    }
+
+    public class GlRenderTarget : RenderTarget
+    {
+        private int _fbo;
+        private int _depthBuffer;
+        private int _colorBuffer;
+        private GlTexture _texture;
+
+        public GlRenderTarget(int width, int height)
+        {
+            // generate the FBO
+            Gl.glGenFramebuffersEXT(1, out _fbo);
+            Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, _fbo);
+
+            // generate a depth buffer
+            Gl.glGenRenderbuffersEXT(1, out _depthBuffer);
+            Gl.glBindRenderbufferEXT(Gl.GL_RENDERBUFFER_EXT, _depthBuffer);
+            Gl.glRenderbufferStorageEXT(Gl.GL_RENDERBUFFER_EXT, Gl.GL_DEPTH_COMPONENT, width, height);
+            Gl.glFramebufferRenderbufferEXT(Gl.GL_FRAMEBUFFER_EXT, Gl.GL_DEPTH_ATTACHMENT_EXT, Gl.GL_RENDERBUFFER_EXT, _depthBuffer);
+
+            // generate a color buffer
+            Gl.glGenTextures(1, out _colorBuffer);
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _colorBuffer);
+            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA8, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, IntPtr.Zero);
+            Gl.glFramebufferTexture2DEXT(Gl.GL_FRAMEBUFFER_EXT, Gl.GL_COLOR_ATTACHMENT0_EXT, Gl.GL_TEXTURE_2D, _colorBuffer, 0);
+
+            // all done... or are we...?
+            int status = Gl.glCheckFramebufferStatusEXT(Gl.GL_FRAMEBUFFER_EXT);
+            if (status != Gl.GL_FRAMEBUFFER_COMPLETE_EXT)
+                throw new Exception("Unable to create RenderTarget");
+        }
+
+        public void Bind()
+        {
+            Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, _fbo);
+        }
+
+        public override TextureResource Texture
+        {
+            get
+            {
+                if (_texture == null)
+                    _texture = new GlTexture("RenderTarget texture", _colorBuffer, true);
+
+                return _texture;
+            }
+        }
+    }
+
     public class OpenGLRenderer : IRenderer
     {
         private IntPtr _cgContext;
+        private TextureResource _defaultTexture;
+        private TextureResource _errorTexture;
+        private bool _renderToTextureSupported;
 
         public OpenGLRenderer()
         {
@@ -144,6 +464,9 @@ namespace Gk3Main.Graphics
             cgSetParameterSettingMode(_cgContext, CG_DEFERRED_PARAMETER_SETTING);
             if (Cg.cgGetError() != Cg.CG_NO_ERROR)
                 throw new Exception("Oh no!");
+
+            // load extensions
+            _renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
         }
 
         public IntPtr CgContext { get { return _cgContext; } }
@@ -281,6 +604,32 @@ namespace Gk3Main.Graphics
             }
         }
 
+        public TextureResource CreateTexture(string name, System.IO.Stream stream)
+        {
+            return new GlTexture(name, stream);
+        }
+
+        public TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp)
+        {
+            return new GlTexture(name, stream, clamp);
+        }
+
+        public TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
+        {
+            return new GlTexture(name, colorStream, alphaStream);
+        }
+
+        public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)
+        {
+            return new GlUpdatableTexture(name, width, height);
+        }
+
+        public CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
+            string up, string down)
+        {
+            return new GlCubeMap(name, front, back, left, right, up, down);
+        }
+
         public Effect CreateEffect(string name, System.IO.Stream stream)
         {
             return new CgEffect(name, stream, _cgContext);
@@ -294,6 +643,28 @@ namespace Gk3Main.Graphics
         public IndexBuffer CreateIndexBuffer(uint[] data)
         {
             return new GlIndexBuffer(data);
+        }
+
+        public TextureResource DefaultTexture
+        {
+            get
+            {
+                if (_defaultTexture == null)
+                    _defaultTexture = new GlTexture(true);
+
+                return _defaultTexture;
+            }
+        }
+
+        public TextureResource ErrorTexture
+        {
+            get
+            {
+                if (_errorTexture == null)
+                    _errorTexture = new GlTexture(false);
+
+                return _errorTexture;
+            }
         }
 
         public void SetBlendFunctions(BlendMode source, BlendMode destination)
@@ -465,6 +836,31 @@ namespace Gk3Main.Graphics
         {
             Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
         }
+
+        public RenderTarget CreateRenderTarget(int width, int height)
+        {
+            if (_renderToTextureSupported == false)
+                throw new NotSupportedException();
+
+            return new GlRenderTarget(width, height);
+        }
+
+        public void SetRenderTarget(RenderTarget renderTarget)
+        {
+            if (_renderToTextureSupported == false)
+                throw new NotSupportedException();
+
+            if (renderTarget == null)
+                Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, 0);
+            else
+            {
+                GlRenderTarget rt = (GlRenderTarget)renderTarget;
+                rt.Bind();
+            }
+        }
+
+        public bool RenderToTextureSupported { get { return _renderToTextureSupported; } }
+
 
         const int CG_IMMEDIATE_PARAMETER_SETTING = 4132;
         const int CG_DEFERRED_PARAMETER_SETTING = 4133;

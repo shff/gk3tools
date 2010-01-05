@@ -51,9 +51,9 @@ namespace Gk3Main.Gui
             reader.Close();
 
             if (alphaTexture == null)
-                _cursor = new Gk3Main.Graphics.TextureResource(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"));
+                _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"));
             else
-                _cursor = new Gk3Main.Graphics.TextureResource(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"), FileSystem.Open(alphaTexture + ".BMP"));
+                _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"), FileSystem.Open(alphaTexture + ".BMP"));
 
             if (_hotX == -1) _hotX = _cursor.Height / 2;
             if (_hotY == -1) _hotY = _cursor.Height / 2;

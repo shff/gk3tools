@@ -200,6 +200,15 @@ namespace Gk3Main
             _actors.Add(actor);
         }
 
+        public static Actor GetActor(string actorNoun)
+        {
+            for (int i = 0; i < _actors.Count; i++)
+                if (_actors[i].Noun.Equals(actorNoun))
+                    return _actors[i];
+
+            return null;
+        }
+
         public static void Render()
         {
             Render(_currentCamera);

@@ -107,6 +107,7 @@ namespace Gk3Main.Graphics
         public abstract void SetParameter(string name, Math.Vector4 parameter);
         public abstract void SetParameter(string name, Math.Matrix parameter);
         public abstract void SetParameter(string name, TextureResource parameter);
+        public abstract void SetParameter(string name, CubeMapResource parameter);
         public abstract void UpdatePassParameters();
 
         public abstract void EnableTextureParameter(string name);
@@ -206,6 +207,14 @@ namespace Gk3Main.Graphics
         public int Stride;
     }
 
+    public abstract class RenderTarget
+    {
+        public abstract TextureResource Texture
+        {
+            get;
+        }
+    }
+
     public interface IRenderer
     {
         bool BlendEnabled { get; set; }
@@ -217,8 +226,16 @@ namespace Gk3Main.Graphics
         CompareFunction AlphaTestFunction { get; set; }
         float AlphaTestReference { get; set; }
 
-
+        TextureResource CreateTexture(string name, System.IO.Stream stream);
+        TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp);
+        TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream);
+        UpdatableTexture CreateUpdatableTexture(string name, int width, int height);
+        CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
+            string up, string down);
         Effect CreateEffect(string name, System.IO.Stream stream);
+
+        TextureResource DefaultTexture { get; }
+        TextureResource ErrorTexture { get; }
 
         VertexBuffer CreateVertexBuffer(float[] data, int stride);
         IndexBuffer CreateIndexBuffer(uint[] data);
@@ -231,5 +248,11 @@ namespace Gk3Main.Graphics
         void RenderIndices(VertexElementSet elements, PrimitiveType type, int startIndex, int count, int[] indices, float[] vertices);
 
         void Clear();
+
+        RenderTarget CreateRenderTarget(int width, int height);
+        void SetRenderTarget(RenderTarget target);
+
+        // caps
+        bool RenderToTextureSupported { get; }
     }
 }

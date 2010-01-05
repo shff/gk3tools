@@ -1,4 +1,4 @@
-// Copyright (c) 2007 Brad Farris
+// Copyright (c) 2009 Brad Farris
 // This file is part of the GK3 Scene Viewer.
 
 // The GK3 Scene Viewer is free software; you can redistribute it and/or modify
@@ -12,7 +12,7 @@
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Foobar; if not, write to the Free Software
+// along with the GK3 Scene Viewer; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 using System;
@@ -23,33 +23,14 @@ using Tao.OpenGl;
 
 namespace Gk3Main.Graphics
 {
-    public class TextureResource : Resource.Resource
+    public abstract class TextureResource : Resource.Resource
     {
         private const uint Gk3BitmapHeader = 0x4D6E3136;
 
-        public static TextureResource DefaultTexture
+        internal TextureResource(string name, bool loaded)
+            : base(name, loaded)
         {
-            get
-            {
-                if (_defaultTexture == null)
-                {
-                    _defaultTexture = createDefaultTexture();
-                }
-
-                return _defaultTexture; 
-            }
-        }
-
-        /// <summary>
-        /// Creates a empty texture
-        /// </summary>
-        /// <param name="name"></param>
-        public TextureResource(string name)
-            : base(name, false)
-        {
-            _width = 1;
-            _height = 1;
-            _glTexture = 0;
+            // nothing... hopefully the child class is handling things
         }
 
         public TextureResource(string name, System.IO.Stream stream)
@@ -68,21 +49,6 @@ namespace Gk3Main.Graphics
                 LoadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
             else
                 LoadWindowsBitmap(reader, out _pixels, out _width, out _height);
-
-            convertToOpenGlTexture(true, false);
-        }
-
-        public TextureResource(string name, System.IO.Stream stream, bool clamp)
-            : base(name, true)
-        {
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
-
-            if (IsGk3Bitmap(reader))
-                LoadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
-            else
-                LoadWindowsBitmap(reader, out _pixels, out _width, out _height);
-
-            convertToOpenGlTexture(true, clamp);
         }
 
         public TextureResource(string name, System.IO.Stream colorMapStream, System.IO.Stream alphaMapStream)
@@ -113,85 +79,15 @@ namespace Gk3Main.Graphics
             {
                 _pixels[i * 4 + 3] = alphaPixels[i * 4 + 0];
             }
-
-            convertToOpenGlTexture(true, true);
         }
 
-        private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp)
-        {
-            byte[] pixels = _pixels;
-            _actualPixelWidth = _width;
-            _actualPixelHeight = _height;
-
-            _actualWidth = 1.0f;
-            _actualHeight = 1.0f;
-
-            if (resizeToPowerOfTwo &&
-                ((_width & (_width - 1)) != 0 ||
-                (_height & (_height - 1)) != 0))
-            {
-                _actualPixelWidth = getNextPowerOfTwo(_width);
-                _actualPixelHeight = getNextPowerOfTwo(_height);
-
-                _actualWidth = _width / (float)_actualPixelWidth;
-                _actualHeight = _height / (float)_actualPixelHeight;
-
-                pixels = new byte[_actualPixelWidth * _actualPixelHeight * 4];
-
-                for (int y = 0; y < _actualPixelHeight; y++)
-                {
-                    for (int x = 0; x < _actualPixelWidth; x++)
-                    {
-                        if (x < _width && y < _height)
-                        {
-                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = _pixels[(y * _width + x) * 4 + 0];
-                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = _pixels[(y * _width + x) * 4 + 1];
-                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = _pixels[(y * _width + x) * 4 + 2];
-                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = _pixels[(y * _width + x) * 4 + 3];
-                        }
-                        else
-                        {
-                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = 0;
-                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = 0;
-                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = 0;
-                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = 0;
-                        }
-                    }
-                }
-            }
-
-            Gl.glEnable(Gl.GL_TEXTURE_2D);
-
-            int[] textures = new int[1];
-            textures[0] = 0;
-            Gl.glGenTextures(1, textures);
-            _glTexture = textures[0];
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
-
-            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
-                Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
-
-            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
-            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
-
-            if (clamp)
-            {
-                Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
-                Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
-            }
-        }
-
+        
         public override void Dispose()
         {
             // nothing
         }
 
-        public virtual void Bind()
-        {
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
-        }
-
-        public int OpenGlTexture { get { return _glTexture; } }
+        public abstract void Bind();
 
         public float ActualWidth { get { return _actualWidth; } }
         public float ActualHeight { get { return _actualHeight; } }
@@ -203,6 +99,8 @@ namespace Gk3Main.Graphics
         public int ActualPixelHeight { get { return _actualPixelHeight; } }
 
         public bool ContainsAlpha { get { return _containsAlpha; } }
+
+        internal byte[] Pixels { get { return _pixels; } }
 
         /// <summary>
         /// Determines whether the bitmap is a GK3 bitmap or not.
@@ -342,24 +240,9 @@ namespace Gk3Main.Graphics
             }
         }
 
-        private static TextureResource createDefaultTexture()
-        {
-            TextureResource tr = new TextureResource("default_white");
-
-            // create a 1x1 white pixel
-            tr._pixels = new byte[] { 255, 255, 255, 255 };
-            tr._width = 1;
-            tr._height = 1;
-
-            tr.convertToOpenGlTexture(false, true);
-
-            return tr;
-        }
-
-
         #region Privates
 
-        private static int getNextPowerOfTwo(int n)
+        protected static int getNextPowerOfTwo(int n)
         {
             if ((n & (n - 1)) == 0)
                 return n;
@@ -385,19 +268,30 @@ namespace Gk3Main.Graphics
             b = (byte)(tb * 255 / 31);
         }
 
-        
-        private byte[] _pixels;
-        private int _width;
-        private int _height;
-        protected int _glTexture;
+        protected byte[] _pixels;
+        protected int _width;
+        protected int _height;
 
-        private float _actualWidth, _actualHeight;
-        private int _actualPixelWidth, _actualPixelHeight;
-        private bool _containsAlpha;
+        protected float _actualWidth, _actualHeight;
+        protected int _actualPixelWidth, _actualPixelHeight;
+        protected bool _containsAlpha;
 
         private static TextureResource _defaultTexture;
 
         #endregion
+    }
+
+    public abstract class UpdatableTexture : TextureResource
+    {
+        public UpdatableTexture(string name, int width, int height)
+            : base(name, true)
+        {
+            _pixels = new byte[width * height * 4];
+            _width = width;
+            _height = height;
+        }
+
+        public abstract void Update(byte[] pixels);
     }
 
     public class TextureResourceLoader : Resource.IResourceLoader
@@ -408,7 +302,7 @@ namespace Gk3Main.Graphics
             {
                 System.IO.Stream stream = FileSystem.Open(name);
 
-                TextureResource resource = new TextureResource(name, stream);
+                Resource.Resource resource = RendererManager.CurrentRenderer.CreateTexture(name, stream);
 
                 stream.Close();
 
@@ -418,7 +312,7 @@ namespace Gk3Main.Graphics
             {
                 Logger.WriteError("Unable to find texture: {0}", name);
 
-                return new TextureResource(name);
+                return RendererManager.CurrentRenderer.ErrorTexture;
             }
         }
 

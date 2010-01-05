@@ -222,6 +222,7 @@ class MonoMain
             if (camera != null)
                 Gk3Main.Sound.SoundManager.UpdateListener(camera);
 
+            Gk3Main.Game.Animator.Advance(Gk3Main.Game.GameManager.ElapsedTickCount);
             Gk3Main.Game.DialogManager.Step();
             Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
 

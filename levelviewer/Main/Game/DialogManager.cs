@@ -48,7 +48,8 @@ namespace Gk3Main.Game
             _numLinesToPlay = numLines;
             _linesPlayed = 1;
 
-            yak.Play();
+            //yak.Play();
+            Animator.Add(yak, false);
 
             if (wait)
                 return _waitHandle;
@@ -103,7 +104,8 @@ namespace Gk3Main.Game
                     _yaks.AddLast(_lastYak);
 
                     // play the yak
-                    yak.Play();
+                    //yak.Play();
+                    Animator.Add(yak, false);
 
                     _linesPlayed++;
                 }

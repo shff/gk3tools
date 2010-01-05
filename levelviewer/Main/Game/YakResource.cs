@@ -6,6 +6,8 @@ namespace Gk3Main.Game
 {
     class YakResource : AnimationResource
     {
+        private string _speaker;
+        private AnimationResourceSection _gk3Section;
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
         private Sound.PlayingSound? _playingSound;
         private int _timeAtPlayStart;
@@ -26,13 +28,25 @@ namespace Gk3Main.Game
                 }
                 else if (section.SectionName.Equals("GK3", StringComparison.OrdinalIgnoreCase))
                 {
-                    // look for then DIALOGUECUE
+                    // look for then DIALOGUECUE and SPEAKER
                     for (int i = 0; i < section.Lines.Count; i++)
                     {
-                        if (section.Lines[i].Params[0].StringValue != null &&
-                            section.Lines[i].Params[0].StringValue.Equals("DIALOGUECUE", StringComparison.OrdinalIgnoreCase))
-                            _cueTime = section.Lines[i].FrameNum * MillisecondsPerFrame;
+                        string param1 = section.Lines[i].Params[0].StringValue;
+
+                        if (param1 != null)
+                        {
+                            if (param1.Equals("DIALOGUECUE", StringComparison.OrdinalIgnoreCase))
+                                _cueTime = section.Lines[i].FrameNum * MillisecondsPerFrame;
+                            else if (param1.Equals("SPEAKER", StringComparison.OrdinalIgnoreCase))
+                            {
+                                string speaker = section.Lines[i].Params[1].StringValue;
+                                if (speaker.Equals("UNKNOWN", StringComparison.OrdinalIgnoreCase) == false)
+                                    _speaker = speaker;
+                            }
+                        }
                     }
+
+                    _gk3Section = section;
                 }
             }
         }
@@ -88,8 +102,11 @@ namespace Gk3Main.Game
         {
             get 
             {
-                return _playingSound.HasValue == true &&
-                    _playingSound.Value.Finished == false; 
+                int duration = NumFrames * MillisecondsPerFrame;
+
+                // the sound must be finished AND we must have covered all the frames
+                return (_playingSound.HasValue == false || _playingSound.Value.Finished == false) && 
+                    GameManager.TickCount <= _timeAtPlayStart + duration;
             }
         }
 
@@ -109,6 +126,25 @@ namespace Gk3Main.Game
                 
                 return !IsPlaying;
             }
+        }
+
+        /// <summary>
+        /// Gets the name of the Actor doing the speaking.
+        /// Is null if voiceover.
+        /// </summary>
+        public string Speaker
+        {
+            get { return _speaker; }
+        }
+
+        public AnimationResourceSection Gk3Section
+        {
+            get { return _gk3Section; }
+        }
+
+        public int TimeAtPlayStart
+        {
+            get { return _timeAtPlayStart; }
         }
     }
 

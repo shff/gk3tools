@@ -17,7 +17,7 @@ namespace Gk3Main.Graphics
         public SkyBox(string name, string front, string back, string left, string right,
             string up, string down, float azimuth)
         {
-            _cubeMap = new CubeMapResource(name, front, back, left, right, up, down);
+            _cubeMap = Graphics.RendererManager.CurrentRenderer.CreateCubeMap(name, front, back, left, right, up, down);
             _azimuth = azimuth;
 
             float[] vertices = new float[8 * _stride];
