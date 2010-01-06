@@ -36,7 +36,10 @@ namespace Gk3Main.Game
             _smiles[1] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_SMILE_02.BMP");
 
             if (Graphics.RendererManager.CurrentRenderer.RenderToTextureSupported)
+            {
                 _renderTarget = Graphics.RendererManager.CurrentRenderer.CreateRenderTarget(_baseFace.Width, _baseFace.Height);
+                _generatedFace = _renderTarget.Texture;
+            }
             else
                 _generatedFace = Graphics.RendererManager.CurrentRenderer.CreateUpdatableTexture(actorCode + "_FACE", _baseFace.Width, _baseFace.Height);
         }
@@ -64,8 +67,6 @@ namespace Gk3Main.Game
 
                 // undo the render target and get the texture
                 Graphics.RendererManager.CurrentRenderer.SetRenderTarget(null);
-
-                _generatedFace = _renderTarget.Texture;
             }
             else
             {
@@ -126,15 +127,19 @@ namespace Gk3Main.Game
 
             _model = (Graphics.ModelResource)Resource.ResourceManager.Load(Utils.MakeEndsWith(modelName, ".MOD"));
 
-            // find the face section
-            string faceSectionName = actorName + "_FACE";
-            for (int i = 0; i < _model.Meshes.Length; i++)
+
+            if (_model.Meshes != null)
             {
-                for (int j = 0; j < _model.Meshes[i].sections.Length; j++)
+                // find the face section
+                string faceSectionName = actorName + "_FACE";
+                for (int i = 0; i < _model.Meshes.Length; i++)
                 {
-                    if (_model.Meshes[i].sections[j].texture.Equals(faceSectionName, StringComparison.OrdinalIgnoreCase))
+                    for (int j = 0; j < _model.Meshes[i].sections.Length; j++)
                     {
-                        _model.Meshes[i].sections[j].textureResource = _face.Texture;
+                        if (_model.Meshes[i].sections[j].texture.Equals(faceSectionName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _model.Meshes[i].sections[j].textureResource = _face.Texture;
+                        }
                     }
                 }
             }

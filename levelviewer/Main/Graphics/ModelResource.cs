@@ -466,7 +466,7 @@ namespace Gk3Main.Graphics
 
                     foreach (ModMeshSection section in mesh.sections)
                     {
-                        if (section.textureResource.ContainsAlpha)
+                        if (section.textureResource != null && section.textureResource.ContainsAlpha)
                             RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
                         _effect.SetParameter("ModelViewProjection", worldview);
@@ -480,7 +480,7 @@ namespace Gk3Main.Graphics
                         _effect.EndPass();
                         _effect.End();
 
-                        if (section.textureResource.ContainsAlpha)
+                        if (section.textureResource != null && section.textureResource.ContainsAlpha)
                             RendererManager.CurrentRenderer.AlphaTestEnabled = true;
                     }
                 }
