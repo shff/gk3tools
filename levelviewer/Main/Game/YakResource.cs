@@ -55,7 +55,7 @@ namespace Gk3Main.Game
         {
             foreach (Sound.Sound sound in _sounds)
             {
-                sound.Dispose();
+                Resource.ResourceManager.Unload(sound);
             }
 
             _sounds = null;
