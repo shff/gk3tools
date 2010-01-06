@@ -81,7 +81,7 @@ namespace Gk3Main.Game
                         int timeSinceStart = timeNow - _yaks[i].TimeAtPlayStart;
                         int startIndex, count;
                         AnimationResource.GetAllFramesSince(_yaks[i].Gk3Section, timeSinceStart,
-                            _yaks[i].NumFrames * AnimationResource.MillisecondsPerFrame,
+                            elapsedTime,
                             out startIndex, out count);
 
                         Actor actor = null;

@@ -7,6 +7,7 @@ namespace Gk3Main.Game
     public class ActorFace
     {
         private string _actorCode;
+        private FaceDefinition _faceDefinition;
         private Graphics.TextureResource _baseFace;
         private Graphics.RenderTarget _renderTarget;
         private Graphics.TextureResource _generatedFace;
@@ -18,6 +19,7 @@ namespace Gk3Main.Game
         public ActorFace(string actorCode)
         {
             _actorCode = actorCode;
+            _faceDefinition = FaceDefinitions.GetFaceDefinition(actorCode);
 
             _baseFace = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_FACE.BMP");
 
@@ -42,6 +44,8 @@ namespace Gk3Main.Game
             }
             else
                 _generatedFace = Graphics.RendererManager.CurrentRenderer.CreateUpdatableTexture(actorCode + "_FACE", _baseFace.Width, _baseFace.Height);
+
+            updateTexture(false);
         }
 
         public void SetMouth(string mouth)
@@ -58,30 +62,7 @@ namespace Gk3Main.Game
 
         public void RebuildTexture()
         {
-            if (Graphics.RendererManager.CurrentRenderer.RenderToTextureSupported)
-            {
-                // set the render target
-                Graphics.RendererManager.CurrentRenderer.SetRenderTarget(_renderTarget);
-
-                // render all the faces onto the texture
-
-                // undo the render target and get the texture
-                Graphics.RendererManager.CurrentRenderer.SetRenderTarget(null);
-            }
-            else
-            {
-                // guess we have to do this the hard, ugly way :(
-                byte[] facePixels = (byte[])_baseFace.Pixels.Clone();
-
-                // blit the mouth
-                blit(0, 0, _currentMouth.Pixels, _currentMouth.Width, _currentMouth.Height, facePixels, _baseFace.Width, _baseFace.Height);
-
-                // TODO: blit the rest
-
-                // generate a new texture
-                Graphics.UpdatableTexture t = (Graphics.UpdatableTexture)_generatedFace;
-                t.Update(facePixels);
-            }
+            updateTexture(true);
 
             _faceIsDirty = false;
         }
@@ -96,13 +77,47 @@ namespace Gk3Main.Game
 
         public bool FaceIsDirty { get { return _faceIsDirty; } }
 
+        private void updateTexture(bool modified)
+        {
+            if (Graphics.RendererManager.CurrentRenderer.RenderToTextureSupported)
+            {
+                // set the render target
+                Graphics.RendererManager.CurrentRenderer.SetRenderTarget(_renderTarget);
+
+                // TODO: render all the faces onto the texture
+
+                // undo the render target and get the texture
+                Graphics.RendererManager.CurrentRenderer.SetRenderTarget(null);
+            }
+            else
+            {
+                // guess we have to do this the hard, ugly way :(
+                byte[] facePixels = (byte[])_baseFace.Pixels.Clone();
+
+                if (modified)
+                {
+                    // blit the mouth
+                    blit((int)_faceDefinition.MouthOffset.X, (int)_faceDefinition.MouthOffset.Y,
+                        _currentMouth.Pixels, _currentMouth.Width, _currentMouth.Height,
+                        facePixels, _baseFace.Width, _baseFace.Height);
+
+                    // TODO: blit the rest
+                }
+
+                // generate a new texture
+                Graphics.UpdatableTexture t = (Graphics.UpdatableTexture)_generatedFace;
+                t.Update(facePixels);
+            }
+        }
+
         private void blit(int destX, int destY, byte[] source, int sourceWidth, int sourceHeight, 
             byte[] destination, int destinationWidth, int destinationHeight)
         {
             for (int y = 0; y < sourceHeight; y++)
             {
+                int destinationIndex = ((destY + y) * destinationWidth + destX) * 4;
                 Array.Copy(source, y * sourceWidth * 4, destination,
-                    ((destY + y) * destinationWidth + destX), sourceWidth * 4);
+                    destinationIndex, sourceWidth * 4);
             }
         }
     }

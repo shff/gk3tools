@@ -21,6 +21,19 @@ using System.Text;
 
 namespace Gk3Main.Math
 {
+    public struct Vector2
+    {
+        public float X, Y;
+
+        public Vector2(float x, float y)
+        {
+            X = x;
+            Y = y;
+        }
+
+        public static Vector2 Zero { get { return new Vector2(0,0); } }
+    }
+
     public struct Vector3
     {
         /*public Vector3()

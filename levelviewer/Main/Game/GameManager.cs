@@ -231,6 +231,7 @@ namespace Gk3Main.Game
         {
             _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
             _strings = new LocalizedStrings("estrings.txt", FileSystem.Open("estrings.txt"));
+            FaceDefinitions.Load();
         }
 
         public static Verbs Verbs
