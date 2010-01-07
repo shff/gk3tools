@@ -6,10 +6,10 @@ namespace Gk3Main.Game
 {
     public static class Animator
     {
-        private static List<AnmResource> _anms = new List<AnmResource>();
+        private static List<MomResource> _anms = new List<MomResource>();
         private static List<YakResource> _yaks = new List<YakResource>();
 
-        internal static WaitHandle Add(AnmResource anm, bool wait)
+        internal static WaitHandle Add(MomResource anm, bool wait)
         {
             anm.ReferenceCount++;
 
@@ -65,7 +65,15 @@ namespace Gk3Main.Game
         {
             int timeNow = GameManager.TickCount;
 
-            // process yaks
+            // process YAKs
+            processYaks(timeNow, elapsedTime);
+
+            // process ANMs
+            processAnms(timeNow, elapsedTime);
+        }
+
+        private static void processYaks(int timeNow, int elapsedTime)
+        {
             for (int i = 0; i < _yaks.Count; i++)
             {
                 if (_yaks[i] != null)
@@ -81,7 +89,7 @@ namespace Gk3Main.Game
                         int timeSinceStart = timeNow - _yaks[i].TimeAtPlayStart;
                         int startIndex, count;
                         AnimationResource.GetAllFramesSince(_yaks[i].Gk3Section, timeSinceStart,
-                            elapsedTime,
+                            elapsedTime, AnimationResource.MillisecondsPerFrame,
                             out startIndex, out count);
 
                         Actor actor = null;
@@ -102,6 +110,26 @@ namespace Gk3Main.Game
                                 actor.SetMouth(param3);
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        private static void processAnms(int timeNow, int elapsedTime)
+        {
+            for (int i = 0; i < _anms.Count; i++)
+            {
+                if (_anms[i] != null)
+                {
+                    if (_anms[i].IsFinished)
+                    {
+                        // done playing the ANM, so we can remove it
+                        Resource.ResourceManager.Unload(_anms[i]);
+                        _anms[i] = null;
+                    }
+                    else
+                    {
+                        _anms[i].Step();
                     }
                 }
             }

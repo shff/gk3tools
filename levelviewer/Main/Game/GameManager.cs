@@ -102,6 +102,10 @@ namespace Gk3Main.Game
 
         public static void InjectTickCount(int tickCount)
         {
+            // don't let TOO much time pass...
+            if (tickCount - _prevTickCount > 500)
+                tickCount = _prevTickCount + 500;
+
             _prevTickCount = _tickCount;
             _tickCount = tickCount;
         }
@@ -137,6 +141,18 @@ namespace Gk3Main.Game
             _nounVerbCounts[new NounVerbCombination(noun, verb)] = count;
         }
 
+        public static void IncrementNounVerbCount(string noun, string verb)
+        {
+            NounVerbCombination nv = new NounVerbCombination(noun, verb);
+            if (_nounVerbCounts.ContainsKey(nv) == false)
+                _nounVerbCounts[nv] = 1;
+            else
+            {
+                int c = _nounVerbCounts[nv];
+                _nounVerbCounts[nv] = c + 1;
+            }
+        }
+
         public static int GetIntegerGameVariable(string variable)
         {
             int value;
@@ -166,7 +182,28 @@ namespace Gk3Main.Game
             else
             {
                 int c = _chatCounts[noun];
-                _chatCounts[noun] = c;
+                _chatCounts[noun] = c + 1;
+            }
+        }
+
+        public static int GetTopicCount(string noun, string verb)
+        {
+            string nounverb = noun + "$" + verb;
+            if (_topicCounts.ContainsKey(nounverb) == false)
+                return 0;
+
+            return _topicCounts[nounverb];
+        }
+
+        public static void IncrementTopicCount(string noun, string verb)
+        {
+            string nounverb = noun + "$" + verb;
+            if (_topicCounts.ContainsKey(nounverb) == false)
+                _topicCounts[nounverb] = 1;
+            else
+            {
+                int c = _topicCounts[nounverb];
+                _topicCounts[nounverb] = c + 1;
             }
         }
 
@@ -269,6 +306,7 @@ namespace Gk3Main.Game
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, int> _chatCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, int> _topicCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();
         private static LinkedList<GameTimer> _gameTimers = new LinkedList<GameTimer>();
         }

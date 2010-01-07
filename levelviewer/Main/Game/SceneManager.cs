@@ -67,6 +67,8 @@ namespace Gk3Main
 
         public static void LoadSif(string sif)
         {
+            Animator.StopAll();
+
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
 
             _roomPositions.Clear();
@@ -381,8 +383,21 @@ namespace Gk3Main
                         if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
                         {
                             // is this noun/verb combination already in the list?
+                            bool alreadyExists = false;
+                            for (int i = 0; i < nvcs.Count; i++)
+                            {
+                                if (nvcs[i].Noun.Equals(nvc.Noun, StringComparison.OrdinalIgnoreCase) &&
+                                    nvcs[i].Verb.Equals(nvc.Verb, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    alreadyExists = true;
+                                    break;
+                                }
+                            }
 
-                            // HACK: we can't modify the collection while iterating
+                            if (alreadyExists == false)
+                                nvcs.Add(nvc);
+
+                            /*// HACK: we can't modify the collection while iterating
                             // over it, so we have to remember what to do later.
                             // >= 0 is the index to replace, -1 = add normally, -2 = ignore
                             int whatToDo = -1; 
@@ -414,7 +429,7 @@ namespace Gk3Main
                             else if (whatToDo == -1)
                             {
                                 nvcs.Add(nvc);
-                            }
+                            }*/
                         }
                     }
                 }

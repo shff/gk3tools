@@ -13,5 +13,10 @@ namespace Gk3Main
             get { return _finished; }
             set { _finished = false; }
         }
+
+        public override string ToString()
+        {
+            return "Finished = " + Finished.ToString();
+        }
     }
 }

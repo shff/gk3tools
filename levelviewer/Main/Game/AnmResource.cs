@@ -6,18 +6,18 @@ namespace Gk3Main.Game
 {
     class AnmWaitHandle : WaitHandle
     {
-        private AnmResource _anm;
+        private MomResource _mom;
 
-        public AnmWaitHandle(AnmResource anm)
+        public AnmWaitHandle(MomResource mom)
         {
-            _anm = anm;
+            _mom = mom;
         }
 
         public override bool Finished
         {
             get
             {
-                return _anm.IsFinished;
+                return _mom.IsFinished;
             }
             set
             {
@@ -26,11 +26,13 @@ namespace Gk3Main.Game
         }
     }
 
+    [Obsolete("Use MomResource instead (it handles ANM files too)", true)]
     class AnmResource : AnimationResource
     {
         List<Graphics.ActResource> _acts = new List<Gk3Main.Graphics.ActResource>();
         AnimationResourceSection _actionSection;
         AnimationResourceSection _mtexturesSection;
+        AnimationResourceSection _soundsSection;
         private int _timeElapsedSinceStart;
 
         public AnmResource(string name, System.IO.Stream stream)
@@ -63,12 +65,12 @@ namespace Gk3Main.Game
             play(0, 0);
         }
 
-        public WaitHandle PlayAndWait()
+        /*public WaitHandle PlayAndWait()
         {
             Play();
 
             return new AnmWaitHandle(this);
-        }
+        }*/
 
         public void Step()
         {
@@ -83,6 +85,16 @@ namespace Gk3Main.Game
             get { return _timeElapsedSinceStart > NumFrames * AnimationResource.MillisecondsPerFrame; }
         }
 
+        public int TimeElapsedSinceStart
+        {
+            get { return _timeElapsedSinceStart; }
+        }
+
+        public AnimationResourceSection ActionsSection
+        {
+            get { return _actionSection; }
+        }
+
         private void play(int timeSinceStart, int duration)
         {
             int startIndex, count;
@@ -90,7 +102,8 @@ namespace Gk3Main.Game
             // play actions
             if (_actionSection != null)
             {
-                GetAllFramesSince(_actionSection, timeSinceStart, duration, out startIndex, out count);
+                GetAllFramesSince(_actionSection, timeSinceStart, duration, AnimationResource.MillisecondsPerFrame,
+                    out startIndex, out count);
 
                 for (int i = startIndex; i < startIndex + count; i++)
                 {
@@ -108,9 +121,15 @@ namespace Gk3Main.Game
             {
                 // TODO
             }
+
+            if (_soundsSection != null)
+            {
+
+            }
         }
     }
 
+    [Obsolete("Use MomResource instead (it handles ANM files too)", true)]
     public class AnmLoader : Resource.IResourceLoader
     {
         public string[] SupportedExtensions

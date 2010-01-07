@@ -12,7 +12,6 @@ namespace Gk3Main.Game
         private int _currentInstructionIndex;
         private WaitHandle _currentWait;
         private List<GasScriptLine> _lines = new List<GasScriptLine>();
-        private Dictionary<string, AnmResource> _animations = new Dictionary<string, AnmResource>();
 
         public GasResource(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -23,9 +22,6 @@ namespace Gk3Main.Game
         public override void Dispose()
         {
             base.Dispose();
-
-            foreach (AnmResource anm in _animations.Values)
-                Resource.ResourceManager.Unload(anm);
         }
 
         public void Play()
@@ -157,18 +153,9 @@ namespace Gk3Main.Game
                     return;
             }
 
-            AnmResource anm;
-            if (_animations.ContainsKey(filename))
-                anm = _animations[filename];
-            else
-            {
-                // animation isn't loaded yet, so load it
-                anm = (AnmResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
-                _animations.Add(filename, anm);
-            }
-
-            // play the animation
-            _currentWait = anm.PlayAndWait();
+            //AnmResource anm = (AnmResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
+            MomResource mom = (MomResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
+            _currentWait = Animator.Add(mom, true);
 
             _suspended = true;
         }

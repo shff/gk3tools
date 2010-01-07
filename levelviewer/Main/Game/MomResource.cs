@@ -27,7 +27,8 @@ namespace Gk3Main.Game
                     foreach (AnimationResourceSectionLine line in section.Lines)
                     {
                         string soundName = line.Params[0].StringValue;
-                        _sounds.Add(new Sound.Sound(soundName, FileSystem.Open(soundName)));
+                        Sound.Sound sound = (Sound.Sound)Resource.ResourceManager.Load(soundName);
+                        _sounds.Add(sound);
                     }
                 }
                 else if (section.SectionName.Equals("GK3", StringComparison.OrdinalIgnoreCase))
@@ -43,17 +44,25 @@ namespace Gk3Main.Game
             play(0, 0);
         }
 
+        public WaitHandle PlayAndWait()
+        {
+            Play();
+
+            return new AnmWaitHandle(this);
+        }
+
         public void Step()
         {
             int elapsedTime = Game.GameManager.ElapsedTickCount;
             _timeElapsedSinceStart += elapsedTime;
-
             play(_timeElapsedSinceStart, elapsedTime);
+
+            
         }
 
         public bool IsFinished
         {
-            get { return _timeElapsedSinceStart > NumFrames * AnimationResource.MillisecondsPerFrame;  }
+            get { return _timeElapsedSinceStart > NumFrames * MillisecondsPerFrame;  }
         }
 
         private void play(int timeSinceStart, int duration)
@@ -61,25 +70,44 @@ namespace Gk3Main.Game
             int startIndex, count;
 
             // play sounds
-            GetAllFramesSince(_soundSection, timeSinceStart, duration, out startIndex, out count);
-
-            for (int i = startIndex; i < startIndex + count; i++)
+            if (_soundSection != null)
             {
-                // the indices in the little sound list *should* match "i"
-                _sounds[i].Play2D(Sound.SoundTrackChannel.SFX);
+                GetAllFramesSince(_soundSection, timeSinceStart, duration, MillisecondsPerFrame,
+                    out startIndex, out count);
+
+                for (int i = startIndex; i < startIndex + count; i++)
+                {
+                    // the indices in the little sound list *should* match "i"
+                    _sounds[i].Play2D(Sound.SoundTrackChannel.SFX);
+                }
             }
 
             // play the dialog
-            GetAllFramesSince(_gk3Section, timeSinceStart, duration, out startIndex, out count);
-
-            for (int i = startIndex; i < startIndex + count; i++)
+            if (_gk3Section != null)
             {
-                string command = _gk3Section.Lines[i].Params[0].StringValue;
+                GetAllFramesSince(_gk3Section, timeSinceStart, duration, MillisecondsPerFrame,
+                    out startIndex, out count);
 
-                if (command.Equals("DIALOGUE", StringComparison.OrdinalIgnoreCase))
+                for (int i = startIndex; i < startIndex + count; i++)
                 {
-                    string yak = _gk3Section.Lines[i].Params[1].StringValue;
-                    DialogManager.PlayDialogue(yak, 1, yak.StartsWith("E", StringComparison.OrdinalIgnoreCase), false);
+                    string command = _gk3Section.Lines[i].Params[0].StringValue;
+
+                    if (command.Equals("DIALOGUE", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string yak = _gk3Section.Lines[i].Params[1].StringValue;
+                        DialogManager.PlayDialogue(yak, 1, yak.StartsWith("E", StringComparison.OrdinalIgnoreCase), false);
+                    }
+                    else if (command.Equals("LIPSYNCH", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string param2 = _gk3Section.Lines[i].Params[1].StringValue;
+
+                        Actor actor = SceneManager.GetActor(param2);
+                        if (actor == null)
+                            continue; // couldn't find this actor for some reason, so give up
+
+                        string param3 = _gk3Section.Lines[i].Params[2].StringValue;
+                        actor.SetMouth(param3);
+                    }
                 }
             }
         }
@@ -89,7 +117,7 @@ namespace Gk3Main.Game
     {
         public string[] SupportedExtensions
         {
-            get { return new string[] { "MOM" }; }
+            get { return new string[] { "MOM", "ANM" }; }
         }
 
         public bool EmptyResourceIfNotFound { get { return false; } }

@@ -429,9 +429,9 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            // TODO
+            int count = Game.GameManager.GetTopicCount(noun, verb);
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, count);
         }
 
         private static void sheep_GetTopicCountInt(IntPtr vm)
@@ -638,8 +638,21 @@ namespace Gk3Main.Sheep
         private static void sheep_StartAnimation(IntPtr vm)
         {
             string animation = SheepMachine.PopStringOffStack(vm);
+            if (animation.EndsWith(".ANM", StringComparison.OrdinalIgnoreCase) == false)
+                animation += ".ANM";
 
-            // TODO!
+            //Game.AnmResource anm = (Game.AnmResource)Resource.ResourceManager.Load(animation);
+            Game.MomResource anm = (Game.MomResource)Resource.ResourceManager.Load(animation);
+            
+            if (SheepMachine.IsInWaitSection(vm))
+            {
+                WaitHandle wait = Game.Animator.Add(anm, true);
+                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), wait); 
+            }
+            else
+            {
+                Game.Animator.Add(anm, false);
+            }
         }
 
         private static void sheep_StartDialogue(IntPtr vm)

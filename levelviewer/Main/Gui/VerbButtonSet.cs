@@ -145,6 +145,12 @@ namespace Gk3Main.Gui
             {
                 Game.GameManager.IncrementChatCount(button.Noun);
             }
+            else if (button.Verb.StartsWith("T_", StringComparison.OrdinalIgnoreCase))
+            {
+                Game.GameManager.IncrementTopicCount(button.Noun, button.Verb);
+            }
+            
+            Game.GameManager.IncrementNounVerbCount(button.Noun, button.Verb);
         }
 
         private void cancelClicked()
