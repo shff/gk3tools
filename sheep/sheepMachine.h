@@ -2,6 +2,7 @@
 #define SHEEPMACHINE_H
 
 #include <stack>
+#include "sheepContextTree.h"
 #include "sheepCodeGenerator.h"
 #include "sheepImportTable.h"
 #include "sheepCodeBuffer.h"
@@ -34,86 +35,7 @@ public:
 	}
 };
 
-struct StackItem
-{
-	StackItem()
-	{
-		Type = SYM_VOID;
-		IValue = 0;
-	}
 
-	StackItem(SheepSymbolType type, int value)
-	{
-		Type = type;
-		IValue = value;
-	}
-
-	StackItem(SheepSymbolType type, float value)
-	{
-		Type = type;
-		FValue = value;
-	}
-
-	SheepSymbolType Type;
-
-	union
-	{
-		int IValue;
-		float FValue;
-	};
-};
-
-typedef std::stack<StackItem> SheepStack;
-
-struct SheepContext
-{
-	SheepContext()
-	{
-		InWaitSection = false;
-		UserSuspended = false;
-		ChildSuspended = false;
-		FunctionOffset = 0;
-		InstructionOffset = 0;
-		CodeBuffer = NULL;
-
-		Parent = NULL;
-		FirstChild = NULL;
-		Sibling = NULL;
-
-		Dead = false;
-	}
-
-	SheepStack Stack;
-	std::vector<StackItem> Variables;
-
-	bool InWaitSection;
-	bool UserSuspended;
-	bool ChildSuspended;
-	unsigned int FunctionOffset;
-	unsigned int InstructionOffset;
-	SheepCodeBuffer* CodeBuffer;
-	IntermediateOutput* FullCode;
-
-	SheepContext* Parent;
-	SheepContext* FirstChild;
-	SheepContext* Sibling;
-
-	bool Dead;
-
-	bool AreAnyChildrenSuspended()
-	{
-		SheepContext* child = FirstChild;
-		while(child != NULL)
-		{
-			if (child->UserSuspended || child->ChildSuspended)
-				return true;
-
-			child = child->Sibling;
-		}
-
-		return false;
-	}
-};
 
 class SheepMachine : public SheepVM
 {
@@ -140,19 +62,23 @@ public:
 
 	int PopIntFromStack()
 	{
-		if (m_currentContext == NULL)
+		SheepContext* current = m_contextTree->GetCurrent();
+
+		if (current == NULL)
 			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
 
-		return getInt(m_currentContext->Stack);
+		return getInt(current->Stack);
 	}
 
 	float PopFloatFromStack()
 	{
-		if (m_currentContext == NULL)
+		SheepContext* current = m_contextTree->GetCurrent();
+
+		if (current == NULL)
 			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
 
-		StackItem item = m_currentContext->Stack.top();
-		m_currentContext->Stack.pop();
+		StackItem item = current->Stack.top();
+		current->Stack.pop();
 
 		if (item.Type != SYM_FLOAT)
 			throw SheepMachineException("Expected float on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
@@ -164,20 +90,29 @@ public:
 
 	void PushIntOntoStack(int i)
 	{
-		if (m_currentContext == NULL)
+		SheepContext* current = m_contextTree->GetCurrent();
+
+		if (current == NULL)
 			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
 
-		m_currentContext->Stack.push(StackItem(SYM_INT, i));
+		current->Stack.push(StackItem(SYM_INT, i));
 	}
 	
 	SheepImportTable& GetImports() { return m_imports; }
 
-	bool IsInWaitSection() { return m_currentContext != NULL && m_currentContext->InWaitSection; }
+	bool IsInWaitSection()
+	{ 
+		SheepContext* current = m_contextTree->GetCurrent();
+		return current != NULL && current->InWaitSection; 
+	}
 	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
 	int GetNumContexts() { return 0; }
-	int GetCurrentContextStackSize() { return m_currentContext->Stack.size(); }
-	SheepContext* GetCurrentContext() { return m_currentContext; }
+	int GetCurrentContextStackSize()
+	{ 
+		return m_contextTree->GetCurrent()->Stack.size(); 
+	}
+	SheepContext* GetCurrentContext() { return m_contextTree->GetCurrent(); }
 	void PrintStackTrace();
 	
 
@@ -201,14 +136,10 @@ private:
 	void execute(SheepContext* context);
 	void executeNextInstruction(SheepContext* context);
 
-	void addContext(SheepContext* context);
-	void removeContext(SheepContext* context);
-
 	void (*m_callback)(const char* message);
 	SHP_MessageCallback m_compilerCallback;
 
-	SheepContext* m_parentContext;
-	SheepContext* m_currentContext;
+	SheepContextTree* m_contextTree;
 	int m_executingDepth;
 
 	SheepImportTable m_imports;

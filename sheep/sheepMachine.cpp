@@ -18,15 +18,14 @@ SheepMachine::SheepMachine()
 	SheepImport* call = m_imports.NewImport("Call", SYM_VOID, s_call);
 	call->Parameters.push_back(SYM_STRING);
 
-	m_parentContext = NULL;
-	m_currentContext = NULL;
+	m_contextTree = new SheepContextTree();
 
 	m_tag = NULL;
 }
 
 SheepMachine::~SheepMachine()
 {
-	// TODO: clean up the contexts!
+	delete m_contextTree;
 }
 
 void SheepMachine::SetOutputCallback(void (*callback)(const char *))
@@ -43,18 +42,20 @@ void SheepMachine::SetCompileOutputCallback(SHP_MessageCallback callback)
 
 std::string& SheepMachine::PopStringFromStack()
 {
-	if (m_currentContext == NULL)
+	SheepContext* current = m_contextTree->GetCurrent();
+
+	if (current == NULL)
 		throw SheepMachineException("No contexts", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
-	if (m_currentContext->Stack.empty())
+	if (current->Stack.empty())
 		throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
 
-	StackItem item = m_currentContext->Stack.top();
-	m_currentContext->Stack.pop();
+	StackItem item = current->Stack.top();
+	current->Stack.pop();
 
 	if (item.Type != SYM_STRING)
 		throw SheepMachineException("Expected string on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
-	IntermediateOutput* code = m_currentContext->FullCode;
+	IntermediateOutput* code = current->FullCode;
 	for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
 		itr != code->Constants.end(); itr++)
 	{
@@ -146,20 +147,17 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 	
 	prepareVariables(c);
 
-	addContext(c);
+	m_contextTree->Add(c);
 
 	m_executingDepth++;
 	execute(c);
 	m_executingDepth--;
 
-	if (c->UserSuspended == false && c->ChildSuspended == false)
+	if (c->UserSuspended == false &&
+		c->ChildSuspended == false)
 	{
 		c->FullCode->Release();
-		removeContext(c);
-		if (m_currentContext == c)
-			m_currentContext = NULL;
-
-		SHEEP_DELETE(c);
+		m_contextTree->KillContext(c);
 	}
 }
  
@@ -206,7 +204,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	c->InstructionOffset = 0;
 	prepareVariables(c);
 	
-	addContext(c);
+	m_contextTree->Add(c);
 	m_executingDepth++;
 	execute(c);
 	m_executingDepth--;
@@ -215,11 +213,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 		*result = c->Variables[0].IValue;
 
 	c->FullCode->Release();
-	removeContext(c);
-	SHEEP_DELETE(c);
-
-	if (m_currentContext == c)
-		m_currentContext = NULL;
+	m_contextTree->KillContext(c);
 
 	return SHEEP_SUCCESS;
 
@@ -237,11 +231,13 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 
 SheepContext* SheepMachine::Suspend()
 {
-	if (m_currentContext == NULL)
+	SheepContext* currentContext = m_contextTree->GetCurrent();
+
+	if (currentContext == NULL)
 		throw SheepMachineException("No context available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
 
-	m_currentContext->UserSuspended = true;
-	return m_currentContext;
+	currentContext->UserSuspended = true;
+	return currentContext;
 }
 
 int SheepMachine::Resume(SheepContext* context)
@@ -254,44 +250,44 @@ int SheepMachine::Resume(SheepContext* context)
 
 	context->UserSuspended = false;
 
-	if (context->ChildSuspended == false)
+	if (context->ChildSuspended == false ||
+		context->AreAnyChildrenSuspended() == false)
 	{
+		// children are obviously done
+		context->ChildSuspended = false;
+
 		// not waiting on anything, so run some code
 		execute(context);
 
 		if (context->ChildSuspended == false &&
 			context->UserSuspended == false)
 		{
+			// before we can kill the context we need
+			// to check its ancestors, since one of them
+			// may have been waiting on this child to finish
 			SheepContext* parent = context->Parent;
-			bool parentIsDead = parent && parent->Dead;
+			while(parent != NULL)
+			{
+				if (parent->Dead == false &&
+					parent->ChildSuspended == true &&
+					parent->UserSuspended == false &&
+					parent->AreAnyChildrenSuspended() == false)
+				{
+					parent->ChildSuspended = false;
+					Resume(parent);
 
-			// this context is all finished
-			context->Dead = true;
+					// no need to continue the loop, since the
+					// Resume() call we just made will handle the
+					// rest of the ancestors
+					break;
+				}
+
+				parent = parent->Parent;
+			}
+
+			// now then, this context is all finished, so we can kill it
 			context->FullCode->Release();
-			context->FullCode = NULL;
-			if (m_currentContext == context)
-				m_currentContext = NULL;
-
-			// delete the context if it has no children
-			if (context->FirstChild == NULL)
-			{
-				// remember that removeContext() will delete
-				// the parent if it is dead and has no children
-				removeContext(context);
-				SHEEP_DELETE(context);
-			}
-
-			// this context may have a parent that was waiting on the context
-			// that just finished
-			if (parent != NULL &&
-				parentIsDead == false &&
-				parent->ChildSuspended == true &&
-				parent->UserSuspended == false &&
-				parent->AreAnyChildrenSuspended() == false)
-			{
-				parent->ChildSuspended = false;
-				return Resume(parent);
-			}
+			m_contextTree->KillContext(context);
 
 			return SHEEP_SUCCESS;
 		}
@@ -313,7 +309,7 @@ void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
 
 void SheepMachine::PrintStackTrace()
 {
-	SheepContext* context = m_currentContext;
+	SheepContext* context = m_contextTree->GetCurrent();
 	while(context != NULL)
 	{
 		// find the function
@@ -339,10 +335,12 @@ void SheepMachine::PrintStackTrace()
 
 void SheepMachine::executeNextInstruction(SheepContext* context)
 {
+	assert(context->Dead == false);
+
 	// make sure the current context is the one we're working on
 	// so that when the user tries to push/pop the stack it will
 	// be the right one
-	m_currentContext = context;
+	m_contextTree->SetCurrent(context);
 
 	std::vector<SheepImport>& imports = context->FullCode->Imports;
 
@@ -422,19 +420,14 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			}
 			break;
 		case BeginWait:
+			assert(context->InWaitSection == false);
 			context->InWaitSection = true;
 			break;
 		case EndWait:
+			assert(context->InWaitSection == true);
 			context->InWaitSection = false;
-			// see if any child contexts are suspended
-			if (context->AreAnyChildrenSuspended() == false)
-			{
-				if (m_endWaitCallback) m_endWaitCallback(this, (SheepVMContext*)context);
-			}
-			else
-			{
-				context->ChildSuspended = true;
-			}
+			context->ChildSuspended = context->AreAnyChildrenSuspended();
+			if (m_endWaitCallback) m_endWaitCallback(this, (SheepVMContext*)context);
 			break;
 		case ReturnV:
 			return;
@@ -630,135 +623,6 @@ void SheepMachine::execute(SheepContext* context)
 	}
 }
 
-void addAsSibling(SheepContext* child, SheepContext* toAdd)
-{
-	SheepContext* itr = child;
-	while(itr->Sibling != NULL)
-	{
-		itr = itr->Sibling;
-	}
-
-	itr->Sibling = toAdd;
-	toAdd->Parent = child->Parent;
-}
-
-void updateChildrensParent(SheepContext* firstChild, SheepContext* newParent)
-{
-	SheepContext* itr = firstChild;
-	while(itr->Sibling != NULL)
-	{
-		itr->Parent = newParent;
-		itr = itr->Sibling;
-	}
-
-	itr = newParent->FirstChild;
-	while(itr->Sibling != NULL)
-	{
-		itr = itr->Sibling;
-	}
-	itr->Sibling = firstChild;
-}
-
-void validateContextTree(SheepContext* context)
-{
-	SheepContext* itr = context->FirstChild;
-	while(itr != NULL)
-	{
-		assert(itr->Parent == context);
-		assert(itr->FirstChild != context->FirstChild);
-
-		itr = itr->Sibling;
-	}
-}
-
-void SheepMachine::addContext(SheepContext* context)
-{
-	assert(context->Parent == NULL);
-	assert(context->FirstChild == NULL);
-	assert(context->Sibling == NULL);
-
-	if (m_parentContext == NULL)
-	{
-		// tree doesn't exist yet, so make this context the root
-		m_parentContext = context;
-	}
-	else if (m_currentContext == NULL)
-	{
-		addAsSibling(m_parentContext, context);
-	}
-	else
-	{
-		if (m_currentContext->FirstChild == NULL)
-		{
-			m_currentContext->FirstChild = context;
-			context->Parent = m_currentContext;
-		}
-		else
-		{
-			addAsSibling(m_currentContext->FirstChild, context);
-		}
-	}
-
-#ifndef NDEBUG
-	if (m_parentContext)
-		validateContextTree(m_parentContext);
-#endif
-}
-
-
-void SheepMachine::removeContext(SheepContext* context)
-{
-	assert(m_parentContext != NULL);
-	assert(context != NULL);
-	assert(context->FirstChild == NULL);
-
-	SheepContext* firstSibling = NULL;
-	if (context->Parent == NULL)
-		firstSibling = m_parentContext;
-	else
-		firstSibling = context->Parent->FirstChild;
-
-	SheepContext* itr = firstSibling, *prev = NULL;
-
-	while(itr != NULL)
-	{
-		if (itr == context)
-		{
-			if (context->Parent == NULL && prev == NULL)
-			{
-				// this was the root
-				m_parentContext = context->Sibling;
-				break;
-			}
-
-			if (prev == NULL)
-				context->Parent->FirstChild = context->Sibling;
-			else
-				prev->Sibling = context->Sibling;
-
-			if (context->Parent != NULL && 
-				context->Parent->Dead && 
-				context->Parent->FirstChild == NULL)
-			{
-				// we were the last child, and the parent
-				// is dead, so remove the parent
-				removeContext(context->Parent);
-				SHEEP_DELETE(context->Parent);
-			}
-
-			break;
-		}
-
-		// haven't found the context we're looking for, so continue on...
-		prev = itr;
-		itr = itr->Sibling;
-	}
-
-#ifndef NDEBUG
-	if (m_parentContext)
-		validateContextTree(m_parentContext);
-#endif
-}
 
 
 
@@ -774,9 +638,10 @@ void SheepMachine::s_call(SheepVM* vm)
 
 
 	// find the requsted function
+	SheepContext* currentContext = machine->m_contextTree->GetCurrent();
 	SheepFunction* sheepfunction = NULL;
-	for (std::vector<SheepFunction>::iterator itr = machine->m_currentContext->FullCode->Functions.begin();
-		itr != machine->m_currentContext->FullCode->Functions.end(); itr++)
+	for (std::vector<SheepFunction>::iterator itr = currentContext->FullCode->Functions.begin();
+		itr != currentContext->FullCode->Functions.end(); itr++)
 	{
 		if ((*itr).Name == function)
 		{
@@ -789,7 +654,7 @@ void SheepMachine::s_call(SheepVM* vm)
 		throw NoSuchFunctionException(function);
 
 	SheepContext* c = SHEEP_NEW(SheepContext);
-	*c = *machine->m_currentContext;
+	*c = *currentContext;
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
 	c->InstructionOffset = 0;
@@ -797,12 +662,13 @@ void SheepMachine::s_call(SheepVM* vm)
 	c->Sibling = NULL;
 	c->FirstChild = NULL;
 	c->Parent = NULL;
+	c->InWaitSection = false;
 	// TODO: this context should share variables with the previous context
 	// so that the functions within the same scripts can modify the same global variables
 	
 
 	machine->prepareVariables(c);
-	machine->addContext(c);
+	machine->m_contextTree->Add(c);
 
 	machine->m_executingDepth++;
 	machine->execute(c);
@@ -810,10 +676,7 @@ void SheepMachine::s_call(SheepVM* vm)
 
 	if (c->UserSuspended == false && c->ChildSuspended == false)
 	{
-		if (c->FirstChild == NULL)
-			machine->removeContext(c);
 		c->FullCode->Release();
-
-		SHEEP_DELETE(c);
+		machine->m_contextTree->KillContext(c);
 	}
 }
