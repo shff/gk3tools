@@ -45,6 +45,13 @@ namespace Gk3Main
         }
     }
 
+    struct SceneModel
+    {
+        public string Name;
+        public Graphics.ModelResource Model;
+        public bool Visible;
+    }
+
     public static class SceneManager
     {
         public static void Initialize()
@@ -172,12 +179,14 @@ namespace Gk3Main
             }
         }
 
-        public static void AddModel(string modelname)
+        public static void AddModel(string modelname, bool visible)
         {
-            Graphics.ModelResource model = 
-                (Graphics.ModelResource)Resource.ResourceManager.Load(modelname);
+            SceneModel sceneModel;
+            sceneModel.Name = modelname;
+            sceneModel.Model = (Graphics.ModelResource)Resource.ResourceManager.Load(modelname + ".MOD");
+            sceneModel.Visible = visible;
 
-            _models.Add(model);
+            _models.Add(sceneModel);
         }
 
         public static void AddGas(string gasFileName)
@@ -211,6 +220,19 @@ namespace Gk3Main
             return null;
         }
 
+        public static void SetSceneModelVisibility(string name, bool visible)
+        {
+            for (int i = 0; i < _models.Count; i++)
+            {
+                if (_models[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    SceneModel model = _models[i];
+                    model.Visible = visible;
+                    _models[i] = model;
+                }
+            }
+        }
+
         public static void Render()
         {
             Render(_currentCamera);
@@ -231,8 +253,11 @@ namespace Gk3Main
                     _currentRoom.Render(camera, _currentLightmaps);
 
                 // render the models
-                foreach (Graphics.ModelResource model in _models)
-                    model.Render(camera);
+                foreach (SceneModel model in _models)
+                {
+                    if (model.Visible)
+                        model.Model.Render(camera);
+                }
 
                 // render the actors
                 foreach (Game.Actor actor in _actors)
@@ -320,12 +345,12 @@ namespace Gk3Main
         public static string GetCollisionModel(Math.Vector3 origin, Math.Vector3 direction, float length)
         {
             float distance;
-            foreach (Graphics.ModelResource model in _models)
+            foreach (SceneModel model in _models)
             {
-                if (model.CollideRay(Math.Vector3.Zero, origin, direction, length, out distance))
+                if (model.Model.CollideRay(Math.Vector3.Zero, origin, direction, length, out distance))
                 {
                     Console.CurrentConsole.WriteLine(model.Name);
-                    return model.NameWithoutExtension;
+                    return model.Model.NameWithoutExtension;
                 }
             }
 
@@ -569,10 +594,10 @@ namespace Gk3Main
         {
             foreach (Game.SifModel model in sif.Models)
             {
-                if ((model.Type == Gk3Main.Game.SifModelType.Prop ||
-                    model.Type == SifModelType.GasProp) && model.Hidden == false)
+                if (model.Type == Gk3Main.Game.SifModelType.Prop ||
+                    model.Type == SifModelType.GasProp)
                 {
-                    AddModel(model.Name + ".MOD");
+                    AddModel(model.Name, !model.Hidden);
 
                     if (model.Type == SifModelType.GasProp)
                         AddGas(model.Gas);
@@ -736,9 +761,9 @@ namespace Gk3Main
 
         private static void unloadModels()
         {
-            foreach (Graphics.ModelResource model in _models)
+            foreach (SceneModel model in _models)
             {
-                Resource.ResourceManager.Unload(model);
+                Resource.ResourceManager.Unload(model.Model);
             }
 
             _models.Clear();
@@ -765,7 +790,7 @@ namespace Gk3Main
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
         private static List<Game.Actor> _actors = new List<Actor>();
-        private static List<Graphics.ModelResource> _models = new List<Gk3Main.Graphics.ModelResource>();
+        private static List<SceneModel> _models = new List<SceneModel>();
         private static List<Game.GasResource> _modelGases = new List<GasResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();

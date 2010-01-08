@@ -92,6 +92,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("HideModel", _dummyString,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("HideSceneModel", _hideSceneModel,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("IncNounVerbCount", _incNounVerbCount,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
@@ -486,6 +489,13 @@ namespace Gk3Main.Sheep
             SheepMachine.PushIntOntoStack(vm, 0);
         }
 
+        private static void sheep_HideSceneModel(IntPtr vm)
+        {
+            string model = SheepMachine.PopStringOffStack(vm);
+
+            SceneManager.SetSceneModelVisibility(model, false);
+        }
+
         private static void sheep_IncNounVerbCount(IntPtr vm)
         {
             string verb = SheepMachine.PopStringOffStack(vm);
@@ -830,6 +840,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _doesGraceHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGraceHaveInvItem);
         private static SheepFunctionDelegate _doesGabeHaveInvItemDelegate = new SheepFunctionDelegate(sheep_DoesGabeHaveInvItem);
         private static SheepFunctionDelegate _doesModelExistDelegate = new SheepFunctionDelegate(sheep_DoesModelExist);
+        private static SheepFunctionDelegate _hideSceneModel = new SheepFunctionDelegate(sheep_HideSceneModel);
         private static SheepFunctionDelegate _initEgoPosition = new SheepFunctionDelegate(sheep_InitEgoPosition);
         private static SheepFunctionDelegate _incNounVerbCount = new SheepFunctionDelegate(sheep_IncNounVerbCount);
         private static SheepFunctionDelegate _incNounVerbCountBoth = new SheepFunctionDelegate(sheep_IncNounVerbCountBoth);

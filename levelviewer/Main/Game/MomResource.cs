@@ -7,6 +7,7 @@ namespace Gk3Main.Game
     class MomResource : AnimationResource
     {
         private AnimationResourceSection _actionSection;
+        private AnimationResourceSection _modelVisibilitySection;
         private AnimationResourceSection _soundSection;
         private AnimationResourceSection _gk3Section;
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
@@ -19,6 +20,8 @@ namespace Gk3Main.Game
             {
                 if (section.SectionName.Equals("ACTIONS", StringComparison.OrdinalIgnoreCase))
                     _actionSection = section;
+                else if (section.SectionName.Equals("MVISIBILITY", StringComparison.OrdinalIgnoreCase))
+                    _modelVisibilitySection = section;
                 else if (section.SectionName.Equals("SOUNDS", StringComparison.OrdinalIgnoreCase))
                 {
                     _soundSection = section;
@@ -68,6 +71,22 @@ namespace Gk3Main.Game
         private void play(int timeSinceStart, int duration)
         {
             int startIndex, count;
+
+            // play model visibility
+            if (_modelVisibilitySection != null)
+            {
+                GetAllFramesSince(_modelVisibilitySection, timeSinceStart, duration, MillisecondsPerFrame,
+                    out startIndex, out count);
+
+                for (int i = startIndex; i < startIndex + count; i++)
+                {
+                    string model = _modelVisibilitySection.Lines[i].Params[0].StringValue;
+                    string onoff = _modelVisibilitySection.Lines[i].Params[1].StringValue;
+                    bool visible = onoff.Equals("on", StringComparison.OrdinalIgnoreCase);
+
+                    SceneManager.SetSceneModelVisibility(model, visible);
+                }
+            }
 
             // play sounds
             if (_soundSection != null)
