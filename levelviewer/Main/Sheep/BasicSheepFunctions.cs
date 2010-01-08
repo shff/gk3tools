@@ -50,6 +50,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("DoesModelExist", _doesModelExistDelegate,
                 SymbolType.Integer, SymbolType.String);
 
+            SheepMachine.AddImport("EgoTakeInvItem", _egoTakeInvItem,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("EnableCameraBoundaries", _dummyVoid,
                 SymbolType.Void);
 
@@ -453,14 +456,7 @@ namespace Gk3Main.Sheep
             SheepMachine.PushIntOntoStack(vm, 0);
         }
 
-        private static void sheep_DoesGraceHaveInvItem(IntPtr vm)
-        {
-            string item = SheepMachine.PopStringOffStack(vm);
-
-            // TODO!
-
-            SheepMachine.PushIntOntoStack(vm, 0);
-        }
+        
 
         private static void sheep_DoesModelExist(IntPtr vm)
         {
@@ -475,18 +471,34 @@ namespace Gk3Main.Sheep
         {
             string item = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            bool hasItem = Game.GameManager.IsInEgoInventory(item);
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, hasItem ? 1 : 0);
         }
 
         private static void sheep_DoesGabeHaveInvItem(IntPtr vm)
         {
             string item = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
+            bool hasItem = Game.GameManager.IsInInventory(item, true);
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, hasItem ? 1 : 0);
+        }
+
+        private static void sheep_DoesGraceHaveInvItem(IntPtr vm)
+        {
+            string item = SheepMachine.PopStringOffStack(vm);
+
+            bool hasItem = Game.GameManager.IsInInventory(item, false);
+
+            SheepMachine.PushIntOntoStack(vm, hasItem ? 1 : 0);
+        }
+
+        private static void sheep_EgoTakeInvItem(IntPtr vm)
+        {
+            string item = SheepMachine.PopStringOffStack(vm);
+
+            Game.GameManager.PutInEgoInventory(item);
         }
 
         private static void sheep_HideSceneModel(IntPtr vm)
@@ -827,6 +839,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _continueDialogueNoFidgets = new SheepFunctionDelegate(sheep_ContinueDialogueNoFidgets);
         private static SheepFunctionDelegate _cutToCameraAngle = new SheepFunctionDelegate(sheep_CutToCameraAngle);
         private static SheepFunctionDelegate _doesEgoHaveInvItem = new SheepFunctionDelegate(sheep_DoesEgoHaveInvItem);
+        private static SheepFunctionDelegate _egoTakeInvItem = new SheepFunctionDelegate(sheep_EgoTakeInvItem);
         private static SheepFunctionDelegate _getFlag = new SheepFunctionDelegate(sheep_GetFlag);
         private static SheepFunctionDelegate _finishedScreen = new SheepFunctionDelegate(sheep_FinishedScreen);
         private static SheepFunctionDelegate _getGameVariableIntDelegate = new SheepFunctionDelegate(sheep_GetGameVariableInt);

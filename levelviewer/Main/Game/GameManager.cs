@@ -240,6 +240,39 @@ namespace Gk3Main.Game
             return false;
         }
 
+        public static bool IsInEgoInventory(string name)
+        {
+            return IsInInventory(name, CurrentEgo == Ego.Gabriel);
+        }
+
+        public static bool IsInInventory(string name, bool isGabe)
+        {
+            List<string> toSearch;
+            if (isGabe)
+                toSearch = _gabeInventory;
+            else
+                toSearch = _graceInventory;
+
+            for (int i = 0; i < toSearch.Count; i++)
+                if (toSearch[i].Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+            return false;
+        }
+
+        public static void PutInEgoInventory(string name)
+        {
+            PutInInventory(name, CurrentEgo == Ego.Gabriel);
+        }
+
+        public static void PutInInventory(string name, bool isGabe)
+        {
+            if (isGabe)
+                _gabeInventory.Add(name);
+            else
+                _graceInventory.Add(name);
+        }
+
         public static void AddGameTimer(string noun, string verb, int duration)
         {
             Game.GameTimer timer;
@@ -323,6 +356,9 @@ namespace Gk3Main.Game
         private static Dictionary<string, int> _chatCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, int> _topicCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();
+        private static List<string> _gabeInventory = new List<string>();
+        private static List<string> _graceInventory = new List<string>();
+        
         private static LinkedList<GameTimer> _gameTimers = new LinkedList<GameTimer>();
         }
 }

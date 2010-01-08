@@ -347,7 +347,7 @@ namespace Gk3Main
             float distance;
             foreach (SceneModel model in _models)
             {
-                if (model.Model.CollideRay(Math.Vector3.Zero, origin, direction, length, out distance))
+                if (model.Visible && model.Model.CollideRay(Math.Vector3.Zero, origin, direction, length, out distance))
                 {
                     Console.CurrentConsole.WriteLine(model.Name);
                     return model.Model.NameWithoutExtension;
@@ -597,7 +597,9 @@ namespace Gk3Main
                 if (model.Type == Gk3Main.Game.SifModelType.Prop ||
                     model.Type == SifModelType.GasProp)
                 {
-                    AddModel(model.Name, !model.Hidden);
+                    AddModel(model.Name, !model.Hidden && 
+                        GameManager.IsInInventory(model.Noun, true) == false && 
+                        GameManager.IsInInventory(model.Noun, false) == false);
 
                     if (model.Type == SifModelType.GasProp)
                         AddGas(model.Gas);
