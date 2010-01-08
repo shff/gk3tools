@@ -19,8 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Tao.OpenGl;
-
 namespace Gk3Main.Graphics
 {
     public abstract class TextureResource : Resource.Resource
@@ -100,6 +98,9 @@ namespace Gk3Main.Graphics
 
         public bool ContainsAlpha { get { return _containsAlpha; } }
 
+        /// <summary>
+        /// Gets the ORIGINAL pixels as loaded from the bitmap, without any processing
+        /// </summary>
         internal byte[] Pixels { get { return _pixels; } }
 
         /// <summary>
@@ -153,17 +154,7 @@ namespace Gk3Main.Graphics
                     pixels[currentPixel + 0] = r;
                     pixels[currentPixel + 1] = g;
                     pixels[currentPixel + 2] = b;
-
-                    if (r == 255 && g == 0 && b == 255)
-                    {
-                        pixels[currentPixel + 0] = 0;
-                        pixels[currentPixel + 1] = 0;
-                        pixels[currentPixel + 2] = 0;
-                        pixels[currentPixel + 3] = 0;
-                        containsAlpha = true;
-                    }
-                    else
-                        pixels[currentPixel + 3] = 255;
+                    pixels[currentPixel + 3] = 255;
                 }
 
                 // do we need to skip a padding pixel?
@@ -217,11 +208,7 @@ namespace Gk3Main.Graphics
                         pixels[currentPixel + 0] = r;
                         pixels[currentPixel + 1] = g;
                         pixels[currentPixel + 2] = b;
-
-                        if (r == 255 && g == 0 && b == 255)
-                            pixels[currentPixel + 3] = 0;
-                        else
-                            pixels[currentPixel + 3] = 255;
+                        pixels[currentPixel + 3] = 255;
                     }
                     else
                     {
@@ -266,6 +253,53 @@ namespace Gk3Main.Graphics
             r = (byte)(tr * 255 / 31);
             g = (byte)(tg * 255 / 63);
             b = (byte)(tb * 255 / 31);
+        }
+
+        /// <summary>
+        /// Fixes alpha. If resizedPixels is null then it uses _pixels.
+        /// It returns the array of modified pixels. It may also return
+        /// null if no modifications were made and resizedPixels was not provided.
+        /// </summary>
+        protected byte[] fixupAlpha(byte[] resizedPixels)
+        {
+            byte[] result, source;
+            int width, height;
+
+            if (resizedPixels == null)
+            {
+                result = null;
+                source = _pixels;
+                width = _width;
+                height = _height;
+            }
+            else
+            {
+                result = resizedPixels;
+                source = resizedPixels;
+                width = _actualPixelWidth;
+                height = _actualPixelHeight;
+            }
+
+            for (int i = 0; i < width * height; i++)
+            {
+                if (source[i * 4 + 0] == 255 &&
+                    source[i * 4 + 1] == 0 &&
+                    source[i * 4 + 2] == 255)
+                {
+                    if (result == null)
+                    {
+                        result = new byte[width * height * 4];
+                        Array.Copy(source, result, source.Length);
+                    }
+
+                    result[i * 4 + 0] = 0;
+                    result[i * 4 + 1] = 0;
+                    result[i * 4 + 2] = 0;
+                    result[i * 4 + 3] = 0;
+                }
+            }
+
+            return result;
         }
 
         protected byte[] _pixels;

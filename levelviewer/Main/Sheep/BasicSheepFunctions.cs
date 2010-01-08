@@ -95,6 +95,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("IncNounVerbCount", _incNounVerbCount,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
+            SheepMachine.AddImport("IncNounVerbCountBoth", _incNounVerbCountBoth,
+                SymbolType.Void, SymbolType.String, SymbolType.String);
+
             SheepMachine.AddImport("InitEgoPosition", _initEgoPosition,
                 SymbolType.Void, SymbolType.String);
 
@@ -162,6 +165,9 @@ namespace Gk3Main.Sheep
                 SymbolType.Void, SymbolType.String);
 
             SheepMachine.AddImport("SetNounVerbCount", _setNounVerbCount,
+                SymbolType.Void, SymbolType.String, SymbolType.String, SymbolType.Integer);
+
+            SheepMachine.AddImport("SetNounVerbCountBoth", _setNounVerbCountBoth,
                 SymbolType.Void, SymbolType.String, SymbolType.String, SymbolType.Integer);
 
             SheepMachine.AddImport("SetMood", _dummyStringString,
@@ -485,8 +491,16 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            int count = Game.GameManager.GetNounVerbCount(noun, verb);
-            Game.GameManager.SetNounVerbCount(noun, verb, count + 1);
+            Game.GameManager.IncrementNounVerbCount(noun, verb);
+        }
+
+        private static void sheep_IncNounVerbCountBoth(IntPtr vm)
+        {
+            string verb = SheepMachine.PopStringOffStack(vm);
+            string noun = SheepMachine.PopStringOffStack(vm);
+
+            Game.GameManager.IncrementNounVerbCount(noun, verb, true);
+            Game.GameManager.IncrementNounVerbCount(noun, verb, false);
         }
 
         private static void sheep_FinishedScreen(IntPtr vm)
@@ -588,6 +602,16 @@ namespace Gk3Main.Sheep
             string noun = SheepMachine.PopStringOffStack(vm);
 
             Game.GameManager.SetNounVerbCount(noun, verb, count);
+        }
+
+        private static void sheep_SetNounVerbCountBoth(IntPtr vm)
+        {
+            int count = SheepMachine.PopIntOffStack(vm);
+            string verb = SheepMachine.PopStringOffStack(vm);
+            string noun = SheepMachine.PopStringOffStack(vm);
+
+            Game.GameManager.SetNounVerbCount(noun, verb, true, count);
+            Game.GameManager.SetNounVerbCount(noun, verb, false, count);
         }
 
         private static void sheep_SetFlag(IntPtr vm)
@@ -808,6 +832,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _doesModelExistDelegate = new SheepFunctionDelegate(sheep_DoesModelExist);
         private static SheepFunctionDelegate _initEgoPosition = new SheepFunctionDelegate(sheep_InitEgoPosition);
         private static SheepFunctionDelegate _incNounVerbCount = new SheepFunctionDelegate(sheep_IncNounVerbCount);
+        private static SheepFunctionDelegate _incNounVerbCountBoth = new SheepFunctionDelegate(sheep_IncNounVerbCountBoth);
         private static SheepFunctionDelegate _inspectModelUsingAngle = new SheepFunctionDelegate(sheep_InspectModelUsingAngle);
         private static SheepFunctionDelegate _isActiveInvItem = new SheepFunctionDelegate(sheep_IsActiveInvItem);
         private static SheepFunctionDelegate _isActorAtLocation = new SheepFunctionDelegate(sheep_IsActorAtLocation);
@@ -827,6 +852,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _setListenGas = new SheepFunctionDelegate(sheep_SetListenGas);
         private static SheepFunctionDelegate _setLocation = new SheepFunctionDelegate(sheep_setLocation);
         private static SheepFunctionDelegate _setNounVerbCount = new SheepFunctionDelegate(sheep_SetNounVerbCount);
+        private static SheepFunctionDelegate _setNounVerbCountBoth = new SheepFunctionDelegate(sheep_SetNounVerbCountBoth);
         private static SheepFunctionDelegate _setTalkGas = new SheepFunctionDelegate(sheep_SetTalkGas);
         private static SheepFunctionDelegate _setTimerSeconds = new SheepFunctionDelegate(sheep_SetTimerSeconds);
         private static SheepFunctionDelegate _showSceneModel = new SheepFunctionDelegate(sheep_ShowSceneModel);

@@ -127,23 +127,33 @@ namespace Gk3Main.Game
             }
         }
 
-        public static int GetNounVerbCount(string noun, string verb)
+        public static int GetNounVerbCount(string noun, string verb, bool isGabe)
         {
             int count;
-            if (_nounVerbCounts.TryGetValue(new NounVerbCombination(noun, verb), out count))
+            if (_nounVerbCounts.TryGetValue(new NounVerbCombination(noun, verb, isGabe), out count))
                 return count;
 
             return 0;
         }
 
-        public static void SetNounVerbCount(string noun, string verb, int count)
+        public static int GetNounVerbCount(string noun, string verb)
         {
-            _nounVerbCounts[new NounVerbCombination(noun, verb)] = count;
+            return GetNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel);
         }
 
-        public static void IncrementNounVerbCount(string noun, string verb)
+        public static void SetNounVerbCount(string noun, string verb, bool isGabe, int count)
         {
-            NounVerbCombination nv = new NounVerbCombination(noun, verb);
+            _nounVerbCounts[new NounVerbCombination(noun, verb, isGabe)] = count;
+        }
+
+        public static void SetNounVerbCount(string noun, string verb, int count)
+        {
+            SetNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel, count);   
+        }
+
+        public static void IncrementNounVerbCount(string noun, string verb, bool isGabe)
+        {
+            NounVerbCombination nv = new NounVerbCombination(noun, verb, CurrentEgo == Ego.Gabriel);
             if (_nounVerbCounts.ContainsKey(nv) == false)
                 _nounVerbCounts[nv] = 1;
             else
@@ -151,6 +161,11 @@ namespace Gk3Main.Game
                 int c = _nounVerbCounts[nv];
                 _nounVerbCounts[nv] = c + 1;
             }
+        }
+
+        public static void IncrementNounVerbCount(string noun, string verb)
+        {
+            IncrementNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel);
         }
 
         public static int GetIntegerGameVariable(string variable)

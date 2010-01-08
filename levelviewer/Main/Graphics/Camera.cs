@@ -19,8 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Tao.OpenGl;
-
 namespace Gk3Main.Graphics
 {
     public class Camera
@@ -39,13 +37,6 @@ namespace Gk3Main.Graphics
             _position = new Gk3Main.Math.Vector3();
 
             _projection = Math.Matrix.Perspective(fov, aspect, near, far);
-
-            // HACK: remove this when we can use our own matrix stuff for UnProject()!
-            Gl.glMatrixMode(Gl.GL_PROJECTION);
-            Gl.glLoadIdentity();
-            Glu.gluPerspective(fov * 57.2957795, aspect, near, far);
-            Gl.glMatrixMode(Gl.GL_MODELVIEW);
-            Gl.glLoadIdentity();
         }
 
         public void AddRelativePositionOffset(Math.Vector3 offset)
@@ -120,12 +111,6 @@ namespace Gk3Main.Graphics
             forward = _orientation * forward;
             up = _orientation * up;
 
-            Gl.glLoadIdentity();
-            Gl.glScalef(1.0f, 1.0f, -1.0f);
-            Glu.gluLookAt(_position.X, _position.Y, _position.Z,
-                _position.X + forward.X, _position.Y + forward.Y, _position.Z + forward.Z,
-                up.X, up.Y, up.Z);
-
             // calculate the ModelViewProjection matrix
             _modelView = Math.Matrix.LookAt(_position, forward, up);
             //_modelViewProjection = _modelView * _projection;
@@ -136,20 +121,8 @@ namespace Gk3Main.Graphics
 
         public Math.Vector3 Unproject(Math.Vector3 v)
         {
-            // TODO: use our own matrix stuff instead of this OpenGL stuff
-
-            double[] modelMatrix = new double[16];
-            double[] projectionMatrix = new double[16];
-            int[] viewport = new int[4];
-
-            Gl.glGetDoublev(Gl.GL_MODELVIEW_MATRIX, modelMatrix);
-            Gl.glGetDoublev(Gl.GL_PROJECTION_MATRIX, projectionMatrix);
-            Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
-
-            double x, y, z;
-            Glu.gluUnProject(v.X, viewport[3] - v.Y, v.Z, modelMatrix, projectionMatrix, viewport, out x, out y, out z);
-
-            return new Math.Vector3((float)x, (float)y, (float)z);
+            Math.Matrix world = Math.Matrix.Identity;
+            return RendererManager.CurrentRenderer.Viewport.Unproject(v, ref _projection, ref _modelView, ref world);
         }
 
         public Math.Matrix ViewProjection

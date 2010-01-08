@@ -485,12 +485,15 @@ namespace Gk3Main.Graphics
                     }
                 }
 
-                
+                RenderAABBAt(position, angle, camera);
+            }
+        }
 
-                foreach (ModMesh mesh in _meshes)
-                {
-                    BoundingBoxRenderer.Render(camera, position, mesh.TransformedBoundingBox);
-                }
+        public void RenderAABBAt(Math.Vector3 position, float angle, Camera camera)
+        {
+            foreach (ModMesh mesh in _meshes)
+            {
+                BoundingBoxRenderer.Render(camera, position, mesh.TransformedBoundingBox);
             }
         }
 

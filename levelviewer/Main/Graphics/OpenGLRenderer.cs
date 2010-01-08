@@ -233,7 +233,16 @@ namespace Gk3Main.Graphics
                         }
                     }
                 }
+
+                pixels = fixupAlpha(pixels);
             }
+            else
+            {
+                pixels = fixupAlpha(null);
+                if (pixels == null)
+                    pixels = _pixels;
+            }
+            
 
             Gl.glEnable(Gl.GL_TEXTURE_2D);
 

@@ -45,11 +45,23 @@ namespace Gk3Main.Math
 
         public static Vector3 operator *(Matrix m, Vector3 v)
         {
-            Vector3 result = new Vector3();
+            Vector3 result;
 
             result.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31 + m.M41;
             result.Y = v.X * m.M12 + v.Y * m.M22 + v.Z * m.M32 + m.M42;
             result.Z = v.X * m.M13 + v.Y * m.M23 + v.Z * m.M33 + m.M43;
+
+            return result;
+        }
+
+        public static Vector4 operator *(Matrix m, Vector4 v)
+        {
+            Vector4 result;
+
+            result.X = v.X * m.M11 + v.Y * m.M21 + v.Z * m.M31 + v.W * m.M41;
+            result.Y = v.X * m.M12 + v.Y * m.M22 + v.Z * m.M32 + v.W * m.M42;
+            result.Z = v.X * m.M13 + v.Y * m.M23 + v.Z * m.M33 + v.W * m.M43;
+            result.W = v.X * m.M14 + v.Y * m.M24 + v.Z * m.M34 + v.W * m.M44;
 
             return result;
         }
@@ -83,15 +95,46 @@ namespace Gk3Main.Math
             result.M44 = m1.M41 * m2.M14 + m1.M42 * m2.M24 + m1.M43 * m2.M34 + m1.M44 * m2.M44;
         }
 
-       /* public static Matrix Invert(Matrix matrix)
+        public static void Invert(ref Matrix matrix, out Matrix result)
         {
+            // this is heavily based on the Mono Xna implementation
+            // http://code.google.com/p/monoxna/
 
-            float n23 = matrix.M33 * matrix.M44 - matrix.M34 * matrix.M43;
-            float n22 = matrix.M32 * matrix.M44 - matrix.M34 * matrix.M42;
-            float n21 = matrix.M32 * matrix.M43 - matrix.M33 * matrix.m42;
-            float n20 = matrix.M31 * matrix.M44 - matrix.M34 * matrix.M41;
-            float n19 = matrix.M31 * matrix.M43 - matrix.M33 * 
-        }*/
+            // find determinants
+            float det1 = matrix.M11 * matrix.M22 - matrix.M12 * matrix.M21;
+            float det2 = matrix.M11 * matrix.M23 - matrix.M13 * matrix.M21;
+            float det3 = matrix.M11 * matrix.M24 - matrix.M14 * matrix.M21;
+            float det4 = matrix.M12 * matrix.M23 - matrix.M13 * matrix.M22;
+            float det5 = matrix.M12 * matrix.M24 - matrix.M14 * matrix.M22;
+            float det6 = matrix.M13 * matrix.M24 - matrix.M14 * matrix.M23;
+            float det7 = matrix.M31 * matrix.M42 - matrix.M32 * matrix.M41;
+            float det8 = matrix.M31 * matrix.M43 - matrix.M33 * matrix.M41;
+            float det9 = matrix.M31 * matrix.M44 - matrix.M34 * matrix.M41;
+            float det10 = matrix.M32 * matrix.M43 - matrix.M33 * matrix.M42;
+            float det11 = matrix.M32 * matrix.M44 - matrix.M34 * matrix.M42;
+            float det12 = matrix.M33 * matrix.M44 - matrix.M34 * matrix.M43;
+            float major = det1 * det12 - det2 * det11 + det3 * det10 + det4 * det9 - det5 * det8 + det6 * det7;
+
+            float invDetMatrix = 1.0f / major;
+
+            // now do the rest
+            result.M11 = (matrix.M22 * det12 - matrix.M23 * det11 + matrix.M24 * det10) * invDetMatrix;
+            result.M12 = (-matrix.M12 * det12 + matrix.M13 * det11 - matrix.M14 * det10) * invDetMatrix;
+            result.M13 = (matrix.M42 * det6 - matrix.M43 * det5 + matrix.M44 * det4) * invDetMatrix;
+            result.M14 = (-matrix.M32 * det6 + matrix.M33 * det5 - matrix.M34 * det4) * invDetMatrix;
+            result.M21 = (-matrix.M21 * det12 + matrix.M23 * det9 - matrix.M24 * det8) * invDetMatrix;
+            result.M22 = (matrix.M11 * det12 - matrix.M13 * det9 + matrix.M14 * det8) * invDetMatrix;
+            result.M23 = (-matrix.M41 * det6 + matrix.M43 * det3 - matrix.M44 * det2) * invDetMatrix;
+            result.M24 = (matrix.M31 * det6 - matrix.M33 * det3 + matrix.M34 * det2) * invDetMatrix;
+            result.M31 = (matrix.M21 * det11 - matrix.M22 * det9 + matrix.M24 * det7) * invDetMatrix;
+            result.M32 = (-matrix.M11 * det11 + matrix.M12 * det9 - matrix.M14 * det7) * invDetMatrix;
+            result.M33 = (matrix.M41 * det5 - matrix.M42 * det3 + matrix.M44 * det1) * invDetMatrix;
+            result.M34 = (-matrix.M31 * det5 + matrix.M32 * det3 - matrix.M34 * det1) * invDetMatrix;
+            result.M41 = (-matrix.M21 * det10 + matrix.M22 * det8 - matrix.M23 * det7) * invDetMatrix;
+            result.M42 = (matrix.M11 * det10 - matrix.M12 * det8 + matrix.M13 * det7) * invDetMatrix;
+            result.M43 = (-matrix.M41 * det4 + matrix.M42 * det2 - matrix.M43 * det1) * invDetMatrix;
+            result.M44 = (matrix.M31 * det4 - matrix.M32 * det2 + matrix.M33 * det1) * invDetMatrix;
+        }
 
         public static Matrix LookAt(Vector3 position, Vector3 direction, Vector3 up)
         {

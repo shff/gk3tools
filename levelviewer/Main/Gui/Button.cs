@@ -162,10 +162,10 @@ namespace Gk3Main.Gui
 
         private void calculateScreenCoordinates()
         {
-            int[] viewport = Graphics.Utils.Viewport;
+            Graphics.Viewport vp = Graphics.RendererManager.CurrentRenderer.Viewport;
 
-            _screenX = (int)(viewport[0] + _x.Scale * viewport[2] + _x.Offset);
-            _screenY = (int)(viewport[1] + _y.Scale * viewport[3] + _y.Offset);
+            _screenX = (int)(vp.X + _x.Scale * vp.Width + _x.Offset);
+            _screenY = (int)(vp.Y + _y.Scale * vp.Height + _y.Offset);
         }
 
         

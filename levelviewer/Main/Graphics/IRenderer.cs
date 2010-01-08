@@ -82,6 +82,28 @@ namespace Gk3Main.Graphics
             get { return (float)_width / _height; }
         }
 
+        public Math.Vector3 Unproject(Math.Vector3 source,
+            ref Math.Matrix projection, ref Math.Matrix view, ref Math.Matrix world)
+        {
+            Math.Vector4 result;
+            result.X = ((source.X - X) * 2 / Width) - 1;
+            result.Y = 1 - ((source.Y - Y) * 2 / Height);
+            result.Z = source.Z;
+            result.W = 1.0f;
+
+            Math.Matrix invProj, invView, invWorld;
+            Math.Matrix.Invert(ref projection, out invProj);
+            Math.Matrix.Invert(ref view, out invView);
+            Math.Matrix.Invert(ref world, out invWorld);
+
+            result = invProj * result;
+            result = invView * result;
+            result = invWorld * result;
+            result = result / result.W;
+
+            return new Math.Vector3(result.X, result.Y, result.Z);
+        }
+
         public Math.Vector4 Vector
         {
             get { return new Math.Vector4(_x, _y, _width, _height); }

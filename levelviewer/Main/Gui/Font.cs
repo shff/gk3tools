@@ -119,17 +119,15 @@ namespace Gk3Main.Gui
             // set the height of each character
             _height = _texture.Height / _lineCount;
 
-            byte[] buffer = new byte[_texture.ActualPixelWidth * _texture.ActualPixelHeight * 3];
-            _texture.Bind();
-            Gl.glGetTexImage(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGB, Gl.GL_UNSIGNED_BYTE, buffer);
+            byte[] buffer = _texture.Pixels;
 
             // look for the baseline marker
-            int[] markerColor = { buffer[3], buffer[4], buffer[5] };
+            int[] markerColor = { buffer[4], buffer[5], buffer[6] };
             for (int i = _height - 1; i >= 0; i--) // start at the bottom and work up, since some fonts have a mystery marker pixel at (0,1)...
             {
-                if (buffer[i * 3 + 0] == markerColor[0] &&
-                    buffer[i * 3 + 1] == markerColor[1] &&
-                    buffer[i * 3 + 2] == markerColor[2])
+                if (buffer[i * 4 + 0] == markerColor[0] &&
+                    buffer[i * 4 + 1] == markerColor[1] &&
+                    buffer[i * 4 + 2] == markerColor[2])
                 {
                     _baseline = i;
                     break;
@@ -146,16 +144,25 @@ namespace Gk3Main.Gui
                 // find the next marker
                 while(true)
                 {
-                    if (nextMarkerPixel >= _texture.ActualPixelWidth)
+                    if (nextMarkerPixel >= _texture.Width)
                     {
-                        currentLine++;
-                        nextMarkerPixel = 2;
-                        currentMarkerPixel = 1;
+                        if (currentLine + 1 == _lineCount)
+                        {
+                            // no more lines, so this must be the last character
+                            break;
+                        }
+                        else
+                        {
+                            // move to the next line
+                            currentLine++;
+                            nextMarkerPixel = 2;
+                            currentMarkerPixel = 1;
+                        }
                     }
 
-                    if (buffer[(currentLine * _height * _texture.ActualPixelWidth + nextMarkerPixel) * 3 + 0] == markerColor[0] &&
-                        buffer[(currentLine * _height * _texture.ActualPixelWidth + nextMarkerPixel) * 3 + 1] == markerColor[1] &&
-                        buffer[(currentLine * _height * _texture.ActualPixelWidth + nextMarkerPixel) * 3 + 2] == markerColor[2])
+                    if (buffer[(currentLine * _height * _texture.Width + nextMarkerPixel) * 4 + 0] == markerColor[0] &&
+                        buffer[(currentLine * _height * _texture.Width + nextMarkerPixel) * 4 + 1] == markerColor[1] &&
+                        buffer[(currentLine * _height * _texture.Width + nextMarkerPixel) * 4 + 2] == markerColor[2])
                     {
                         break;
                     }

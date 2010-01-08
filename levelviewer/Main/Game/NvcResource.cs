@@ -23,30 +23,25 @@ namespace Gk3Main.Game
 
     struct NounVerbCombination
     {
-        public NounVerbCombination(string noun, string verb)
+        public NounVerbCombination(string noun, string verb, bool egoIsGabe)
         {
             Noun = noun;
             Verb = verb;
+            EgoIsGabe = egoIsGabe;
         }
 
         public string Noun;
         public string Verb;
+        public bool EgoIsGabe;
     }
 
     class NounVerbComparison : IEqualityComparer<NounVerbCombination>
     {
         public bool Equals(NounVerbCombination nv1, NounVerbCombination nv2)
         {
-            bool r1 = StringComparer.OrdinalIgnoreCase.Equals(nv1.Noun, nv2.Noun);
-
-            if (!r1)
-            {
-                return StringComparer.OrdinalIgnoreCase.Equals(nv1.Verb, nv2.Verb);
-            }
-            else
-            {
-                return r1;
-            }
+            return StringComparer.OrdinalIgnoreCase.Equals(nv1.Noun, nv2.Noun) &&
+                StringComparer.OrdinalIgnoreCase.Equals(nv1.Verb, nv2.Verb) &&
+                nv1.EgoIsGabe == nv2.EgoIsGabe;
         }
 
         public int GetHashCode(NounVerbCombination nv)

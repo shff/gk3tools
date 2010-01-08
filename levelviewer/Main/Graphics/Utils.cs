@@ -129,13 +129,13 @@ namespace Gk3Main.Graphics
             float vw = src.Height * texture.Height / texture.ActualPixelHeight;
 
             // this keeps everything at a 4:3 ratio, even if it isn't IRL
-            float screenWidth = (_viewport[3] * 4) / 3;
-            float widescreenOffset = (_viewport[2] - screenWidth) / 2;
+            float screenWidth = (_viewport.Height * 4) / 3;
+            float widescreenOffset = (_viewport.Width - screenWidth) / 2;
 
-            float x1 = widescreenOffset + _viewport[0] + dest.X * screenWidth;
-            float y1 = _viewport[1] + dest.Y * _viewport[3];
+            float x1 = widescreenOffset + _viewport.X + dest.X * screenWidth;
+            float y1 = _viewport.Y + dest.Y * _viewport.Height;
             float x2 = x1 + dest.Width * screenWidth;
-            float y2 = y1 + dest.Height * _viewport[3];
+            float y2 = y1 + dest.Height * _viewport.Height;
 
 
             _workingBuffer1[0] = x1;
@@ -234,9 +234,11 @@ namespace Gk3Main.Graphics
             renderer.BlendEnabled = true;
             renderer.AlphaTestEnabled = false;
             renderer.DepthTestEnabled = false;
-            Gl.glBlendFunc(Gl.GL_SRC_ALPHA, Gl.GL_ONE_MINUS_SRC_ALPHA);
+            renderer.SetBlendFunctions(BlendMode.SourceAlpha, BlendMode.InverseSourceAlpha);
 
-            _2dEffect.SetParameter("Viewport", renderer.Viewport.Vector);
+            _viewport = renderer.Viewport;
+
+            _2dEffect.SetParameter("Viewport", _viewport.Vector);
             _2dEffect.SetParameter("Color", color);
             _2dEffect.Begin();
             _2dEffect.BeginPass(0);
@@ -259,22 +261,31 @@ namespace Gk3Main.Graphics
             _in2D = false;
         }
 
-        public static int[] Viewport
+        public static void WriteTga(string filename, byte[] pixels, int width, int height)
         {
-            get
-            {
-                if (_viewportInitialized == false)
-                {
-                    Gl.glGetIntegerv(Gl.GL_VIEWPORT, _viewport);
-                    _viewportInitialized = true;
-                }
+            System.IO.BinaryWriter writer = new System.IO.BinaryWriter(System.IO.File.OpenWrite(filename));
 
-                return _viewport;
-            }
+            // Write the TGA file header
+            writer.Write((byte)0);                  // id length
+            writer.Write((byte)0);                  // palette type
+            writer.Write((byte)2);                  // image type
+            writer.Write((short)0);                 // first color
+            writer.Write((short)0);                 // color count
+            writer.Write((byte)0);                  // palette entry size
+            writer.Write((short)0);                 // left
+            writer.Write((short)0);                 // top
+            writer.Write((short)width);   // width
+            writer.Write((short)height);   // height
+            writer.Write((byte)32);                 // bits per pixel
+            writer.Write((byte)8);                  // flags
+
+            writer.Write(pixels);
+
+            writer.Close();
         }
 
         private static bool _viewportInitialized;
-        private static int[] _viewport = new int[4];
+        private static Viewport _viewport;
         private static float[] _workingBuffer1 = new float[4 * 2];
         private static float[] _workingBuffer2 = new float[4 * 2];
         private static ushort[] _indices;

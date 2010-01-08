@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Tao.OpenGl;
 
 namespace Gk3Main.Graphics
 {

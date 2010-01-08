@@ -132,21 +132,20 @@ namespace Gk3Main.Math
 
     public struct Vector4
     {
+        public float X, Y, Z, W;
+
         public Vector4(float x, float y, float z, float w)
         {
-            _x = x;
-            _y = y;
-            _z = z;
-            _w = w;
+            X = x;
+            Y = y;
+            Z = z;
+            W = w;
         }
 
-        public float X { get { return _x; } set { _x = value; } }
-        public float Y { get { return _y; } set { _y = value; } }
-        public float Z { get { return _z; } set { _z = value; } }
-        public float W { get { return _w; } set { _w = value; } }
-
-        private float _x, _y, _z, _w;
-
+        public static Vector4 operator /(Vector4 v, float s)
+        {
+            return new Vector4(v.X / s, v.Y / s, v.Z / s, v.W / s);
+        }
 
         public static Vector4 One
         {
