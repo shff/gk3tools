@@ -46,7 +46,7 @@ namespace Gk3Main.Graphics
         public bool smooth;
     }
 
-    struct ModMeshSection
+    public struct ModMeshSection
     {
         public uint heading;
         public string texture;
@@ -81,7 +81,7 @@ namespace Gk3Main.Graphics
         public ushort[] Section3;
     }
 
-    struct ModMesh
+    public struct ModMesh
     {
         public uint heading;
         public Math.Matrix TransformMatrix;
@@ -104,7 +104,7 @@ namespace Gk3Main.Graphics
 
     #endregion
 
-    class ModelResource : Resource.Resource
+    public class ModelResource : Resource.Resource
     {
         static ModelResource()
         {
@@ -378,7 +378,13 @@ namespace Gk3Main.Graphics
 
                     foreach (ModMesh mesh in _meshes)
                     {
-                        _effect.SetParameter("ModelViewProjection", mesh.TransformMatrix * camera.ViewProjection);
+                        Math.Matrix worldview;
+                        if (mesh.AnimatedTransformMatrix.HasValue)
+                            worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
+                        else
+                            worldview = mesh.TransformMatrix * camera.ViewProjection;
+
+                        _effect.SetParameter("ModelViewProjection", worldview);
                         _effect.Begin();
                         _effect.BeginPass(0);
 

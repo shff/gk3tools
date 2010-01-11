@@ -220,6 +220,22 @@ namespace Gk3Main
             return null;
         }
 
+        public static Graphics.ModelResource GetSceneModel(string model)
+        {
+            for (int i = 0; i < _models.Count; i++)
+            {
+                if (_models[i].Name.Equals(model, StringComparison.OrdinalIgnoreCase))
+                    return _models[i].Model;
+            }
+
+            // couldn't find it? maybe it's an actor...
+            for (int i = 0; i < _actors.Count; i++)
+                if (_actors[i].ModelName.Equals(model, StringComparison.OrdinalIgnoreCase))
+                    return _actors[i].Model;
+
+            return null;
+        }
+
         public static void SetSceneModelVisibility(string name, bool visible)
         {
             for (int i = 0; i < _models.Count; i++)

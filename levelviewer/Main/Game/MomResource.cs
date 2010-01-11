@@ -6,11 +6,18 @@ namespace Gk3Main.Game
 {
     class MomResource : AnimationResource
     {
+        private struct MomAct
+        {
+            public Graphics.ActResource Act;
+            public Graphics.ModelResource Model;
+        }
+
         private AnimationResourceSection _actionSection;
         private AnimationResourceSection _modelVisibilitySection;
         private AnimationResourceSection _soundSection;
         private AnimationResourceSection _gk3Section;
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
+        private List<MomAct?> _acts = new List<MomAct?>();
         private int _timeElapsedSinceStart;
 
         public MomResource(string name, System.IO.Stream stream)
@@ -127,6 +134,52 @@ namespace Gk3Main.Game
                         string param3 = _gk3Section.Lines[i].Params[2].StringValue;
                         actor.SetMouth(param3);
                     }
+                }
+            }
+
+            // add any new ACT files
+            if (_actionSection != null)
+            {
+                GetAllFramesSince(_actionSection, timeSinceStart, duration, MillisecondsPerFrame,
+                    out startIndex, out count);
+
+                for (int i = startIndex; i < startIndex + count; i++)
+                {
+                    string actName = _actionSection.Lines[i].Params[0].StringValue;
+                    if (actName.EndsWith(".ACT", StringComparison.OrdinalIgnoreCase) == false)
+                        actName += ".ACT";
+
+                    MomAct act;
+                    act.Act = (Graphics.ActResource)Resource.ResourceManager.Load(actName);
+                    act.Model = SceneManager.GetSceneModel(act.Act.ModelName);
+                    if (act.Model == null)
+                    {
+                        Resource.ResourceManager.Unload(act.Act);
+                        continue;
+                    }
+                    
+                    // add the act file to the list
+                    bool added = false;
+                    for (int j = 0; j < _acts.Count; j++)
+                    {
+                        if (_acts[j].HasValue == false)
+                        {
+                            _acts[j] = act;
+                            added = true;
+                            break;
+                        }
+                    }
+                    if (added == false)
+                        _acts.Add(act);
+                }
+            }
+
+            // animate models using ACT files
+            for (int i = 0; i < _acts.Count; i++)
+            {
+                if (_acts[i].HasValue)
+                {
+                    _acts[i].Value.Act.Animate(_acts[i].Value.Model, timeSinceStart, true);
                 }
             }
         }

@@ -218,5 +218,10 @@ namespace Gk3Main.Game
         {
             get { return _isEgo; }
         }
+
+        public Graphics.ModelResource Model
+        {
+            get { return _model; }
+        }
     }
 }

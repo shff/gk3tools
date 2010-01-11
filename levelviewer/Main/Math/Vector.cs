@@ -103,7 +103,15 @@ namespace Gk3Main.Math
         }
 
         public float X, Y, Z;
-        
+
+        public static void Lerp(float amount, ref Vector3 v1, ref Vector3 v2, out Vector3 result)
+        {
+            float amountInv = 1.0f - amount;
+            result.X = v1.X * amountInv + v2.X * amount;
+            result.Y = v1.Y * amountInv + v2.Y * amount;
+            result.Z = v1.Z * amountInv + v2.Z * amount;
+        }
+
         public static Vector3 Forward
         {
             get { return new Vector3(0, 0, -1.0f); }
