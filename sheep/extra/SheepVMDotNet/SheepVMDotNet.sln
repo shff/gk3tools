@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheepVMDotNet", "SheepVMDot
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SheepVMSilverlight", "SheepVMDotNet\SheepVMSilverlight.csproj", "{3950D9F3-2095-4298-B4E1-531E836F3561}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3460790D-64D5-462D-AB4F-F52CCB6DDEEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3950D9F3-2095-4298-B4E1-531E836F3561}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3950D9F3-2095-4298-B4E1-531E836F3561}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3950D9F3-2095-4298-B4E1-531E836F3561}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3950D9F3-2095-4298-B4E1-531E836F3561}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

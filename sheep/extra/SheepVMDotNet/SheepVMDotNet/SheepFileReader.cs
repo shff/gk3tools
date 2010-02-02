@@ -41,10 +41,15 @@ namespace SheepVMDotNet
 
         public SheepFileReader(string filename)
         {
+#if SILVERLIGHT
+            var blah = System.Windows.Application.GetResourceStream(new Uri(filename, UriKind.Relative));
+            read( blah.Stream);
+#else
             using (System.IO.Stream stream = new System.IO.FileStream(filename, System.IO.FileMode.Open))
             {
                 read(stream);
             }
+#endif
         }
 
         public IntermediateOutput Output
@@ -204,7 +209,11 @@ namespace SheepVMDotNet
             SectionHeader header;
 
             byte[] label = reader.ReadBytes(12);
+#if SILVERLIGHT
+            header.Label = System.Text.Encoding.UTF8.GetString(label, 0, 12).Trim((char)0);
+#else
             header.Label = System.Text.Encoding.ASCII.GetString(label).Trim((char)0);
+#endif
             header.ExtraOffset = reader.ReadUInt32();
             header.DataOffset = reader.ReadUInt32();
             header.DataSize = reader.ReadUInt32();
@@ -222,8 +231,13 @@ namespace SheepVMDotNet
 
         private static string readString(System.IO.BinaryReader reader, short length)
         {
-            byte[] bytes = reader.ReadBytes(length);
-            return System.Text.Encoding.ASCII.GetString(bytes);
+            byte[] buffer = reader.ReadBytes(length);
+
+#if SILVERLIGHT
+            return System.Text.Encoding.UTF8.GetString(buffer, 0, length).Trim((char)0);
+#else
+            return System.Text.Encoding.ASCII.GetString(buffer);
+#endif
         }
 
         private static string readString(System.IO.BinaryReader reader)
@@ -243,9 +257,11 @@ namespace SheepVMDotNet
             reader.BaseStream.Seek(start, System.IO.SeekOrigin.Begin);
             byte[] buffer = reader.ReadBytes((int)(end - start));
 
+#if SILVERLIGHT
+            return System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length).Trim((char)0);
+#else
             return System.Text.Encoding.ASCII.GetString(buffer);
-
-            return reader.ReadString();
+#endif
         }
     }
 }
