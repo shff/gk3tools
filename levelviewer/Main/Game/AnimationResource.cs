@@ -159,14 +159,14 @@ namespace Gk3Main.Game
         public int NumFrames { get { return _numFrames; } }
         public List<AnimationResourceSection> Sections { get { return _sections; } }
 
-        public static void GetAllFramesSince(AnimationResourceSection section, int timeSinceStart, int duration,
+        public static void GetAllFramesSince(AnimationResourceSection section, int timeSinceStart, int duration, int millisecondsPerFrame,
             out int startIndex, out int count)
         {
             startIndex = -1;
             count = 0;
 
-            int startFrame = timeSinceStart / MillisecondsPerFrame;
-            int stopFrame = (timeSinceStart + duration) / MillisecondsPerFrame;
+            int startFrame = timeSinceStart / millisecondsPerFrame;
+            int stopFrame = (timeSinceStart + duration) / millisecondsPerFrame;
             for (int i = 0; i < section.Lines.Count; i++)
             {
                 // is this frame inside the time range we're looking for?
