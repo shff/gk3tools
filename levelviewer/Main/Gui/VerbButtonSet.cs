@@ -80,11 +80,11 @@ namespace Gk3Main.Gui
             }
         }
 
-        public void Render(int tickCount)
+        public void Render(Graphics.SpriteBatch sb, int tickCount)
         {
             foreach(Button b in _buttons)
             {
-                b.Render(tickCount);
+                b.Render(sb, tickCount);
             }
         }
 

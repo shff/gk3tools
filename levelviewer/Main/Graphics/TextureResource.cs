@@ -227,6 +227,36 @@ namespace Gk3Main.Graphics
             }
         }
 
+        protected static void ConvertToPowerOfTwo(byte[] pixels, int width, int height, 
+            out byte[] newPixels, out int newWidth, out int newHeight)
+        {
+            newWidth = getNextPowerOfTwo(width);
+            newHeight = getNextPowerOfTwo(height);
+
+            newPixels = new byte[newWidth * newHeight * 4];
+
+            for (int y = 0; y < newHeight; y++)
+            {
+                for (int x = 0; x < newWidth; x++)
+                {
+                    if (x < width && y < height)
+                    {
+                        newPixels[(y * newWidth + x) * 4 + 0] = pixels[(y * width + x) * 4 + 0];
+                        newPixels[(y * newWidth + x) * 4 + 1] = pixels[(y * width + x) * 4 + 1];
+                        newPixels[(y * newWidth + x) * 4 + 2] = pixels[(y * width + x) * 4 + 2];
+                        newPixels[(y * newWidth + x) * 4 + 3] = pixels[(y * width + x) * 4 + 3];
+                    }
+                    else
+                    {
+                        newPixels[(y * newWidth + x) * 4 + 0] = 0;
+                        newPixels[(y * newWidth + x) * 4 + 1] = 0;
+                        newPixels[(y * newWidth + x) * 4 + 2] = 0;
+                        newPixels[(y * newWidth + x) * 4 + 3] = 0;
+                    }
+                }
+            }
+        }
+
         #region Privates
 
         protected static int getNextPowerOfTwo(int n)

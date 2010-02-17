@@ -15,10 +15,10 @@ namespace Game
             get { return _vbs; }
         }
 
-        public static void Render(int tickCount)
+        public static void Render(Gk3Main.Graphics.SpriteBatch sb, int tickCount)
         {
             if (_vbs != null)
-                _vbs.Render(tickCount);
+                _vbs.Render(sb, tickCount);
         }
 
         public static void Process()
@@ -69,11 +69,11 @@ namespace Game
                 _vbs.OnMouseMove(x, y);
         }
 
-        public static void RenderProperCursor(Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
+        public static void RenderProperCursor(Gk3Main.Graphics.SpriteBatch sb, Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
         {
             if (_vbs != null || camera == null)
             {
-                point.Render(mx, my);
+                point.Render(sb, mx, my);
                 return;
             }
 
@@ -81,11 +81,11 @@ namespace Game
 
             if (nvcs == null || nvcs.Count == 0)
             {
-                point.Render(mx, my);
+                point.Render(sb, mx, my);
             }
             else
             {
-                zoom.Render(mx, my);
+                zoom.Render(sb, mx, my);
             }
 
         }

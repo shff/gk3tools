@@ -9,13 +9,21 @@ namespace Gk3Main.Graphics
     public struct Rect
     {
         public float X, Y, Width, Height;
+
+        public Rect(float x, float y, float width, float height)
+        {
+            X = x;
+            Y = y;
+            Width = width;
+            Height = height;
+        }
     }
 
     public class Utils
     {
         static Utils()
         {
-            _indices = new ushort[6];
+            _indices = new int[6];
 
             _indices[0] = 0;
             _indices[1] = 1;
@@ -26,6 +34,7 @@ namespace Gk3Main.Graphics
             _indices[5] = 3;
         }
 
+        [Obsolete("Use SpriteBatch for 2D rendering", true)]
         public static void Blit(float x, float y, TextureResource texture)
         {
             bool wasIn2D = _in2D;
@@ -63,7 +72,7 @@ namespace Gk3Main.Graphics
             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
             Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
             
-            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_INT, _indices);
 
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
             Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
@@ -71,6 +80,7 @@ namespace Gk3Main.Graphics
             if (wasIn2D == false) End2D();
         }
 
+        [Obsolete("Use SpriteBatch for 2D rendering", true)]
         public static void Blit(float x, float y, TextureResource texture, Rect src)
         {
             bool wasIn2D = _in2D;
@@ -108,7 +118,7 @@ namespace Gk3Main.Graphics
             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
             Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
 
-            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_INT, _indices);
 
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
             Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
@@ -116,6 +126,7 @@ namespace Gk3Main.Graphics
             if (wasIn2D == false) End2D();
         }
 
+        [Obsolete("Use SpriteBatch for 2D rendering", true)]
         public static void ScaleBlit(Rect dest, TextureResource texture, Rect src)
         {
             bool wasIn2D = _in2D;
@@ -137,40 +148,42 @@ namespace Gk3Main.Graphics
             float x2 = x1 + dest.Width * screenWidth;
             float y2 = y1 + dest.Height * _viewport.Height;
 
+            float[] verts = new float[4 * (2 + 2)];
 
-            _workingBuffer1[0] = x1;
-            _workingBuffer1[1] = y1;
-            _workingBuffer2[0] = u;
-            _workingBuffer2[1] = v;
+            verts[0] = x1;
+            verts[1] = y1;
+            verts[2] = u;
+            verts[3] = v;
 
-            _workingBuffer1[2] = x2;
-            _workingBuffer1[3] = y1;
-            _workingBuffer2[2] = u + uw;
-            _workingBuffer2[3] = v;
+            verts[4] = x2;
+            verts[5] = y1;
+            verts[6] = u + uw;
+            verts[7] = v;
 
-            _workingBuffer1[4] = _workingBuffer1[2];
-            _workingBuffer1[5] = y2;
-            _workingBuffer2[4] = u + uw;
-            _workingBuffer2[5] = v + vw;
+            verts[8] = x2;
+            verts[9] = y2;
+            verts[10] = u + uw;
+            verts[11] = v + vw;
 
-            _workingBuffer1[6] = x1;
-            _workingBuffer1[7] = _workingBuffer1[5];
-            _workingBuffer2[6] = u;
-            _workingBuffer2[7] = v + vw;
+            verts[12] = x1;
+            verts[13] = y2;
+            verts[14] = u;
+            verts[15] = v + vw;
 
-            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glVertexPointer(2, Gl.GL_FLOAT, 0, _workingBuffer1);
-            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
+            VertexElementSet ves = new VertexElementSet(new VertexElement[] 
+            { 
+                new VertexElement(0, VertexElementFormat.Float2, VertexElementUsage.Position, 0),
+                new VertexElement(sizeof(float) * 2, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0)
+            });
 
-            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
-
-            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+            IRenderer renderer = RendererManager.CurrentRenderer;
+            renderer.VertexDeclaration = ves;
+            renderer.RenderIndices(PrimitiveType.Triangles, 0, 2, _indices, verts);
 
             if (wasIn2D == false) End2D();
         }
 
+        [Obsolete("Use SpriteBatch with a white texture", true)]
         public static void DrawRect(Rect dest)
         {
             bool wasIn2D = _in2D;
@@ -205,7 +218,7 @@ namespace Gk3Main.Graphics
             Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
             Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, _workingBuffer2);
 
-            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_SHORT, _indices);
+            Gl.glDrawElements(Gl.GL_TRIANGLES, 6, Gl.GL_UNSIGNED_INT, _indices);
 
             Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
             Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
@@ -218,11 +231,13 @@ namespace Gk3Main.Graphics
 
         }
 
+        [Obsolete("Use SpriteBatch", true)]
         public static void Go2D()
         {
             Go2D(Math.Vector4.One);
         }
 
+        [Obsolete("Use SpriteBatch", true)]
         public static void Go2D(Math.Vector4 color)
         {
             if (_in2D) return;
@@ -246,6 +261,7 @@ namespace Gk3Main.Graphics
             _in2D = true;
         }
 
+        [Obsolete]
         public static void End2D()
         {
             if (!_in2D) return;
@@ -288,7 +304,7 @@ namespace Gk3Main.Graphics
         private static Viewport _viewport;
         private static float[] _workingBuffer1 = new float[4 * 2];
         private static float[] _workingBuffer2 = new float[4 * 2];
-        private static ushort[] _indices;
+        private static int[] _indices;
         private static bool _in2D;
         private static Effect _2dEffect;
     }

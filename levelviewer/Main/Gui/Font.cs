@@ -77,21 +77,26 @@ namespace Gk3Main.Gui
 
         public void Print(int x, int y, string text)
         {
-            float cursorX = (float)x;
-            float cursorY = (float)y;
+            Graphics.SpriteBatch sb = new Gk3Main.Graphics.SpriteBatch();
+            sb.Begin();
 
-            Graphics.Utils.Go2D(_color);
+            Print(sb, x, y, text);
+
+            sb.End();
+        }
+
+        public void Print(Graphics.SpriteBatch sb, int x, int y, string text)
+        {
+            Math.Vector2 cursor = new Gk3Main.Math.Vector2((float)x, (float)y);
 
             foreach (char c in text)
             {
                 int index = mapUnicodeToFontCharacter(c);
 
-                Graphics.Utils.Blit(cursorX, cursorY, _texture, _characterInfo[index].SourceRect);
+                sb.Draw(_texture, cursor, _characterInfo[index].SourceRect);
 
-                cursorX += _characterInfo[index].SourceRect.Width;
+                cursor.X += _characterInfo[index].SourceRect.Width;
             }
-
-            Graphics.Utils.End2D();
         }
 
         public Graphics.Rect GetPrintedRect(string text)

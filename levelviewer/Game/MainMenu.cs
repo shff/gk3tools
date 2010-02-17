@@ -58,13 +58,9 @@ class MainMenu
         _quitButton.OnMouseMove(tickCount, x, y);
     }
 
-    public void Render(int tickCount)
+    public void Render(Gk3Main.Graphics.SpriteBatch sb, int tickCount)
     {
-        Gk3Main.Graphics.Rect dest;
-        dest.X = 0;
-        dest.Y = 0;
-        dest.Width = 1.0f;
-        dest.Height = 1.0f;
+        Gk3Main.Graphics.Viewport vp = Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport;
 
         Gk3Main.Graphics.Rect src;
         src.X = 0;
@@ -72,12 +68,23 @@ class MainMenu
         src.Width = 1.0f;
         src.Height = 1.0f;
 
-        Gk3Main.Graphics.Utils.ScaleBlit(dest, _background, src);
+        // this keeps everything at a 4:3 ratio, even if it isn't IRL
+        float screenWidth = (vp.Height * 4) / 3;
+        float widescreenOffset = (vp.Width - screenWidth) / 2;
 
-        _introButton.Render(tickCount);
-        _playButton.Render(tickCount);
-        _restoreButton.Render(tickCount);
-        _quitButton.Render(tickCount);
+        Gk3Main.Graphics.Rect dest;
+        dest.X = widescreenOffset + vp.X ;
+        dest.Y = vp.Y;
+        dest.Width = screenWidth;
+        dest.Height = vp.Height;
+
+
+        sb.Draw(_background, dest, null, 0);
+
+        _introButton.Render(sb, tickCount);
+        _playButton.Render(sb, tickCount);
+        _restoreButton.Render(sb, tickCount);
+        _quitButton.Render(sb, tickCount);
     }
 
     public event EventHandler OnPlayClicked

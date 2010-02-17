@@ -371,6 +371,8 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
+                RendererManager.CurrentRenderer.VertexDeclaration = _elements;
+
                 if (!_isBillboard)
                 {
                     
@@ -395,7 +397,7 @@ namespace Gk3Main.Graphics
 
                             section.textureResource.Bind();
 
-                            RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;   
@@ -434,7 +436,7 @@ namespace Gk3Main.Graphics
 
                             section.textureResource.Bind();
 
-                            RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;
@@ -456,6 +458,8 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
+                RendererManager.CurrentRenderer.VertexDeclaration = _elements;
+
                 Math.Matrix world = Math.Matrix.RotateY(angle)
                     * Math.Matrix.Translate(position);
 
@@ -481,7 +485,7 @@ namespace Gk3Main.Graphics
 
                         section.textureResource.Bind();
 
-                        RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, 0, section.indices.Length, section.indices, section.vertices);
+                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
                     
                         _effect.EndPass();
                         _effect.End();

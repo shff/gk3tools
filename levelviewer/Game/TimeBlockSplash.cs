@@ -41,7 +41,7 @@ namespace Game
             Gk3Main.Resource.ResourceManager.Unload(_background);
         }
 
-        public void Render()
+        public void Render(Gk3Main.Graphics.SpriteBatch sb)
         {
             Gk3Main.Graphics.IRenderer renderer = Gk3Main.Graphics.RendererManager.CurrentRenderer;
 
@@ -52,14 +52,14 @@ namespace Game
             int backgroundX = centerX - _background.Width / 2;
             int backgroundY = centerY - _background.Height / 2;
 
-            Gk3Main.Graphics.Utils.Blit(backgroundX, backgroundY, _background);
+            sb.Draw(_background, new Gk3Main.Math.Vector2(backgroundX, backgroundY));
 
             // draw the title
             if (_timeAtStartRender == 0) _timeAtStartRender = Gk3Main.Game.GameManager.TickCount;
             int frame = calcCurrentFrame(_timeAtStartRender, Gk3Main.Game.GameManager.TickCount);
             if (frame >= _title.Count) frame = _title.Count - 1;
             if (frame >= 0)
-                Gk3Main.Graphics.Utils.Blit(backgroundX + _titleX, backgroundY + _titleY, _title[frame]);
+                sb.Draw(_title[frame], new Gk3Main.Math.Vector2(backgroundX + _titleX, backgroundY + _titleY));
         }
 
         private static int calcCurrentFrame(int timeAtLastFrame, int currentTime)

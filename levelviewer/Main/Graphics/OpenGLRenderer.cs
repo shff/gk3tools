@@ -6,13 +6,29 @@ using Tao.Cg;
 
 namespace Gk3Main.Graphics
 {
+    public enum RendererType
+    {
+        OpenGL,
+        Direct3D9
+    }
+
     public static class RendererManager
     {
-        private static OpenGLRenderer _glRenderer = new OpenGLRenderer();
+        private static IRenderer _renderer = null;
+
+        public static IRenderer Create(RendererType type, IntPtr windowHandle, int width, int height, int depth)
+        {
+            if (type == RendererType.OpenGL)
+                _renderer = new OpenGLRenderer();
+            else
+                _renderer = new Direct3D9Renderer(windowHandle, width, height);
+
+            return _renderer;
+        }
 
         public static IRenderer CurrentRenderer
         {
-            get { return _glRenderer; }
+            get { return _renderer; }
         }
     }
 
@@ -205,34 +221,13 @@ namespace Gk3Main.Graphics
                 ((_width & (_width - 1)) != 0 ||
                 (_height & (_height - 1)) != 0))
             {
-                _actualPixelWidth = getNextPowerOfTwo(_width);
-                _actualPixelHeight = getNextPowerOfTwo(_height);
+                byte[] newPixels;
+                ConvertToPowerOfTwo(pixels, _width, _height, out newPixels, out _actualPixelWidth, out _actualPixelHeight);
 
                 _actualWidth = _width / (float)_actualPixelWidth;
                 _actualHeight = _height / (float)_actualPixelHeight;
 
-                pixels = new byte[_actualPixelWidth * _actualPixelHeight * 4];
-
-                for (int y = 0; y < _actualPixelHeight; y++)
-                {
-                    for (int x = 0; x < _actualPixelWidth; x++)
-                    {
-                        if (x < _width && y < _height)
-                        {
-                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = _pixels[(y * _width + x) * 4 + 0];
-                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = _pixels[(y * _width + x) * 4 + 1];
-                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = _pixels[(y * _width + x) * 4 + 2];
-                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = _pixels[(y * _width + x) * 4 + 3];
-                        }
-                        else
-                        {
-                            pixels[(y * _actualPixelWidth + x) * 4 + 0] = 0;
-                            pixels[(y * _actualPixelWidth + x) * 4 + 1] = 0;
-                            pixels[(y * _actualPixelWidth + x) * 4 + 2] = 0;
-                            pixels[(y * _actualPixelWidth + x) * 4 + 3] = 0;
-                        }
-                    }
-                }
+                pixels = fixupAlpha(newPixels);
 
                 pixels = fixupAlpha(pixels);
             }
@@ -462,6 +457,7 @@ namespace Gk3Main.Graphics
     public class OpenGLRenderer : IRenderer
     {
         private IntPtr _cgContext;
+        private VertexElementSet _vertexDeclaration;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
@@ -485,6 +481,7 @@ namespace Gk3Main.Graphics
         public IntPtr CgContext { get { return _cgContext; } }
         public int DefaultCgProfile { get { return Cg.CG_PROFILE_ARBVP1; } }
 
+        #region Render states
         public bool BlendEnabled
         {
             get { return Gl.glIsEnabled(Gl.GL_BLEND) == Gl.GL_TRUE; }
@@ -596,6 +593,8 @@ namespace Gk3Main.Graphics
             }
         }
 
+        #endregion Render states
+
         public Viewport Viewport
         {
             get
@@ -617,6 +616,7 @@ namespace Gk3Main.Graphics
             }
         }
 
+        #region Texture creation
         public TextureResource CreateTexture(string name, System.IO.Stream stream)
         {
             return new GlTexture(name, stream);
@@ -636,6 +636,7 @@ namespace Gk3Main.Graphics
         {
             return new GlUpdatableTexture(name, width, height);
         }
+        #endregion Texture creation
 
         public CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
             string up, string down)
@@ -677,6 +678,14 @@ namespace Gk3Main.Graphics
                     _errorTexture = new GlTexture(false);
 
                 return _errorTexture;
+            }
+        }
+
+        public VertexElementSet VertexDeclaration
+        {
+            set
+            {
+                _vertexDeclaration = value;
             }
         }
 
@@ -767,7 +776,7 @@ namespace Gk3Main.Graphics
             Gl.glDrawArrays(glType, startIndex, count);
         }
 
-        public void RenderIndices(VertexElementSet elements, PrimitiveType type, int startIndex, int count, int[] indices, float[] vertices)
+        public void RenderIndices(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, float[] vertices)
         {
             unsafe
             {
@@ -779,9 +788,9 @@ namespace Gk3Main.Graphics
 
                 try
                 {
-                    foreach (VertexElement element in elements.Elements)
+                    foreach (VertexElement element in _vertexDeclaration.Elements)
                     {
-                        int numBytesBetween = elements.Stride;// elements.Stride - (int)element.Format * sizeof(float);
+                        int numBytesBetween = _vertexDeclaration.Stride;// elements.Stride - (int)element.Format * sizeof(float);
                         if (element.Usage == VertexElementUsage.Position)
                         {
                             Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
@@ -810,11 +819,17 @@ namespace Gk3Main.Graphics
                 }
             }
 
-            int glType;
+            int glType, totalIndices;
             if (type == PrimitiveType.Triangles)
+            {
                 glType = Gl.GL_TRIANGLES;
+                totalIndices = primitiveCount * 3;
+            }
             else
+            {
                 glType = Gl.GL_POINT;
+                totalIndices = primitiveCount;
+            }
 
             unsafe
             {
@@ -826,7 +841,7 @@ namespace Gk3Main.Graphics
 
                 try
                 {
-                    Gl.glDrawElements(glType, count, Gl.GL_UNSIGNED_INT, 
+                    Gl.glDrawElements(glType, totalIndices, Gl.GL_UNSIGNED_INT, 
                         Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
                 }
                 finally
@@ -843,6 +858,21 @@ namespace Gk3Main.Graphics
                 Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
             }
             Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
+        }
+
+        public void BeginScene()
+        {
+            // nothing
+        }
+
+        public void EndScene()
+        {
+            // nothing
+        }
+
+        public void Present()
+        {
+            // nothing
         }
 
         public void Clear()

@@ -49,8 +49,13 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\irrklang\irrKlang.NET2.0.dll</HintPath>
     </Reference>
+    <Reference Include="SlimDX, Version=2.0.8.42, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\..\Program Files (x86)\SlimDX SDK (August 2009)\Bin\x86\SlimDX.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Tao.Cg, Version=2.0.0.0, Culture=neutral, PublicKeyToken=52fa5aba625fe731, processorArchitecture=MSIL" />
     <Reference Include="Tao.OpenGl, Version=2.1.0.12, Culture=neutral, PublicKeyToken=1ca010269a4501ef, processorArchitecture=MSIL" />
@@ -65,6 +70,7 @@
     <Compile Include="Game\AnmResource.cs" />
     <Compile Include="Game\CommonStrings.cs" />
     <Compile Include="Game\DialogManager.cs" />
+    <Compile Include="Game\FaceDefinitions.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameTimer.cs" />
     <Compile Include="Game\GasResource.cs" />
@@ -82,12 +88,14 @@
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
     <Compile Include="Graphics\CubeMapResource.cs" />
+    <Compile Include="Graphics\Direct3D9Renderer.cs" />
     <Compile Include="Graphics\Frustum.cs" />
     <Compile Include="Graphics\IRenderer.cs" />
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
     <Compile Include="Graphics\OpenGLRenderer.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
+    <Compile Include="Graphics\SpriteBatch.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="Graphics\Utils.cs" />
     <Compile Include="Gui\Button.cs" />

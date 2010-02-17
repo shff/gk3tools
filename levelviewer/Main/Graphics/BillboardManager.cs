@@ -126,10 +126,11 @@ namespace Gk3Main.Graphics
             _shader.Begin();
             _shader.BeginPass(0);
 
+            RendererManager.CurrentRenderer.VertexDeclaration = _elements;
             for (int i = 0; i < _numBillboards; i++)
             {
                 _billboards[i].Texture.Bind();
-                RendererManager.CurrentRenderer.RenderIndices(_elements, PrimitiveType.Triangles, i * 6, 6, _indices, _vertices);
+                RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, i * 6, 2, _indices, _vertices);
             }
 
             _shader.EndPass();

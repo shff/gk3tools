@@ -55,6 +55,7 @@ class MonoMain
     private static int _timeAtLastStateChange;
     private static GameState _state;
     private static bool _isDemo;
+    private static Gk3Main.Graphics.SpriteBatch _spriteBatch;
 
 	public static void Main(string[] args)
 	{
@@ -121,6 +122,8 @@ class MonoMain
             Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
             return;
         }
+
+        _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
 
         Sdl.SDL_ShowCursor(0);
 
@@ -218,13 +221,18 @@ class MonoMain
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
             Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
-			Gk3Main.SceneManager.Render();
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.BeginScene();
+            
+            
+            Gk3Main.SceneManager.Render();
             if (camera != null)
                 Gk3Main.Sound.SoundManager.UpdateListener(camera);
 
             Gk3Main.Game.Animator.Advance(Gk3Main.Game.GameManager.ElapsedTickCount);
             Gk3Main.Game.DialogManager.Step();
             Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
+
+            _spriteBatch.Begin();
 
             if (_state == GameState.TimeBlockSplash)
             {
@@ -259,7 +267,7 @@ class MonoMain
 
                 if (_timeBlockSplash != null)
                 {
-                    _timeBlockSplash.Render();
+                    _timeBlockSplash.Render(_spriteBatch);
                 }
             }
             else if (_state == GameState.MainMenu)
@@ -269,13 +277,14 @@ class MonoMain
                     if (rmx != 0 || rmy != 0)
                         menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
 
-                    menu.Render(Gk3Main.Game.GameManager.TickCount);
+                    menu.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
                 }
             }
 
-
-            Game.VerbPickerManager.Render(Gk3Main.Game.GameManager.TickCount);
-            Game.VerbPickerManager.RenderProperCursor(camera, mx, my, pointCursor, zoom1Cursor);
+            
+            Game.VerbPickerManager.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
+            Game.VerbPickerManager.RenderProperCursor(_spriteBatch, camera, mx, my, pointCursor, zoom1Cursor);
+            _spriteBatch.End();
 
             Game.VerbPickerManager.Process();
 
@@ -296,7 +305,9 @@ class MonoMain
                 }
             }
 
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
 
+            //Gk3Main.Graphics.RendererManager.CurrentRenderer.Present();
 			Sdl.SDL_GL_SwapBuffers();
 		}
 
@@ -308,23 +319,8 @@ class MonoMain
 	{
         Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
-        if (depth == 16)
-        {
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 5);
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 6);
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 5);
-        }
-        else
-        {
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 8);
-        }
-        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DEPTH_SIZE, 24);
-        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
-
-        Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
-        Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
+        setupOpenGL(width, height, depth, fullscreen);
+        //setupDirect3D9(width, height, depth, fullscreen);
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
 
@@ -334,7 +330,7 @@ class MonoMain
         Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.5f;
         Gk3Main.Graphics.RendererManager.CurrentRenderer.SetBlendFunctions(Gk3Main.Graphics.BlendMode.SourceAlpha, Gk3Main.Graphics.BlendMode.InverseSourceAlpha);
 
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.None;//= Gk3Main.Graphics.CullMode.CounterClockwise;
 	}
 	
 	public static bool MainLoop()
@@ -374,7 +370,40 @@ class MonoMain
         Sdl.SDL_PushEvent(out quitEvent);
     }
 
-   
+    private static void setupOpenGL(int width, int height, int depth, bool fullscreen)
+    {
+        if (depth == 16)
+        {
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 5);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 6);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 5);
+        }
+        else
+        {
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
+            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 8);
+        }
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DEPTH_SIZE, 24);
+        Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
+
+        Sdl.SDL_SetVideoMode(width, height, depth, Sdl.SDL_OPENGL | (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
+        Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
+
+        Gk3Main.Graphics.RendererManager.Create(Gk3Main.Graphics.RendererType.OpenGL, IntPtr.Zero, width, height, depth);
+    }
+
+    private static void setupDirect3D9(int width, int height, int depth, bool fullscreen)
+    {
+        Sdl.SDL_SetVideoMode(width, height, depth, (fullscreen ? Sdl.SDL_FULLSCREEN : 0));
+        Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
+        
+        SDL_SysWMinfo wmInfo;
+        SDL_GetWMInfo(out wmInfo);
+
+        Gk3Main.Graphics.RendererManager.Create(Gk3Main.Graphics.RendererType.Direct3D9, wmInfo.window, width, height, depth);
+    }
+
 	private static void parseArgs(string[] args)
 	{
 		int i = 0;
@@ -420,4 +449,14 @@ class MonoMain
 			i++;
 		}
 	}
+
+    private struct SDL_SysWMinfo
+    {
+        public Sdl.SDL_version version;
+        public IntPtr window;
+        public IntPtr hglrc;
+    }
+
+    [System.Runtime.InteropServices.DllImport("SDL")]
+    private extern static int SDL_GetWMInfo(out SDL_SysWMinfo info);
 }

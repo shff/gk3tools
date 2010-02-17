@@ -92,27 +92,22 @@ namespace Gk3Main.Gui
                 _tooltipVisible = false;
         }
 
-        public void Render(int tickCount)
+        public void Render(Graphics.SpriteBatch sb, int tickCount)
         {
-            Graphics.Utils.Go2D();
-
             if (_enabled)
             {
                 if (_mouseDown)
-                    Graphics.Utils.Blit(_screenX, _screenY, _downImage);
+                    sb.Draw(_downImage, new Math.Vector2(_screenX, _screenY));
                 else if (IsMouseOverButton(_mouseX, _mouseY))
-                    Graphics.Utils.Blit(_screenX, _screenY, _hoverImage);
+                    sb.Draw(_hoverImage, new Math.Vector2(_screenX, _screenY));
                 else
-                    Graphics.Utils.Blit(_screenX, _screenY, _upImage);
+                    sb.Draw(_upImage, new Math.Vector2(_screenX, _screenY));
 
                 if (_tooltipVisible == false && tickCount > _timeAtLastMouseMove + 500 && IsMouseOverButton(_mouseX, _mouseY))
                     _tooltipVisible = true;
             }
             else
-                Graphics.Utils.Blit(_screenX, _screenY, _disabledImage);
-
-            Graphics.Utils.End2D();
-
+                sb.Draw(_disabledImage, new Math.Vector2(_screenX, _screenY));
 
             if (_tooltipVisible && _tooltipFont != null)
             {
@@ -121,12 +116,11 @@ namespace Gk3Main.Gui
                 tooltipRect.Y = _mouseY + 32;
                 tooltipRect.Width += 4;
 
-                Graphics.Utils.DrawRect(tooltipRect);
+                Graphics.TextureResource defaultWhite = Graphics.RendererManager.CurrentRenderer.DefaultTexture;
+                sb.Draw(defaultWhite, tooltipRect, null, 0);
 
-                _tooltipFont.Print(_mouseX, _mouseY + 32, _tooltip);
+                _tooltipFont.Print(sb, _mouseX, _mouseY + 32, _tooltip);
             }
-
-            
         }
 
         public Unit X

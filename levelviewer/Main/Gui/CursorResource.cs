@@ -58,7 +58,7 @@ namespace Gk3Main.Gui
             if (_hotY == -1) _hotY = _cursor.Height / 2;
         }
 
-        public void Render(int x, int y)
+        public void Render(Graphics.SpriteBatch sb, int x, int y)
         {
             int currentFrame = (int)((Game.GameManager.TickCount / 1000.0f) * _frameRate) % _frameCount;
             float uWidth = _cursor.ActualPixelWidth * (_cursor.ActualWidth / _frameCount);
@@ -68,12 +68,9 @@ namespace Gk3Main.Gui
             src.X = u;
             src.Y = 0;
             src.Width = uWidth;
-            src.Height = _cursor.ActualPixelHeight;
+            src.Height = _cursor.Height;
 
-            Graphics.Utils.Go2D();
-            Graphics.Utils.Blit(x - _hotX, y - _hotY, _cursor, src);
-
-            Graphics.Utils.End2D();
+            sb.Draw(_cursor, new Math.Vector2(x - _hotX, y - _hotY), src);
         }
 
         public override void Dispose()

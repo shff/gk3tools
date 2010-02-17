@@ -215,7 +215,7 @@ namespace Gk3Main.Graphics
         public int UsageIndex;
     }
 
-    public struct VertexElementSet
+    public class VertexElementSet
     {
         public VertexElementSet(VertexElement[] elements)
         {
@@ -223,9 +223,45 @@ namespace Gk3Main.Graphics
                 (int)elements[elements.Length - 1].Format * sizeof(float);
 
             Elements = elements;
+
+            Direct3D9Renderer renderer = RendererManager.CurrentRenderer as Direct3D9Renderer;
+
+            if (renderer != null)
+            {
+                SlimDX.Direct3D9.VertexElement[] d3d9Elements = new SlimDX.Direct3D9.VertexElement[elements.Length + 1];
+                for (int i = 0; i < elements.Length; i++)
+                {
+                    d3d9Elements[i].Offset = (short)elements[i].Offset;
+
+                    if (elements[i].Format == VertexElementFormat.Float)
+                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float1;
+                    else if (elements[i].Format == VertexElementFormat.Float2)
+                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float2;
+                    else if (elements[i].Format == VertexElementFormat.Float3)
+                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float3;
+                    else if (elements[i].Format == VertexElementFormat.Float4)
+                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float4;
+
+                    if (elements[i].Usage == VertexElementUsage.Position)
+                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.Position;
+                    else if (elements[i].Usage == VertexElementUsage.TexCoord)
+                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.TextureCoordinate;
+                    else if (elements[i].Usage == VertexElementUsage.Normal)
+                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.Normal;
+                    else if (elements[i].Usage == VertexElementUsage.Color)
+                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.Color;
+
+                    d3d9Elements[i].Stream = 0;
+                    d3d9Elements[i].UsageIndex = (byte)elements[i].UsageIndex;
+                    d3d9Elements[i].Method = SlimDX.Direct3D9.DeclarationMethod.Default;
+                }
+                d3d9Elements[d3d9Elements.Length - 1] = SlimDX.Direct3D9.VertexElement.VertexDeclarationEnd;
+                D3D9Declaration = new SlimDX.Direct3D9.VertexDeclaration(renderer.Direct3D9Device, d3d9Elements);
+            }
         }
 
         public VertexElement[] Elements;
+        public SlimDX.Direct3D9.VertexDeclaration D3D9Declaration;
         public int Stride;
     }
 
@@ -267,9 +303,25 @@ namespace Gk3Main.Graphics
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
         void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices);
 
-        void RenderIndices(VertexElementSet elements, PrimitiveType type, int startIndex, int count, int[] indices, float[] vertices);
+        void RenderIndices(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, float[] vertices);
 
+        VertexElementSet VertexDeclaration { set; }
+
+        void BeginScene();
+        void EndScene();
         void Clear();
+
+        // HACK: presenting should not be the responsibility of the renderer!
+        // It wouldn't be a big deal if we were just using Direct3D, but the OpenGL
+        // renderer has no idea where its context came from or how to present!
+        // In other words, this method has NO EFFECT when using an OpenGL renderer,
+        // and the parent app is still responsible for the present!
+        // ** GROSS! **
+        // The solution would probably be for the parent app to create the D3D
+        // device and then give it to the renderer when the renderer is created.
+        // That was OpenGL and Direct3D would behave similarly, and we could
+        // get rid of this Present() method.
+        void Present();
 
         RenderTarget CreateRenderTarget(int width, int height);
         void SetRenderTarget(RenderTarget target);
