@@ -6,6 +6,7 @@ namespace Gk3Main.Sound
 {
     public class SoundWaitHandle : WaitHandle
     {
+#if !SOUND_DISABLED
         private IrrKlang.ISound _sound;
 
         public SoundWaitHandle(IrrKlang.ISound sound)
@@ -24,6 +25,7 @@ namespace Gk3Main.Sound
                 throw new NotSupportedException();
             }
         }
+#endif
     }
 
     public struct PlayingSound

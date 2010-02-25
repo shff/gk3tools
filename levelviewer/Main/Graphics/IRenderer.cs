@@ -224,6 +224,7 @@ namespace Gk3Main.Graphics
 
             Elements = elements;
 
+#if !D3D_DISABLED
             Direct3D9Renderer renderer = RendererManager.CurrentRenderer as Direct3D9Renderer;
 
             if (renderer != null)
@@ -258,10 +259,13 @@ namespace Gk3Main.Graphics
                 d3d9Elements[d3d9Elements.Length - 1] = SlimDX.Direct3D9.VertexElement.VertexDeclarationEnd;
                 D3D9Declaration = new SlimDX.Direct3D9.VertexDeclaration(renderer.Direct3D9Device, d3d9Elements);
             }
+#endif
         }
 
         public VertexElement[] Elements;
+#if !D3D_DISABLED
         public SlimDX.Direct3D9.VertexDeclaration D3D9Declaration;
+#endif
         public int Stride;
     }
 
