@@ -9,6 +9,20 @@ namespace Gk3Main.Graphics
     {
         private Texture _texture;
 
+        /// <summary>
+        /// Creates a 1x1 white texture
+        /// </summary>
+        internal Direct3D9Texture(bool loaded)
+            : base("default_white", loaded)
+        {
+            // create a 1x1 white pixel
+            _pixels = new byte[] { 255, 255, 255, 255 };
+            _width = 1;
+            _height = 1;
+
+            convertToDirect3D9Texture(false, true);
+        }
+
         public Direct3D9Texture(string name, System.IO.Stream stream)
             : base(name, stream)
         {
@@ -56,11 +70,11 @@ namespace Gk3Main.Graphics
                 _actualWidth = _width / (float)_actualPixelWidth;
                 _actualHeight = _height / (float)_actualPixelHeight;
 
-                pixels = fixupAlpha(newPixels);
+                pixels = fixupAlpha(newPixels, true);
             }
             else
             {
-                pixels = fixupAlpha(null);
+                pixels = fixupAlpha(null, true);
                 if (pixels == null)
                     pixels = _pixels;
             }
@@ -103,6 +117,27 @@ namespace Gk3Main.Graphics
 
             renderer.Direct3D9Device.UpdateTexture(tempTexture, _texture);
             tempTexture.Dispose();
+        }
+    }
+
+    class Direct3D9UpdatableTexture : UpdatableTexture
+    {
+        public Direct3D9UpdatableTexture(string name, int width, int height)
+            : base(name, width, height)
+        {
+            if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
+                Gk3Main.Utils.IsPowerOfTwo(height) == false)
+                throw new ArgumentException("Width and height must be power-of-two");
+        }
+
+        public override void Update(byte[] pixels)
+        {
+            // TODO
+        }
+
+        public override void Bind()
+        {
+            // TODO
         }
     }
 
@@ -455,7 +490,7 @@ namespace Gk3Main.Graphics
 
         public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)
         {
-            throw new NotImplementedException();
+            return new Direct3D9UpdatableTexture(name, width, height);
         }
         #endregion
 
@@ -492,7 +527,13 @@ namespace Gk3Main.Graphics
 
         public TextureResource ErrorTexture
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                if (_errorTexture == null)
+                    _errorTexture = new Direct3D9Texture(false);
+
+                return _errorTexture;
+            }
         }
 
         public TextureResource DefaultTexture

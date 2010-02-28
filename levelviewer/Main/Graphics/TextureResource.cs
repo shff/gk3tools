@@ -290,7 +290,7 @@ namespace Gk3Main.Graphics
         /// It returns the array of modified pixels. It may also return
         /// null if no modifications were made and resizedPixels was not provided.
         /// </summary>
-        protected byte[] fixupAlpha(byte[] resizedPixels)
+        protected byte[] fixupAlpha(byte[] resizedPixels, bool swapRandB)
         {
             byte[] result, source;
             int width, height;
@@ -326,6 +326,18 @@ namespace Gk3Main.Graphics
                     result[i * 4 + 1] = 0;
                     result[i * 4 + 2] = 0;
                     result[i * 4 + 3] = 0;
+                }
+                else if (swapRandB)
+                {
+                    if (result == null)
+                    {
+                        result = new byte[width * height * 4];
+                        Array.Copy(source, result, source.Length);
+                    }
+
+                    byte temp = result[i * 4 + 0];
+                    result[i * 4 + 0] = result[i * 4 + 2];
+                    result[i * 4 + 2] = temp;
                 }
             }
 
