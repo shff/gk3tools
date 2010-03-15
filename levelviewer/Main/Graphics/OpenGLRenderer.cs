@@ -227,13 +227,11 @@ namespace Gk3Main.Graphics
                 _actualWidth = _width / (float)_actualPixelWidth;
                 _actualHeight = _height / (float)_actualPixelHeight;
 
-                pixels = fixupAlpha(newPixels);
-
-                pixels = fixupAlpha(pixels);
+                pixels = fixupAlpha(newPixels, false);
             }
             else
             {
-                pixels = fixupAlpha(null);
+                pixels = fixupAlpha(null, false);
                 if (pixels == null)
                     pixels = _pixels;
             }

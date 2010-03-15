@@ -204,6 +204,8 @@ namespace BarnLib
             try
             {
                 int size = brn_GetDecompressedFileSizeByName(barnHandle, filename);
+                if (size < 0)
+                    return null;
 
                 byte[] buffer = new byte[size];
                 if (brn_ReadFile(barnHandle, filename, buffer, size, openChildBarns) > 0)

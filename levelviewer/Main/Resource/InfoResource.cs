@@ -21,7 +21,7 @@ namespace Gk3Main.Resource
     /// <summary>
     /// Base class for loading "info" files, like .scn, .sif, etc. files
     /// </summary>
-    public abstract class InfoResource : TextResource
+    public class InfoResource : TextResource
     {
         public InfoResource(string name, System.IO.Stream stream)
             : base(name, stream)

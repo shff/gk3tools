@@ -143,9 +143,9 @@ namespace Viewer
                 // load the models
                 foreach (Gk3Main.Game.SifModel model in sif.Models)
                 {
-                    if (model.Type == Gk3Main.Game.SifModelType.Prop && model.Hidden == false)
+                    if (model.Type == Gk3Main.Game.SifModelType.Prop)
                     {
-                        Gk3Main.SceneManager.AddModel(model.Name + ".MOD");
+                        Gk3Main.SceneManager.AddModel(model.Name, model.Hidden);
                     }
                 }
 
@@ -166,7 +166,7 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
-                Gk3Main.SceneManager.AddModel(dialog.SelectedScene);
+                Gk3Main.SceneManager.AddModel(dialog.SelectedScene, true);
 
                 IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
                 _resourceViewerForm.UpdateResources(resources);
