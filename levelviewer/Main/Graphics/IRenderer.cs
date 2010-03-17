@@ -315,18 +315,6 @@ namespace Gk3Main.Graphics
         void EndScene();
         void Clear();
 
-        // HACK: presenting should not be the responsibility of the renderer!
-        // It wouldn't be a big deal if we were just using Direct3D, but the OpenGL
-        // renderer has no idea where its context came from or how to present!
-        // In other words, this method has NO EFFECT when using an OpenGL renderer,
-        // and the parent app is still responsible for the present!
-        // ** GROSS! **
-        // The solution would probably be for the parent app to create the D3D
-        // device and then give it to the renderer when the renderer is created.
-        // That was OpenGL and Direct3D would behave similarly, and we could
-        // get rid of this Present() method.
-        void Present();
-
         RenderTarget CreateRenderTarget(int width, int height);
         void SetRenderTarget(RenderTarget target);
 

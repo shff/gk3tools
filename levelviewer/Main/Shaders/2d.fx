@@ -43,7 +43,7 @@ float4 ps_main(PS_INPUT input) : COLOR0
     return tex2D(Diffuse, input.texCoords) * Color;
 }
 
-
+#ifdef OPENGL
 technique GL
 {
     pass P0
@@ -52,6 +52,7 @@ technique GL
         FragmentProgram = compile arbfp1 ps_main();
     }
 }
+#endif
 
 
 technique D3D

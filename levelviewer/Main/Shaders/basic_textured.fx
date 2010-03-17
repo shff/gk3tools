@@ -39,7 +39,7 @@ float4 ps_main(PS_INPUT input) : COLOR0
     //return float4(1.0, 0, 0, 1.0);
 }
 
-
+#ifdef OPENGL
 technique GL
 {
     pass P0
@@ -48,6 +48,7 @@ technique GL
         FragmentProgram = compile arbfp1 ps_main();
     }
 }
+#endif
 
 
 technique D3D

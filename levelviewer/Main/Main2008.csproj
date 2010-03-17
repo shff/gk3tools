@@ -102,6 +102,7 @@
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
     <Compile Include="Graphics\OpenGLRenderer.cs" />
+    <Compile Include="Graphics\RenderWindow.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />
     <Compile Include="Graphics\TextureResource.cs" />

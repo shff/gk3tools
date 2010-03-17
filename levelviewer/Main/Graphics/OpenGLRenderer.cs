@@ -6,29 +6,15 @@ using Tao.Cg;
 
 namespace Gk3Main.Graphics
 {
-    public enum RendererType
-    {
-        OpenGL,
-        Direct3D9
-    }
-
     public static class RendererManager
     {
         private static IRenderer _renderer = null;
 
-        public static IRenderer Create(RendererType type, IntPtr windowHandle, int width, int height, int depth)
-        {
-            if (type == RendererType.OpenGL)
-                _renderer = new OpenGLRenderer();
-            else
-                _renderer = new Direct3D9Renderer(windowHandle, width, height);
-
-            return _renderer;
-        }
-
+        // HACK: too much stuff depends on this property. Plus it should be read-only.
         public static IRenderer CurrentRenderer
         {
             get { return _renderer; }
+            set { _renderer = value; }
         }
     }
 
@@ -38,11 +24,12 @@ namespace Gk3Main.Graphics
         private IntPtr _technique;
         private List<IntPtr> _passes;
         private IntPtr _currentPass;
+        private static string[] _compilerOptions = new string[] { "-DOPENGL" };
 
         internal CgEffect(string name, System.IO.Stream stream, IntPtr cgContext)
             : base(name, stream)
         {
-            IntPtr cgEffect = Cg.cgCreateEffect(cgContext, Text, null);
+            IntPtr cgEffect = Cg.cgCreateEffect(cgContext, Text, _compilerOptions);
 
             if (cgEffect == IntPtr.Zero)
                 throw new Resource.InvalidResourceFileFormat("Unable to create effect: " + Cg.cgGetLastListing(cgContext));

@@ -287,7 +287,7 @@ namespace Gk3Main.Graphics
         }
     }
 
-    class Direct3D9Renderer : IRenderer
+    public class Direct3D9Renderer : IRenderer
     {
         private Device _device;
         private int _currentDeclarationStride;
