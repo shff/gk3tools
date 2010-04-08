@@ -119,21 +119,15 @@ namespace Gk3Main.Graphics
             // nothing
         }
 
+        public virtual void Bind() { }
         public abstract void Begin();
         public abstract void End();
-
-        public abstract void BeginPass(int index);
-        public abstract void EndPass();
 
         public abstract void SetParameter(string name, float parameter);
         public abstract void SetParameter(string name, Math.Vector4 parameter);
         public abstract void SetParameter(string name, Math.Matrix parameter);
-        public abstract void SetParameter(string name, TextureResource parameter);
-        public abstract void SetParameter(string name, CubeMapResource parameter);
-        public abstract void UpdatePassParameters();
-
-        public abstract void EnableTextureParameter(string name);
-        public abstract void DisableTextureParameter(string name);
+        public abstract void SetParameter(string name, TextureResource parameter, int index);
+        public abstract void SetParameter(string name, CubeMapResource parameter, int index);
     }
 
     public class EffectLoader : Resource.IResourceLoader
@@ -152,9 +146,8 @@ namespace Gk3Main.Graphics
 
         public Gk3Main.Resource.Resource Load(string filename)
         {
-            System.IO.Stream stream = FileSystem.Open(filename);
-
             IRenderer renderer = RendererManager.CurrentRenderer;
+            System.IO.Stream stream = FileSystem.Open(filename + renderer.ShaderFilenameSuffix);
             Effect resource = renderer.CreateEffect(filename, stream);
 
             stream.Close();
@@ -280,12 +273,15 @@ namespace Gk3Main.Graphics
     public interface IRenderer
     {
         bool BlendEnabled { get; set; }
+        [Obsolete("Do alpha testing in the shader instead")]
         bool AlphaTestEnabled { get; set; }
         bool DepthTestEnabled { get; set; }
         bool DepthWriteEnabled { get; set; }
         CullMode CullMode { get; set; }
         Viewport Viewport { get; set; }
+        [Obsolete("Do alpha testing in the shader instead")]
         CompareFunction AlphaTestFunction { get; set; }
+        [Obsolete("Do alpha testing in the shader instead")]
         float AlphaTestReference { get; set; }
 
         TextureResource CreateTexture(string name, System.IO.Stream stream);
@@ -320,5 +316,19 @@ namespace Gk3Main.Graphics
 
         // caps
         bool RenderToTextureSupported { get; }
+
+        string ShaderFilenameSuffix { get; }
+    }
+
+    public static class RendererManager
+    {
+        private static IRenderer _renderer = null;
+
+        // HACK: too much stuff depends on this property. Plus it should be read-only.
+        public static IRenderer CurrentRenderer
+        {
+            get { return _renderer; }
+            set { _renderer = value; }
+        }
     }
 }

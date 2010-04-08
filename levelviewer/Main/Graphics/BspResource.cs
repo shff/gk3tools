@@ -316,6 +316,7 @@ namespace Gk3Main.Graphics
         public void Render(Camera camera, LightmapResource lightmaps)
         {
             Effect currentEffect;
+            bool lightmappingEnabled = false;
             if (SceneManager.LightmapsEnabled && lightmaps != null)
             {
                 if (SceneManager.CurrentShadeMode == ShadeMode.Flat)
@@ -323,11 +324,7 @@ namespace Gk3Main.Graphics
                 else
                 {
                     currentEffect = _lightmapEffect;
-
-                    if (SceneManager.DoubleLightmapValues)
-                        currentEffect.SetParameter("LightmapMultiplier", 2.0f);
-                    else
-                        currentEffect.SetParameter("LightmapMultiplier", 1.0f);
+                    lightmappingEnabled = true;
                 }
             }
             else
@@ -338,19 +335,12 @@ namespace Gk3Main.Graphics
                     return; // nothing to render
             }
 
-            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
-            currentEffect.EnableTextureParameter("Diffuse");
-            currentEffect.EnableTextureParameter("Lightmap");
-
-          //drawBspNode(0, currentEffect, lightmaps, camera);
-          //return;
-
-
-            
-
-            
+            float lightmapMultiplier;
+            if (SceneManager.DoubleLightmapValues)
+                lightmapMultiplier = 2.0f;
+            else
+                lightmapMultiplier = 1.0f;
 
             for (int i = 0; i < _surfaces.Length; i++)
             {
@@ -359,27 +349,9 @@ namespace Gk3Main.Graphics
                     BspSurface surface = _surfaces[i];
                     TextureResource lightmap = lightmaps[i];
 
-                    drawSurface(surface, lightmap, currentEffect, camera);
+                    drawSurface(surface, lightmap, currentEffect, camera, lightmappingEnabled, lightmapMultiplier);
                 }
             }
-            
-            currentEffect.DisableTextureParameter("Diffuse");
-            currentEffect.DisableTextureParameter("Lightmap");
-            
-            
-            
-            if (SceneManager.LightmapsEnabled && lightmaps != null)
-            {
-                Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                Gl.glDisable(Gl.GL_TEXTURE_2D);
-                Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-            }
-
-            Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
         }
 
         public bool CollideRayWithSurfaces(Math.Vector3 origin, Math.Vector3 direction, float length, out BspSurface surface)
@@ -507,7 +479,7 @@ namespace Gk3Main.Graphics
                 // draw the polygon
                 for (int i = node.PolygonStartIndex; i < node.PolygonStartIndex + node.NumPolygons; i++)
                 {
-                    drawSurface(_surfaces[_polygons[i].surfaceIndex], lightmaps[_polygons[i].surfaceIndex], effect, camera);
+                    //drawSurface(_surfaces[_polygons[i].surfaceIndex], lightmaps[_polygons[i].surfaceIndex], effect, camera);
                 }
             }
             else
@@ -520,112 +492,44 @@ namespace Gk3Main.Graphics
                 // draw the polygon
                 for (int i = node.PolygonStartIndex; i < node.PolygonStartIndex + node.NumPolygons; i++)
                 {
-                    drawSurface(_surfaces[_polygons[i].surfaceIndex], lightmaps[_polygons[i].surfaceIndex], effect, camera);
+                    //drawSurface(_surfaces[_polygons[i].surfaceIndex], lightmaps[_polygons[i].surfaceIndex], effect, camera);
                 }
             }
         }
 
-        private void drawSurface(BspSurface surface, TextureResource lightmap, Effect effect, Camera camera)
+        private void drawSurface(BspSurface surface, TextureResource lightmap, Effect effect, Camera camera, bool lightmappingEnabled, float lightmapMultiplier)
         {
             if (camera.Frustum.IsSphereOutside(surface.boundingSphere))
                 return;
 
+            effect.Bind();
             effect.SetParameter("ModelViewProjection", camera.ViewProjection);
-            effect.SetParameter("Diffuse", surface.textureResource);
+            effect.SetParameter("Diffuse", surface.textureResource, 0);
 
-            if (surface.textureResource.ContainsAlpha)
-            {
-                // this little surface has alpha info, so we need to render 2 passes
-                // to get it to look smooth. 1st pass is with just alpha testing...
-                RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-            }
+            if (lightmappingEnabled)
+                effect.SetParameter("LightmapMultiplier", lightmapMultiplier);
 
             if (lightmap != null)
-                effect.SetParameter("Lightmap", lightmap);
-
-            Gl.glActiveTexture(0);
-            surface.textureResource.Bind();
-
-            if (lightmap != null)
-            {
-                Gl.glActiveTexture(1);
-                lightmap.Bind();
-            }
+                effect.SetParameter("Lightmap", lightmap, 1);
 
             effect.Begin();
-            effect.BeginPass(0);
 
-            //effect.UpdatePassParameters();
+            // TODO: replace these with calls to the renderer!
+            Gl.glEnableVertexAttribArray(0);
+            Gl.glEnableVertexAttribArray(1);
+            Gl.glEnableVertexAttribArray(2);
 
-            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
-            Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
-
-            if (lightmap != null)
-            {
-                Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
-                Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
-
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-                Gl.glActiveTexture(Gl.GL_TEXTURE0);
-            }
-
-            Gl.glGetError();
+            Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, 0, 0, surface.vertices);
+            Gl.glVertexAttribPointer(1, 2, Gl.GL_FLOAT, 0, 0, surface.textureCoords);
+            Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, 0, 0, surface.lightmapCoords);
 
             Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
 
-            int err = Gl.glGetError();
+            Gl.glDisableVertexAttribArray(0);
+            Gl.glDisableVertexAttribArray(1);
+            Gl.glDisableVertexAttribArray(2);
 
-            if (err != Gl.GL_NO_ERROR)
-                Console.CurrentConsole.WriteLine("error: " + err);
-
-            effect.EndPass();
             effect.End();
-
-            if (surface.textureResource.ContainsAlpha)
-            {
-                // time for the 2nd path with alpha testing disabled, alpha blending true, and depth writing disabled
-                RendererManager.CurrentRenderer.AlphaTestEnabled = false;
-                RendererManager.CurrentRenderer.BlendEnabled = true;
-                RendererManager.CurrentRenderer.DepthWriteEnabled = false;
-
-                effect.Begin();
-                effect.BeginPass(0);
-
-                //effect.UpdatePassParameters();
-
-                Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, surface.vertices);
-                Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.textureCoords);
-
-                if (lightmap != null)
-                {
-                    Gl.glActiveTexture(Gl.GL_TEXTURE1);
-                    Gl.glClientActiveTexture(Gl.GL_TEXTURE1);
-                    Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                    Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, surface.lightmapCoords);
-
-                    Gl.glClientActiveTexture(Gl.GL_TEXTURE0);
-                    Gl.glActiveTexture(Gl.GL_TEXTURE0);
-                }
-
-                Gl.glGetError();
-
-                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
-
-                err = Gl.glGetError();
-
-                if (err != Gl.GL_NO_ERROR)
-                    Console.CurrentConsole.WriteLine("error: " + err);
-
-                effect.EndPass();
-                effect.End();
-
-                RendererManager.CurrentRenderer.BlendEnabled = false;
-                RendererManager.CurrentRenderer.DepthWriteEnabled = true;
-            }
-
-            //BoundingSphereRenderer.Render(camera, surface.boundingSphere.X, surface.boundingSphere.Y, surface.boundingSphere.Z, surface.boundingSphere.W);
         }
 
         private int findParent(BspNode[] nodes, int index)

@@ -7,7 +7,7 @@ namespace Game
     {
         int _width, _height, _depth;
         bool _fullscreen;
-        Gk3Main.Graphics.OpenGLRenderer _renderer;
+        Gk3Main.Graphics.OpenGl.OpenGLRenderer _renderer;
 
         public OpenGLRenderWindow(int width, int height, int depth, bool fullscreen)
         {
@@ -40,7 +40,26 @@ namespace Game
             Sdl.SDL_SetVideoMode(_width, _height, _depth, Sdl.SDL_OPENGL | (_fullscreen ? Sdl.SDL_FULLSCREEN : 0));
             Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
 
-            _renderer = new Gk3Main.Graphics.OpenGLRenderer();
+            SDL_SysWMInfo info;
+            SDL_GetWMInfo(out info);
+            IntPtr hdc = GetDC(info.window);
+
+            PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)Tao.OpenGl.Gl.GetDelegate("wglCreateContextAttribsARB", typeof(PFNWGLCREATECONTEXTATTRIBSARBPROC));
+            if (wglCreateContextAttribsARB == null)
+                throw new InvalidOperationException("OpenGL 3.x doesn't seem to be supported");
+
+            int[] attribsList = new int[] {
+                WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+                WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+                WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+                0
+            };
+
+            IntPtr context = wglCreateContextAttribsARB(hdc, IntPtr.Zero, attribsList);
+            wglMakeCurrent(hdc, context);
+            wglDeleteContext(info.hglrc);
+
+            _renderer = new Gk3Main.Graphics.OpenGl.OpenGLRenderer();
 
             return _renderer;
         }
@@ -49,5 +68,38 @@ namespace Game
         {
             Sdl.SDL_GL_SwapBuffers();
         }
+
+
+        #region Interop stuff
+
+        // TODO: make this interop stuff support platforms besides Windows
+
+        private struct SDL_SysWMInfo
+        {
+            public Sdl.SDL_version version;
+            public IntPtr window;
+            public IntPtr hglrc;
+        }
+
+        [System.Runtime.InteropServices.DllImport("sdl")]
+        private static extern int SDL_GetWMInfo(out SDL_SysWMInfo info);
+
+        [System.Runtime.InteropServices.DllImport("user32")]
+        private static extern IntPtr GetDC(IntPtr hwnd);
+
+        [System.Runtime.InteropServices.DllImport("OpenGL32")]
+        private static extern int wglMakeCurrent(IntPtr hdc, IntPtr hglrc);
+
+        [System.Runtime.InteropServices.DllImport("OpenGL32")]
+        private static extern int wglDeleteContext(IntPtr hglrc);
+
+        private delegate IntPtr PFNWGLCREATECONTEXTATTRIBSARBPROC(IntPtr hdc, IntPtr i, int[] flags);
+
+        private const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
+        private const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
+        private const int WGL_CONTEXT_FLAGS_ARB = 0x2094;
+        private const int WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB = 0x002;
+
+        #endregion
     }
 }

@@ -93,7 +93,14 @@
     <Compile Include="Graphics\IRenderer.cs" />
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
-    <Compile Include="Graphics\OpenGLRenderer.cs" />
+    <Compile Include="Graphics\OpenGl\GlCubeMap.cs" />
+    <Compile Include="Graphics\OpenGl\GlIndexBuffer.cs" />
+    <Compile Include="Graphics\OpenGl\GlRenderTarget.cs" />
+    <Compile Include="Graphics\OpenGl\GlslEffect.cs" />
+    <Compile Include="Graphics\OpenGl\GlTexture.cs" />
+    <Compile Include="Graphics\OpenGl\GlVertexBuffer.cs" />
+    <Compile Include="Graphics\OpenGl\OpenGLRenderer.cs" />
+    <Compile Include="Graphics\RenderWindow.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
@@ -149,7 +156,31 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Shaders\2d.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <None Include="Shaders\basic_lightmapped.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_textured.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_lightmapped_notexture.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\skybox.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\texturedBillboard.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\wireframe.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Shaders\texturedBillboard.fx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\wireframe.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

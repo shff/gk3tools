@@ -119,12 +119,12 @@ namespace Gk3Main.Graphics
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
             RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
+            _shader.Bind();
             _shader.SetParameter("ModelView", camera.View);
             _shader.SetParameter("Projection", camera.Projection);
 
             
             _shader.Begin();
-            _shader.BeginPass(0);
 
             RendererManager.CurrentRenderer.VertexDeclaration = _elements;
             for (int i = 0; i < _numBillboards; i++)
@@ -133,7 +133,6 @@ namespace Gk3Main.Graphics
                 RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, i * 6, 2, _indices, _vertices);
             }
 
-            _shader.EndPass();
             _shader.End();
 
             RendererManager.CurrentRenderer.CullMode = CullMode.CounterClockwise;

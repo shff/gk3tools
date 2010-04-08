@@ -91,23 +91,20 @@ namespace Gk3Main.Graphics
         {
             RendererManager.CurrentRenderer.DepthTestEnabled = false;
 
-            _skyboxEffect.EnableTextureParameter("Diffuse");
-            _skyboxEffect.SetParameter("Diffuse", _cubeMap);
+
+            _skyboxEffect.Bind();
+
+            _skyboxEffect.SetParameter("Diffuse", _cubeMap, 0);
 
             Math.Matrix modelViewProjection = Math.Matrix.Translate(camera.Position.X, camera.Position.Y, camera.Position.Z) * camera.View * camera.Projection;
             _skyboxEffect.SetParameter("ModelViewProjection", modelViewProjection);
 
-            _cubeMap.Bind();
             
             _skyboxEffect.Begin();
-            _skyboxEffect.BeginPass(0);
 
             Graphics.RendererManager.CurrentRenderer.RenderBuffers(_vertices, _indices);
 
-            _skyboxEffect.EndPass();
             _skyboxEffect.End();
-
-            _skyboxEffect.DisableTextureParameter("Diffuse");
 
             RendererManager.CurrentRenderer.DepthTestEnabled = true;
         }

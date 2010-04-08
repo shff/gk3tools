@@ -53,17 +53,14 @@ namespace Gk3Main.Graphics
             if (_effect == null)
                 _effect = (Effect)Resource.ResourceManager.Load("wireframe.fx");
 
-            _effect.Begin();
-            _effect.BeginPass(0);
-            
+            _effect.Bind();
             _effect.SetParameter("ModelViewProjection", Math.Matrix.Scale(radius, radius, radius) * Math.Matrix.Translate(x, y, z) * camera.View * camera.Projection);
-
+            _effect.Begin();
+            
             int count = (_resolution + 1);
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, count, _vertices);
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count, count, _vertices);
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count * 2, count, _vertices);
-
-            _effect.EndPass();
             _effect.End();
         }
     }

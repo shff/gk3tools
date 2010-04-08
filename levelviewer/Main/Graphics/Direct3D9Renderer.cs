@@ -178,21 +178,13 @@ namespace Gk3Main.Graphics
         public override void Begin()
         {
             _effect.Begin();
+            _effect.BeginPass(0);
         }
 
         public override void End()
         {
-            _effect.End();
-        }
-
-        public override void BeginPass(int index)
-        {
-            _effect.BeginPass(index);
-        }
-
-        public override void EndPass()
-        {
             _effect.EndPass();
+            _effect.End();
         }
 
         #region Parameters
@@ -214,7 +206,7 @@ namespace Gk3Main.Graphics
             _effect.SetValue(param, parameter);
         }
 
-        public override void SetParameter(string name, TextureResource parameter)
+        public override void SetParameter(string name, TextureResource parameter, int index)
         {
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
@@ -226,26 +218,12 @@ namespace Gk3Main.Graphics
             //_effect.SetValue(param, d3dTexture.Direct3D9Texture);
         }
 
-        public override void SetParameter(string name, CubeMapResource parameter)
+        public override void SetParameter(string name, CubeMapResource parameter, int index)
         {
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
 
             // TODO: how is this done?
-        }
-
-        public override void DisableTextureParameter(string name)
-        {
-            
-        }
-
-        public override void EnableTextureParameter(string name)
-        {
-            
-        }
-
-        public override void UpdatePassParameters()
-        {
         }
 
         #endregion
@@ -648,6 +626,11 @@ namespace Gk3Main.Graphics
         }
 
         #endregion Capabilities
+
+        public string ShaderFilenameSuffix
+        {
+            get { return ".hlsl"; }
+        }
 
         internal Device Direct3D9Device
         {

@@ -141,17 +141,16 @@ namespace Gk3Main.Graphics
 
                 Math.Vector4 color = new Gk3Main.Math.Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
+                _2dEffect.Bind();
                 _2dEffect.SetParameter("Viewport", renderer.Viewport.Vector);
                 _2dEffect.SetParameter("Color", color);
-                _2dEffect.SetParameter("DiffuseTexture", s.Texture);
+                _2dEffect.SetParameter("Diffuse", s.Texture, 0);
                 _2dEffect.Begin();
-                _2dEffect.BeginPass(0);
 
-                s.Texture.Bind();
+                //s.Texture.Bind();
 
                 renderer.RenderIndices(PrimitiveType.Triangles, 0, 2, _indices, _workingVertices);
 
-                _2dEffect.EndPass();
                 _2dEffect.End();
             }
 

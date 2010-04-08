@@ -51,9 +51,11 @@
     <Reference Include="Tao.Sdl, Version=1.2.13.0, Culture=neutral, PublicKeyToken=9c7a200e36c0094e, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Direct3D9RenderWindow.cs" />
     <Compile Include="Input.cs" />
     <Compile Include="MainMenu.cs" />
     <Compile Include="MonoMain.cs" />
+    <Compile Include="OpenGLRenderWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TimeBlockSplash.cs" />
     <Compile Include="VerbPickerManager.cs" />
@@ -68,8 +70,8 @@
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
-  </Target>
+  </Target>-->
   <Target Name="AfterBuild">
+    <Copy SourceFiles="..\$(ConfigurationName)\sheep.dll;..\$(ConfigurationName)\barn.dll" DestinationFolder="$(OutDir)" />
   </Target>
-  -->
 </Project>

@@ -386,25 +386,26 @@ namespace Gk3Main.Graphics
                         else
                             worldview = mesh.TransformMatrix * camera.ViewProjection;
 
-                        _effect.SetParameter("ModelViewProjection", worldview);
-                        _effect.Begin();
-                        _effect.BeginPass(0);
+                       
 
                         foreach (ModMeshSection section in mesh.sections)
                         {
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
-                            section.textureResource.Bind();
+                            _effect.Bind();
+                            _effect.SetParameter("ModelViewProjection", worldview);
+                            _effect.SetParameter("Diffuse", section.textureResource, 0);
+                            _effect.Begin();
 
                             RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
 
                             if (section.textureResource.ContainsAlpha)
-                                RendererManager.CurrentRenderer.AlphaTestEnabled = false;   
+                                RendererManager.CurrentRenderer.AlphaTestEnabled = false;  
+ 
+                            _effect.End();
                         }
 
-                        _effect.EndPass();
-                        _effect.End();
                     }
                 }
                 else
@@ -425,9 +426,9 @@ namespace Gk3Main.Graphics
                         Math.Matrix billboardMatrix;
                         camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
 
+                        _effect.Bind();
                         _effect.SetParameter("ModelViewProjection",  billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
                         _effect.Begin();
-                        _effect.BeginPass(0);
 
                         foreach (ModMeshSection section in _meshes[i].sections)
                         {
@@ -442,7 +443,6 @@ namespace Gk3Main.Graphics
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;
                         }
 
-                        _effect.EndPass();
                         _effect.End();
                     }
                 }
@@ -479,15 +479,13 @@ namespace Gk3Main.Graphics
                         if (section.textureResource != null && section.textureResource.ContainsAlpha)
                             RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
+                        _effect.Bind();
                         _effect.SetParameter("ModelViewProjection", worldview);
+                        _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.Begin();
-                        _effect.BeginPass(0);
-
-                        section.textureResource.Bind();
 
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
                     
-                        _effect.EndPass();
                         _effect.End();
 
                         if (section.textureResource != null && section.textureResource.ContainsAlpha)

@@ -112,14 +112,13 @@ namespace Gk3Main.Graphics
 
             Math.Matrix modelViewProjection = world * camera.ViewProjection;
 
+            _effect.Bind();
             _effect.SetParameter("ModelViewProjection", modelViewProjection);
             _effect.Begin();
-            _effect.BeginPass(0);
 
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, 8, _vertices);
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 8, 8, _vertices);
 
-            _effect.EndPass();
             _effect.End();
         }
     }
