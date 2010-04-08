@@ -19,8 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-using Tao.OpenGl;
-
 namespace Gk3Main.Graphics
 {
     #region Bsp file structures
@@ -51,6 +49,13 @@ namespace Gk3Main.Graphics
         public ushort surfaceIndex;
     }
 
+    public struct BspVertex
+    {
+        public float X, Y, Z;
+        public float U, V;
+        public float LU, LV;
+    }
+
     public class BspSurface
     {
         public uint modelIndex;
@@ -72,6 +77,7 @@ namespace Gk3Main.Graphics
         public float[] vertices;
         public float[] lightmapCoords;
         public float[] textureCoords;
+        public BspVertex[] combinedVertices;
         public TextureResource textureResource;
 
         public Math.Vector4 boundingSphere;
@@ -262,6 +268,7 @@ namespace Gk3Main.Graphics
                 }
 
                 _surfaces[i].indices = new ushort[numTriangles * 3];
+                _surfaces[i].combinedVertices = new BspVertex[numTriangles * 3];
                 _surfaces[i].vertices = new float[numTriangles * 3 * 3];
                 _surfaces[i].textureCoords = new float[numTriangles * 3 * 2];
                 for (uint j = 0; j < numTriangles; j++)
@@ -285,6 +292,12 @@ namespace Gk3Main.Graphics
                     _surfaces[i].textureCoords[(j * 3 + 0) * 2 + 0] = _texcoords[myindices[x] * 2 + 0];
                     _surfaces[i].textureCoords[(j * 3 + 0) * 2 + 1] = _texcoords[myindices[x] * 2 + 1];
 
+                    _surfaces[i].combinedVertices[j * 3 + 0].X = _vertices[myindices[x] * 3 + 0];
+                    _surfaces[i].combinedVertices[j * 3 + 0].Y = _vertices[myindices[x] * 3 + 1];
+                    _surfaces[i].combinedVertices[j * 3 + 0].Z = _vertices[myindices[x] * 3 + 2];
+                    _surfaces[i].combinedVertices[j * 3 + 0].U = _texcoords[myindices[x] * 2 + 0];
+                    _surfaces[i].combinedVertices[j * 3 + 0].V = _texcoords[myindices[x] * 2 + 1];
+
                     // vertex 2
                     _surfaces[i].vertices[(j * 3 + 1) * 3 + 0] = _vertices[myindices[y] * 3 + 0];
                     _surfaces[i].vertices[(j * 3 + 1) * 3 + 1] = _vertices[myindices[y] * 3 + 1];
@@ -293,6 +306,12 @@ namespace Gk3Main.Graphics
                     _surfaces[i].textureCoords[(j * 3 + 1) * 2 + 0] = _texcoords[myindices[y] * 2 + 0];
                     _surfaces[i].textureCoords[(j * 3 + 1) * 2 + 1] = _texcoords[myindices[y] * 2 + 1];
 
+                    _surfaces[i].combinedVertices[j * 3 + 1].X = _vertices[myindices[y] * 3 + 0];
+                    _surfaces[i].combinedVertices[j * 3 + 1].Y = _vertices[myindices[y] * 3 + 1];
+                    _surfaces[i].combinedVertices[j * 3 + 1].Z = _vertices[myindices[y] * 3 + 2];
+                    _surfaces[i].combinedVertices[j * 3 + 1].U = _texcoords[myindices[y] * 2 + 0];
+                    _surfaces[i].combinedVertices[j * 3 + 1].V = _texcoords[myindices[y] * 2 + 1];
+
                     // vertex 3
                     _surfaces[i].vertices[(j * 3 + 2) * 3 + 0] = _vertices[myindices[z] * 3 + 0];
                     _surfaces[i].vertices[(j * 3 + 2) * 3 + 1] = _vertices[myindices[z] * 3 + 1];
@@ -300,6 +319,12 @@ namespace Gk3Main.Graphics
 
                     _surfaces[i].textureCoords[(j * 3 + 2) * 2 + 0] = _texcoords[myindices[z] * 2 + 0];
                     _surfaces[i].textureCoords[(j * 3 + 2) * 2 + 1] = _texcoords[myindices[z] * 2 + 1];
+
+                    _surfaces[i].combinedVertices[j * 3 + 2].X = _vertices[myindices[z] * 3 + 0];
+                    _surfaces[i].combinedVertices[j * 3 + 2].Y = _vertices[myindices[z] * 3 + 1];
+                    _surfaces[i].combinedVertices[j * 3 + 2].Z = _vertices[myindices[z] * 3 + 2];
+                    _surfaces[i].combinedVertices[j * 3 + 2].U = _texcoords[myindices[z] * 2 + 0];
+                    _surfaces[i].combinedVertices[j * 3 + 2].V = _texcoords[myindices[z] * 2 + 1];
                 }
             }
 
@@ -311,6 +336,13 @@ namespace Gk3Main.Graphics
             _basicTexturedEffect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
             _lightmapEffect = (Effect)Resource.ResourceManager.Load("basic_lightmapped.fx");
             _lightmapNoTextureEffect = (Effect)Resource.ResourceManager.Load("basic_lightmapped_notexture.fx");
+
+            if (_vertexDeclaration == null)
+                _vertexDeclaration = new VertexElementSet(new VertexElement[] {
+                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0),
+                    new VertexElement(sizeof(float) * 3, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
+                    new VertexElement(sizeof(float) * 5, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 1)
+                });
         }
 
         public void Render(Camera camera, LightmapResource lightmaps)
@@ -342,6 +374,7 @@ namespace Gk3Main.Graphics
             else
                 lightmapMultiplier = 1.0f;
 
+            RendererManager.CurrentRenderer.VertexDeclaration = _vertexDeclaration;
             for (int i = 0; i < _surfaces.Length; i++)
             {
                 if (_surfaces[i].Hidden == false)
@@ -429,6 +462,9 @@ namespace Gk3Main.Graphics
 
                     _surfaces[i].lightmapCoords[j * 2 + 0] = u;
                     _surfaces[i].lightmapCoords[j * 2 + 1] = v;
+
+                    _surfaces[i].combinedVertices[j].LU = u;
+                    _surfaces[i].combinedVertices[j].LV = v;
                 }
             }
         }
@@ -514,20 +550,7 @@ namespace Gk3Main.Graphics
 
             effect.Begin();
 
-            // TODO: replace these with calls to the renderer!
-            Gl.glEnableVertexAttribArray(0);
-            Gl.glEnableVertexAttribArray(1);
-            Gl.glEnableVertexAttribArray(2);
-
-            Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, 0, 0, surface.vertices);
-            Gl.glVertexAttribPointer(1, 2, Gl.GL_FLOAT, 0, 0, surface.textureCoords);
-            Gl.glVertexAttribPointer(2, 2, Gl.GL_FLOAT, 0, 0, surface.lightmapCoords);
-
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, surface.vertices.Length / 3);
-
-            Gl.glDisableVertexAttribArray(0);
-            Gl.glDisableVertexAttribArray(1);
-            Gl.glDisableVertexAttribArray(2);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Triangles, 0, surface.combinedVertices.Length, surface.combinedVertices);
 
             effect.End();
         }
@@ -568,6 +591,7 @@ namespace Gk3Main.Graphics
         private Effect _basicTexturedEffect;
         private Effect _lightmapEffect;
         private Effect _lightmapNoTextureEffect;
+        private static VertexElementSet _vertexDeclaration;
     }
 
     public class BspResourceLoader : Resource.IResourceLoader

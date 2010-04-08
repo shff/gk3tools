@@ -583,7 +583,7 @@ namespace Gk3Main.Graphics
             throw new NotImplementedException();
         }
 
-        public void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices)
+        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int count, T[] vertices) where T: struct
         {
             SlimDX.Direct3D9.PrimitiveType d3dType;
 
@@ -599,7 +599,7 @@ namespace Gk3Main.Graphics
             _device.DrawUserPrimitives(d3dType, count, vertices);
         }
 
-        public void RenderIndices(PrimitiveType type, int startIndex, int count, int[] indices, float[] vertices)
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int count, int[] indices, T[] vertices) where T: struct
         {
             SlimDX.Direct3D9.PrimitiveType d3dType;
 

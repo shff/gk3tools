@@ -350,26 +350,7 @@ namespace Gk3Main.Graphics.OpenGl
             glIndices.Unbind();
         }
 
-        public void RenderPrimitives(PrimitiveType type, int startIndex, int count, float[] vertices)
-        {
-            int glType;
-
-            if (type == PrimitiveType.LineStrip)
-            {
-                glType = Gl.GL_LINE_STRIP;
-            }
-            else
-            {
-                glType = Gl.GL_TRIANGLES;
-            }
-
-            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-            Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, vertices);
-
-            Gl.glDrawArrays(glType, startIndex, count);
-        }
-
-        public void RenderIndices(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, float[] vertices)
+        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int count, T[] vertices) where T: struct
         {
             unsafe
             {
@@ -387,31 +368,50 @@ namespace Gk3Main.Graphics.OpenGl
                         Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
                             Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
                     }
+                }
+                finally
+                {
+                    ptrptr.Free();
+                }
+            }
 
-                    /*foreach (VertexElement element in _vertexDeclaration.Elements)
+            int glType;
+
+            if (type == PrimitiveType.LineStrip)
+            {
+                glType = Gl.GL_LINE_STRIP;
+            }
+            else
+            {
+                glType = Gl.GL_TRIANGLES;
+            }
+
+            Gl.glDrawArrays(glType, startIndex, count);
+
+            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
+            {
+                Gl.glDisableVertexAttribArray(i);
+            }
+        }
+
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, T[] vertices) where T: struct
+        {
+            unsafe
+            {
+                System.Runtime.InteropServices.GCHandle ptrptr=
+                    System.Runtime.InteropServices.GCHandle.Alloc(vertices,
+                    System.Runtime.InteropServices.GCHandleType.Pinned);
+
+                IntPtr verticesptr = ptrptr.AddrOfPinnedObject();
+
+                try
+                {
+                    for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
                     {
-                        int numBytesBetween = _vertexDeclaration.Stride;// elements.Stride - (int)element.Format * sizeof(float);
-                        if (element.Usage == VertexElementUsage.Position)
-                        {
-                            Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-                            Gl.glVertexPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween,
-                                Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
-                        }
-                        else if (element.Usage == VertexElementUsage.TexCoord)
-                        {
-                            Gl.glClientActiveTexture(Gl.GL_TEXTURE0 + element.UsageIndex);
-                            Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-                            Gl.glTexCoordPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween,
-                                Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
-                        }
-                        else if (element.Usage == VertexElementUsage.Normal)
-                        {
-                            Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
-                            Gl.glNormalPointer(Gl.GL_FLOAT, numBytesBetween, Gk3Main.Utils.IncrementIntPtr(verticesptr, element.Offset));
-                        }
-                        else if (element.Usage == VertexElementUsage.Color)
-                            Gl.glColorPointer((int)element.Format, Gl.GL_FLOAT, numBytesBetween, vertices[element.Offset / sizeof(float)]);
-                    }*/
+                        Gl.glEnableVertexAttribArray(i);
+                        Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                            Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
+                    }
                 }
                 finally
                 {
@@ -449,15 +449,6 @@ namespace Gk3Main.Graphics.OpenGl
                     ptrptr.Free();
                 }
             }
-            
-            /*
-            Gl.glDisableClientState(Gl.GL_VERTEX_ARRAY);
-            for (int i = 2; i >= 0; i--)
-            {
-                Gl.glClientActiveTexture(Gl.GL_TEXTURE0 + i);
-                Gl.glDisableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-            }
-            Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);*/
 
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
