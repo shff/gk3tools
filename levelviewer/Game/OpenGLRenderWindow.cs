@@ -38,7 +38,7 @@ namespace Game
             Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
 
             Sdl.SDL_SetVideoMode(_width, _height, _depth, Sdl.SDL_OPENGL | (_fullscreen ? Sdl.SDL_FULLSCREEN : 0));
-            Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
+            Sdl.SDL_WM_SetCaption("FreeGeeKayThree - OpenGL 3.0 renderer", "FreeGK3");
 
             SDL_SysWMInfo info;
             SDL_GetWMInfo(out info);

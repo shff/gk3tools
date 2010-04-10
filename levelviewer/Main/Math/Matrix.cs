@@ -168,6 +168,7 @@ namespace Gk3Main.Math
             return m;
         }
 
+        [Obsolete("Use PerspectiveLH instead")]
         public static Matrix Perspective(float fov, float aspect, float near, float far)
         {
             float f = 1.0f / (float)System.Math.Tan(fov * 0.5f);
@@ -216,6 +217,53 @@ namespace Gk3Main.Math
             m.M42 = 0;
             m.M43 = (-near * far) / (far - near);
             m.M44 = 0;
+
+            return PerspectiveLH(fov, aspect, near, far, true);
+            //return m;
+        }
+    
+        public static Matrix PerspectiveLH(float fov, float aspect, float near, float far, bool zNegOne)
+        {
+            float height = 2.0f * (float)System.Math.Tan(fov * 0.5f) * near;
+
+            return perspectiveLH(height * aspect, height, near, far, zNegOne);
+        }
+
+        private static Matrix perspectiveLH(float width, float height, float near, float far, bool zNegOne)
+        {
+            float halfWidth = width * 0.5f;
+            float halfHeight = height * 0.5f;
+            return perspectiveLH(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far, zNegOne);
+        }
+
+        private static Matrix perspectiveLH(float left, float right, float bottom, float top, float near, float far, bool zNegOne)
+        {
+            Matrix m = Identity;
+
+            const float s = 1.0f;
+            float invWidth = 1.0f / (right - left);
+            float invHeight = 1.0f / (top - bottom);
+            float invDepth = 1.0f / (far - near);
+            float near2 = 2.0f * near;
+
+            m.M11 = near2 * invWidth;
+            m.M22 = near2 * invHeight;
+            m.M31 = -s * (right + left) * invWidth;
+            m.M32 = -s * (top + bottom) * invHeight;
+            m.M34 = s;
+            m.M44 = 0;
+
+            if (zNegOne)
+            {
+                m.M33 = s * (far + near) * invDepth;
+                m.M43 = -2.0f * far * near * invDepth;
+            }
+            else
+            {
+                m.M33 = s * far * invDepth;
+                m.M43 = -s * near * m.M33;
+            }
+            
 
             return m;
         }

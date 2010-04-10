@@ -4,6 +4,12 @@ using System.Text;
 
 namespace Gk3Main.Graphics
 {
+    public enum ZClipMode
+    {
+        NegativeOne,
+        Zero
+    }
+
     public enum CullMode
     {
         Clockwise,
@@ -14,7 +20,8 @@ namespace Gk3Main.Graphics
     public enum PrimitiveType
     {
         Triangles,
-        LineStrip
+        LineStrip,
+        Lines
     }
 
     public enum CompareFunction
@@ -272,6 +279,8 @@ namespace Gk3Main.Graphics
 
     public interface IRenderer
     {
+        ZClipMode ZClipMode { get; }
+
         bool BlendEnabled { get; set; }
         [Obsolete("Do alpha testing in the shader instead")]
         bool AlphaTestEnabled { get; set; }
@@ -301,7 +310,7 @@ namespace Gk3Main.Graphics
         void SetBlendFunctions(BlendMode source, BlendMode destination);
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
-        void RenderPrimitives<T>(PrimitiveType type, int startIndex, int count, T[] vertices) where T: struct;
+        void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct;
         void RenderIndices<T>(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, T[] vertices) where T: struct;
 
         VertexElementSet VertexDeclaration { set; }

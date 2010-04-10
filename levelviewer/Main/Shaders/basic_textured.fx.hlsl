@@ -1,11 +1,10 @@
-﻿float4x4 ModelView;
-float4x4 Projection;
+float4 Viewport;
+float4x4 ModelViewProjection;
 
 struct VS_INPUT
 {
     float4 position : POSITION;
     float2 texCoords: TEXCOORD0;
-    float2 texCoords2: TEXCOORD1;
 };
 
 struct VS_OUTPUT
@@ -16,24 +15,31 @@ struct VS_OUTPUT
 
 VS_OUTPUT vs_main(VS_INPUT input)
 {
-	float4 position = mul(ModelView, input.position);
-    position.x += input.texCoords.x;
-    position.y += input.texCoords.y;
+    VS_OUTPUT output;
     
-	VS_OUTPUT output;
-	output.position = mul(Projection, position);
-	output.texCoords = input.texCoords2;
-	
-	return output;
+    output.position = mul(ModelViewProjection, input.position);
+    output.texCoords = input.texCoords;
+    
+    return output;
 }
 
-sampler2D DiffuseSampler;
-
-float4 ps_main(float2 texCoord : TEXCOORD0) : COLOR
+struct PS_INPUT
 {
-	return tex2D(DiffuseSampler, texCoord);
+    float2 texCoords : TEXCOORD0;
+};
+
+texture Diffuse;
+sampler2D DiffuseSampler = sampler_state {
+    Texture = <Diffuse>;
+};
+
+float4 ps_main(PS_INPUT input) : COLOR0
+{
+    return tex2D(DiffuseSampler, input.texCoords);
+    //return float4(1.0, 0, 0, 1.0);
 }
 
+#ifdef OPENGL
 technique GL
 {
     pass P0
@@ -42,6 +48,8 @@ technique GL
         FragmentProgram = compile arbfp1 ps_main();
     }
 }
+#endif
+
 
 technique D3D
 {
@@ -51,4 +59,3 @@ technique D3D
         PixelShader = compile ps_2_0 ps_main();
     }
 }
-

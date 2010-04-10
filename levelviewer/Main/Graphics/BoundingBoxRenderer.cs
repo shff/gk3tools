@@ -9,21 +9,33 @@ namespace Gk3Main.Graphics
         public Math.Vector3 Min;
         public Math.Vector3 Max;
 
-        private float[] _vertices;
+        private Math.Vector3[] _vertices;
         private static int[] _indices;
         private static Effect _effect;
         private static VertexElementSet _declaration;
 
         static AxisAlignedBoundingBox()
         {
-            _indices = new int[6 * 4];
+            _indices = new int[]
+            {
+                // bottom
+                0, 1,
+                1, 2,
+                2, 3,
+                3, 0,
 
-            // set up the indices
-            _indices[0] = 0;
-            _indices[1] = 1;
-            _indices[2] = 2;
-            _indices[3] = 3;
-            _indices[4] = 0;
+                // top
+                4, 5,
+                5, 6,
+                6, 7,
+                7, 4,
+
+                // sides
+                0, 4,
+                1, 5,
+                2, 6,
+                3, 7
+            };
         }
 
         public AxisAlignedBoundingBox(float[] points)
@@ -36,74 +48,41 @@ namespace Gk3Main.Graphics
             Max.Y = points[4];
             Max.Z = points[5];
 
-            // side
-            _vertices = new float[16 * 3];
-            _vertices[0 * 3 + 0] = Min.X;
-            _vertices[0 * 3 + 1] = Min.Y;
-            _vertices[0 * 3 + 2] = Min.Z;
+            _vertices = new Math.Vector3[8];
 
-            _vertices[1 * 3 + 0] = points[0];
-            _vertices[1 * 3 + 1] = points[4];
-            _vertices[1 * 3 + 2] = points[2];
+            // bottom
+            _vertices[0].X = Min.X;
+            _vertices[0].Y = Min.Y;
+            _vertices[0].Z = Min.Z;
 
-            _vertices[2 * 3 + 0] = points[0];
-            _vertices[2 * 3 + 1] = points[4];
-            _vertices[2 * 3 + 2] = points[5];
+            _vertices[1].X = Max.X;
+            _vertices[1].Y = Min.Y;
+            _vertices[1].Z = Min.Z;
 
-            _vertices[3 * 3 + 0] = points[0];
-            _vertices[3 * 3 + 1] = points[1];
-            _vertices[3 * 3 + 2] = points[5];
+            _vertices[2].X = Max.X;
+            _vertices[2].Y = Min.Y;
+            _vertices[2].Z = Max.Z;
 
-            // side
-            _vertices[4 * 3 + 0] = points[0];
-            _vertices[4 * 3 + 1] = points[1];
-            _vertices[4 * 3 + 2] = points[2];
+            _vertices[3].X = Min.X;
+            _vertices[3].Y = Min.Y;
+            _vertices[3].Z = Max.Z;
 
-            _vertices[5 * 3 + 0] = points[3];
-            _vertices[5 * 3 + 1] = points[1];
-            _vertices[5 * 3 + 2] = points[2];
+            // top
+            _vertices[4].X = Min.X;
+            _vertices[4].Y = Max.Y;
+            _vertices[4].Z = Min.Z;
 
-            _vertices[6 * 3 + 0] = points[3];
-            _vertices[6 * 3 + 1] = points[1];
-            _vertices[6 * 3 + 2] = points[5];
+            _vertices[5].X = Max.X;
+            _vertices[5].Y = Max.Y;
+            _vertices[5].Z = Min.Z;
 
-            _vertices[7 * 3 + 0] = points[0];
-            _vertices[7 * 3 + 1] = points[1];
-            _vertices[7 * 3 + 2] = points[5];
+            _vertices[6].X = Max.X;
+            _vertices[6].Y = Max.Y;
+            _vertices[6].Z = Max.Z;
 
-            // side
-            _vertices[8 * 3 + 0] = points[3];
-            _vertices[8 * 3 + 1] = points[1];
-            _vertices[8 * 3 + 2] = points[2];
-
-            _vertices[9 * 3 + 0] = points[3];
-            _vertices[9 * 3 + 1] = points[4];
-            _vertices[9 * 3 + 2] = points[2];
-
-            _vertices[10 * 3 + 0] = points[3];
-            _vertices[10 * 3 + 1] = points[4];
-            _vertices[10 * 3 + 2] = points[5];
-
-            _vertices[11 * 3 + 0] = points[3];
-            _vertices[11 * 3 + 1] = points[1];
-            _vertices[11 * 3 + 2] = points[5];
-
-            // side
-            _vertices[12 * 3 + 0] = points[0];
-            _vertices[12 * 3 + 1] = points[4];
-            _vertices[12 * 3 + 2] = points[2];
-
-            _vertices[13 * 3 + 0] = points[3];
-            _vertices[13 * 3 + 1] = points[4];
-            _vertices[13 * 3 + 2] = points[2];
-
-            _vertices[14 * 3 + 0] = points[3];
-            _vertices[14 * 3 + 1] = points[4];
-            _vertices[14 * 3 + 2] = points[5];
-
-            _vertices[15 * 3 + 0] = points[0];
-            _vertices[15 * 3 + 1] = points[4];
-            _vertices[15 * 3 + 2] = points[5];
+            _vertices[7].X = Min.X;
+            _vertices[7].Y = Max.Y;
+            _vertices[7].Z = Max.Z;
         }
 
         public void Render(Camera camera, Math.Matrix world)
@@ -124,8 +103,9 @@ namespace Gk3Main.Graphics
             _effect.SetParameter("ModelViewProjection", modelViewProjection);
             _effect.Begin();
 
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, 8, _vertices);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 8, 8, _vertices);
+            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Lines, 0, 12, _indices, _vertices);
+            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 0, 8, _vertices);
+            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 8, 8, _vertices);
 
             _effect.End();
         }

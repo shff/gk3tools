@@ -23,20 +23,15 @@ namespace Gk3Main.Graphics
 {
     public class Camera
     {
-        public Camera(Math.Matrix projection)
+        public Camera(float fov, float aspect, float near, float far, bool zNegOne)
         {
             _orientation = new Gk3Main.Math.Quaternion();
             _position = new Gk3Main.Math.Vector3();
 
-            _projection = projection;
-        }
+            _projection = Math.Matrix.PerspectiveLH(fov, aspect, near, far, zNegOne);
 
-        public Camera(float fov, float aspect, float near, float far)
-        {
-            _orientation = new Gk3Main.Math.Quaternion();
-            _position = new Gk3Main.Math.Vector3();
-
-            _projection = Math.Matrix.Perspective(fov, aspect, near, far);
+            _near = near;
+            _far = far;
         }
 
         public void AddRelativePositionOffset(Math.Vector3 offset)
@@ -147,6 +142,16 @@ namespace Gk3Main.Graphics
             get { return _frustum; }
         }
 
+        public float Near
+        {
+            get { return _near; }
+        }
+
+        public float Far
+        {
+            get { return _far; }
+        }
+
         public void CreateBillboardMatrix(Math.Vector3 position, bool includePosition, out Math.Matrix matrix)
         {
             matrix = Math.Matrix.Translate(-position) *
@@ -160,5 +165,6 @@ namespace Gk3Main.Graphics
         private Math.Matrix _modelView;
         private Math.Matrix _modelViewProjection;
         private Frustum _frustum;
+        private float _near, _far;
     }
 }

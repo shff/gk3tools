@@ -341,7 +341,8 @@ namespace Gk3Main.Game
 
         public static Graphics.Camera CreateCameraWithDefaults(float fov)
         {
-            return new Gk3Main.Graphics.Camera(fov, Graphics.RendererManager.CurrentRenderer.Viewport.Aspect, 5.0f, 5000.0f);
+            bool zNegOne = (Graphics.RendererManager.CurrentRenderer.ZClipMode == Gk3Main.Graphics.ZClipMode.NegativeOne);
+            return new Gk3Main.Graphics.Camera(fov, Graphics.RendererManager.CurrentRenderer.Viewport.Aspect, 5.0f, 5000.0f, zNegOne);
         }
 
         private static int _tickCount, _prevTickCount;

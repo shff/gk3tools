@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Tao.OpenGl;
-
 namespace Gk3Main.Gui
 {
     public class Font : Resource.TextResource

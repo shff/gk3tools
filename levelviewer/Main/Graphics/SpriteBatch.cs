@@ -47,7 +47,7 @@ namespace Gk3Main.Graphics
             renderer.BlendEnabled = true;
             renderer.AlphaTestEnabled = false;
             renderer.DepthTestEnabled = false;
-            renderer.CullMode = CullMode.None;
+            renderer.CullMode = CullMode.CounterClockwise;
             renderer.SetBlendFunctions(BlendMode.SourceAlpha, BlendMode.InverseSourceAlpha);
 
             flush(renderer);

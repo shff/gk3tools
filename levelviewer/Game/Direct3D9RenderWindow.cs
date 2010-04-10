@@ -25,7 +25,7 @@ namespace Game
                 throw new InvalidOperationException("A renderer has already been created");
 
             Sdl.SDL_SetVideoMode(_width, _height, _depth, (_fullscreen ? Sdl.SDL_FULLSCREEN : 0));
-            Sdl.SDL_WM_SetCaption("FreeGeeKayThree", "FreeGK3");
+            Sdl.SDL_WM_SetCaption("FreeGeeKayThree - Direct3D 9 Renderer", "FreeGK3");
 
             SDL_SysWMinfo wmInfo;
             SDL_GetWMInfo(out wmInfo);

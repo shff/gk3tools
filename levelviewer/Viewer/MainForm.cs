@@ -73,7 +73,8 @@ namespace Viewer
                 Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
             }
 
-            _camera = new Gk3Main.Graphics.Camera(Gk3Main.Math.Matrix.Perspective(1.04719755f, simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 5000.0f));
+            bool zNegOne = (Gk3Main.Graphics.RendererManager.CurrentRenderer.ZClipMode == Gk3Main.Graphics.ZClipMode.NegativeOne);
+            _camera = new Gk3Main.Graphics.Camera(1.04719755f, simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 5000.0f, zNegOne);
 
             Gk3Main.SceneManager.LightmapsEnabled = true;
             Gk3Main.SceneManager.DoubleLightmapValues = true;
@@ -145,7 +146,7 @@ namespace Viewer
                 {
                     if (model.Type == Gk3Main.Game.SifModelType.Prop)
                     {
-                        Gk3Main.SceneManager.AddModel(model.Name, model.Hidden);
+                        Gk3Main.SceneManager.AddModel(model.Name, !model.Hidden);
                     }
                 }
 

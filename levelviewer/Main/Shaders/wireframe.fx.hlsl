@@ -15,11 +15,10 @@ VS_OUTPUT vs_main(VS_INPUT input)
     VS_OUTPUT output;
     
     output.position = mul(ModelViewProjection, input.position);
+    //output.position = mul(input.position, ModelViewProjection);
     
     return output;
 }
-
-
 
 
 float4 ps_main() : COLOR0
@@ -27,17 +26,6 @@ float4 ps_main() : COLOR0
     return float4(1.0, 1.0, 1.0, 1.0);
 }
 
-
-
-
-technique GL
-{
-    pass P0
-    {
-        VertexProgram = compile arbvp1 vs_main();
-        FragmentProgram = compile arbfp1 ps_main();
-    }
-}
 
 
 technique D3D

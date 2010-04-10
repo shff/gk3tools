@@ -33,41 +33,26 @@ struct PS_INPUT
     float2 lightmapCoords : TEXCOORD1;
 };
 
-/*texture DiffuseTexture;
-sampler2D Diffuse = sampler_state {
-    Texture = <DiffuseTexture>;
-};*/
+texture Diffuse;
+sampler2D DiffuseSampler = sampler_state {
+    Texture = <Diffuse>;
+};
 
-sampler2D Diffuse;
-sampler2D Lightmap;
-
-/*texture LightmapTexture;
-sampler2D Lightmap = sampler_state {
-    Texture = <LightmapTexture>;
-};*/
+texture Lightmap;
+sampler2D LightmapSampler = sampler_state {
+    Texture = <Lightmap>;
+};
 
 float4 ps_main(PS_INPUT input) : COLOR0
 {
-    float4 diffuse = tex2D(Diffuse, input.texCoords);
-    float4 lightmap = tex2D(Lightmap, input.lightmapCoords);
+    float4 diffuse = tex2D(DiffuseSampler, input.texCoords);
+    float4 lightmap = tex2D(LightmapSampler, input.lightmapCoords);
     
     //return lightmap;
     //return diffuse;
     return float4(diffuse.rgb * lightmap.rgb * LightmapMultiplier, diffuse.a);
     //return float4(1.0, 0, 0, 1.0);
 }
-
-#ifdef OPENGL
-technique GL
-{
-    pass P0
-    {
-        VertexProgram = compile arbvp1 vs_main();
-        FragmentProgram = compile arbfp1 ps_main();
-    }
-}
-#endif
-
 
 technique D3D
 {

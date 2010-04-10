@@ -203,16 +203,44 @@ namespace Gk3Main.Graphics
         public override void SetParameter(string name, Gk3Main.Math.Matrix parameter)
         {
             EffectHandle param = _effect.GetParameter(null, name);
-            _effect.SetValue(param, parameter);
+
+            // convert the matrix
+            SlimDX.Matrix m;
+            m.M11 = parameter.M11;
+            m.M12 = parameter.M12;
+            m.M13 = parameter.M13;
+            m.M14 = parameter.M14;
+            m.M21 = parameter.M21;
+            m.M22 = parameter.M22;
+            m.M23 = parameter.M23;
+            m.M24 = parameter.M24;
+            m.M31 = parameter.M31;
+            m.M32 = parameter.M32;
+            m.M33 = parameter.M33;
+            m.M34 = parameter.M34;
+            m.M41 = parameter.M41;
+            m.M42 = parameter.M42;
+            m.M43 = parameter.M43;
+            m.M44 = parameter.M44;
+            m = SlimDX.Matrix.Transpose(m);
+
+            //_effect.SetValue(param, parameter);
+            _effect.SetValue(param, m);
         }
 
         public override void SetParameter(string name, TextureResource parameter, int index)
         {
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
-            Direct3D9Texture d3dTexture = (Direct3D9Texture)parameter;
+
+            // TODO: support updatable textures
+            if (parameter is Direct3D9UpdatableTexture)
+                return;
 
             EffectHandle param = _effect.GetParameter(null, name);
+
+            Direct3D9Texture d3dTexture = (Direct3D9Texture)parameter;
+
             _effect.SetTexture(param, d3dTexture.InternalTexture);
             // TODO: how is this done?
             //_effect.SetValue(param, d3dTexture.Direct3D9Texture);
@@ -545,7 +573,7 @@ namespace Gk3Main.Graphics
 
         public void Clear()
         {
-            _device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, 0, 0, 0);
+            _device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, 0, 1.0f, 0);
         }
 
         public Viewport Viewport
@@ -583,37 +611,47 @@ namespace Gk3Main.Graphics
             throw new NotImplementedException();
         }
 
-        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int count, T[] vertices) where T: struct
+        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct
         {
             SlimDX.Direct3D9.PrimitiveType d3dType;
 
+            int primitiveCount;
             if (type == PrimitiveType.LineStrip)
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.LineStrip;
+                primitiveCount = vertexCount - 1;
             }
             else
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.TriangleList;
+                primitiveCount = vertexCount / 3;
             }
 
-            _device.DrawUserPrimitives(d3dType, count, vertices);
+            _device.DrawUserPrimitives(d3dType, primitiveCount, vertices);
         }
 
-        public void RenderIndices<T>(PrimitiveType type, int startIndex, int count, int[] indices, T[] vertices) where T: struct
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, T[] vertices) where T: struct
         {
             SlimDX.Direct3D9.PrimitiveType d3dType;
-
+            int indexCount;
             if (type == PrimitiveType.LineStrip)
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.LineStrip;
+                indexCount = primitiveCount + 1;
+            }
+            else if (type == PrimitiveType.Lines)
+            {
+                d3dType = SlimDX.Direct3D9.PrimitiveType.LineList;
+                indexCount = primitiveCount * 2;
             }
             else
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.TriangleList;
+                indexCount = primitiveCount * 3;
             }
 
-            _device.DrawIndexedUserPrimitives(d3dType, 0, vertices.Length / (_currentDeclarationStride / sizeof(float)),
-                count, indices, Format.Index32, vertices, _currentDeclarationStride);
+            _device.DrawIndexedUserPrimitives(d3dType, 0, indexCount,
+                primitiveCount, indices, Format.Index32, vertices, _currentDeclarationStride);
         }
 
 
@@ -626,6 +664,11 @@ namespace Gk3Main.Graphics
         }
 
         #endregion Capabilities
+
+        public ZClipMode ZClipMode
+        {
+            get { return ZClipMode.Zero; }
+        }
 
         public string ShaderFilenameSuffix
         {

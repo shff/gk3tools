@@ -350,7 +350,7 @@ namespace Gk3Main.Graphics.OpenGl
             glIndices.Unbind();
         }
 
-        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int count, T[] vertices) where T: struct
+        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct
         {
             unsafe
             {
@@ -376,7 +376,6 @@ namespace Gk3Main.Graphics.OpenGl
             }
 
             int glType;
-
             if (type == PrimitiveType.LineStrip)
             {
                 glType = Gl.GL_LINE_STRIP;
@@ -386,7 +385,7 @@ namespace Gk3Main.Graphics.OpenGl
                 glType = Gl.GL_TRIANGLES;
             }
 
-            Gl.glDrawArrays(glType, startIndex, count);
+            Gl.glDrawArrays(glType, startIndex, vertexCount);
 
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
@@ -424,6 +423,11 @@ namespace Gk3Main.Graphics.OpenGl
             {
                 glType = Gl.GL_TRIANGLES;
                 totalIndices = primitiveCount * 3;
+            }
+            else if (type == PrimitiveType.Lines)
+            {
+                glType = Gl.GL_LINES;
+                totalIndices = primitiveCount * 2;
             }
             else
             {
@@ -499,6 +503,11 @@ namespace Gk3Main.Graphics.OpenGl
         }
 
         public bool RenderToTextureSupported { get { return _renderToTextureSupported; } }
+
+        public ZClipMode ZClipMode
+        {
+            get { return ZClipMode.NegativeOne; }
+        }
 
         public string ShaderFilenameSuffix
         {

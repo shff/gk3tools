@@ -155,6 +155,11 @@ namespace Gk3Main.Math
             return new Vector4(v.X / s, v.Y / s, v.Z / s, v.W / s);
         }
 
+        public static Vector4 Zero
+        {
+            get { return new Vector4(0, 0, 0, 0); }
+        }
+
         public static Vector4 One
         {
             get { return new Vector4(1.0f, 1.0f, 1.0f, 1.0f); }

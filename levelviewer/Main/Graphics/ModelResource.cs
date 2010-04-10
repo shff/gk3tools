@@ -375,9 +375,6 @@ namespace Gk3Main.Graphics
 
                 if (!_isBillboard)
                 {
-                    
-                    Gl.glEnable(Gl.GL_TEXTURE_2D);
-
                     foreach (ModMesh mesh in _meshes)
                     {
                         Math.Matrix worldview;

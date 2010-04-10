@@ -31,28 +31,17 @@ struct PS_INPUT
     float2 texCoords : TEXCOORD0;
 };
 
-texture DiffuseTexture;
-sampler2D Diffuse = sampler_state {
-    Texture = <DiffuseTexture>;
+texture Diffuse;
+sampler2D DiffuseSampler = sampler_state {
+    Texture = <Diffuse>;
 };
 
 float4 Color;
 
 float4 ps_main(PS_INPUT input) : COLOR0
 {
-    return tex2D(Diffuse, input.texCoords) * Color;
+    return tex2D(DiffuseSampler, input.texCoords) * Color;
 }
-
-#ifdef OPENGL
-technique GL
-{
-    pass P0
-    {
-        VertexProgram = compile arbvp1 vs_main();
-        FragmentProgram = compile arbfp1 ps_main();
-    }
-}
-#endif
 
 
 technique D3D
