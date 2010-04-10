@@ -8,7 +8,7 @@ namespace Game
         int _width, _height, _depth;
         bool _fullscreen;
         
-        Gk3Main.Graphics.Direct3D9Renderer _renderer;
+        Gk3Main.Graphics.Direct3D9.Direct3D9Renderer _renderer;
 
 
         public Direct3D9RenderWindow(int width, int height, int depth, bool fullscreen)
@@ -30,7 +30,7 @@ namespace Game
             SDL_SysWMinfo wmInfo;
             SDL_GetWMInfo(out wmInfo);
 
-            _renderer = new Gk3Main.Graphics.Direct3D9Renderer(wmInfo.window, _width, _height);
+            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(wmInfo.window, _width, _height);
 
             return _renderer;
         }

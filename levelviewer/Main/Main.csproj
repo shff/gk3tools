@@ -88,7 +88,9 @@
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
     <Compile Include="Graphics\CubeMapResource.cs" />
-    <Compile Include="Graphics\Direct3D9Renderer.cs" />
+    <Compile Include="Graphics\Direct3D9\Direct3D9Effect.cs" />
+    <Compile Include="Graphics\Direct3D9\Direct3D9Renderer.cs" />
+    <Compile Include="Graphics\Direct3D9\Direct3D9Texture.cs" />
     <Compile Include="Graphics\Frustum.cs" />
     <Compile Include="Graphics\IRenderer.cs" />
     <Compile Include="Graphics\LightmapResource.cs" />

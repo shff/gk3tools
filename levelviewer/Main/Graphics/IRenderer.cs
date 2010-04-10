@@ -225,7 +225,7 @@ namespace Gk3Main.Graphics
             Elements = elements;
 
 #if !D3D_DISABLED
-            Direct3D9Renderer renderer = RendererManager.CurrentRenderer as Direct3D9Renderer;
+            Direct3D9.Direct3D9Renderer renderer = RendererManager.CurrentRenderer as Direct3D9.Direct3D9Renderer;
 
             if (renderer != null)
             {
