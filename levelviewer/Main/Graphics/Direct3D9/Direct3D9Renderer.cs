@@ -28,11 +28,80 @@ namespace Gk3Main.Graphics.Direct3D9
 
     public class Direct3D9CubeMap : CubeMapResource
     {
-        public Direct3D9CubeMap(string name, string front, string back, string left, string right,
+        private SlimDX.Direct3D9.CubeTexture _cubeMap;
+
+        internal Direct3D9CubeMap(Device device, string name, string front, string back, string left, string right,
             string up, string down)
             : base(name)
         {
-            // nothing... yet...
+            System.IO.Stream frontStream = null;
+            System.IO.Stream backStream = null;
+            System.IO.Stream leftStream = null;
+            System.IO.Stream rightStream = null;
+            System.IO.Stream upStream = null;
+            System.IO.Stream downStream = null;
+
+            frontStream = FileSystem.Open(front);
+            backStream = FileSystem.Open(back);
+            leftStream = FileSystem.Open(left);
+            rightStream = FileSystem.Open(right);
+            upStream = FileSystem.Open(up);
+
+            try
+            {
+                downStream = FileSystem.Open(down);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // oh well, we tried.
+            }
+
+            try
+            {
+                byte[] pixels;
+                int width, height;
+
+                // load the first face so we can see the cube map dimensions
+                loadFace(new System.IO.BinaryReader(frontStream), out pixels, out width, out height);
+
+                _cubeMap = new CubeTexture(device, width, 0, Usage.None, Format.X8R8G8B8, Pool.Managed);
+                writeFacePixels(CubeMapFace.PositiveX, pixels, width, height);
+
+                // load the rest of the faces
+                loadFace(new System.IO.BinaryReader(backStream), out pixels, out width, out height);
+                writeFacePixels(CubeMapFace.NegativeX, pixels, width, height);
+
+                loadFace(new System.IO.BinaryReader(rightStream), out pixels, out width, out height);
+                writeFacePixels(CubeMapFace.PositiveZ, pixels, width, height);
+
+                loadFace(new System.IO.BinaryReader(leftStream), out pixels, out width, out height);
+                writeFacePixels(CubeMapFace.NegativeZ, pixels, width, height);
+
+                loadFace(new System.IO.BinaryReader(upStream), out pixels, out width, out height);
+                writeFacePixels(CubeMapFace.PositiveY, pixels, width, height);
+
+                if (downStream != null)
+                {
+                    loadFace(new System.IO.BinaryReader(downStream), out pixels, out width, out height);
+                    writeFacePixels(CubeMapFace.NegativeY, pixels, width, height);
+                }
+                else
+                {
+                    // apparently the "down" face isn't needed. we'll just reuse the top.
+                    writeFacePixels(CubeMapFace.NegativeY, pixels, width, height);
+                }
+            }
+            finally
+            {
+                frontStream.Close();
+                backStream.Close();
+                leftStream.Close();
+                rightStream.Close();
+                upStream.Close();
+
+                if (downStream != null)
+                    downStream.Close();
+            }
         }
 
         public override void Bind()
@@ -44,41 +113,94 @@ namespace Gk3Main.Graphics.Direct3D9
         {
             throw new NotImplementedException();
         }
+
+        internal CubeTexture CubeMap
+        {
+            get { return _cubeMap; }
+        }
+
+        private void writeFacePixels(CubeMapFace face, byte[] pixels, int width, int height)
+        {
+            byte[] pixelsWithAlpha = new byte[width * height * 4];
+            for (int i = 0; i < width * height; i++)
+            {
+            }
+
+            SlimDX.DataRectangle r = _cubeMap.LockRectangle(face, 0, LockFlags.None);
+
+            Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixelsWithAlpha, width, height);
+
+            _cubeMap.UnlockRectangle(face, 0);
+        }
     }
 
-    class Direct3D9VertexBuffer : VertexBuffer
+    public class Direct3D9VertexBuffer : VertexBuffer
     {
-        public Direct3D9VertexBuffer(float[] data, int stride)
+        private SlimDX.Direct3D9.VertexBuffer _buffer;
+        private int _length;
+
+        internal Direct3D9VertexBuffer(SlimDX.Direct3D9.Device device, float[] data, int stride)
         {
-            throw new NotImplementedException();
+            _stride = stride;
+            _length = data.Length;
+
+            _buffer = new SlimDX.Direct3D9.VertexBuffer(device, data.Length * sizeof(float), Usage.WriteOnly, VertexFormat.None, Pool.Default);
+
+            SlimDX.DataStream ds = _buffer.Lock(0, _length * sizeof(float), LockFlags.None);
+
+            for (int i = 0; i < data.Length; i++)
+                ds.Write(data[i]);
+
+            _buffer.Unlock();
         }
 
         public override void Dispose()
         {
-            throw new NotImplementedException();
+            _buffer.Dispose();
         }
 
         public override int Length
         {
-            get { throw new NotImplementedException(); }
+            get { return _length; }
+        }
+
+        internal SlimDX.Direct3D9.VertexBuffer InternalBuffer
+        {
+            get { return _buffer; }
         }
     }
 
-    class Direct3D9IndexBuffer : IndexBuffer
+    public class Direct3D9IndexBuffer : IndexBuffer
     {
-        public Direct3D9IndexBuffer(uint[] data)
+        private int _length;
+        private SlimDX.Direct3D9.IndexBuffer _buffer;
+
+        internal Direct3D9IndexBuffer(SlimDX.Direct3D9.Device device, uint[] data)
         {
-            throw new NotImplementedException();
+            _length = data.Length;
+            _buffer = new SlimDX.Direct3D9.IndexBuffer(device, data.Length * sizeof(uint), Usage.WriteOnly, Pool.Default, false);
+
+            SlimDX.DataStream ds = _buffer.Lock(0, _length * sizeof(uint), LockFlags.None);
+
+            for (int i = 0; i < data.Length; i++)
+                ds.Write(data[i]);
+
+            _buffer.Unlock();
         }
 
         public override void Dispose()
         {
-            throw new NotImplementedException();
+            _buffer.Dispose();
         }
 
         public override int Length
         {
-            get { throw new NotImplementedException(); }
+            get { return _length; }
+        }
+
+        internal SlimDX.Direct3D9.IndexBuffer InternalBuffer
+        {
+            get { return _buffer; }
         }
     }
 
@@ -292,7 +414,7 @@ namespace Gk3Main.Graphics.Direct3D9
         public CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
             string up, string down)
         {
-            return new Direct3D9CubeMap(name, front, back, left, right, up, down);
+            return new Direct3D9CubeMap(_device, name, front, back, left, right, up, down);
         }
 
         public Effect CreateEffect(string name, System.IO.Stream stream)
@@ -302,12 +424,12 @@ namespace Gk3Main.Graphics.Direct3D9
 
         public VertexBuffer CreateVertexBuffer(float[] data, int stride)
         {
-            return new Direct3D9VertexBuffer(data, stride);
+            return new Direct3D9VertexBuffer(_device, data, stride);
         }
 
         public IndexBuffer CreateIndexBuffer(uint[] data)
         {
-            return new Direct3D9IndexBuffer(data);
+            return new Direct3D9IndexBuffer(_device, data);
         }
 
         public RenderTarget CreateRenderTarget(int width, int height)
@@ -397,7 +519,13 @@ namespace Gk3Main.Graphics.Direct3D9
 
         public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
         {
-            throw new NotImplementedException();
+            Direct3D9VertexBuffer vertexBuffer = (Direct3D9VertexBuffer)vertices;
+            Direct3D9IndexBuffer indexBuffer = (Direct3D9IndexBuffer)indices;
+
+            _device.SetStreamSource(0, vertexBuffer.InternalBuffer, 0, vertices.Stride);
+            _device.Indices = indexBuffer.InternalBuffer;
+
+            _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.Length / 3, 0, indices.Length / 3);
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct

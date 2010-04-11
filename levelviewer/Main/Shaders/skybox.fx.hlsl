@@ -38,16 +38,6 @@ float4 ps_main(PS_INPUT input) : COLOR0
 }
 
 
-technique GL
-{
-    pass P0
-    {
-        VertexProgram = compile arbvp1 vs_main();
-        FragmentProgram = compile arbfp1 ps_main();
-    }
-}
-
-
 technique D3D
 {
     pass P0

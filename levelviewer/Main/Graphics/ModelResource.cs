@@ -423,24 +423,24 @@ namespace Gk3Main.Graphics
                         Math.Matrix billboardMatrix;
                         camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
 
-                        _effect.Bind();
-                        _effect.SetParameter("ModelViewProjection",  billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
-                        _effect.Begin();
-
                         foreach (ModMeshSection section in _meshes[i].sections)
                         {
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
-                            section.textureResource.Bind();
+                            _effect.Bind();
+                            _effect.SetParameter("ModelViewProjection",  billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
+                            _effect.SetParameter("Diffuse", section.textureResource, 0);
+                            _effect.Begin();
+
 
                             RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
+
+                            _effect.End();
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;
                         }
-
-                        _effect.End();
                     }
                 }
 

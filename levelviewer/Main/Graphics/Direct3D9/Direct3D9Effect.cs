@@ -86,8 +86,6 @@ namespace Gk3Main.Graphics.Direct3D9
             Direct3D9Texture d3dTexture = (Direct3D9Texture)parameter;
 
             _effect.SetTexture(param, d3dTexture.InternalTexture);
-            // TODO: how is this done?
-            //_effect.SetValue(param, d3dTexture.Direct3D9Texture);
         }
 
         public override void SetParameter(string name, CubeMapResource parameter, int index)
@@ -95,7 +93,11 @@ namespace Gk3Main.Graphics.Direct3D9
             if (parameter == null)
                 throw new ArgumentNullException("parameter");
 
-            // TODO: how is this done?
+            Direct3D9CubeMap d3dCubeMap = (Direct3D9CubeMap)parameter;
+            EffectHandle param = _effect.GetParameter(null, name);
+
+            // TODO: this is currently crashing. Figure out why!
+            //_effect.SetTexture(param, d3dCubeMap.CubeMap);
         }
 
         #endregion

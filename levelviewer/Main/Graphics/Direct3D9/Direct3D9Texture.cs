@@ -51,6 +51,14 @@ namespace Gk3Main.Graphics.Direct3D9
             get { return _texture; }
         }
 
+        internal static void WritePixelsToTextureDataStream(SlimDX.DataStream stream, byte[] pixels, int actualWidth, int actualHeight)
+        {
+            for (int i = 0; i < actualHeight; i++)
+            {
+                stream.Write(pixels, i * actualWidth * 4, actualWidth * 4);
+            }
+        }
+
         private void convertToDirect3D9Texture(bool resizeToPowerOfTwo, bool clamp)
         {
             byte[] pixels = _pixels;
@@ -86,31 +94,7 @@ namespace Gk3Main.Graphics.Direct3D9
             Surface s = tempTexture.GetSurfaceLevel(0);
             SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
 
-            //SlimDX.DataRectangle r = tempTexture.LockRectangle(0, LockFlags.None);
-
-            // r.Data.Write(pixels, 0, _actualPixelWidth * _actualPixelHeight * 4);
-
-            for (int i = 0; i < _actualPixelHeight; i++)
-            {
-                // byte* sourceRow = &pixels[i * _actualPixelWidth * 4];
-                // byte* row = &((byte*)rect.pBits)[rect.Pitch * i];
-
-                r.Data.Write(pixels, i * _actualPixelWidth * 4, _actualPixelWidth * 4);
-
-                for (int j = 0; j < _actualPixelWidth; j++)
-                {
-                    //r.Data.WriteByte(255);
-                    // r.Data.WriteByte(255);
-                    //r.Data.WriteByte(0);
-                    // r.Data.WriteByte(255);
-
-                    //   row[j * 4 + 0] = sourceRow[j * 4 + 2];
-                    //   row[j * 4 + 1] = sourceRow[j * 4 + 1];
-                    //   row[j * 4 + 2] = sourceRow[j * 4 + 0];
-                    //   row[j * 4 + 3] = sourceRow[j * 4 + 3];
-                }
-            }
-
+            WritePixelsToTextureDataStream(r.Data, pixels, _actualPixelWidth, _actualPixelHeight);
 
             s.UnlockRectangle();
             // tempTexture.UnlockRectangle(0);
