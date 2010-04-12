@@ -211,6 +211,7 @@ namespace Gk3Main.Graphics.Direct3D9
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
+        private BlendState _currentBlendState;
 
         public Direct3D9Renderer(IntPtr windowHandle, int width, int height)
         {
@@ -228,8 +229,12 @@ namespace Gk3Main.Graphics.Direct3D9
             _device = new Device(d3d, 0, DeviceType.Hardware, windowHandle,
                 CreateFlags.HardwareVertexProcessing | CreateFlags.FpuPreserve | CreateFlags.PureDevice, pp);
 
+            
             _device.VertexFormat = VertexFormat.None;
+
+            // set default render states
             _device.SetRenderState(RenderState.CullMode, Cull.None);
+            BlendState = BlendState.Opaque;
         }
 
         #region Render states
@@ -335,56 +340,30 @@ namespace Gk3Main.Graphics.Direct3D9
             }
         }
 
-        public void SetBlendFunctions(BlendMode source, BlendMode destination)
+        public BlendState BlendState
         {
-            Blend d3dSource = Blend.Zero, d3dDest = Blend.Zero;
-
-            switch (source)
+            get { return _currentBlendState; }
+            set 
             {
-                case BlendMode.Zero:
-                    d3dSource = Blend.Zero;
-                    break;
-                case BlendMode.One:
-                    d3dSource = Blend.One;
-                    break;
-                case BlendMode.SourceAlpha:
-                    d3dSource = Blend.SourceAlpha;
-                    break;
-                case BlendMode.InverseSourceAlpha:
-                    d3dSource = Blend.InverseSourceAlpha;
-                    break;
-                case BlendMode.DestinationAlpha:
-                    d3dSource = Blend.DestinationAlpha;
-                    break;
-                case BlendMode.InverseDestinationAlpha:
-                    d3dSource = Blend.InverseDestinationAlpha;
-                    break;
-            }
+                _currentBlendState = value;
 
-            switch (destination)
-            {
-                case BlendMode.Zero:
-                    d3dDest = Blend.Zero;
-                    break;
-                case BlendMode.One:
-                    d3dDest = Blend.One;
-                    break;
-                case BlendMode.SourceAlpha:
-                    d3dDest = Blend.SourceAlpha;
-                    break;
-                case BlendMode.InverseSourceAlpha:
-                    d3dDest = Blend.InverseSourceAlpha;
-                    break;
-                case BlendMode.DestinationAlpha:
-                    d3dDest = Blend.DestinationAlpha;
-                    break;
-                case BlendMode.InverseDestinationAlpha:
-                    d3dDest = Blend.InverseDestinationAlpha;
-                    break;
-            }
+                // TODO: only set the states that have changed
+                Blend sourceColor = convertBlendMode(value.ColorSourceBlend);
+                Blend destColor = convertBlendMode(value.ColorDestinationBlend);
+                Blend sourceAlpha = convertBlendMode(value.AlphaSourceBlend);
+                Blend destAlpha = convertBlendMode(value.AlphaDestinationBlend);
 
-            _device.SetRenderState(RenderState.SourceBlend, d3dSource);
-            _device.SetRenderState(RenderState.DestinationBlend, d3dDest);
+                _device.SetRenderState(RenderState.SourceBlend, sourceColor);
+                _device.SetRenderState(RenderState.DestinationBlend, destColor);
+                _device.SetRenderState(RenderState.SourceBlendAlpha, sourceAlpha);
+                _device.SetRenderState(RenderState.DestinationBlendAlpha, destAlpha);
+
+                BlendOperation colorOp = convertBlendFunction(value.ColorBlendFunction);
+                BlendOperation alphaOp = convertBlendFunction(value.AlphaBlendFunction);
+
+                _device.SetRenderState(RenderState.BlendOperation, colorOp);
+                _device.SetRenderState(RenderState.BlendOperationAlpha, alphaOp);
+            }
         }
 
         #endregion Render states
@@ -595,6 +574,36 @@ namespace Gk3Main.Graphics.Direct3D9
         internal Device Direct3D9Device
         {
             get { return _device; }
+        }
+
+        private static Blend convertBlendMode(BlendMode mode)
+        {
+            if (mode == BlendMode.One)
+                return Blend.One;
+            else if (mode == BlendMode.Zero)
+                return Blend.Zero;
+            else if (mode == BlendMode.SourceAlpha)
+                return Blend.SourceAlpha;
+            else if (mode == BlendMode.InverseSourceAlpha)
+                return Blend.InverseSourceAlpha;
+            else if (mode == BlendMode.DestinationAlpha)
+                return Blend.DestinationAlpha;
+            else
+                return Blend.InverseDestinationAlpha;
+        }
+
+        private static BlendOperation convertBlendFunction(BlendFunction func)
+        {
+            if (func == BlendFunction.Add)
+                return BlendOperation.Add;
+            else if (func == BlendFunction.Subtract)
+                return BlendOperation.Subtract;
+            else if (func == BlendFunction.ReverseSubtract)
+                return BlendOperation.ReverseSubtract;
+            else if (func == BlendFunction.Min)
+                return BlendOperation.Minimum;
+            else
+                return BlendOperation.Maximum;
         }
     }
 }

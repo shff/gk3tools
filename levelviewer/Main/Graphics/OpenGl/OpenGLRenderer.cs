@@ -50,22 +50,16 @@ namespace Gk3Main.Graphics.OpenGl
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
+        private BlendState _currentBlendState;
 
         public OpenGLRenderer()
         {
-            _cgContext = Cg.cgCreateContext();
-            CgGl.cgGLEnableProfile(Cg.CG_PROFILE_ARBVP1);
-
-            CgGl.cgGLRegisterStates(_cgContext);
-
-            Cg.cgGetError();
-            cgSetParameterSettingMode(_cgContext, CG_DEFERRED_PARAMETER_SETTING);
-            if (Cg.cgGetError() != Cg.CG_NO_ERROR)
-                throw new Exception("Oh no!");
-
             // load extensions
             //_renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
             _renderToTextureSupported = false;
+
+            // set default render states
+            BlendState = BlendState.Opaque;
         }
 
         public IntPtr CgContext { get { return _cgContext; } }
@@ -183,6 +177,26 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
+        public BlendState BlendState
+        {
+            get { return _currentBlendState; }
+            set
+            {
+                _currentBlendState = value;
+
+                // TODO: only set the values that have changed
+                int colorSrc = convertBlendMode(value.ColorSourceBlend);
+                int colorDest = convertBlendMode(value.ColorDestinationBlend);
+                int alphaSrc = convertBlendMode(value.AlphaSourceBlend);
+                int alphaDest = convertBlendMode(value.AlphaDestinationBlend);
+
+                Gl.glBlendFuncSeparate(colorSrc, colorDest, alphaSrc, alphaDest);
+
+                Gl.glBlendEquationSeparate(convertBlendFunc(value.ColorBlendFunction),
+                    convertBlendFunc(value.AlphaBlendFunction));
+            }
+        }
+
         #endregion Render states
 
         public Viewport Viewport
@@ -278,57 +292,6 @@ namespace Gk3Main.Graphics.OpenGl
             {
                 _vertexDeclaration = value;
             }
-        }
-
-        public void SetBlendFunctions(BlendMode source, BlendMode destination)
-        {
-            int glSource = Gl.GL_ZERO, glDest = Gl.GL_ZERO;
-
-            switch (source)
-            {
-                case BlendMode.Zero:
-                    glSource = Gl.GL_ZERO;
-                    break;
-                case BlendMode.One:
-                    glSource = Gl.GL_ONE;
-                    break;
-                case BlendMode.SourceAlpha:
-                    glSource = Gl.GL_SRC_ALPHA;
-                    break;
-                case BlendMode.InverseSourceAlpha:
-                    glSource = Gl.GL_ONE_MINUS_SRC_ALPHA;
-                    break;
-                case BlendMode.DestinationAlpha:
-                    glSource = Gl.GL_DST_ALPHA;
-                    break;
-                case BlendMode.InverseDestinationAlpha:
-                    glSource = Gl.GL_ONE_MINUS_DST_ALPHA;
-                    break;
-            }
-
-            switch (destination)
-            {
-                case BlendMode.Zero:
-                    glDest = Gl.GL_ZERO;
-                    break;
-                case BlendMode.One:
-                    glDest = Gl.GL_ONE;
-                    break;
-                case BlendMode.SourceAlpha:
-                    glDest = Gl.GL_SRC_ALPHA;
-                    break;
-                case BlendMode.InverseSourceAlpha:
-                    glDest = Gl.GL_ONE_MINUS_SRC_ALPHA;
-                    break;
-                case BlendMode.DestinationAlpha:
-                    glDest = Gl.GL_DST_ALPHA;
-                    break;
-                case BlendMode.InverseDestinationAlpha:
-                    glDest = Gl.GL_ONE_MINUS_DST_ALPHA;
-                    break;
-            }
-
-            Gl.glBlendFunc(glSource, glDest);
         }
 
         public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
@@ -514,13 +477,36 @@ namespace Gk3Main.Graphics.OpenGl
             get { return ".glsl"; }
         }
 
+        private static int convertBlendMode(BlendMode mode)
+        {
+            if (mode == BlendMode.One)
+                return Gl.GL_ONE;
+            if (mode == BlendMode.Zero)
+                return Gl.GL_ZERO;
+            if (mode == BlendMode.SourceAlpha)
+                return Gl.GL_SRC_ALPHA;
+            if (mode == BlendMode.DestinationAlpha)
+                return Gl.GL_DST_ALPHA;
+            if (mode == BlendMode.InverseSourceAlpha)
+                return Gl.GL_ONE_MINUS_SRC_ALPHA;
+            if (mode == BlendMode.InverseDestinationAlpha)
+                return Gl.GL_ONE_MINUS_DST_ALPHA;
 
-        const int CG_IMMEDIATE_PARAMETER_SETTING = 4132;
-        const int CG_DEFERRED_PARAMETER_SETTING = 4133;
+            return Gl.GL_ZERO;
+        }
 
-        // TODO: hopefully Tao will expose this method someday.
-        // When it does we can remove this.
-        [System.Runtime.InteropServices.DllImport("cg")]
-        private static extern void cgSetParameterSettingMode(IntPtr context, int value);
+        private static int convertBlendFunc(BlendFunction func)
+        {
+            if (func == BlendFunction.Add)
+                return Gl.GL_FUNC_ADD;
+            else if (func == BlendFunction.Subtract)
+                return Gl.GL_FUNC_SUBTRACT;
+            else if (func == BlendFunction.ReverseSubtract)
+                return Gl.GL_FUNC_REVERSE_SUBTRACT;
+            else if (func == BlendFunction.Min)
+                return Gl.GL_MIN;
+            else
+                return Gl.GL_MAX;
+        }
     }
 }

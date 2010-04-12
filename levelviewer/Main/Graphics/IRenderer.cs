@@ -38,16 +38,6 @@ namespace Gk3Main.Graphics
         NotEqual
     }
 
-    public enum BlendMode
-    {
-        Zero,
-        One,
-        SourceAlpha,
-        InverseSourceAlpha,
-        DestinationAlpha,
-        InverseDestinationAlpha
-    }
-
     public struct Viewport
     {
         private int _x, _y, _width, _height;
@@ -277,6 +267,88 @@ namespace Gk3Main.Graphics
         }
     }
 
+    public enum BlendMode
+    {
+        Zero,
+        One,
+        SourceAlpha,
+        InverseSourceAlpha,
+        DestinationAlpha,
+        InverseDestinationAlpha
+    }
+
+    public enum BlendFunction
+    {
+        Add,
+        Max,
+        Min,
+        ReverseSubtract,
+        Subtract
+    }
+
+    public struct BlendState
+    {
+        private BlendMode _colorSourceBlend;
+        private BlendMode _colorDestinationBlend;
+        private BlendFunction _colorBlendFunction;
+        private BlendMode _alphaSourceBlend;
+        private BlendMode _alphaDestinationBlend;
+        private BlendFunction _alphaBlendFunction;
+
+        private BlendState(BlendMode colorSource, BlendMode colorDest, BlendFunction colorFunc,
+            BlendMode alphaSource, BlendMode alphaDest, BlendFunction alphaFunc)
+        {
+            _colorSourceBlend = colorSource;
+            _colorDestinationBlend = colorDest;
+            _colorBlendFunction = colorFunc;
+            _alphaSourceBlend = alphaSource;
+            _alphaDestinationBlend = alphaDest;
+            _alphaBlendFunction = alphaFunc;
+        }
+
+        public BlendMode ColorSourceBlend
+        {
+            get { return _colorSourceBlend; }
+            set { _colorSourceBlend = value; }
+        }
+
+        public BlendMode ColorDestinationBlend
+        {
+            get { return _colorDestinationBlend; }
+            set { _colorDestinationBlend = value; }
+        }
+
+        public BlendFunction ColorBlendFunction
+        {
+            get { return _colorBlendFunction; }
+            set { _colorBlendFunction = value; }
+        }
+
+        public BlendMode AlphaSourceBlend
+        {
+            get { return _alphaSourceBlend; }
+            set { _alphaSourceBlend = value; }
+        }
+
+        public BlendMode AlphaDestinationBlend
+        {
+            get { return _alphaDestinationBlend; }
+            set { _alphaDestinationBlend = value; }
+        }
+
+        public BlendFunction AlphaBlendFunction
+        {
+            get { return _alphaBlendFunction; }
+            set { _alphaBlendFunction = value; }
+        }
+
+        public static BlendState Opaque = new BlendState(BlendMode.One, BlendMode.Zero, BlendFunction.Add,
+            BlendMode.One, BlendMode.Zero, BlendFunction.Add);
+
+        public static BlendState AlphaBlend = new BlendState(BlendMode.SourceAlpha, BlendMode.InverseSourceAlpha, BlendFunction.Add,
+            BlendMode.SourceAlpha, BlendMode.InverseSourceAlpha, BlendFunction.Add);
+    }
+
     public interface IRenderer
     {
         ZClipMode ZClipMode { get; }
@@ -307,7 +379,7 @@ namespace Gk3Main.Graphics
         VertexBuffer CreateVertexBuffer(float[] data, int stride);
         IndexBuffer CreateIndexBuffer(uint[] data);
 
-        void SetBlendFunctions(BlendMode source, BlendMode destination);
+        BlendState BlendState { get; set; }
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
         void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct;

@@ -330,7 +330,7 @@ class MonoMain
         Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestEnabled = true;
         Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestFunction = Gk3Main.Graphics.CompareFunction.GreaterOrEqual;
         Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.5f;
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.SetBlendFunctions(Gk3Main.Graphics.BlendMode.SourceAlpha, Gk3Main.Graphics.BlendMode.InverseSourceAlpha);
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.BlendState = Gk3Main.Graphics.BlendState.AlphaBlend;
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.None;//= Gk3Main.Graphics.CullMode.CounterClockwise;
 
