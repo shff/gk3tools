@@ -17,8 +17,8 @@ VS_OUTPUT vs_main(VS_INPUT input)
     VS_OUTPUT output;
     
     output.position = float4(
-        ((input.position.x - Viewport.z * 0.5) / Viewport.z) * 2.0,
-        ((input.position.y - Viewport.w * 0.5) / Viewport.w) * -2.0,
+        ((input.position.x - 0.5f - Viewport.z * 0.5) / Viewport.z) * 2.0,
+        ((input.position.y - 0.5f - Viewport.w * 0.5) / Viewport.w) * -2.0,
         0.0, 1.0);
         
     output.texCoords = input.texCoords;

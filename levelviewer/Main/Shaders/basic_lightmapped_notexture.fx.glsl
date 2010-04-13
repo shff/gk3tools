@@ -7,12 +7,14 @@ uniform mat4 ModelViewProjection;
 in vec4 position;
 in vec2 texCoords;
 in vec2 lightmapCoords;
+out vec2 o_diffuseCoords;
+out vec2 o_lightmapCoords;
 
 void main()
 {
 	gl_Position = ModelViewProjection * position;
-	gl_TexCoord[0] = vec4(texCoords, 0, 0);
-	gl_TexCoord[1] = vec4(lightmapCoords, 0, 0);
+	o_diffuseCoords = texCoords;
+	o_lightmapCoords = lightmapCoords;
 }
 
 #fragment
@@ -20,8 +22,11 @@ void main()
 
 uniform sampler2D Diffuse;
 uniform sampler2D Lightmap;
+in vec2 o_diffuseCoords;
+in vec2 o_lightmapCoords;
+
 out vec4 output;
 void main()
 {
-	output = texture2D(Lightmap, gl_TexCoord[1].st);
+	output = texture2D(Lightmap, o_lightmapCoords);
 }

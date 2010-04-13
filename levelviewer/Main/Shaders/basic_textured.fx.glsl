@@ -6,11 +6,12 @@ uniform mat4 ModelViewProjection;
 
 in vec4 position;
 in vec2 texCoords;
+out vec2 o_diffuseCoords;
 
 void main()
 {
 	gl_Position = ModelViewProjection * position;
-	gl_TexCoord[0] = vec4(texCoords, 0, 0);
+	o_diffuseCoords = texCoords;
 }
 
 
@@ -18,10 +19,11 @@ void main()
 #version 130
 
 uniform sampler2D Diffuse;
+in vec2 o_diffuseCoords;
 out vec4 output;
 void main()
 {
-	output = texture2D(Diffuse, gl_TexCoord[0].st);
+	output = texture2D(Diffuse, o_diffuseCoords);
 }
 
 
