@@ -118,6 +118,7 @@ namespace Gk3Main.Graphics
 
         public virtual void Bind() { }
         public abstract void Begin();
+        public abstract void CommitParams();
         public abstract void End();
 
         public abstract void SetParameter(string name, float parameter);
@@ -267,6 +268,7 @@ namespace Gk3Main.Graphics
         }
     }
 
+    #region Blending
     public enum BlendMode
     {
         Zero,
@@ -348,6 +350,108 @@ namespace Gk3Main.Graphics
         public static BlendState AlphaBlend = new BlendState(BlendMode.SourceAlpha, BlendMode.InverseSourceAlpha, BlendFunction.Add,
             BlendMode.SourceAlpha, BlendMode.InverseSourceAlpha, BlendFunction.Add);
     }
+    #endregion
+
+    #region Sampler states
+
+    public enum TextureAddressMode
+    {
+        Clamp,
+        Mirror,
+        Wrap
+    }
+
+    public enum TextureFilter
+    {
+        Linear,
+        Point,
+        Anisoptropic,
+        
+        LinearMipPoint,
+        PointMipLinear,
+        MinLinearMagPointMipLinear,
+        MinLinearMagPointMipPoint,
+        MinPointMagLinearMipLinear,
+        MinPointMagLinearMipPoint
+    }
+
+    public class SamplerStateCollection
+    {
+        private SamplerState[] _states;
+
+        public SamplerStateCollection()
+        {
+            const int maxSamplers = 8;
+            _states = new SamplerState[maxSamplers];
+
+            for (int i = 0; i < maxSamplers; i++)
+                _states[i] = SamplerState.PointWrap;
+        }
+
+        public SamplerState this[int index]
+        {
+            get { return _states[index]; }
+            set 
+            {
+                SamplerState oldState = _states[index];
+                _states[index] = value;
+
+                if (SamplerChanged != null)
+                    SamplerChanged(value, oldState, index);
+            }
+        }
+
+        internal delegate void SamplerChangedHandler(SamplerState newState, SamplerState oldState, int index);
+        internal event SamplerChangedHandler SamplerChanged;
+    }
+
+    public struct SamplerState
+    {
+        private TextureAddressMode _addressU;
+        private TextureAddressMode _addressV;
+        private TextureAddressMode _addressW;
+        private TextureFilter _filter;
+
+        public SamplerState(TextureAddressMode addressU, TextureAddressMode addressV, TextureAddressMode addressW, TextureFilter filter)
+        {
+            _addressU = addressU;
+            _addressV = addressV;
+            _addressW = addressW;
+            _filter = filter;
+        }
+
+        public TextureAddressMode AddressU
+        {
+            get { return _addressU; }
+            set { _addressU = value; }
+        }
+
+        public TextureAddressMode AddressV
+        {
+            get { return _addressV; }
+            set { _addressV = value; }
+        }
+
+        public TextureAddressMode AddressW
+        {
+            get { return _addressW; }
+            set { _addressW = value; }
+        }
+
+        public TextureFilter Filter
+        {
+            get { return _filter; }
+            set { _filter = value; }
+        }
+
+        public static SamplerState PointWrap =
+            new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Point);
+        public static SamplerState LinearWrap =
+            new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Linear);
+        public static SamplerState LinearClamp =
+            new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear);
+    }
+    #endregion
 
     public interface IRenderer
     {
@@ -380,6 +484,7 @@ namespace Gk3Main.Graphics
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         BlendState BlendState { get; set; }
+        SamplerStateCollection SamplerStates { get; }
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
         void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct;

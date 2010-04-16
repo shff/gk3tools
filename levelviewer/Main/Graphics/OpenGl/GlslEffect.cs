@@ -40,6 +40,11 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glUseProgram(0);
         }
 
+        public override void CommitParams()
+        {
+            // nothing
+        }
+
         public override void SetParameter(string name, float parameter)
         {
             Gl.glGetError();

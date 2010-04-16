@@ -7,7 +7,8 @@ namespace Gk3Main.Graphics.Direct3D9
 {
     class Direct3D9Effect : Effect
     {
-        SlimDX.Direct3D9.Effect _effect;
+        private SlimDX.Direct3D9.Effect _effect;
+        private Dictionary<string, EffectHandle> _parameters;
 
         public Direct3D9Effect(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -17,6 +18,7 @@ namespace Gk3Main.Graphics.Direct3D9
             _effect = SlimDX.Direct3D9.Effect.FromString(renderer.Direct3D9Device, Text, null, null, null, ShaderFlags.None, null, out errors);
 
             _effect.Technique = _effect.GetTechnique(0);
+            _parameters = new Dictionary<string, EffectHandle>();
         }
 
         public override void Begin()
@@ -31,22 +33,27 @@ namespace Gk3Main.Graphics.Direct3D9
             _effect.End();
         }
 
+        public override void CommitParams()
+        {
+            _effect.CommitChanges();
+        }
+
         #region Parameters
         public override void SetParameter(string name, float parameter)
         {
-            EffectHandle param = _effect.GetParameter(null, name);
+            EffectHandle param = getParameter(name);
             _effect.SetValue(param, parameter);
         }
 
         public override void SetParameter(string name, Math.Vector4 parameter)
         {
-            EffectHandle param = _effect.GetParameter(null, name);
+            EffectHandle param = getParameter(name);
             _effect.SetValue(param, parameter);
         }
 
         public override void SetParameter(string name, Gk3Main.Math.Matrix parameter)
         {
-            EffectHandle param = _effect.GetParameter(null, name);
+            EffectHandle param = getParameter(name);
 
             // convert the matrix
             SlimDX.Matrix m;
@@ -81,7 +88,7 @@ namespace Gk3Main.Graphics.Direct3D9
             if (parameter is Direct3D9UpdatableTexture)
                 return;
 
-            EffectHandle param = _effect.GetParameter(null, name);
+            EffectHandle param = getParameter(name);
 
             Direct3D9Texture d3dTexture = (Direct3D9Texture)parameter;
 
@@ -94,10 +101,24 @@ namespace Gk3Main.Graphics.Direct3D9
                 throw new ArgumentNullException("parameter");
 
             Direct3D9CubeMap d3dCubeMap = (Direct3D9CubeMap)parameter;
-            EffectHandle param = _effect.GetParameter(null, name);
+            EffectHandle param = getParameter(name);
 
             // TODO: this is currently crashing. Figure out why!
             //_effect.SetTexture(param, d3dCubeMap.CubeMap);
+        }
+
+        public EffectHandle getParameter(string name)
+        {
+            EffectHandle param;
+            if (_parameters.ContainsKey(name))
+                param = _parameters[name];
+            else
+            {
+                param = _effect.GetParameter(null, name);
+                _parameters.Add(name, param);
+            }
+
+            return param;
         }
 
         #endregion

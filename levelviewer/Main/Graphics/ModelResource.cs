@@ -18,7 +18,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Tao.OpenGl;
 
 namespace Gk3Main.Graphics
 {
@@ -372,6 +371,8 @@ namespace Gk3Main.Graphics
             if (_loaded == true)
             {
                 RendererManager.CurrentRenderer.VertexDeclaration = _elements;
+                _effect.Bind();
+                _effect.Begin();
 
                 if (!_isBillboard)
                 {
@@ -390,17 +391,14 @@ namespace Gk3Main.Graphics
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
-                            _effect.Bind();
                             _effect.SetParameter("ModelViewProjection", worldview);
                             _effect.SetParameter("Diffuse", section.textureResource, 0);
-                            _effect.Begin();
+                            _effect.CommitParams();
 
                             RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;  
- 
-                            _effect.End();
                         }
 
                     }
@@ -428,21 +426,19 @@ namespace Gk3Main.Graphics
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
-                            _effect.Bind();
                             _effect.SetParameter("ModelViewProjection",  billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
                             _effect.SetParameter("Diffuse", section.textureResource, 0);
-                            _effect.Begin();
-
+                            _effect.CommitParams();
 
                             RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
-
-                            _effect.End();
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;
                         }
                     }
                 }
+
+                _effect.End();
 
                 foreach (ModMesh mesh in _meshes)
                 {
@@ -459,8 +455,6 @@ namespace Gk3Main.Graphics
 
                 Math.Matrix world = Math.Matrix.RotateY(angle)
                     * Math.Matrix.Translate(position);
-
-                Gl.glEnable(Gl.GL_TEXTURE_2D);
 
                 foreach (ModMesh mesh in _meshes)
                 {

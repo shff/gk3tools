@@ -375,6 +375,8 @@ namespace Gk3Main.Graphics
                 lightmapMultiplier = 1.0f;
 
             RendererManager.CurrentRenderer.VertexDeclaration = _vertexDeclaration;
+            currentEffect.Bind();
+            currentEffect.Begin();
             for (int i = 0; i < _surfaces.Length; i++)
             {
                 if (_surfaces[i].Hidden == false)
@@ -385,6 +387,7 @@ namespace Gk3Main.Graphics
                     drawSurface(surface, lightmap, currentEffect, camera, lightmappingEnabled, lightmapMultiplier);
                 }
             }
+            currentEffect.End();
         }
 
         public bool CollideRayWithSurfaces(Math.Vector3 origin, Math.Vector3 direction, float length, out BspSurface surface)
@@ -538,7 +541,6 @@ namespace Gk3Main.Graphics
             if (camera.Frustum.IsSphereOutside(surface.boundingSphere))
                 return;
 
-            effect.Bind();
             effect.SetParameter("ModelViewProjection", camera.ViewProjection);
             effect.SetParameter("Diffuse", surface.textureResource, 0);
 
@@ -548,11 +550,9 @@ namespace Gk3Main.Graphics
             if (lightmap != null)
                 effect.SetParameter("Lightmap", lightmap, 1);
 
-            effect.Begin();
+            effect.CommitParams();
 
             RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Triangles, 0, surface.combinedVertices.Length, surface.combinedVertices);
-
-            effect.End();
         }
 
         private int findParent(BspNode[] nodes, int index)
