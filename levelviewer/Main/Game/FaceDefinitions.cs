@@ -12,6 +12,7 @@ namespace Gk3Main.Game
         }
 
         public string Name;
+        public string FaceName;
 
         // eye stuff
         public string LeftEyeName;
@@ -84,6 +85,7 @@ namespace Gk3Main.Game
                     {
                         currentDefinition = (FaceDefinition)_default.Clone();
                         currentDefinition.Name = name;
+                        currentDefinition.FaceName = name + "_face";
                         _faces.Add(currentDefinition.Name, currentDefinition);
                     }
                 }
@@ -93,7 +95,14 @@ namespace Gk3Main.Game
                     if (equals < 0) continue;
 
                     string attributeName = lines[i].Substring(0, equals).Trim();
-                    string data = lines[i].Substring(equals + 1).Trim();
+                    string data = lines[i].Substring(equals + 1);
+
+                    // remove any trailing comments from data
+                    int indexOfComment = data.IndexOf("//");
+                    if (indexOfComment >= 0)
+                        data = data.Substring(0, indexOfComment);
+                    
+                    data = data.Trim();
 
                     float fValue = 0;
                     Math.Vector3 v3Value = Math.Vector3.Zero;
@@ -153,8 +162,13 @@ namespace Gk3Main.Game
                     v2Value.X = v3Value.X;
                     v2Value.Y = v3Value.Y;
 
+
+                    if (attributeName.Equals("Face Name", StringComparison.OrdinalIgnoreCase))
+                    {
+                        currentDefinition.FaceName = data;
+                    }
                     // eye stuff
-                    if (attributeName.Equals("Left Eye Name", StringComparison.OrdinalIgnoreCase))
+                    else if (attributeName.Equals("Left Eye Name", StringComparison.OrdinalIgnoreCase))
                     {
                         currentDefinition.LeftEyeName = data;
                     }

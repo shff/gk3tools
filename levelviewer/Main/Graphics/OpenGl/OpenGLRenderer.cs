@@ -356,7 +356,7 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
-        public void RenderIndices<T>(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, T[] vertices) where T: struct
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct
         {
             unsafe
             {
@@ -381,21 +381,18 @@ namespace Gk3Main.Graphics.OpenGl
                 }
             }
 
-            int glType, totalIndices;
+            int glType;
             if (type == PrimitiveType.Triangles)
             {
                 glType = Gl.GL_TRIANGLES;
-                totalIndices = primitiveCount * 3;
             }
             else if (type == PrimitiveType.Lines)
             {
                 glType = Gl.GL_LINES;
-                totalIndices = primitiveCount * 2;
             }
             else
             {
                 glType = Gl.GL_POINT;
-                totalIndices = primitiveCount;
             }
 
             unsafe
@@ -408,7 +405,7 @@ namespace Gk3Main.Graphics.OpenGl
 
                 try
                 {
-                    Gl.glDrawElements(glType, totalIndices, Gl.GL_UNSIGNED_INT, 
+                    Gl.glDrawElements(glType, indices.Length - startIndex, Gl.GL_UNSIGNED_INT, 
                         Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
                 }
                 finally

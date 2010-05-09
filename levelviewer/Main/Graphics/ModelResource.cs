@@ -395,7 +395,8 @@ namespace Gk3Main.Graphics
                             _effect.SetParameter("Diffuse", section.textureResource, 0);
                             _effect.CommitParams();
 
-                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
+                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
+                                section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;  
@@ -430,7 +431,8 @@ namespace Gk3Main.Graphics
                             _effect.SetParameter("Diffuse", section.textureResource, 0);
                             _effect.CommitParams();
 
-                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
+                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
+                                section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
 
                             if (section.textureResource.ContainsAlpha)
                                 RendererManager.CurrentRenderer.AlphaTestEnabled = false;
@@ -475,7 +477,8 @@ namespace Gk3Main.Graphics
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.Begin();
 
-                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, section.indices.Length / 3, section.indices, section.vertices);
+                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
+                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
                     
                         _effect.End();
 

@@ -484,11 +484,11 @@ namespace Gk3Main.Graphics
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         BlendState BlendState { get; set; }
-        SamplerStateCollection SamplerStates { get; }
+        //SamplerStateCollection SamplerStates { get; }
 
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
         void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct;
-        void RenderIndices<T>(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, T[] vertices) where T: struct;
+        void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct;
 
         VertexElementSet VertexDeclaration { set; }
 

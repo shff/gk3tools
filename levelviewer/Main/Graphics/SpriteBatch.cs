@@ -149,7 +149,7 @@ namespace Gk3Main.Graphics
 
                 //s.Texture.Bind();
 
-                renderer.RenderIndices(PrimitiveType.Triangles, 0, 2, _indices, _workingVertices);
+                renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices);
 
                 _2dEffect.End();
             }

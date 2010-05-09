@@ -7,17 +7,30 @@ namespace Gk3Main.Graphics.Direct3D9
 {
     class Direct3D9UpdatableTexture : UpdatableTexture
     {
+        private Texture _texture;
+
         public Direct3D9UpdatableTexture(string name, int width, int height)
             : base(name, width, height)
         {
             if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
                 Gk3Main.Utils.IsPowerOfTwo(height) == false)
                 throw new ArgumentException("Width and height must be power-of-two");
+
+            Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
+            _texture = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.None, Format.A8R8G8B8, Pool.SystemMemory);
         }
 
         public override void Update(byte[] pixels)
         {
-            // TODO
+            if (pixels.Length != _width * _height * 4)
+                throw new ArgumentException("Pixel array is not the expected length");
+
+            Surface s = _texture.GetSurfaceLevel(0);
+            SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
+
+            Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixels, _actualPixelWidth, _actualPixelHeight);
+
+            s.UnlockRectangle();
         }
 
         public override void Bind()
@@ -347,7 +360,6 @@ namespace Gk3Main.Graphics.Direct3D9
             {
                 _currentBlendState = value;
 
-                // TODO: only set the states that have changed
                 Blend sourceColor = convertBlendMode(value.ColorSourceBlend);
                 Blend destColor = convertBlendMode(value.ColorDestinationBlend);
                 Blend sourceAlpha = convertBlendMode(value.AlphaSourceBlend);
@@ -434,7 +446,13 @@ namespace Gk3Main.Graphics.Direct3D9
 
         public TextureResource DefaultTexture
         {
-            get { throw new NotImplementedException(); }
+            get
+            {
+                if (_defaultTexture == null)
+                    _defaultTexture = new Direct3D9Texture(true);
+
+                return _defaultTexture;
+            }
         }
 
         public VertexElementSet VertexDeclaration
@@ -526,27 +544,28 @@ namespace Gk3Main.Graphics.Direct3D9
             _device.DrawUserPrimitives(d3dType, primitiveCount, vertices);
         }
 
-        public void RenderIndices<T>(PrimitiveType type, int startIndex, int primitiveCount, int[] indices, T[] vertices) where T: struct
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct
         {
             SlimDX.Direct3D9.PrimitiveType d3dType;
-            int indexCount;
+
+            int primitiveCount;
             if (type == PrimitiveType.LineStrip)
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.LineStrip;
-                indexCount = primitiveCount + 1;
+                primitiveCount = indices.Length - 1;
             }
             else if (type == PrimitiveType.Lines)
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.LineList;
-                indexCount = primitiveCount * 2;
+                primitiveCount = indices.Length / 2;
             }
             else
             {
                 d3dType = SlimDX.Direct3D9.PrimitiveType.TriangleList;
-                indexCount = primitiveCount * 3;
+                primitiveCount = indices.Length / 3;
             }
 
-            _device.DrawIndexedUserPrimitives(d3dType, 0, indexCount,
+            _device.DrawIndexedUserPrimitives(d3dType, 0, vertexCount,
                 primitiveCount, indices, Format.Index32, vertices, _currentDeclarationStride);
         }
 

@@ -21,7 +21,7 @@ namespace Gk3Main.Game
             _actorCode = actorCode;
             _faceDefinition = FaceDefinitions.GetFaceDefinition(actorCode);
 
-            _baseFace = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_FACE.BMP");
+            _baseFace = (Graphics.TextureResource)Resource.ResourceManager.Load(_faceDefinition.FaceName + ".BMP");
 
             _mouths = new Graphics.TextureResource[8];
             _mouths[0] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH00.BMP");
@@ -134,24 +134,22 @@ namespace Gk3Main.Game
 
         public Actor(string modelName, string noun, bool isEgo)
         {
-            string actorName = Utils.GetFilenameWithoutExtension(modelName);
-            _face = new ActorFace(actorName);
+            string actorName = GetActorCodeFromNoun(noun);
             _noun = noun;
             _modelName = modelName;
             _isEgo = isEgo;
 
             _model = (Graphics.ModelResource)Resource.ResourceManager.Load(Utils.MakeEndsWith(modelName, ".MOD"));
-
+            _face = new ActorFace(actorName);
 
             if (_model.Meshes != null)
             {
                 // find the face section
-                string faceSectionName = actorName + "_FACE";
                 for (int i = 0; i < _model.Meshes.Length; i++)
                 {
                     for (int j = 0; j < _model.Meshes[i].sections.Length; j++)
                     {
-                        if (_model.Meshes[i].sections[j].texture.Equals(faceSectionName, StringComparison.OrdinalIgnoreCase))
+                        if (_model.Meshes[i].sections[j].texture.IndexOf("_FACE", StringComparison.OrdinalIgnoreCase) != -1)
                         {
                             _model.Meshes[i].sections[j].textureResource = _face.Texture;
                         }
@@ -222,6 +220,35 @@ namespace Gk3Main.Game
         public Graphics.ModelResource Model
         {
             get { return _model; }
+        }
+
+        public static string GetActorCodeFromNoun(string noun)
+        {
+            // I'm not sure if this is really how this is supposed to work.
+            // But there are at least a few places where all we know is the noun,
+            // and we need the actor code. Previously we were using the model name,
+            // as the code, but that doesn't seem to always work.
+            if (noun.Equals("ABBE", StringComparison.OrdinalIgnoreCase))
+                return "ABE";
+            else if (noun.Equals("BARTENDER", StringComparison.OrdinalIgnoreCase))
+                return "VM3";
+            else if (noun.Equals("BUCHELLI", StringComparison.OrdinalIgnoreCase))
+                return "VIT";
+            else if (noun.Equals("ESTELLE", StringComparison.OrdinalIgnoreCase))
+                return "EST";
+            else if (noun.Equals("GABE", StringComparison.OrdinalIgnoreCase) ||
+                noun.Equals("GABRIEL", StringComparison.OrdinalIgnoreCase))
+                return "GAB";
+            else if (noun.Equals("GRACE", StringComparison.OrdinalIgnoreCase))
+                return "GRA";
+            else if (noun.Equals("LADY_HOWARD", StringComparison.OrdinalIgnoreCase))
+                return "LHO";
+            else if (noun.Equals("BUTHANE", StringComparison.OrdinalIgnoreCase))
+                return "MAD";
+            else if (noun.Equals("MOSELY", StringComparison.OrdinalIgnoreCase))
+                return "MOS";
+            else
+                throw new NotImplementedException("Unknown actor noun: " + noun);
         }
     }
 }
