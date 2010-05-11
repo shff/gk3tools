@@ -8,6 +8,7 @@ namespace Gk3Main.Graphics.Direct3D9
     class Direct3D9UpdatableTexture : UpdatableTexture
     {
         private Texture _texture;
+        private Texture _scratch;
 
         public Direct3D9UpdatableTexture(string name, int width, int height)
             : base(name, width, height)
@@ -17,25 +18,43 @@ namespace Gk3Main.Graphics.Direct3D9
                 throw new ArgumentException("Width and height must be power-of-two");
 
             Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
-            _texture = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.None, Format.A8R8G8B8, Pool.SystemMemory);
+
+            _scratch = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.None, Format.A8R8G8B8, Pool.SystemMemory);
+            _texture = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.None, Format.A8R8G8B8, Pool.Default);
         }
 
         public override void Update(byte[] pixels)
         {
             if (pixels.Length != _width * _height * 4)
                 throw new ArgumentException("Pixel array is not the expected length");
-
-            Surface s = _texture.GetSurfaceLevel(0);
+            
+            // need to swap the R and B components
+            for (int i = 0; i < _width * _height; i++)
+            {
+                byte temp = pixels[i * 4 + 0];
+                pixels[i * 4 + 0] = pixels[i * 4 + 2];
+                pixels[i * 4 + 2] = temp;
+            }
+            
+            Surface s = _scratch.GetSurfaceLevel(0);
             SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
 
-            Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixels, _actualPixelWidth, _actualPixelHeight);
+            Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixels, _width, _height);
 
             s.UnlockRectangle();
+
+            Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
+            renderer.Direct3D9Device.UpdateTexture(_scratch, _texture);
         }
 
         public override void Bind()
         {
             // TODO
+        }
+
+        internal Texture InternalTexture
+        {
+            get { return _texture; }
         }
     }
 
@@ -225,6 +244,7 @@ namespace Gk3Main.Graphics.Direct3D9
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
         private BlendState _currentBlendState;
+        private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
 
         public Direct3D9Renderer(IntPtr windowHandle, int width, int height)
         {
@@ -245,8 +265,12 @@ namespace Gk3Main.Graphics.Direct3D9
             
             _device.VertexFormat = VertexFormat.None;
 
+            _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
+
             // set default render states
             _device.SetRenderState(RenderState.CullMode, Cull.None);
+            SamplerStates[0] = SamplerState.LinearWrap;
+            SamplerStates[1] = SamplerState.LinearClamp;
             BlendState = BlendState.Opaque;
         }
 
@@ -376,6 +400,22 @@ namespace Gk3Main.Graphics.Direct3D9
                 _device.SetRenderState(RenderState.BlendOperation, colorOp);
                 _device.SetRenderState(RenderState.BlendOperationAlpha, alphaOp);
             }
+        }
+
+        public SamplerStateCollection SamplerStates
+        {
+            get { return _currentSamplerStates; }
+        }
+
+        private void samplerStateChanged(SamplerState newSampler, SamplerState oldSampler, int index)
+        {
+            // TODO: only modify the changed states
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressU, convertTextureAddress(newSampler.AddressU));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressV, convertTextureAddress(newSampler.AddressV));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressW, convertTextureAddress(newSampler.AddressW));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MinFilter, convertTextureFilter(newSampler.Filter, FilterType.Min));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MagFilter, convertTextureFilter(newSampler.Filter, FilterType.Mag));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MipFilter, convertTextureFilter(newSampler.Filter, FilterType.Mip));
         }
 
         #endregion Render states
@@ -623,6 +663,83 @@ namespace Gk3Main.Graphics.Direct3D9
                 return BlendOperation.Minimum;
             else
                 return BlendOperation.Maximum;
+        }
+
+        private static TextureAddress convertTextureAddress(TextureAddressMode mode)
+        {
+            if (mode == TextureAddressMode.Clamp)
+                return TextureAddress.Clamp;
+            else if (mode == TextureAddressMode.Mirror)
+                return TextureAddress.Mirror;
+            else
+                return TextureAddress.Wrap;
+        }
+
+        enum FilterType
+        {
+            Min,
+            Mag,
+            Mip
+        }
+
+        private static SlimDX.Direct3D9.TextureFilter convertTextureFilter(TextureFilter filter, FilterType type)
+        {
+            if (type == FilterType.Mip)
+            {
+                if (filter == TextureFilter.Point ||
+                    filter == TextureFilter.Linear)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.None;
+                }
+                else if (filter == TextureFilter.LinearMipPoint ||
+                    filter == TextureFilter.MinLinearMagPointMipPoint ||
+                    filter == TextureFilter.MinPointMagLinearMipPoint)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.Point;
+                }
+                else if (filter == TextureFilter.PointMipLinear ||
+                    filter == TextureFilter.MinLinearMagPointMipLinear ||
+                    filter == TextureFilter.MinPointMagLinearMipLinear)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.Linear;
+                }
+            }
+            else if (type == FilterType.Min)
+            {
+                if (filter == TextureFilter.Point ||
+                    filter == TextureFilter.MinPointMagLinearMipLinear ||
+                    filter == TextureFilter.MinPointMagLinearMipPoint ||
+                    filter == TextureFilter.PointMipLinear)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.Point;
+                }
+                else if (filter == TextureFilter.Linear ||
+                    filter == TextureFilter.LinearMipPoint ||
+                    filter == TextureFilter.MinLinearMagPointMipLinear ||
+                    filter == TextureFilter.MinLinearMagPointMipPoint)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.Linear;
+                }
+            }
+            else if (type == FilterType.Mag)
+            {
+                if (filter == TextureFilter.Point ||
+                    filter == TextureFilter.MinLinearMagPointMipLinear ||
+                    filter == TextureFilter.MinLinearMagPointMipPoint ||
+                    filter == TextureFilter.PointMipLinear)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.Point;
+                }
+                else if (filter == TextureFilter.Linear ||
+                    filter == TextureFilter.LinearMipPoint ||
+                    filter == TextureFilter.MinPointMagLinearMipLinear ||
+                    filter == TextureFilter.MinPointMagLinearMipPoint)
+                {
+                    return SlimDX.Direct3D9.TextureFilter.Linear;
+                }
+            }
+
+            return SlimDX.Direct3D9.TextureFilter.None;
         }
     }
 }

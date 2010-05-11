@@ -85,14 +85,15 @@ namespace Gk3Main.Graphics.Direct3D9
                 throw new ArgumentNullException("parameter");
 
             // TODO: support updatable textures
+            Texture tex;
             if (parameter is Direct3D9UpdatableTexture)
-                return;
+                tex = ((Direct3D9UpdatableTexture)parameter).InternalTexture;
+            else
+                tex = ((Direct3D9Texture)parameter).InternalTexture;
 
             EffectHandle param = getParameter(name);
 
-            Direct3D9Texture d3dTexture = (Direct3D9Texture)parameter;
-
-            _effect.SetTexture(param, d3dTexture.InternalTexture);
+            _effect.SetTexture(param, tex);
         }
 
         public override void SetParameter(string name, CubeMapResource parameter, int index)

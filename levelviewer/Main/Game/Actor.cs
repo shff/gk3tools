@@ -234,6 +234,8 @@ namespace Gk3Main.Game
                 return "VM3";
             else if (noun.Equals("BUCHELLI", StringComparison.OrdinalIgnoreCase))
                 return "VIT";
+            else if (noun.Equals("EMILIO", StringComparison.OrdinalIgnoreCase))
+                return "EML";
             else if (noun.Equals("ESTELLE", StringComparison.OrdinalIgnoreCase))
                 return "EST";
             else if (noun.Equals("GABE", StringComparison.OrdinalIgnoreCase) ||
@@ -241,6 +243,8 @@ namespace Gk3Main.Game
                 return "GAB";
             else if (noun.Equals("GRACE", StringComparison.OrdinalIgnoreCase))
                 return "GRA";
+            else if (noun.Equals("JEAN", StringComparison.OrdinalIgnoreCase))
+                return "JEA";
             else if (noun.Equals("LADY_HOWARD", StringComparison.OrdinalIgnoreCase))
                 return "LHO";
             else if (noun.Equals("BUTHANE", StringComparison.OrdinalIgnoreCase))
