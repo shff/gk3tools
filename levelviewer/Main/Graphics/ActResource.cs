@@ -98,11 +98,12 @@ namespace Gk3Main.Graphics
             ref FrameTransformation t1, ref FrameTransformation t2, 
             out Math.Matrix result)
         {
-            result = Math.Matrix.Identity;
+            float invAmount = 1.0f - amount;
+            result = t1._original;
 
-            result.M41 = t1._translation.X;
-            result.M42 = t1._translation.Y;
-            result.M43 = t1._translation.Z; 
+            result.M41 = t1._translation.X * invAmount + t2._translation.X * amount;
+            result.M42 = t1._translation.Y * invAmount + t2._translation.Y * amount;
+            result.M43 = t1._translation.Z * invAmount + t2._translation.Z * amount; 
         }
     }
 
@@ -133,8 +134,16 @@ namespace Gk3Main.Graphics
             public List<FrameSectionVertices> Vertices;
         }
 
+        private struct MeshAnimationFrame
+        {
+            public uint Time;
+            public FrameTransformation Transform;
+            public FrameSectionVertices[] Vertices;
+        }
+
         private string _modelName;
         private ActFrame[] _frames;
+        private MeshAnimationFrame[][] _animationFrames;
         private uint _numMeshes;
         private uint _numFrames;
 
@@ -180,6 +189,37 @@ namespace Gk3Main.Graphics
 
                 readFrame(reader, i, frameSize);
             }
+
+            // now we have all the frames loaded from the ACT file,
+            // so now it's time to convert the frame data into a more
+            // usable layout
+            _animationFrames = new MeshAnimationFrame[_numMeshes][];
+            for (uint i = 0; i < _numMeshes; i++)
+            {
+                // count the active frames
+                uint numActiveFramesThisMesh = 0;
+                for (uint j = 0; j < _numFrames; j++)
+                {
+                    if (_frames[j * _numMeshes + i].Active)
+                        numActiveFramesThisMesh++;
+                }
+
+                // create the frames
+                _animationFrames[i] = new MeshAnimationFrame[numActiveFramesThisMesh];
+                uint currentFrame = 0;
+                for (uint j = 0; j < _numFrames; j++)
+                {
+                    if (_frames[j * _numMeshes + i].Active)
+                    {
+                        _animationFrames[i][currentFrame].Time = _millisecondsPerFrame * j;
+                        _animationFrames[i][currentFrame].Transform = _frames[j * _numMeshes + i].Transform;
+                        if (_frames[j * _numMeshes + i].Vertices != null)
+                            _animationFrames[i][currentFrame].Vertices = _frames[j * _numMeshes + i].Vertices.ToArray();
+                        
+                        currentFrame++;
+                    }
+                }
+            }
         }
 
         public override void Dispose()
@@ -200,7 +240,7 @@ namespace Gk3Main.Graphics
 
             int frameNum = timeSinceStart / _millisecondsPerFrame;
             int nextFrameNum = frameNum + 1;
-            float percent = (float)(timeSinceStart - frameNum * _millisecondsPerFrame) / _millisecondsPerFrame;
+            //float percent = (float)(timeSinceStart - frameNum * _millisecondsPerFrame) / _millisecondsPerFrame;
 
             // is this animation finished?
             if (frameNum >= _numFrames)
@@ -210,26 +250,22 @@ namespace Gk3Main.Graphics
 
             for (int i = 0; i < model.Meshes.Length; i++)
             {
-                // find the previous frame
-                ActFrame? prevFrame, nextFrame;
-                getPriorActiveFrame(frameNum, i, out prevFrame);
-                getNextActiveFrame(frameNum, i, out nextFrame);
+                int frame1, frame2;
+                float percent;
+                getFrames(timeSinceStart, i, out frame1, out frame2, out percent);
 
-                ActFrame frame;
-                if (prevFrame.HasValue)
-                    frame = prevFrame.Value;
-                else
-                    frame = nextFrame.Value;
-
-                // TODO: interpolate
-                if (frame.Transform != null)
+                if (frame1 >= 0 && _animationFrames[i][frame1].Transform != null &&
+                    frame2 >= 0 && _animationFrames[i][frame2].Transform != null)
                 {
-                    model.Meshes[i].AnimatedTransformMatrix = frame.Transform.Original;
+                    Math.Matrix animatedTransform;
+                    FrameTransformation.LerpToMatrix(percent, ref _animationFrames[i][frame1].Transform, ref _animationFrames[i][frame2].Transform, out animatedTransform);
+                    model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
                 }
+          
 
-                if (frame.Vertices != null)
+                /*if (frame.Vertices != null)
                 {
-                    for (int j = 0; j < frame.Vertices.Count; j++)
+                    for (int j = 0; j < frame.Vertices.Length; j++)
                     {
                         float[] dest = model.Meshes[i].sections[frame.Vertices[j].SectionIndex].vertices;
                         float[] source = frame.Vertices[j].Vertices;
@@ -243,6 +279,8 @@ namespace Gk3Main.Graphics
                                 dest[k * stride + 1] += source[k * 3 + 1];
                                 dest[k * stride + 2] += source[k * 3 + 2];
                             }
+
+                            //model.Meshes[i].VerticesModifiedWithDelta = true;
                         }
                         else
                         {
@@ -255,7 +293,7 @@ namespace Gk3Main.Graphics
                             }
                         }
                     }
-                }
+                }*/
 
                 
                 //model.Meshes[i].AnimatedTransformMatrix = transform;// *model.Meshes[i].TransformMatrix;
@@ -264,39 +302,36 @@ namespace Gk3Main.Graphics
             return true;
         }
 
-        private void getPriorActiveFrame(int frameNum, int meshIndex, out ActFrame? frame)
+        private void getFrames(int elapsedTime, int meshIndex, out int frame1, out int frame2, out float percent)
         {
-            if (frameNum >= _frames.Length)
-                throw new ArgumentOutOfRangeException("frameNum");
-
-            for (int i = frameNum - 1; i >= 0; i--)
+            int nextFrame = 0;
+            for (; nextFrame < _animationFrames[meshIndex].Length; nextFrame++)
             {
-                if (_frames[i * _numMeshes + meshIndex].Active)
-                {
-                    frame = _frames[i * _numMeshes + meshIndex];
-                    return;
-                }
+                if (_animationFrames[meshIndex][nextFrame].Time > elapsedTime)
+                    break;
             }
 
-            frame = null;
-        }
-
-        private void getNextActiveFrame(int frameNum, int meshIndex, out ActFrame? frame)
-        {
-            if (frameNum >= _numFrames)
-                throw new ArgumentOutOfRangeException("frameNum");
-
-            int next = frameNum;
-            for (int i = frameNum; i < _numFrames; i++)
+            if (nextFrame == _animationFrames[meshIndex].Length)
             {
-                if (_frames[i * _numMeshes + meshIndex].Active)
-                {
-                    frame = _frames[i * _numMeshes + meshIndex];
-                    return;
-                }
+                frame1 = nextFrame - 1;
+                frame2 = frame1;
+                percent = 0;
             }
+            else if (nextFrame == 0)
+            {
+                frame1 = 0;
+                frame2 = 0;
+                percent = 0;
+            }
+            else
+            {
+                frame1 = nextFrame - 1;
+                frame2 = nextFrame;
 
-            frame = null;
+                uint frame1Time = _animationFrames[meshIndex][frame1].Time;
+                uint frame2Time = _animationFrames[meshIndex][frame2].Time;
+                percent = (elapsedTime - frame1Time) / (float)(frame2Time - frame1Time);
+            }
         }
 
         private int getDeltaType(int index, byte[] mask)
