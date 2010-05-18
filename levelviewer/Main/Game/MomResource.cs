@@ -10,6 +10,7 @@ namespace Gk3Main.Game
         {
             public Graphics.ActResource Act;
             public Graphics.ModelResource Model;
+            public bool IsAbsolute;
         }
 
         private AnimationResourceSection _actionSection;
@@ -152,6 +153,10 @@ namespace Gk3Main.Game
                     MomAct act;
                     act.Act = (Graphics.ActResource)Resource.ResourceManager.Load(actName);
                     act.Model = SceneManager.GetSceneModel(act.Act.ModelName);
+
+                    // check if this is an absolute animation or contains a transformation
+                    act.IsAbsolute = _actionSection.Lines[i].Params.Count > 1;
+
                     if (act.Model == null)
                     {
                         Resource.ResourceManager.Unload(act.Act);
@@ -179,7 +184,8 @@ namespace Gk3Main.Game
             {
                 if (_acts[i].HasValue)
                 {
-                    _acts[i].Value.Act.Animate(_acts[i].Value.Model, timeSinceStart, true);
+                    if (_acts[i].Value.Act.Animate(_acts[i].Value.Model, timeSinceStart, true, _acts[i].Value.IsAbsolute) == false)
+                        _acts[i] = null;
                 }
             }
         }

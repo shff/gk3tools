@@ -101,6 +101,25 @@ namespace Gk3Main.Graphics
             float invAmount = 1.0f - amount;
             result = t1._original;
 
+            // TODO: right now we're doing a naive interpolation,
+            // which will work, but doesn't look as good as breaking
+            // apart the matrix into components (rotation, scale, translation)
+            // and interpolating the individual components with lerp/slerp
+            result.M11 = t1._original.M11 * invAmount + t2._original.M11 * amount;
+            result.M12 = t1._original.M12 * invAmount + t2._original.M12 * amount;
+            result.M13 = t1._original.M13 * invAmount + t2._original.M13 * amount;
+            result.M14 = t1._original.M14 * invAmount + t2._original.M14 * amount;
+
+            result.M21 = t1._original.M21 * invAmount + t2._original.M21 * amount;
+            result.M22 = t1._original.M22 * invAmount + t2._original.M22 * amount;
+            result.M23 = t1._original.M23 * invAmount + t2._original.M23 * amount;
+            result.M24 = t1._original.M24 * invAmount + t2._original.M24 * amount;
+
+            result.M31 = t1._original.M31 * invAmount + t2._original.M31 * amount;
+            result.M32 = t1._original.M32 * invAmount + t2._original.M32 * amount;
+            result.M33 = t1._original.M33 * invAmount + t2._original.M33 * amount;
+            result.M34 = t1._original.M34 * invAmount + t2._original.M34 * amount;
+
             result.M41 = t1._translation.X * invAmount + t2._translation.X * amount;
             result.M42 = t1._translation.Y * invAmount + t2._translation.Y * amount;
             result.M43 = t1._translation.Z * invAmount + t2._translation.Z * amount; 
@@ -231,28 +250,29 @@ namespace Gk3Main.Graphics
             get { return _modelName; }
         }
 
-        public bool Animate(ModelResource model, int timeSinceStart, bool loop)
+        /// <summary>
+        /// Applies the animation to a model
+        /// </summary>
+        /// <returns>True if the animation is still playing, false otherwise</returns>
+        public bool Animate(ModelResource model, int timeSinceStart, bool loop, bool absolute)
         {
             if (model == null)
                 throw new ArgumentNullException("model");
             if (model.Meshes.Length != _numMeshes)
                 throw new ArgumentException("The model is not compatible with this animation");
 
-            int frameNum = timeSinceStart / _millisecondsPerFrame;
-            int nextFrameNum = frameNum + 1;
-            //float percent = (float)(timeSinceStart - frameNum * _millisecondsPerFrame) / _millisecondsPerFrame;
+            if (model.Name.Equals("r25chair.mod", StringComparison.OrdinalIgnoreCase))
+                Console.CurrentConsole.WriteLine("tss: " + timeSinceStart);
 
-            // is this animation finished?
-            if (frameNum >= _numFrames)
-            {
-                frameNum = (int)_numFrames - 1;
-            }
-
+            bool stillPlaying = false;
             for (int i = 0; i < model.Meshes.Length; i++)
             {
                 int frame1, frame2;
                 float percent;
                 getFrames(timeSinceStart, i, out frame1, out frame2, out percent);
+
+                if (frame1 >= 0)
+                    stillPlaying = true;
 
                 if (frame1 >= 0 && _animationFrames[i][frame1].Transform != null &&
                     frame2 >= 0 && _animationFrames[i][frame2].Transform != null)
@@ -260,6 +280,10 @@ namespace Gk3Main.Graphics
                     Math.Matrix animatedTransform;
                     FrameTransformation.LerpToMatrix(percent, ref _animationFrames[i][frame1].Transform, ref _animationFrames[i][frame2].Transform, out animatedTransform);
                     model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
+                    model.Meshes[i].AnimatedTransformIsAbsolute = absolute;
+
+                    if (model.Name.Equals("r25chair.MOD", StringComparison.OrdinalIgnoreCase))
+                        Console.CurrentConsole.WriteLine("mod: {2} frame1: {0} frame2: {1} percent: {3} elapsed: {4} x: {5}", frame1, frame2, model.Name, percent, timeSinceStart, animatedTransform.M41);
                 }
           
 
@@ -299,7 +323,7 @@ namespace Gk3Main.Graphics
                 //model.Meshes[i].AnimatedTransformMatrix = transform;// *model.Meshes[i].TransformMatrix;
             }
 
-            return true;
+            return stillPlaying;
         }
 
         private void getFrames(int elapsedTime, int meshIndex, out int frame1, out int frame2, out float percent)
@@ -313,8 +337,8 @@ namespace Gk3Main.Graphics
 
             if (nextFrame == _animationFrames[meshIndex].Length)
             {
-                frame1 = nextFrame - 1;
-                frame2 = frame1;
+                frame1 = -1;
+                frame2 = -1;
                 percent = 0;
             }
             else if (nextFrame == 0)

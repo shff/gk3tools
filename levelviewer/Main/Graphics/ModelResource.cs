@@ -85,6 +85,7 @@ namespace Gk3Main.Graphics
         public uint heading;
         public Math.Matrix TransformMatrix;
         public Math.Matrix? AnimatedTransformMatrix;
+        public bool AnimatedTransformIsAbsolute;
         public uint numSections;
         public float[] boundingBox;
         public float[] TransformedBoundingBox;
@@ -461,9 +462,14 @@ namespace Gk3Main.Graphics
                 foreach (ModMesh mesh in _meshes)
                 {
                     Math.Matrix worldview;
-                    
+
                     if (mesh.AnimatedTransformMatrix.HasValue)
-                        worldview = mesh.AnimatedTransformMatrix.Value * world * camera.ViewProjection;
+                    {
+                        if (mesh.AnimatedTransformIsAbsolute)
+                            worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
+                        else
+                            worldview = mesh.AnimatedTransformMatrix.Value * world * camera.ViewProjection;
+                    }
                     else
                         worldview = mesh.TransformMatrix * world * camera.ViewProjection;
 

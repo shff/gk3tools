@@ -15,11 +15,19 @@ namespace Gk3Main.Game
         private Graphics.TextureResource[] _smiles;
         private Graphics.TextureResource _currentMouth;
         private bool _faceIsDirty;
+        private bool _isEmptyFace;
 
         public ActorFace(string actorCode)
         {
             _actorCode = actorCode;
             _faceDefinition = FaceDefinitions.GetFaceDefinition(actorCode);
+
+            if (_faceDefinition == null)
+            {
+                // some actors don't have faces (like the chicken)
+                _isEmptyFace = true;
+                return;
+            }
 
             _baseFace = (Graphics.TextureResource)Resource.ResourceManager.Load(_faceDefinition.FaceName + ".BMP");
 
@@ -50,6 +58,9 @@ namespace Gk3Main.Game
 
         public void SetMouth(string mouth)
         {
+            if (_isEmptyFace)
+                throw new InvalidOperationException("This is an empty face");
+
             const int indexOfNumber = 5;
 
             int mouthNum;
@@ -62,6 +73,9 @@ namespace Gk3Main.Game
 
         public void RebuildTexture()
         {
+            if (_isEmptyFace)
+                throw new InvalidOperationException("This is an empty face");
+
             updateTexture(true);
 
             _faceIsDirty = false;
@@ -76,6 +90,7 @@ namespace Gk3Main.Game
         }
 
         public bool FaceIsDirty { get { return _faceIsDirty; } }
+        public bool IsEmptyFace { get { return _isEmptyFace; } }
 
         private void updateTexture(bool modified)
         {
@@ -177,8 +192,11 @@ namespace Gk3Main.Game
 
         public void SetMouth(string mouth)
         {
-            _face.SetMouth(mouth);
-            _face.RebuildTexture();
+            if (_face.IsEmptyFace == false)
+            {
+                _face.SetMouth(mouth);
+                _face.RebuildTexture();
+            }
         }
 
         public bool CollideRay(Math.Vector3 origin, Math.Vector3 direction, float length, out float distance)
@@ -234,6 +252,8 @@ namespace Gk3Main.Game
                 return "VM3";
             else if (noun.Equals("BUCHELLI", StringComparison.OrdinalIgnoreCase))
                 return "VIT";
+            else if (noun.Equals("CHICKEN", StringComparison.OrdinalIgnoreCase))
+                return "CHK";
             else if (noun.Equals("EMILIO", StringComparison.OrdinalIgnoreCase))
                 return "EML";
             else if (noun.Equals("ESTELLE", StringComparison.OrdinalIgnoreCase))
