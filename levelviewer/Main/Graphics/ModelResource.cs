@@ -483,8 +483,14 @@ namespace Gk3Main.Graphics
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.Begin();
 
+                        float[] vertices;
+                        if (section.AnimatedVertices != null)
+                            vertices = section.AnimatedVertices;
+                        else
+                            vertices = section.vertices;
+
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
-                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
+                            vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices);
                     
                         _effect.End();
 

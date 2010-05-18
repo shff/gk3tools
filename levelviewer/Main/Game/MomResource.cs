@@ -49,6 +49,8 @@ namespace Gk3Main.Game
 
         public void Play()
         {
+            Logger.WriteInfo("Playing animation {0}", LoggerStream.Animation, this.Name);
+
             _timeElapsedSinceStart = 0;
 
             // play any frame 0 stuff
@@ -184,7 +186,7 @@ namespace Gk3Main.Game
             {
                 if (_acts[i].HasValue)
                 {
-                    if (_acts[i].Value.Act.Animate(_acts[i].Value.Model, timeSinceStart, true, _acts[i].Value.IsAbsolute) == false)
+                    if (_acts[i].Value.Act.Animate(_acts[i].Value.Model, timeSinceStart, duration, true, _acts[i].Value.IsAbsolute) == false)
                         _acts[i] = null;
                 }
             }

@@ -506,6 +506,18 @@ namespace Gk3Main
             return new List<string>();
         }
 
+        /// <summary>
+        /// Gets a model by its name, or null if it doesn't exist
+        /// </summary>
+        public static Graphics.ModelResource GetModelByName(string name)
+        {
+            for (int i = 0; i < _models.Count; i++)
+                if (_models[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return _models[i].Model;
+
+            return null;
+        }
+
         public static void SetEgoToSifPosition(string name)
         {
             SifPosition position = _roomPositions[name];

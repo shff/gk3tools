@@ -4,6 +4,13 @@ using System.Text;
 
 namespace Gk3Main
 {
+    public enum LoggerStream
+    {
+        Normal,
+        Resource,
+        Animation
+    }
+
     public static class Logger
     {
         static Logger()
@@ -14,45 +21,85 @@ namespace Gk3Main
             _writer = new System.IO.StreamWriter(mypath 
                 + System.IO.Path.DirectorySeparatorChar + "log.txt");
 
+            _streams = new LoggerStreamInfo[]
+            {
+                // make sure these stay in the same order as they're
+                // declared in the LoggerStream enum!
+                new LoggerStreamInfo(LoggerStream.Normal),
+                new LoggerStreamInfo(LoggerStream.Resource),
+                new LoggerStreamInfo(LoggerStream.Animation)
+            };
+
+            WriteInfo("Logging started");
 #if DEBUG
-            _localEcho = true;
+            _streams[(int)LoggerStream.Normal].LocalEcho = true;
 #endif
         }
 
         public static void Close()
         {
+            WriteInfo("Logging ended");
             _writer.Close();
             _writer = null;
         }
 
         public static void WriteError(string error, params object[] args)
         {
-            if (_localEcho) Console.CurrentConsole.WriteLine(error, args);
+            if (_streams[(int)LoggerStream.Normal].LocalEcho) 
+                Console.CurrentConsole.WriteLine(error, args);
 
             _writer.WriteLine(error, args);
         }
 
         public static void WriteInfo(string info, params object[] args)
         {
-            if (_localEcho) Console.CurrentConsole.WriteLine(info, args);
+            WriteInfo(info, LoggerStream.Normal, args);
+        }
 
-            _writer.WriteLine(info, args);
+        public static void WriteInfo(string info, LoggerStream stream, params object[] args)
+        {
+            if (_streams[(int)stream].Enabled == false)
+                return;
+
+            if (_streams[(int)stream].LocalEcho)
+                Console.CurrentConsole.WriteLine(info, args);
+
+            _writer.WriteLine(DateTime.Now.ToLongTimeString() + ": " + info, args);
         }
 
         public static void WriteDebug(string msg, params object[] args)
         {
-            if (_localEcho) Console.CurrentConsole.WriteLine(msg, args);
+            if (_streams[(int)LoggerStream.Normal].LocalEcho) 
+                Console.CurrentConsole.WriteLine(msg, args);
 
             _writer.WriteLine(msg, args);
         }
 
-        public static bool LocalEcho
+        public static void SetLocalEcho(LoggerStream stream, bool echo)
         {
-            get { return _localEcho; }
-            set { _localEcho = value; }
+            _streams[(int)stream].LocalEcho = echo;
         }
 
-        private static bool _localEcho = true;
+        public static bool GetLocalEcho(LoggerStream stream)
+        {
+            return _streams[(int)stream].LocalEcho;
+        }
+
+        private struct LoggerStreamInfo
+        {
+            public LoggerStream Type;
+            public bool LocalEcho;
+            public bool Enabled;
+
+            public LoggerStreamInfo(LoggerStream type)
+            {
+                Type = type;
+                LocalEcho = false;
+                Enabled = true;
+            }
+        }
+
+        private static LoggerStreamInfo[] _streams;
         private static System.IO.StreamWriter _writer;
     }
 }

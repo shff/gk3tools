@@ -129,7 +129,6 @@ namespace Gk3Main.Graphics
     struct FrameSectionVertices
     {
         public int SectionIndex;
-        public bool Delta;
         public float[] Vertices;
     }
 
@@ -254,15 +253,12 @@ namespace Gk3Main.Graphics
         /// Applies the animation to a model
         /// </summary>
         /// <returns>True if the animation is still playing, false otherwise</returns>
-        public bool Animate(ModelResource model, int timeSinceStart, bool loop, bool absolute)
+        public bool Animate(ModelResource model, int timeSinceStart, int timeSinceLastFrame, bool loop, bool absolute)
         {
             if (model == null)
                 throw new ArgumentNullException("model");
             if (model.Meshes.Length != _numMeshes)
                 throw new ArgumentException("The model is not compatible with this animation");
-
-            if (model.Name.Equals("r25chair.mod", StringComparison.OrdinalIgnoreCase))
-                Console.CurrentConsole.WriteLine("tss: " + timeSinceStart);
 
             bool stillPlaying = false;
             for (int i = 0; i < model.Meshes.Length; i++)
@@ -274,16 +270,41 @@ namespace Gk3Main.Graphics
                 if (frame1 >= 0)
                     stillPlaying = true;
 
-                if (frame1 >= 0 && _animationFrames[i][frame1].Transform != null &&
-                    frame2 >= 0 && _animationFrames[i][frame2].Transform != null)
+                if (frame1 >= 0 && frame2 >= 0)
                 {
-                    Math.Matrix animatedTransform;
-                    FrameTransformation.LerpToMatrix(percent, ref _animationFrames[i][frame1].Transform, ref _animationFrames[i][frame2].Transform, out animatedTransform);
-                    model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
-                    model.Meshes[i].AnimatedTransformIsAbsolute = absolute;
+                    if (_animationFrames[i][frame1].Transform != null &&
+                        _animationFrames[i][frame2].Transform != null)
+                    {
+                        Math.Matrix animatedTransform;
+                        FrameTransformation.LerpToMatrix(percent, ref _animationFrames[i][frame1].Transform, ref _animationFrames[i][frame2].Transform, out animatedTransform);
+                        model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
+                        model.Meshes[i].AnimatedTransformIsAbsolute = absolute;
+                    }
 
-                    if (model.Name.Equals("r25chair.MOD", StringComparison.OrdinalIgnoreCase))
-                        Console.CurrentConsole.WriteLine("mod: {2} frame1: {0} frame2: {1} percent: {3} elapsed: {4} x: {5}", frame1, frame2, model.Name, percent, timeSinceStart, animatedTransform.M41);
+                    // TODO: interpolate
+                    FrameSectionVertices[] v = _animationFrames[i][frame1].Vertices;
+                    if (v != null)
+                    {
+                        for (int j = 0; j < v.Length; j++)
+                        {
+                            if (model.Meshes[i].sections[v[j].SectionIndex].AnimatedVertices == null)
+                            {
+                                model.Meshes[i].sections[v[j].SectionIndex].AnimatedVertices = new float[model.Meshes[i].sections[v[j].SectionIndex].vertices.Length];
+                                Array.Copy(model.Meshes[i].sections[v[j].SectionIndex].vertices, model.Meshes[i].sections[v[j].SectionIndex].AnimatedVertices, model.Meshes[i].sections[v[j].SectionIndex].vertices.Length);
+                            }
+                            float[] dest = model.Meshes[i].sections[v[j].SectionIndex].AnimatedVertices;
+                            float[] source = v[j].Vertices;
+
+                            
+                            for (int k = 0; k < source.Length / 3; k++)
+                            {
+                                const int stride = 3 + 3 + 2;
+                                dest[k * stride + 0] = source[k * 3 + 0];
+                                dest[k * stride + 1] = source[k * 3 + 1];
+                                dest[k * stride + 2] = source[k * 3 + 2];
+                            }
+                        }
+                    }
                 }
           
 
@@ -453,7 +474,6 @@ namespace Gk3Main.Graphics
                     FrameSectionVertices sectionVertices;
                     sectionVertices.SectionIndex = groupIndex;
                     sectionVertices.Vertices = vertices;
-                    sectionVertices.Delta = false;
                     _frames[frameIndex].Vertices.Add(sectionVertices);
                 }
                 else if (subsection.Type == (byte)ActSubsectionType.DeltaGroup)
@@ -491,6 +511,8 @@ namespace Gk3Main.Graphics
                         }
                     }
 
+                    convertDeltaVerticesToAbsolute(vertices, (int)meshIndex, groupIndex, (int)frameNum);
+
                     _frames[frameIndex].Active = true;
                     if (_frames[frameIndex].Vertices == null)
                         _frames[frameIndex].Vertices = new List<FrameSectionVertices>();
@@ -498,7 +520,6 @@ namespace Gk3Main.Graphics
                     FrameSectionVertices sectionVertices;
                     sectionVertices.SectionIndex = groupIndex;
                     sectionVertices.Vertices = vertices;
-                    sectionVertices.Delta = true;
                     _frames[frameIndex].Vertices.Add(sectionVertices);
                 }
                 else if (subsection.Type == (byte)ActSubsectionType.Transform)
@@ -532,6 +553,58 @@ namespace Gk3Main.Graphics
                 else
                 {
                     throw new Exception("Invalid subsection type found");
+                }
+            }
+        }
+
+        private void convertDeltaVerticesToAbsolute(float[] vertices, int meshIndex, ushort groupIndex, int currentFrameIndex)
+        {
+            // find the previous frame
+            int previousFrame = -1;
+            int previousFrameVertexIndex = -1;
+            for (int frame = currentFrameIndex - 1; frame >= 0; frame--)
+            {
+                if (_frames[frame * _numMeshes + meshIndex].Active && _frames[frame * _numMeshes + meshIndex].Vertices != null)
+                {
+                    for (int vertex = 0; vertex < _frames[frame * _numMeshes + meshIndex].Vertices.Count; vertex++)
+                        if (_frames[frame * _numMeshes + meshIndex].Vertices[vertex].SectionIndex == groupIndex)
+                        {
+                            previousFrame = frame * (int)_numMeshes + meshIndex;
+                            previousFrameVertexIndex = vertex;
+                            break;
+                        }
+                }
+
+                // did we find a frame yet?
+                if (previousFrame >= 0)
+                    break;
+            }
+
+            // maybe we didn't find a frame. In that case use vertices from the model itself
+            if (previousFrame < 0)
+            {
+                ModelResource model = SceneManager.GetModelByName(_modelName);
+                if (model != null)
+                {
+                    float[] modelVerts = model.Meshes[meshIndex].sections[groupIndex].vertices;
+                    
+                    const int stride = 3 + 3 + 2;
+                    for (int i = 0; i < vertices.Length / 3; i++)
+                    {
+                        vertices[i * 3 + 0] += modelVerts[i * stride + 0];
+                        vertices[i * 3 + 1] += modelVerts[i * stride + 1];
+                        vertices[i * 3 + 2] += modelVerts[i * stride + 2];
+                    }
+                }
+            }
+            else
+            {
+                // we found a frame!
+                for (int i = 0; i < vertices.Length / 3; i++)
+                {
+                    vertices[i * 3 + 0] += _frames[previousFrame].Vertices[previousFrameVertexIndex].Vertices[i * 3 + 0];
+                    vertices[i * 3 + 1] += _frames[previousFrame].Vertices[previousFrameVertexIndex].Vertices[i * 3 + 1];
+                    vertices[i * 3 + 2] += _frames[previousFrame].Vertices[previousFrameVertexIndex].Vertices[i * 3 + 2];
                 }
             }
         }

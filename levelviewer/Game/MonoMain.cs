@@ -313,6 +313,7 @@ class MonoMain
 
         Gk3Main.Sound.SoundManager.Shutdown();
 		Gk3Main.Sheep.SheepMachine.Shutdown();
+        Gk3Main.Logger.Close();
 	}
 	
 	public static Gk3Main.Graphics.RenderWindow SetupGraphics(int width, int height, int depth, bool fullscreen)
