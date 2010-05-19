@@ -23,15 +23,15 @@ namespace Gk3Main.Game
 
     struct NounVerbCombination
     {
-        public NounVerbCombination(string noun, string verb, bool egoIsGabe)
+        public NounVerbCombination(Nouns noun, Verbs verb, bool egoIsGabe)
         {
             Noun = noun;
             Verb = verb;
             EgoIsGabe = egoIsGabe;
         }
 
-        public string Noun;
-        public string Verb;
+        public Nouns Noun;
+        public Verbs Verb;
         public bool EgoIsGabe;
     }
 
@@ -158,9 +158,9 @@ namespace Gk3Main.Game
         public VerbType Type;
     }
 
-    public class Verbs : Resource.InfoResource
+    public class VerbDefinitions : Resource.InfoResource
     {
-        public Verbs(string name, System.IO.Stream stream)
+        public VerbDefinitions(string name, System.IO.Stream stream)
             : base(name, stream)
         {
             foreach (Resource.InfoSection section in Sections)
@@ -221,7 +221,7 @@ namespace Gk3Main.Game
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
-            return new Verbs(name, stream);
+            return new VerbDefinitions(name, stream);
         }
 
         public string[] SupportedExtensions { get { return _supportedExtensions; } }

@@ -127,7 +127,7 @@ namespace Gk3Main.Game
             }
         }
 
-        public static int GetNounVerbCount(string noun, string verb, bool isGabe)
+        public static int GetNounVerbCount(Nouns noun, Verbs verb, bool isGabe)
         {
             int count;
             if (_nounVerbCounts.TryGetValue(new NounVerbCombination(noun, verb, isGabe), out count))
@@ -138,12 +138,18 @@ namespace Gk3Main.Game
 
         public static int GetNounVerbCount(string noun, string verb)
         {
+            return GetNounVerbCount(NounUtils.ConvertStringToNoun(noun),
+                VerbsUtils.ConvertStringToVerbs(verb), CurrentEgo == Ego.Gabriel);
+        }
+
+        public static int GetNounVerbCount(Nouns noun, Verbs verb)
+        {
             return GetNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel);
         }
 
         public static void SetNounVerbCount(string noun, string verb, bool isGabe, int count)
         {
-            _nounVerbCounts[new NounVerbCombination(noun, verb, isGabe)] = count;
+            _nounVerbCounts[new NounVerbCombination(NounUtils.ConvertStringToNoun(noun), VerbsUtils.ConvertStringToVerbs(verb), isGabe)] = count;
         }
 
         public static void SetNounVerbCount(string noun, string verb, int count)
@@ -153,7 +159,7 @@ namespace Gk3Main.Game
 
         public static void IncrementNounVerbCount(string noun, string verb, bool isGabe)
         {
-            NounVerbCombination nv = new NounVerbCombination(noun, verb, CurrentEgo == Ego.Gabriel);
+            NounVerbCombination nv = new NounVerbCombination(NounUtils.ConvertStringToNoun(noun), VerbsUtils.ConvertStringToVerbs(verb), CurrentEgo == Ego.Gabriel);
             if (_nounVerbCounts.ContainsKey(nv) == false)
                 _nounVerbCounts[nv] = 1;
             else
@@ -203,7 +209,12 @@ namespace Gk3Main.Game
 
         public static int GetTopicCount(string noun, string verb)
         {
-            string nounverb = noun + "$" + verb;
+            return GetTopicCount(NounUtils.ConvertStringToNoun(noun), VerbsUtils.ConvertStringToVerbs(verb));
+        }
+
+        public static int GetTopicCount(Nouns noun, Verbs verb)
+        {
+            int nounverb = (int)noun * (int)Game.Verbs._LAST + (int)verb;
             if (_topicCounts.ContainsKey(nounverb) == false)
                 return 0;
 
@@ -212,7 +223,10 @@ namespace Gk3Main.Game
 
         public static void IncrementTopicCount(string noun, string verb)
         {
-            string nounverb = noun + "$" + verb;
+            int inoun = (int)NounUtils.ConvertStringToNoun(noun);
+            int iverb = (int)VerbsUtils.ConvertStringToVerbs(verb);
+
+            int nounverb = (int)inoun * (int)Game.Verbs._LAST + (int)iverb;
             if (_topicCounts.ContainsKey(nounverb) == false)
                 _topicCounts[nounverb] = 1;
             else
@@ -314,12 +328,12 @@ namespace Gk3Main.Game
 
         public static void Load()
         {
-            _verbs = new Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
+            _verbs = new VerbDefinitions("verbs.txt", FileSystem.Open("verbs.txt"));
             _strings = new LocalizedStrings("estrings.txt", FileSystem.Open("estrings.txt"));
             FaceDefinitions.Load();
         }
 
-        public static Verbs Verbs
+        public static VerbDefinitions Verbs
         {
             get { return _verbs; }
         }
@@ -348,14 +362,14 @@ namespace Gk3Main.Game
         private static int _tickCount, _prevTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
         private static Ego _currentEgo;
-        private static Verbs _verbs;
+        private static VerbDefinitions _verbs;
         private static string _location;
         private static string _lastLocation;
         private static LocalizedStrings _strings;
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, int> _chatCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, int> _topicCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<int, int> _topicCounts = new Dictionary<int, int>();
         private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();
         private static List<string> _gabeInventory = new List<string>();
         private static List<string> _graceInventory = new List<string>();

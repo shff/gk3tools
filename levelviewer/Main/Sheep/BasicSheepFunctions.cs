@@ -83,6 +83,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("GetNounVerbCount", _getNounVerbCount,
                 SymbolType.Integer, SymbolType.String, SymbolType.String);
 
+            SheepMachine.AddImport("GetNounVerbCountInt", _getNounVerbCountInt,
+                SymbolType.Integer, SymbolType.String, SymbolType.String);
+
             SheepMachine.AddImport("GetRandomInt", _getRandomInt,
                 SymbolType.Integer, SymbolType.Integer, SymbolType.Integer);
 
@@ -106,6 +109,9 @@ namespace Gk3Main.Sheep
 
             SheepMachine.AddImport("InitEgoPosition", _initEgoPosition,
                 SymbolType.Void, SymbolType.String);
+
+            SheepMachine.AddImport("InspectObject", _dummyVoid,
+                SymbolType.Void);
 
             SheepMachine.AddImport("InventoryInspect", _dummyString,
                 SymbolType.Void, SymbolType.String);
@@ -426,6 +432,16 @@ namespace Gk3Main.Sheep
             SheepMachine.PushIntOntoStack(vm, count);
         }
 
+        private static void sheep_GetNounVerbCountInt(IntPtr vm)
+        {
+            int verb = SheepMachine.PopIntOffStack(vm);
+            int noun = SheepMachine.PopIntOffStack(vm);
+
+            int count = Game.GameManager.GetNounVerbCount((Game.Nouns)noun, (Game.Verbs)verb);
+
+            SheepMachine.PushIntOntoStack(vm, count);
+        }
+
         private static void sheep_GetRandomInt(IntPtr vm)
         {
             int upper = SheepMachine.PopIntOffStack(vm);
@@ -451,12 +467,10 @@ namespace Gk3Main.Sheep
             int verb = SheepMachine.PopIntOffStack(vm);
             int noun = SheepMachine.PopIntOffStack(vm);
 
-            // TODO
+            int count = Game.GameManager.GetTopicCount((Game.Nouns)noun, (Game.Verbs)verb);
 
-            SheepMachine.PushIntOntoStack(vm, 0);
+            SheepMachine.PushIntOntoStack(vm, count);
         }
-
-        
 
         private static void sheep_DoesModelExist(IntPtr vm)
         {
@@ -847,6 +861,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _getEgoLocationCount = new SheepFunctionDelegate(sheep_GetEgoLocationCount);
         private static SheepFunctionDelegate _getEgoCurrentLocationCount = new SheepFunctionDelegate(sheep_GetEgoCurrentLocationCount);
         private static SheepFunctionDelegate _getNounVerbCount = new SheepFunctionDelegate(sheep_GetNounVerbCount);
+        private static SheepFunctionDelegate _getNounVerbCountInt = new SheepFunctionDelegate(sheep_GetNounVerbCountInt);
         private static SheepFunctionDelegate _getRandomInt = new SheepFunctionDelegate(sheep_GetRandomInt);
         private static SheepFunctionDelegate _getTopicCount = new SheepFunctionDelegate(sheep_GetTopicCount);
         private static SheepFunctionDelegate _getTopicCountInt = new SheepFunctionDelegate(sheep_GetTopicCountInt);

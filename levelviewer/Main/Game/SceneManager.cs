@@ -769,7 +769,7 @@ namespace Gk3Main
                     return false; // apparently some cases just don't exist anywhere
             }
 
-            // HACK: until we support passing variables to snippets we
+            /*// HACK: until we support passing variables to snippets we
             // have to do some ugly manipulation like this to handle GetNounVerbCountInt()
             if (condition.IndexOf("GetNounVerbCountInt", StringComparison.OrdinalIgnoreCase) >= 0)
             {
@@ -782,9 +782,12 @@ namespace Gk3Main
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "GetTopicCountInt", "GetTopicCount");
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "n$", string.Format("\"{0}\"", noun));
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
-            }
+            }*/
 
-            return Sheep.SheepMachine.RunSnippet(condition) > 0;
+            Verbs verbEnum = VerbsUtils.ConvertStringToVerbs(verb);
+            Nouns nounEnum = NounUtils.ConvertStringToNoun(noun);
+
+            return Sheep.SheepMachine.RunSnippet(condition, nounEnum, verbEnum) > 0;
         }
 
         private static void unloadActors()

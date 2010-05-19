@@ -141,6 +141,28 @@ namespace Gk3Main.Sheep
             }
         }
 
+        public static int RunSnippet(string snippet, Game.Nouns noun, Game.Verbs verb)
+        {
+            if (_vm != IntPtr.Zero)
+            {
+                int result;
+
+                _output.Clear();
+
+                Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Executing snippet: {0}", snippet);
+                int err = SHP_RunNounVerbSnippet(_vm, snippet, (int)noun, (int)verb, out result);
+
+                if (err != 0)
+                    throw new SheepException("Unable to execute snippet");
+
+                return result;
+            }
+            else
+            {
+                throw new SheepException(SheepUnavailableError);
+            }
+        }
+
         public static int RunSnippet(string snippet)
         {
             if (_vm != IntPtr.Zero)
@@ -404,6 +426,9 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
+
+        [DllImport("sheep")]
+        private static extern int SHP_RunNounVerbSnippet(IntPtr vm, string snippet, int noun, int verb, out int result);
 
         [DllImport("sheep")]
         private static extern void SHP_SetOutputCallback(IntPtr vm, IntPtr callback);
