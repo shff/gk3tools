@@ -38,7 +38,7 @@ extern "C"
 
 #define SHEEP_VERSION_MAJOR 0
 #define SHEEP_VERSION_MINOR 3
-#define SHEEP_VERSION_REVISION 0
+#define SHEEP_VERSION_REVISION 6
 
 #define SHEEP_VERBOSITY_SILENT 0
 #define SHEEP_VERBOSITY_POLITE 1
@@ -128,6 +128,7 @@ typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* messag
 DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
 
 DECLSPEC int LIB_CALL SHP_RunSnippet(SheepVM* vm, const char* script, int* result);
+DECLSPEC int LIB_CALL SHP_RunNounVerbSnippet(SheepVM* vm, const char* script, int noun, int verb, int* result);
 DECLSPEC int LIB_CALL SHP_RunScript(SheepVM* vm, const char* script, const char* function);
 DECLSPEC int LIB_CALL SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function);
 

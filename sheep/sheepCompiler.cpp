@@ -1,3 +1,4 @@
+#include <iostream>
 #include "sheepc.h"
 #include "sheepCodeTree.h"
 #include "sheepCodeGenerator.h"
@@ -78,6 +79,9 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 	}
 	catch(SheepException& ex)
 	{
+		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
+			printf("%s\n", ex.GetMessage().c_str());
+
 		return ex.GetErrorNum();
 	}
 }
@@ -113,6 +117,20 @@ int SHP_RunSnippet(SheepVM* vm, const char* script, int* result)
 	try
 	{
 		return SM(vm)->RunSnippet(script, result);
+	}
+	catch(SheepException& ex)
+	{
+		return ex.GetErrorNum();
+	}
+}
+
+int SHP_RunNounVerbSnippet(SheepVM* vm, const char* script, int noun, int verb, int* result)
+{
+	assert(vm != NULL);
+
+	try
+	{
+		return SM(vm)->RunSnippet(script, noun, verb, result);
 	}
 	catch(SheepException& ex)
 	{
@@ -217,6 +235,9 @@ int SHP_Resume(SheepVM* vm, SheepVMContext* context)
 	}
 	catch(SheepException& ex)
 	{
+		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
+			printf("%s\n", ex.GetMessage().c_str());
+
 		return ex.GetErrorNum();
 	}
 }

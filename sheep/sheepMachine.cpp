@@ -161,12 +161,12 @@ void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
 	}
 }
  
-int SheepMachine::RunSnippet(const std::string& snippet, int* result)
+int SheepMachine::RunSnippet(const std::string& snippet, int noun, int verb, int* result)
 {
 	try
 	{
 		std::stringstream ss;
-		ss << "symbols { int result$; } code { snippet$() { result$ = " << snippet << "; } }";
+		ss << "symbols { int result$; int n$; int v$; } code { snippet$() { result$ = " << snippet << "; } }";
 
 
 	SheepCodeTree tree;
@@ -204,6 +204,9 @@ int SheepMachine::RunSnippet(const std::string& snippet, int* result)
 	c->InstructionOffset = 0;
 	prepareVariables(c);
 	
+    c->Variables[1].IValue = noun;
+    c->Variables[2].IValue = verb;
+
 	m_contextTree->Add(c);
 	m_executingDepth++;
 	execute(c);

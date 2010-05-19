@@ -54,7 +54,11 @@ public:
 	/// Runs a snippet. Returns SHEEP_SUCCESS on success, and the value
 	/// left on the stack (if any) is put into 'result'. Or returns
 	/// SHEEP_ERROR on error.
-	int RunSnippet(const std::string& snippet, int* result);
+	int RunSnippet(const std::string& snippet, int* result)
+    {
+        return RunSnippet(snippet, 0, 0, result);
+    }
+    int RunSnippet(const std::string& snippet, int noun, int verb, int* result);
 
 	/// Resumes where the code left off.
 	int Resume(SheepContext* context);
