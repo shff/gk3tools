@@ -74,6 +74,8 @@ namespace Gk3Main
 
         public static void LoadSif(string sif)
         {
+            Logger.WriteInfo("Loading SIF: " + sif, LoggerStream.Normal);
+
             Animator.StopAll();
 
             Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
@@ -642,6 +644,12 @@ namespace Gk3Main
 
                 if (string.IsNullOrEmpty(model.Noun) == false)
                     _modelNounMap.Add(model.Name, model.Noun);
+
+                // play the first frame of the init animation (if it exists)
+                if (model.InitAnim != null)
+                {
+                    ((MomResource)Resource.ResourceManager.Load(model.InitAnim + ".ANM")).Play(true);
+                }
             }
         }
 

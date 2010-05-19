@@ -26,6 +26,8 @@ namespace Gk3Main.Game
 
         public void Play()
         {
+            Logger.WriteInfo("Playing GAS script: " + this.Name, LoggerStream.Animation);
+
             _playing = true;
             _suspended = false;
             _currentInstructionIndex = 0;

@@ -87,18 +87,23 @@ namespace Gk3Main.Graphics
         public Math.Matrix? AnimatedTransformMatrix;
         public bool AnimatedTransformIsAbsolute;
         public uint numSections;
-        public float[] boundingBox;
-        public float[] TransformedBoundingBox;
+        public AxisAlignedBoundingBox OriginalBoundingBox;
+        public AxisAlignedBoundingBox UpdatedBoundingBox;
 
         public ModMeshSection[] sections;
 
-        public Math.Vector3 CalcBoundingBoxCenter()
+        public void SetAABB(AxisAlignedBoundingBox aabb)
         {
-            return new Math.Vector3(
-                boundingBox[3] + boundingBox[0],
-                boundingBox[4] + boundingBox[1],
-                boundingBox[5] + boundingBox[2])
-                * 0.5f;
+            if (AnimatedTransformMatrix.HasValue)
+                UpdatedBoundingBox = aabb.Transform(AnimatedTransformMatrix.Value);
+            else
+                UpdatedBoundingBox = aabb.Transform(TransformMatrix);
+        }
+
+        public void SetTransform(Math.Matrix transform)
+        {
+            AnimatedTransformMatrix = transform;
+            UpdatedBoundingBox = OriginalBoundingBox.Transform(transform);
         }
     }
 
@@ -202,31 +207,8 @@ namespace Gk3Main.Graphics
                 bbMax.Y = reader.ReadSingle();
                 bbMax.Z = reader.ReadSingle();
 
-                Math.Vector3 transformedBBMin = mesh.TransformMatrix * bbMin;
-                Math.Vector3 transformedBBMax = mesh.TransformMatrix * bbMax; 
-
-                // make sure the AABB is still min < max, since the transformation
-                // may have changed stuff
-                mesh.boundingBox = new float[]
-                    {
-                        System.Math.Min(bbMin.X, bbMax.X),
-                        System.Math.Min(bbMin.Y, bbMax.Y),
-                        System.Math.Min(bbMin.Z, bbMax.Z),
-                        System.Math.Max(bbMin.X, bbMax.X),
-                        System.Math.Max(bbMin.Y, bbMax.Y),
-                        System.Math.Max(bbMin.Z, bbMax.Z)
-                    };
-
-                mesh.TransformedBoundingBox = new float[]
-                {
-                    System.Math.Min(transformedBBMin.X, transformedBBMax.X),
-                    System.Math.Min(transformedBBMin.Y, transformedBBMax.Y),
-                    System.Math.Min(transformedBBMin.Z, transformedBBMax.Z),
-                    System.Math.Max(transformedBBMin.X, transformedBBMax.X),
-                    System.Math.Max(transformedBBMin.Y, transformedBBMax.Y),
-                    System.Math.Max(transformedBBMin.Z, transformedBBMax.Z)
-                };
-
+                mesh.OriginalBoundingBox = new AxisAlignedBoundingBox(bbMin, bbMax);
+                mesh.UpdatedBoundingBox = mesh.OriginalBoundingBox.Transform(mesh.TransformMatrix);
 
                 mesh.sections = new ModMeshSection[mesh.numSections];
                 for (int j = 0; j < mesh.numSections; j++)
@@ -417,7 +399,7 @@ namespace Gk3Main.Graphics
                         }
                         else
                         {
-                            meshPosition = _meshes[i].CalcBoundingBoxCenter();
+                            meshPosition = _meshes[i].OriginalBoundingBox.Center;
                         }
                         
                         Math.Matrix billboardMatrix;
@@ -445,7 +427,7 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMesh mesh in _meshes)
                 {
-                    BoundingBoxRenderer.Render(camera, Math.Vector3.Zero, mesh.TransformedBoundingBox);
+                    mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Identity);
                 }
             }
         }
@@ -507,7 +489,10 @@ namespace Gk3Main.Graphics
         {
             foreach (ModMesh mesh in _meshes)
             {
-                BoundingBoxRenderer.Render(camera, position, mesh.TransformedBoundingBox);
+                if (mesh.AnimatedTransformIsAbsolute)
+                    mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Identity);
+                else
+                    mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Translate(position));
             }
         }
 
@@ -515,7 +500,13 @@ namespace Gk3Main.Graphics
         {
             foreach (ModMesh mesh in _meshes)
             {
-                if (Gk3Main.Utils.TestRayAABBCollision(modelPosition, origin, direction, mesh.TransformedBoundingBox, out distance))
+                Math.Vector3 position;
+                if (mesh.AnimatedTransformIsAbsolute)
+                    position = Math.Vector3.Zero;
+                else
+                    position = modelPosition;
+
+                if (mesh.UpdatedBoundingBox.TestRayAABBCollision(position, origin, direction, out distance))
                     return true;
             }
 

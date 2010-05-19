@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gk3Main.Graphics
 {
-    public class AxisAlignedBoundingBox
+    public struct AxisAlignedBoundingBox
     {
         public Math.Vector3 Min;
         public Math.Vector3 Max;
@@ -38,6 +38,14 @@ namespace Gk3Main.Graphics
             };
         }
 
+        public AxisAlignedBoundingBox(Math.Vector3 min, Math.Vector3 max)
+        {
+            Min = min;
+            Max = max;
+
+            _vertices = null;
+        }
+
         public AxisAlignedBoundingBox(float[] points)
         {
             Min.X = points[0];
@@ -48,6 +56,69 @@ namespace Gk3Main.Graphics
             Max.Y = points[4];
             Max.Z = points[5];
 
+            _vertices = null;
+        }
+
+        public Math.Vector3 Center
+        {
+            get { return (Max + Min) * 0.5f; }
+        }
+
+        public void Render(Camera camera, Math.Matrix world)
+        {
+            if (_effect == null)
+                _effect = (Effect)Resource.ResourceManager.Load("wireframe.fx");
+
+            if (_declaration == null)
+                _declaration = new VertexElementSet(new VertexElement[] {
+                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
+                });
+
+            if (_vertices == null)
+                createVertices();
+
+            RendererManager.CurrentRenderer.VertexDeclaration = _declaration;
+
+            Math.Matrix modelViewProjection = world * camera.ViewProjection;
+
+            _effect.Bind();
+            _effect.SetParameter("ModelViewProjection", modelViewProjection);
+            _effect.Begin();
+
+            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Lines, 0, 12, _indices, _vertices);
+            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 0, 8, _vertices);
+            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 8, 8, _vertices);
+
+            _effect.End();
+        }
+
+        public AxisAlignedBoundingBox Transform(Math.Matrix transform)
+        {
+            Math.Vector3 transformedBBMin = transform * Min;
+            Math.Vector3 transformedBBMax = transform * Max;
+
+            AxisAlignedBoundingBox newBBox = new AxisAlignedBoundingBox();
+            newBBox.Min.X = System.Math.Min(transformedBBMin.X, transformedBBMax.X);
+            newBBox.Min.Y = System.Math.Min(transformedBBMin.Y, transformedBBMax.Y);
+            newBBox.Min.Z = System.Math.Min(transformedBBMin.Z, transformedBBMax.Z);
+            newBBox.Max.X = System.Math.Max(transformedBBMin.X, transformedBBMax.X);
+            newBBox.Max.Y = System.Math.Max(transformedBBMin.Y, transformedBBMax.Y);
+            newBBox.Max.Z = System.Math.Max(transformedBBMin.Z, transformedBBMax.Z);
+
+            return newBBox;
+        }
+
+        public bool TestRayAABBCollision(Math.Vector3 position, Math.Vector3 origin, Math.Vector3 direction, out float distance)
+        {
+            // TODO: the code really should be moved in here, rather
+            // than in a utility method somewhere else
+
+            float[] aabb = new float[] {Min.X, Min.Y, Min.Z, Max.X, Max.Y, Max.Z};
+            return Gk3Main.Utils.TestRayAABBCollision(position, origin, direction, aabb, out distance);
+        }
+
+        private void createVertices()
+        {
             _vertices = new Math.Vector3[8];
 
             // bottom
@@ -84,31 +155,6 @@ namespace Gk3Main.Graphics
             _vertices[7].Y = Max.Y;
             _vertices[7].Z = Max.Z;
         }
-
-        public void Render(Camera camera, Math.Matrix world)
-        {
-            if (_effect == null)
-                _effect = (Effect)Resource.ResourceManager.Load("wireframe.fx");
-
-            if (_declaration == null)
-                _declaration = new VertexElementSet(new VertexElement[] {
-                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
-                });
-
-            RendererManager.CurrentRenderer.VertexDeclaration = _declaration;
-
-            Math.Matrix modelViewProjection = world * camera.ViewProjection;
-
-            _effect.Bind();
-            _effect.SetParameter("ModelViewProjection", modelViewProjection);
-            _effect.Begin();
-
-            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Lines, 0, 12, _indices, _vertices);
-            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 0, 8, _vertices);
-            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 8, 8, _vertices);
-
-            _effect.End();
-        }
     }
 
     public class BoundingBoxRenderer
@@ -136,6 +182,5 @@ namespace Gk3Main.Graphics
             AxisAlignedBoundingBox aabb = new AxisAlignedBoundingBox(boundingbox);
             aabb.Render(camera, Math.Matrix.Translate(offset));
         }
-
     }
 }

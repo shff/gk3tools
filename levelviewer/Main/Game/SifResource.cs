@@ -29,6 +29,7 @@ namespace Gk3Main.Game
         public SifModelType Type;
         public bool Hidden;
         public string Gas;
+        public string InitAnim;
     }
 
     public enum SifCameraType
@@ -110,11 +111,15 @@ namespace Gk3Main.Game
                         SifModel model = new SifModel();
                         string modelType;
                         string gas;
+                        string initAnim;
 
                         line.TryGetAttribute("model", out model.Name);
                         line.TryGetAttribute("noun", out model.Noun);
                         line.TryGetAttribute("type", out modelType);
                         line.TryGetAttribute("gas", out gas);
+                        line.TryGetAttribute("initAnim", out initAnim);
+
+                        model.InitAnim = initAnim;
 
                         if (modelType != null)
                         {

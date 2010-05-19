@@ -137,6 +137,11 @@ namespace Gk3Main.Resource
             // line should look like either
             //    foo=bar
             //    foo,bar=baz
+
+            // remove any comments at the end
+            int comment = line.IndexOf("//");
+            if (comment >= 0)
+                line = line.Substring(0, comment).Trim();
             
             // break apart the line
             //MatchCollection matches = Regex.Matches(line, @"([\w]+={[^}]+}?)|[^,]+");
@@ -171,7 +176,7 @@ namespace Gk3Main.Resource
                         keyvalue = new KeyValuePair<string, string>
                         (
                             match.Value.Substring(0, equals).Trim(),
-                            match.Value.Substring(equals + 1)
+                            match.Value.Substring(equals + 1).Trim()
                         );
                     }
 

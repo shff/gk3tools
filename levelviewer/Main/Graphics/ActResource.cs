@@ -150,6 +150,7 @@ namespace Gk3Main.Graphics
 
             public FrameTransformation Transform;
             public List<FrameSectionVertices> Vertices;
+            public float[] BoundingBox;
         }
 
         private struct MeshAnimationFrame
@@ -157,6 +158,7 @@ namespace Gk3Main.Graphics
             public uint Time;
             public FrameTransformation Transform;
             public FrameSectionVertices[] Vertices;
+            public float[] BoundingBox;
         }
 
         private string _modelName;
@@ -233,7 +235,8 @@ namespace Gk3Main.Graphics
                         _animationFrames[i][currentFrame].Transform = _frames[j * _numMeshes + i].Transform;
                         if (_frames[j * _numMeshes + i].Vertices != null)
                             _animationFrames[i][currentFrame].Vertices = _frames[j * _numMeshes + i].Vertices.ToArray();
-                        
+                        if (_frames[j * _numMeshes + i].BoundingBox != null)
+                            _animationFrames[i][currentFrame].BoundingBox = _frames[j * _numMeshes + i].BoundingBox;
                         currentFrame++;
                     }
                 }
@@ -277,7 +280,8 @@ namespace Gk3Main.Graphics
                     {
                         Math.Matrix animatedTransform;
                         FrameTransformation.LerpToMatrix(percent, ref _animationFrames[i][frame1].Transform, ref _animationFrames[i][frame2].Transform, out animatedTransform);
-                        model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
+                        //model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
+                        model.Meshes[i].SetTransform(animatedTransform);
                         model.Meshes[i].AnimatedTransformIsAbsolute = absolute;
                     }
 
@@ -304,6 +308,13 @@ namespace Gk3Main.Graphics
                                 dest[k * stride + 2] = source[k * 3 + 2];
                             }
                         }
+                    }
+
+                    float[] boundingBox = _animationFrames[i][frame1].BoundingBox;
+                    if (boundingBox != null)
+                    {
+                        // TODO: interpolate the bounding boxes
+                        model.Meshes[i].SetAABB(new AxisAlignedBoundingBox(boundingBox));
                     }
                 }
           
@@ -547,8 +558,16 @@ namespace Gk3Main.Graphics
                 }
                 else if (subsection.Type == (byte)ActSubsectionType.BoundingBox)
                 {
-                    // TODO: read the bounding box
-                    reader.ReadBytes(sizeof(float) * 6);
+                    _frames[frameIndex].Active = true;
+                    _frames[frameIndex].BoundingBox = new float[6];
+
+                    // read the bounding box
+                    _frames[frameIndex].BoundingBox[0] = reader.ReadSingle();
+                    _frames[frameIndex].BoundingBox[1] = reader.ReadSingle();
+                    _frames[frameIndex].BoundingBox[2] = reader.ReadSingle();
+                    _frames[frameIndex].BoundingBox[3] = reader.ReadSingle();
+                    _frames[frameIndex].BoundingBox[4] = reader.ReadSingle();
+                    _frames[frameIndex].BoundingBox[5] = reader.ReadSingle();
                 }
                 else
                 {

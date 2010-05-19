@@ -20,6 +20,7 @@ namespace Gk3Main.Game
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
         private List<MomAct?> _acts = new List<MomAct?>();
         private int _timeElapsedSinceStart;
+        private bool _playingFirstFrame;
 
         public MomResource(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -49,12 +50,22 @@ namespace Gk3Main.Game
 
         public void Play()
         {
+            Play(false);
+        }
+
+        public void Play(bool firstFrameOnly)
+        {
             Logger.WriteInfo("Playing animation {0}", LoggerStream.Animation, this.Name);
 
-            _timeElapsedSinceStart = 0;
-
-            // play any frame 0 stuff
-            play(0, 0);
+            if (_playingFirstFrame && !firstFrameOnly)
+                Step();
+            else
+            {
+                _timeElapsedSinceStart = 0;
+                play(0, 0);
+            }
+            
+            _playingFirstFrame = firstFrameOnly;
         }
 
         public WaitHandle PlayAndWait()
@@ -66,11 +77,13 @@ namespace Gk3Main.Game
 
         public void Step()
         {
+            // if we were only supposed to play the first frame
+            // then don't do anything
+            if (_playingFirstFrame) return;
+
             int elapsedTime = Game.GameManager.ElapsedTickCount;
             _timeElapsedSinceStart += elapsedTime;
             play(_timeElapsedSinceStart, elapsedTime);
-
-            
         }
 
         public bool IsFinished
