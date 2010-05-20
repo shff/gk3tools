@@ -105,9 +105,7 @@ namespace Gk3Main.Resource
                     throw new CannotFindResourceLoaderException(
                         "Cannot find loader for " + filename);
 
-                resource = loader.Load(filename);
-                resource.ReferenceCount++;
-                _resources.Add(filename, resource);
+                resource = load(filename, loader);
             }
 
             return resource;
@@ -125,9 +123,7 @@ namespace Gk3Main.Resource
                     throw new CannotFindResourceLoaderException(
                         "Cannot find loader for " + filename);
 
-                resource = loader.Load(filename);
-                resource.ReferenceCount++;
-                _resources.Add(filename, resource);
+                resource = load(filename, loader);
             }
             else
             {
@@ -195,6 +191,17 @@ namespace Gk3Main.Resource
             }
 
             return list;
+        }
+
+        private static Resource load(string filename, IResourceLoader loader)
+        {
+            Resource resource = loader.Load(filename);
+            resource.ReferenceCount++;
+            _resources.Add(filename, resource);
+
+            Logger.WriteInfo("Loaded " + filename, LoggerStream.Resource);
+
+            return resource;
         }
 
         private static IResourceLoader getLoaderForFile(string filename)

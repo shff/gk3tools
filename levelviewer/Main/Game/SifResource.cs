@@ -12,6 +12,7 @@ namespace Gk3Main.Game
         public string Idle;
         public string Talk;
         public bool IsEgo;
+        public string InitAnim;
     }
 
     public enum SifModelType
@@ -96,6 +97,7 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("pos", out actor.Pos);
                         line.TryGetAttribute("idle", out actor.Idle);
                         line.TryGetAttribute("talk", out actor.Talk);
+                        line.TryGetAttribute("initAnim", out actor.InitAnim);
 
                         string dummy;
                         actor.IsEgo = line.TryGetAttribute("ego", out dummy);

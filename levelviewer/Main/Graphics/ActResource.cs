@@ -602,7 +602,7 @@ namespace Gk3Main.Graphics
             // maybe we didn't find a frame. In that case use vertices from the model itself
             if (previousFrame < 0)
             {
-                ModelResource model = SceneManager.GetModelByName(_modelName);
+                ModelResource model = SceneManager.GetModelByName(_modelName, true);
                 if (model != null)
                 {
                     float[] modelVerts = model.Meshes[meshIndex].sections[groupIndex].vertices;

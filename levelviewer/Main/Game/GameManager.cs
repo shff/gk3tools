@@ -60,6 +60,31 @@ namespace Gk3Main.Game
             set { _currentTime = value; }
         }
 
+        /// <summary>
+        /// Gets the current day (1, 2, or 3)
+        /// </summary>
+        public static int CurrentDay
+        {
+            get
+            {
+                if (_currentTime == Timeblock.Day1_10AM ||
+                    _currentTime == Timeblock.Day1_12PM ||
+                    _currentTime == Timeblock.Day1_02PM ||
+                    _currentTime == Timeblock.Day1_04PM ||
+                    _currentTime == Timeblock.Day1_06PM)
+                    return 1;
+                else if (_currentTime == Timeblock.Day2_02AM ||
+                    _currentTime == Timeblock.Day2_07AM ||
+                    _currentTime == Timeblock.Day2_10AM ||
+                    _currentTime == Timeblock.Day2_12PM ||
+                    _currentTime == Timeblock.Day2_02PM ||
+                    _currentTime == Timeblock.Day2_05PM)
+                    return 2;
+                else
+                    return 3;
+            }
+        }
+
         public static Ego CurrentEgo
         {
             get { return _currentEgo; }

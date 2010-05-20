@@ -511,11 +511,18 @@ namespace Gk3Main
         /// <summary>
         /// Gets a model by its name, or null if it doesn't exist
         /// </summary>
-        public static Graphics.ModelResource GetModelByName(string name)
+        public static Graphics.ModelResource GetModelByName(string name, bool includeActorModels)
         {
             for (int i = 0; i < _models.Count; i++)
                 if (_models[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     return _models[i].Model;
+
+            if (includeActorModels)
+            {
+                for (int i = 0; i < _actors.Count; i++)
+                    if (_actors[i].Model != null && _actors[i].Model.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                        return _actors[i].Model;
+            }
 
             return null;
         }
@@ -664,6 +671,12 @@ namespace Gk3Main
 
                 if (string.IsNullOrEmpty(actor.Noun) == false)
                     _modelNounMap.Add(actor.Model, actor.Noun);
+
+                // play the first frame of the init animation (if it exists)
+                if (actor.InitAnim != null)
+                {
+                    ((MomResource)Resource.ResourceManager.Load(actor.InitAnim + ".ANM")).Play(true);
+                }
             }
         }
 
@@ -684,6 +697,21 @@ namespace Gk3Main
             {
                 try
                 {
+                    // just because an NVC is loaded doesn't automatically mean we should load and use it!
+                    int underscore = nvcFile.IndexOf("_");
+                    if (underscore >= 0)
+                    {
+                        int all = nvcFile.IndexOf("all", StringComparison.OrdinalIgnoreCase);
+                        if (all != underscore + 1) // check for day limitations
+                        {
+                            // I think looking for underscore should be enough to determine which NVCs we need
+                            // to examine closer... maybe...
+                            int currentDay = GameManager.CurrentDay;
+                            if (nvcFile.Substring(underscore + 1).Contains(currentDay.ToString()) == false)
+                                continue;
+                        }
+                    }
+
                     Game.NvcResource nvc = (Game.NvcResource)Resource.ResourceManager.Load(nvcFile);
                     _nvcs.Add(nvc);
 
