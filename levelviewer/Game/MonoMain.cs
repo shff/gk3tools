@@ -61,6 +61,8 @@ class MonoMain
 	{
         Gk3Main.Console.CurrentConsole = new MyConsole();
 
+        Gk3Main.DebugFlagManager.SetDebugFlag(Gk3Main.DebugFlag.ShowStats, true);
+
 		Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
         Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
         Gk3Main.FileSystem.AddPathToSearchPath("Icons");
@@ -306,12 +308,16 @@ class MonoMain
                 }
             }
 
+            if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
+                renderStats();
+
+
             Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
 
             renderWindow.Present();
 		}
 
-        Gk3Main.Sound.SoundManager.Shutdown();
+        Gk3Main.Sound.SoundManager.Shutdown(); 
 		Gk3Main.Sheep.SheepMachine.Shutdown();
         Gk3Main.Logger.Close();
 	}
@@ -320,8 +326,8 @@ class MonoMain
 	{
         Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
-        //Gk3Main.Graphics.RenderWindow window = setupOpenGL(width, height, depth, fullscreen);
-        Gk3Main.Graphics.RenderWindow window = setupDirect3D9(width, height, depth, fullscreen);
+        Gk3Main.Graphics.RenderWindow window = setupOpenGL(width, height, depth, fullscreen);
+        //Gk3Main.Graphics.RenderWindow window = setupDirect3D9(width, height, depth, fullscreen);
         Gk3Main.Graphics.RendererManager.CurrentRenderer = window.CreateRenderer();
         
 
@@ -333,7 +339,7 @@ class MonoMain
         Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.5f;
         Gk3Main.Graphics.RendererManager.CurrentRenderer.BlendState = Gk3Main.Graphics.BlendState.AlphaBlend;
 
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.None;//= Gk3Main.Graphics.CullMode.CounterClockwise;
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;
 
         return window;
     }
@@ -430,4 +436,15 @@ class MonoMain
 			i++;
 		}
 	}
+
+    private static void renderStats()
+    {
+        Gk3Main.Gui.Font font = (Gk3Main.Gui.Font)Gk3Main.Resource.ResourceManager.Load("F_CONSOLE_DISPLAY.FON");
+
+        _spriteBatch.Begin();
+
+        font.Print(_spriteBatch, 0, 0, "FPS: " + (1.0f / Gk3Main.Game.GameManager.SecsPerFrame));
+
+        _spriteBatch.End();
+    }
 }

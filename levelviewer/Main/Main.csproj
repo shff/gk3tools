@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Console.cs" />
+    <Compile Include="DebugFlag.cs" />
     <Compile Include="FileSystem\barn.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Game\Actor.cs" />
@@ -76,10 +77,12 @@
     <Compile Include="Game\GasResource.cs" />
     <Compile Include="Game\HelperIcons.cs" />
     <Compile Include="Game\MomResource.cs" />
+    <Compile Include="Game\Nouns.cs" />
     <Compile Include="Game\NvcResource.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
+    <Compile Include="Game\Verbs.cs" />
     <Compile Include="Game\YakResource.cs" />
     <Compile Include="Graphics\ActResource.cs" />
     <Compile Include="Graphics\BillboardManager.cs" />
