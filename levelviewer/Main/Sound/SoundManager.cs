@@ -155,6 +155,19 @@ namespace Gk3Main.Sound
         {
             // nothing
         }
+
+        public static void Stop(PlayingSound sound)
+        {
+            // nothing
+        }
+
+        public static void UpdateListener(Graphics.Camera camera)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+            // nothing
+        }
     }
 #endif
 }

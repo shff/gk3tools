@@ -150,9 +150,9 @@ namespace Gk3Main.Sound
                 {
                     _sound = (Sound)Resource.ResourceManager.Load(fileToLoad);
 
-                    _sound.Source.DefaultMinDistance = _minDist;
-                    _sound.Source.DefaultMaxDistance = _maxDist;
-                    _sound.Source.DefaultVolume = _volume;
+                    _sound.DefaultMinDistance = _minDist;
+                    _sound.DefaultMaxDistance = _maxDist;
+                    _sound.DefaultVolume = _volume;
                 }
                 catch
                 {

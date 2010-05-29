@@ -25,6 +25,12 @@ namespace Gk3Main.Sound
                 throw new NotSupportedException();
             }
         }
+#else
+        public override bool Finished
+        {
+            get { return true; }
+            set { }
+        }
 #endif
     }
 
@@ -58,6 +64,13 @@ namespace Gk3Main.Sound
             get { return _PlayingSound.Finished; }
         }
 #else
+
+        public PlayingSound(bool wait)
+        {
+            if (wait) _waitHandle = new SoundWaitHandle();
+            else _waitHandle = null;
+        }
+
         public bool Finished
         {
             get { return true; }
@@ -112,6 +125,24 @@ namespace Gk3Main.Sound
             return SoundManager.PlaySound3DToChannel(this, x, y, z, channel, false);
         }
 
+        internal float DefaultMinDistance
+        {
+            get { return _sound.DefaultMinDistance; }
+            set { _sound.DefaultMinDistance = value; }
+        }
+
+        internal float DefaultMaxDistance
+        {
+            get { return _sound.DefaultMaxDistance; }
+            set { _sound.DefaultMaxDistance = value; }
+        }
+
+        internal float DefaultVolume
+        {
+            get { return _sound.DefaultVolume; }
+            set { _sound.DefaultVolume = value; }
+        }
+
         internal IrrKlang.ISoundSource Source
         {
             get 
@@ -148,7 +179,6 @@ namespace Gk3Main.Sound
 
             return sound;
         }
-
     }
 #else
     public class Sound : Resource.Resource
@@ -174,11 +204,41 @@ namespace Gk3Main.Sound
             return new PlayingSound();
         }
 
+        public PlayingSound Play2D(SoundTrackChannel channel, bool wait)
+        {
+            return new PlayingSound(wait);
+        }
+
         public PlayingSound Play3D(SoundTrackChannel channel, float x, float y, float z)
         {
             return new PlayingSound();
         }
 
+        internal float DefaultMinDistance
+        {
+            get { return 0; }
+            set { }
+        }
+
+        internal float DefaultMaxDistance
+        {
+            get { return 0; }
+            set { }
+        }
+
+        internal float DefaultVolume
+        {
+            get { return 0; }
+            set { }
+        }
+
+        internal IntPtr Source
+        {
+            get
+            {
+                return IntPtr.Zero;
+            }
+        }
     }
 
     public class SoundLoader : Resource.IResourceLoader

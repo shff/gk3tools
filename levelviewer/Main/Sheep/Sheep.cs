@@ -266,6 +266,9 @@ namespace Gk3Main.Sheep
 
         public static void AddWaitHandle(IntPtr vm, IntPtr context, WaitHandle handle)
         {
+            if (handle == null)
+                throw new ArgumentNullException("handle");
+
             if (_waitHandles.ContainsKey(context) == false)
                 _waitHandles.Add(context, new List<WaitHandle>());
 
