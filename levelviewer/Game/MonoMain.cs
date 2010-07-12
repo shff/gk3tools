@@ -52,6 +52,9 @@ class MonoMain
     private static float _screenWidth = DefaultScreenWidth;
     private static float _screenHeight = DefaultScreenHeight;
     private static Game.TimeBlockSplash _timeBlockSplash;
+    private static Gk3Main.Gui.CursorResource _pointCursor;
+    private static Gk3Main.Gui.CursorResource _zoom1Cursor;
+    private static MainMenu _menu;
     private static int _timeAtLastStateChange;
     private static GameState _state;
     private static bool _isDemo;
@@ -59,120 +62,17 @@ class MonoMain
 
 	public static void Main(string[] args)
 	{
-        Gk3Main.Console.CurrentConsole = new MyConsole();
+        Gk3Main.Graphics.RenderWindow renderWindow = init(args);
+        if (renderWindow == null) return; // something bad happened
 
-        Gk3Main.DebugFlagManager.SetDebugFlag(Gk3Main.DebugFlag.ShowStats, true);
-
-		Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
-        Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
-        Gk3Main.FileSystem.AddPathToSearchPath("Icons");
-		
-		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
-		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader());
-		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
-		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
-		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
-		Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader());
-        //Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.AnmLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader());
-
-        try
-        {
-            Gk3Main.Sheep.SheepMachine.Initialize();
-
-            int major, minor, rev;
-            Gk3Main.Sheep.SheepMachine.GetVersion(out major, out minor, out rev);
-            Gk3Main.Console.CurrentConsole.WriteLine("Using Sheep v{0}.{1}.{2}", major, minor, rev);
-
-            string test = "symbols { int result$; } code { snippet$() { result$ = (result$ == 4); } }";
-            Gk3Main.Sheep.SheepMachine.RunScript(test, "snippet$");
-        }
-        catch (DllNotFoundException)
-        {
-            Gk3Main.Console.CurrentConsole.ReportError("Unable to find Sheep library");
-            return;
-        }
-        catch (Exception ex)
-        {
-            Gk3Main.Console.CurrentConsole.ReportError("Unable to initialize Sheep VM: " + ex.Message);
-            return;
-        }
-
-        Gk3Main.Sound.SoundManager.Init();
-		
-		Gk3Main.SceneManager.LightmapsEnabled = true;
-		Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
-        Gk3Main.SceneManager.DoubleLightmapValues = true;
-
-        parseArgs(args);
-
-        Gk3Main.Graphics.RenderWindow renderWindow;
-        try
-        {
-            renderWindow = SetupGraphics((int)_screenWidth, (int)_screenHeight, 16, false);
-        }
-        catch (DllNotFoundException ex)
-        {
-            Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
-            return;
-        }
-
-        _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
-
-        Sdl.SDL_ShowCursor(0);
-
-        _state = GameState.MainMenu;
-
-        Gk3Main.Game.GameManager.Load();
-        Gk3Main.Game.HelperIcons.Load();
-        Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
-        Gk3Main.Gui.CursorResource pointCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
-        Gk3Main.Gui.CursorResource zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
-        Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
-
-        //Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
-       // Gk3Main.SceneManager.CurrentCamera = camera;
-
-        MainMenu menu = null;
-        if (_state == GameState.MainMenu)
-        {
-            menu = new MainMenu();
-            menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
-            menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
-        }
-
-
-		int mx, my, rmx, rmy;
-		Sdl.SDL_GetMouseState(out mx, out my);
-        byte buttons = 0, oldButtons = 0;
-
-
+        int dummy1, dummy2;
+		Sdl.SDL_GetMouseState(out dummy1, out dummy2);
 
 		while(MainLoop())
 		{
+            refreshInput();
+
             Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
-
-            int oldmx = mx, oldmy = my;
-            oldButtons = buttons;
-			buttons = Sdl.SDL_GetMouseState(out mx, out my);
-            rmx = mx - oldmx; rmy = my - oldmy;
-			
-			int numkeys;
-			byte[] keys = Sdl.SDL_GetKeyState(out numkeys);
-
-            bool lmb = ((buttons & Sdl.SDL_BUTTON_LMASK) != 0);
-            bool rmb = ((buttons & Sdl.SDL_BUTTON_RMASK) != 0);
-
-            Game.Input.Refresh(lmb, false, rmb);
 
 
             if (Game.Input.LeftMousePressed)
@@ -183,51 +83,42 @@ class MonoMain
                     {
                         if (Game.VerbPickerManager.VerbButtonsVisible == false)
                         {
-                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * rmx);
-                            camera.AddPositionOffset(0, -rmy, 0);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * Game.Input.RelMouseX);
+                            camera.AddPositionOffset(0, -Game.Input.RelMouseY, 0);
                         }
                     }
                     else
                     {
                         if (Game.VerbPickerManager.VerbButtonsVisible == false)
                         {
-                            if (keys[Sdl.SDLK_LSHIFT] != 0 ||
-                                keys[Sdl.SDLK_RSHIFT] != 0)
+                            if (Game.Input.Keys[Sdl.SDLK_LSHIFT] != 0 ||
+                                Game.Input.Keys[Sdl.SDLK_RSHIFT] != 0)
                             {
-                                camera.AdjustYaw(rmx * 0.01f);
-                                camera.AdjustPitch(rmy * 0.01f);
+                                camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
+                                camera.AdjustPitch(Game.Input.RelMouseY * 0.01f);
                             }
                             else
                             {
-                                camera.AdjustYaw(rmx * 0.01f);
-                                camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * rmy);
+                                camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
+                                camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * Game.Input.RelMouseY);
                             }
                         }
 
                         if (Game.Input.LeftMousePressedFirstTime)
-                            Game.VerbPickerManager.MouseDown(0, mx, my);
+                            Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
                     }
                 }
-
-                if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMousePressedFirstTime)
-                    menu.OnMouseDown(0);
             }
-            else if (_state == GameState.MainMenu && menu != null && Game.Input.LeftMouseReleasedFirstTime)
-                menu.OnMouseUp(0);
             else if (Game.Input.LeftMouseReleasedFirstTime && camera != null)
-                Game.VerbPickerManager.MouseUp(camera, 0, mx, my);
+                Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
 
 
-            if (rmx != 0 || rmy != 0)
-                Game.VerbPickerManager.MouseMove(mx, my);
+            if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
+                Game.VerbPickerManager.MouseMove(Game.Input.MouseX, Game.Input.MouseY);
 
             Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
 			
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.BeginScene();
             
-            
-            Gk3Main.SceneManager.Render();
             if (camera != null)
                 Gk3Main.Sound.SoundManager.UpdateListener(camera);
 
@@ -235,7 +126,7 @@ class MonoMain
             Gk3Main.Game.DialogManager.Step();
             Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
 
-            _spriteBatch.Begin();
+            
 
             if (_state == GameState.TimeBlockSplash)
             {
@@ -268,26 +159,17 @@ class MonoMain
                     Gk3Main.Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Music);
                 }
 
-                if (_timeBlockSplash != null)
-                {
-                    _timeBlockSplash.Render(_spriteBatch);
-                }
+                
             }
             else if (_state == GameState.MainMenu)
             {
-                if (menu != null)
+                if (_menu != null)
                 {
-                    if (rmx != 0 || rmy != 0)
-                        menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
-
-                    menu.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
+                    if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
+                        _menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, 
+                            Game.Input.MouseX, Game.Input.MouseY);
                 }
             }
-
-            
-            Game.VerbPickerManager.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
-            Game.VerbPickerManager.RenderProperCursor(_spriteBatch, camera, mx, my, pointCursor, zoom1Cursor);
-            _spriteBatch.End();
 
             Game.VerbPickerManager.Process();
 
@@ -308,26 +190,25 @@ class MonoMain
                 }
             }
 
-            if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
-                renderStats();
+            //if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
+            //   renderStats();
 
+            updateMainMenu();
 
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
+            render(camera, Game.Input.MouseX, Game.Input.MouseY);
 
             renderWindow.Present();
 		}
 
-        Gk3Main.Sound.SoundManager.Shutdown(); 
-		Gk3Main.Sheep.SheepMachine.Shutdown();
-        Gk3Main.Logger.Close();
+        shutdown();
 	}
 	
 	public static Gk3Main.Graphics.RenderWindow SetupGraphics(int width, int height, int depth, bool fullscreen)
 	{
         Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
-        Gk3Main.Graphics.RenderWindow window = setupOpenGL(width, height, depth, fullscreen);
-        //Gk3Main.Graphics.RenderWindow window = setupDirect3D9(width, height, depth, fullscreen);
+        //Gk3Main.Graphics.RenderWindow window = setupOpenGL(width, height, depth, fullscreen);
+        Gk3Main.Graphics.RenderWindow window = setupDirect3D9(width, height, depth, fullscreen);
         Gk3Main.Graphics.RendererManager.CurrentRenderer = window.CreateRenderer();
         
 
@@ -358,6 +239,172 @@ class MonoMain
 		
 		return true;
 	}
+
+    private static Gk3Main.Graphics.RenderWindow init(string[] args)
+    {
+        Gk3Main.Console.CurrentConsole = new MyConsole();
+
+        //Gk3Main.DebugFlagManager.SetDebugFlag(Gk3Main.DebugFlag.ShowStats, true);
+
+        Gk3Main.FileSystem.AddPathToSearchPath(System.IO.Directory.GetCurrentDirectory());
+        Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
+        Gk3Main.FileSystem.AddPathToSearchPath("Icons");
+
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader());
+        //Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.AnmLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader());
+
+        try
+        {
+            Gk3Main.Sheep.SheepMachine.Initialize();
+
+            int major, minor, rev;
+            Gk3Main.Sheep.SheepMachine.GetVersion(out major, out minor, out rev);
+            Gk3Main.Console.CurrentConsole.WriteLine("Using Sheep v{0}.{1}.{2}", major, minor, rev);
+
+            string test = "symbols { int result$; } code { snippet$() { result$ = (result$ == 4); } }";
+            Gk3Main.Sheep.SheepMachine.RunScript(test, "snippet$");
+        }
+        catch (DllNotFoundException)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError("Unable to find Sheep library");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError("Unable to initialize Sheep VM: " + ex.Message);
+            return null;
+        }
+
+        Gk3Main.Sound.SoundManager.Init();
+
+        Gk3Main.SceneManager.LightmapsEnabled = true;
+        Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
+        Gk3Main.SceneManager.DoubleLightmapValues = true;
+
+        parseArgs(args);
+        Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
+
+        Gk3Main.Graphics.RenderWindow renderWindow;
+        try
+        {
+            renderWindow = SetupGraphics((int)_screenWidth, (int)_screenHeight, 16, false);
+        }
+        catch (DllNotFoundException ex)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
+            return null;
+        }
+
+        _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
+
+        Sdl.SDL_ShowCursor(0);
+
+        _state = GameState.MainMenu;
+
+        Gk3Main.Game.GameManager.Load();
+        Gk3Main.Game.HelperIcons.Load();
+        Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
+        _pointCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
+        _zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
+        Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
+
+        //Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
+        // Gk3Main.SceneManager.CurrentCamera = camera;
+
+        _menu = null;
+        if (_state == GameState.MainMenu)
+        {
+            _menu = new MainMenu();
+            _menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
+            _menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
+        }
+
+        return renderWindow;
+    }
+
+    private static void shutdown()
+    {
+        Gk3Main.Sound.SoundManager.Shutdown();
+        Gk3Main.Sheep.SheepMachine.Shutdown();
+        Gk3Main.Logger.Close();
+    }
+
+    private static void render(Gk3Main.Graphics.Camera camera, int mouseX, int mouseY)
+    {
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.Clear();
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.BeginScene();
+
+        Gk3Main.SceneManager.Render();
+
+        _spriteBatch.Begin();
+
+        if (_state == GameState.TimeBlockSplash)
+        {
+            if (_timeBlockSplash != null)
+            {
+                _timeBlockSplash.Render(_spriteBatch);
+            }
+        }
+        else if (_state == GameState.MainMenu)
+        {
+            if (_menu != null)
+            {
+                _menu.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
+            }
+        }
+
+        Game.VerbPickerManager.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
+        Game.VerbPickerManager.RenderProperCursor(_spriteBatch, camera, mouseX, mouseY, _pointCursor, _zoom1Cursor);
+        _spriteBatch.End();
+
+        Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
+    }
+
+    private static void update()
+    {
+    }
+
+    private static void updateMainMenu()
+    {
+        if (Game.Input.LeftMousePressedFirstTime)
+        {
+            _menu.OnMouseDown(0);
+        }
+        else if (Game.Input.LeftMouseReleasedFirstTime)
+        {
+            _menu.OnMouseUp(0);
+        }
+        
+    }
+
+    private static void refreshInput()
+    {
+        int mx, my;
+        byte buttons = Sdl.SDL_GetMouseState(out mx, out my);
+
+        int numkeys;
+        byte[] keys = Sdl.SDL_GetKeyState(out numkeys);
+
+        bool lmb = ((buttons & Sdl.SDL_BUTTON_LMASK) != 0);
+        bool rmb = ((buttons & Sdl.SDL_BUTTON_RMASK) != 0);
+
+        Game.Input.Refresh(mx, my, lmb, false, rmb, keys);
+    }
 
     static void menu_OnPlayClicked(object sender, EventArgs e)
     {
@@ -419,8 +466,6 @@ class MonoMain
             else if (args[i] == "-demo")
             {
                 _isDemo = true;
-
-                Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
             }
             else if (args[i] == "-width")
             {
