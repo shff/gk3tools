@@ -72,128 +72,13 @@ class MonoMain
 		{
             refreshInput();
 
-            Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
-
-
-            if (Game.Input.LeftMousePressed)
-            {
-                if (camera != null)
-                {
-                    if (Game.Input.RightMousePressed)
-                    {
-                        if (Game.VerbPickerManager.VerbButtonsVisible == false)
-                        {
-                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * Game.Input.RelMouseX);
-                            camera.AddPositionOffset(0, -Game.Input.RelMouseY, 0);
-                        }
-                    }
-                    else
-                    {
-                        if (Game.VerbPickerManager.VerbButtonsVisible == false)
-                        {
-                            if (Game.Input.Keys[Sdl.SDLK_LSHIFT] != 0 ||
-                                Game.Input.Keys[Sdl.SDLK_RSHIFT] != 0)
-                            {
-                                camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
-                                camera.AdjustPitch(Game.Input.RelMouseY * 0.01f);
-                            }
-                            else
-                            {
-                                camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
-                                camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * Game.Input.RelMouseY);
-                            }
-                        }
-
-                        if (Game.Input.LeftMousePressedFirstTime)
-                            Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
-                    }
-                }
-            }
-            else if (Game.Input.LeftMouseReleasedFirstTime && camera != null)
-                Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
-
-
-            if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
-                Game.VerbPickerManager.MouseMove(Game.Input.MouseX, Game.Input.MouseY);
-
-            Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
-			
-            
-            if (camera != null)
-                Gk3Main.Sound.SoundManager.UpdateListener(camera);
-
-            Gk3Main.Game.Animator.Advance(Gk3Main.Game.GameManager.ElapsedTickCount);
-            Gk3Main.Game.DialogManager.Step();
-            Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
-
-            
-
-            if (_state == GameState.TimeBlockSplash)
-            {
-                if (_timeAtLastStateChange + 4000 < Gk3Main.Game.GameManager.TickCount)
-                {
-                    _state = GameState.Game;
-                    _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
-
-                    if (_timeBlockSplash != null)
-                    {
-                        _timeBlockSplash.Dispose();
-                        _timeBlockSplash = null;
-                    }
-
-                    Gk3Main.SceneManager.Initialize();
-                    if (_isDemo)
-                    {
-                        
-                        Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
-                        Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Grace;
-                        Gk3Main.Game.GameManager.SetLocation("CSE");
-                    }
-                    else
-                    {
-                        Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day1_10AM;
-                        Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Gabriel;
-                        Gk3Main.Game.GameManager.SetLocation("R25");
-                    }
-
-                    Gk3Main.Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Music);
-                }
-
-                
-            }
-            else if (_state == GameState.MainMenu)
-            {
-                if (_menu != null)
-                {
-                    if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
-                        _menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, 
-                            Game.Input.MouseX, Game.Input.MouseY);
-                }
-            }
-
-            Game.VerbPickerManager.Process();
-
-            Gk3Main.Game.GameTimer? timer;
-            while ((timer = Gk3Main.Game.GameManager.GetNextExpiredGameTimer()).HasValue)
-            {
-                Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
-                    "Timer expired- noun: {0} verb: {1}", timer.Value.Noun, timer.Value.Verb);
-
-                Gk3Main.Game.NounVerbCase? nvc = Gk3Main.SceneManager.GetNounVerbCase(timer.Value.Noun, timer.Value.Verb, true);
-
-                if (nvc.HasValue)
-                {
-                    Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
-                        "Executing timer NVC: {0}", nvc.Value.Script);
-
-                    Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Value.Script);
-                }
-            }
+            update();
 
             //if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
             //   renderStats();
 
-            updateMainMenu();
+            
+            Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
 
             render(camera, Game.Input.MouseX, Game.Input.MouseY);
 
@@ -377,6 +262,88 @@ class MonoMain
 
     private static void update()
     {
+        // TODO: this still needs cleaning up!
+
+        Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+
+        if (camera != null)
+        {
+            if (Game.Input.LeftMousePressed)
+            {
+                if (Game.Input.RightMousePressed)
+                {
+                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
+                    {
+                        camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * Game.Input.RelMouseX);
+                        camera.AddPositionOffset(0, -Game.Input.RelMouseY, 0);
+                    }
+                }
+                else
+                {
+                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
+                    {
+                        if (Game.Input.Keys[Sdl.SDLK_LSHIFT] != 0 ||
+                            Game.Input.Keys[Sdl.SDLK_RSHIFT] != 0)
+                        {
+                            camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
+                            camera.AdjustPitch(Game.Input.RelMouseY * 0.01f);
+                        }
+                        else
+                        {
+                            camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * Game.Input.RelMouseY);
+                        }
+                    }
+
+                    if (Game.Input.LeftMousePressedFirstTime)
+                        Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
+                }
+            }
+            else if (Game.Input.LeftMouseReleasedFirstTime && camera != null)
+                Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
+        }
+       
+        if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
+            Game.VerbPickerManager.MouseMove(Game.Input.MouseX, Game.Input.MouseY);
+
+        Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
+
+
+        if (camera != null)
+            Gk3Main.Sound.SoundManager.UpdateListener(camera);
+
+        Gk3Main.Game.Animator.Advance(Gk3Main.Game.GameManager.ElapsedTickCount);
+        Gk3Main.Game.DialogManager.Step();
+        Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
+
+
+        if (_state == GameState.TimeBlockSplash)
+        {
+            updateTimeBlockSplash();
+        }
+        else if (_state == GameState.MainMenu)
+        {
+            updateMainMenu();
+        }
+
+        Game.VerbPickerManager.Process();
+
+        Gk3Main.Game.GameTimer? timer;
+        while ((timer = Gk3Main.Game.GameManager.GetNextExpiredGameTimer()).HasValue)
+        {
+            Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
+                "Timer expired- noun: {0} verb: {1}", timer.Value.Noun, timer.Value.Verb);
+
+            Gk3Main.Game.NounVerbCase? nvc = Gk3Main.SceneManager.GetNounVerbCase(timer.Value.Noun, timer.Value.Verb, true);
+
+            if (nvc.HasValue)
+            {
+                Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
+                    "Executing timer NVC: {0}", nvc.Value.Script);
+
+                Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Value.Script);
+            }
+        }
     }
 
     private static void updateMainMenu()
@@ -389,7 +356,42 @@ class MonoMain
         {
             _menu.OnMouseUp(0);
         }
-        
+
+        if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
+            _menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount,
+                Game.Input.MouseX, Game.Input.MouseY);
+    }
+
+    private static void updateTimeBlockSplash()
+    {
+        if (_timeAtLastStateChange + 4000 < Gk3Main.Game.GameManager.TickCount)
+        {
+            _state = GameState.Game;
+            _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
+
+            if (_timeBlockSplash != null)
+            {
+                _timeBlockSplash.Dispose();
+                _timeBlockSplash = null;
+            }
+
+            Gk3Main.SceneManager.Initialize();
+            if (_isDemo)
+            {
+
+                Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
+                Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Grace;
+                Gk3Main.Game.GameManager.SetLocation("CSE");
+            }
+            else
+            {
+                Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day1_10AM;
+                Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Gabriel;
+                Gk3Main.Game.GameManager.SetLocation("R25");
+            }
+
+            Gk3Main.Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Music);
+        }
     }
 
     private static void refreshInput()

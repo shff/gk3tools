@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 
 using Tao.OpenGl;
-using Tao.Cg;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -45,7 +44,6 @@ namespace Gk3Main.Graphics.OpenGl
 
     public class OpenGLRenderer : IRenderer
     {
-        private IntPtr _cgContext;
         private VertexElementSet _vertexDeclaration;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
@@ -61,9 +59,6 @@ namespace Gk3Main.Graphics.OpenGl
             // set default render states
             BlendState = BlendState.Opaque;
         }
-
-        public IntPtr CgContext { get { return _cgContext; } }
-        public int DefaultCgProfile { get { return Cg.CG_PROFILE_ARBVP1; } }
 
         #region Render states
         public bool BlendEnabled
