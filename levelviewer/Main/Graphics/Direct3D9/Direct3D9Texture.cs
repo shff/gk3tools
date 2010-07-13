@@ -88,19 +88,14 @@ namespace Gk3Main.Graphics.Direct3D9
             }
 
             Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
-            _texture = new Texture(renderer.Direct3D9Device, _actualPixelWidth, _actualPixelHeight, 0, Usage.None, Format.A8R8G8B8, Pool.Default);
+            _texture = new Texture(renderer.Direct3D9Device, _actualPixelWidth, _actualPixelHeight, 0, Usage.AutoGenerateMipMap, Format.A8R8G8B8, Pool.Managed);
 
-            Texture tempTexture = new Texture(renderer.Direct3D9Device, _actualPixelWidth, _actualPixelHeight, 0, Usage.None, Format.A8R8G8B8, Pool.SystemMemory);
-            Surface s = tempTexture.GetSurfaceLevel(0);
+            Surface s = _texture.GetSurfaceLevel(0);
             SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
 
             WritePixelsToTextureDataStream(r.Data, pixels, _actualPixelWidth, _actualPixelHeight);
 
             s.UnlockRectangle();
-            // tempTexture.UnlockRectangle(0);
-
-            renderer.Direct3D9Device.UpdateTexture(tempTexture, _texture);
-            tempTexture.Dispose();
         }
     }
 }

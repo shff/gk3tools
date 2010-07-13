@@ -1,8 +1,8 @@
 float4x4 ModelViewProjection;
 
-texture DiffuseTexture;
-samplerCUBE Diffuse = sampler_state {
-    Texture = <DiffuseTexture>;
+texture Diffuse;
+samplerCUBE DiffuseSampler = sampler_state {
+    Texture = <Diffuse>;
 };
 
 struct VS_INPUT
@@ -34,7 +34,7 @@ struct PS_INPUT
 float4 ps_main(PS_INPUT input) : COLOR0
 {
     //return float4(1.0, input.texCoords.x * 0.001, input.texCoords.y * 0.001, 1.0);
-    return texCUBE(Diffuse, input.texCoords.xyz * 0.001) + float4(0, 0, 0, 1.0);
+    return texCUBE(DiffuseSampler, input.texCoords.xyz * 0.001) + float4(0, 0, 0, 1.0);
 }
 
 

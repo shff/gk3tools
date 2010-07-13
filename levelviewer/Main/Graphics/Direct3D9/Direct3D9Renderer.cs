@@ -8,7 +8,6 @@ namespace Gk3Main.Graphics.Direct3D9
     class Direct3D9UpdatableTexture : UpdatableTexture
     {
         private Texture _texture;
-        private Texture _scratch;
 
         public Direct3D9UpdatableTexture(string name, int width, int height)
             : base(name, width, height)
@@ -19,8 +18,7 @@ namespace Gk3Main.Graphics.Direct3D9
 
             Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
 
-            _scratch = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.None, Format.A8R8G8B8, Pool.SystemMemory);
-            _texture = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.None, Format.A8R8G8B8, Pool.Default);
+            _texture = new Texture(renderer.Direct3D9Device, width, height, 0, Usage.AutoGenerateMipMap, Format.A8R8G8B8, Pool.Managed);
         }
 
         public override void Update(byte[] pixels)
@@ -36,15 +34,12 @@ namespace Gk3Main.Graphics.Direct3D9
                 pixels[i * 4 + 2] = temp;
             }
             
-            Surface s = _scratch.GetSurfaceLevel(0);
+            Surface s = _texture.GetSurfaceLevel(0);
             SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
 
             Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixels, _width, _height);
 
             s.UnlockRectangle();
-
-            Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
-            renderer.Direct3D9Device.UpdateTexture(_scratch, _texture);
         }
 
         public override void Bind()
@@ -96,7 +91,7 @@ namespace Gk3Main.Graphics.Direct3D9
                 // load the first face so we can see the cube map dimensions
                 loadFace(new System.IO.BinaryReader(frontStream), out pixels, out width, out height);
 
-                _cubeMap = new CubeTexture(device, width, 0, Usage.None, Format.X8R8G8B8, Pool.Managed);
+                _cubeMap = new CubeTexture(device, width, 0, Usage.AutoGenerateMipMap, Format.X8R8G8B8, Pool.Managed);
                 writeFacePixels(CubeMapFace.PositiveX, pixels, width, height);
 
                 // load the rest of the faces
@@ -156,6 +151,10 @@ namespace Gk3Main.Graphics.Direct3D9
             byte[] pixelsWithAlpha = new byte[width * height * 4];
             for (int i = 0; i < width * height; i++)
             {
+                pixelsWithAlpha[i * 4 + 0] = pixels[i * 3 + 0];
+                pixelsWithAlpha[i * 4 + 1] = pixels[i * 3 + 1];
+                pixelsWithAlpha[i * 4 + 2] = pixels[i * 3 + 2];
+                pixelsWithAlpha[i * 4 + 3] = 255;
             }
 
             SlimDX.DataRectangle r = _cubeMap.LockRectangle(face, 0, LockFlags.None);
@@ -687,17 +686,14 @@ namespace Gk3Main.Graphics.Direct3D9
             if (type == FilterType.Mip)
             {
                 if (filter == TextureFilter.Point ||
-                    filter == TextureFilter.Linear)
-                {
-                    return SlimDX.Direct3D9.TextureFilter.None;
-                }
-                else if (filter == TextureFilter.LinearMipPoint ||
+                    filter == TextureFilter.LinearMipPoint ||
                     filter == TextureFilter.MinLinearMagPointMipPoint ||
                     filter == TextureFilter.MinPointMagLinearMipPoint)
                 {
                     return SlimDX.Direct3D9.TextureFilter.Point;
                 }
-                else if (filter == TextureFilter.PointMipLinear ||
+                else if (filter == TextureFilter.Linear ||
+                    filter == TextureFilter.PointMipLinear ||
                     filter == TextureFilter.MinLinearMagPointMipLinear ||
                     filter == TextureFilter.MinPointMagLinearMipLinear)
                 {

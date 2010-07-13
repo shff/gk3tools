@@ -104,8 +104,7 @@ namespace Gk3Main.Graphics.Direct3D9
             Direct3D9CubeMap d3dCubeMap = (Direct3D9CubeMap)parameter;
             EffectHandle param = getParameter(name);
 
-            // TODO: this is currently crashing. Figure out why!
-            //_effect.SetTexture(param, d3dCubeMap.CubeMap);
+            _effect.SetTexture(param, d3dCubeMap.CubeMap);
         }
 
         public EffectHandle getParameter(string name)
