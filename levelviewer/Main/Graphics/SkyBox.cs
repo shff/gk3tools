@@ -6,6 +6,7 @@ namespace Gk3Main.Graphics
     {
         private VertexBuffer _vertices;
         private IndexBuffer _indices;
+        private static VertexElementSet _declaration;
 
         private CubeMapResource _cubeMap;
         private Effect _skyboxEffect;
@@ -19,6 +20,14 @@ namespace Gk3Main.Graphics
         {
             _cubeMap = Graphics.RendererManager.CurrentRenderer.CreateCubeMap(name, front, back, left, right, up, down);
             _azimuth = azimuth;
+
+            if (_declaration == null)
+            {
+                _declaration = new VertexElementSet(new VertexElement[]
+                {
+                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
+                });
+            }
 
             float[] vertices = new float[8 * _stride];
 
@@ -81,7 +90,7 @@ namespace Gk3Main.Graphics
                 5, 7, 4
             };
 
-            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(vertices, 0);
+            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(vertices, _declaration.Stride);
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
             _skyboxEffect = (Effect)Resource.ResourceManager.Load("skybox.fx");
@@ -90,7 +99,7 @@ namespace Gk3Main.Graphics
         public void Render(Camera camera)
         {
             RendererManager.CurrentRenderer.DepthTestEnabled = false;
-
+            RendererManager.CurrentRenderer.VertexDeclaration = _declaration;
 
             _skyboxEffect.Bind();
 

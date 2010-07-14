@@ -151,10 +151,10 @@ namespace Gk3Main.Graphics.Direct3D9
             byte[] pixelsWithAlpha = new byte[width * height * 4];
             for (int i = 0; i < width * height; i++)
             {
-                pixelsWithAlpha[i * 4 + 0] = pixels[i * 3 + 0];
-                pixelsWithAlpha[i * 4 + 1] = pixels[i * 3 + 1];
-                pixelsWithAlpha[i * 4 + 2] = pixels[i * 3 + 2];
-                pixelsWithAlpha[i * 4 + 3] = 255;
+                pixelsWithAlpha[i * 4 + 0] = pixels[i * 4 + 2];
+                pixelsWithAlpha[i * 4 + 1] = pixels[i * 4 + 1];
+                pixelsWithAlpha[i * 4 + 2] = pixels[i * 4 + 0];
+                pixelsWithAlpha[i * 4 + 3] = pixels[i * 4 + 3];
             }
 
             SlimDX.DataRectangle r = _cubeMap.LockRectangle(face, 0, LockFlags.None);
