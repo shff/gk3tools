@@ -19,6 +19,12 @@ namespace Gk3Main.Game
         public NvcApproachType Approach;
         public string Target;
         public string Script;
+
+        public override string ToString()
+        {
+            // this will help with debugging (a little)
+            return Noun + ":" + Verb + ":" + Case;
+        }
     }
 
     struct NounVerbCombination
@@ -125,7 +131,7 @@ namespace Gk3Main.Game
 
     public class NvcResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
@@ -217,7 +223,7 @@ namespace Gk3Main.Game
 
     public class VerbFileLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 

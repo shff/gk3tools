@@ -120,15 +120,18 @@ namespace Gk3Main.Graphics
             });
         }
 
-        public ModelResource(string name)
+        public ModelResource(string name, Resource.ResourceManager content)
             : base(name, false)
         {
-            _effect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
+            _content = content;
+            _effect = content.Load<Effect>("basic_textured.fx");
         }
 
-        public ModelResource(string name, System.IO.Stream stream)
+        public ModelResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, true)
         {
+            _content = content;
+
             int currentStreamPosition = (int)stream.Position;
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream, Encoding.ASCII);
 
@@ -224,7 +227,7 @@ namespace Gk3Main.Graphics
 			        }
 
                     meshSection.texture = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
-                    meshSection.textureResource = (TextureResource)Resource.ResourceManager.Load(meshSection.texture + ".BMP");
+                    meshSection.textureResource = _content.Load<TextureResource>(meshSection.texture);
                     meshSection.color = reader.ReadUInt32();
                     meshSection.smooth = reader.ReadUInt32() != 0;
                     meshSection.numVerts = reader.ReadUInt32();
@@ -346,7 +349,7 @@ namespace Gk3Main.Graphics
                 }
             }
 
-            _effect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
+            _effect = _content.Load<Effect>("basic_textured.fx");
         }
 
         public void Render(Camera camera)
@@ -516,10 +519,7 @@ namespace Gk3Main.Graphics
 
         public void ReplaceTexture(int meshIndex, int groupIndex, string textureName)
         {
-            TextureResource texture = (TextureResource)Resource.ResourceManager.Load(textureName);
-            if (_meshes[meshIndex].sections[groupIndex].textureResource != null)
-                Resource.ResourceManager.Unload(_meshes[meshIndex].sections[groupIndex].textureResource);
-
+            TextureResource texture = _content.Load<TextureResource>(textureName);
             _meshes[meshIndex].sections[groupIndex].textureResource = texture;
         }
 
@@ -538,18 +538,22 @@ namespace Gk3Main.Graphics
         private bool _isBillboard;
         private bool _useBillboardCenter;
         private Math.Vector3 _billboardCenter;
+        private Resource.ResourceManager _content;
         private static VertexElementSet _elements;
     }
 
     public class ModelResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             try
             {
+                if (name.IndexOf('.') < 0)
+                    name += ".MOD";
+
                 System.IO.Stream stream = FileSystem.Open(name);
 
-                ModelResource resource = new ModelResource(name, stream);
+                ModelResource resource = new ModelResource(name, stream, content);
 
                 stream.Close();
 
@@ -559,7 +563,7 @@ namespace Gk3Main.Graphics
             {
                 Logger.WriteError("Unable to find model: {0}", name);
 
-                return new ModelResource(name);
+                return new ModelResource(name, content);
             }
         }
 

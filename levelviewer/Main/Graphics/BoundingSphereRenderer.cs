@@ -10,7 +10,7 @@ namespace Gk3Main.Graphics
         private const int _resolution = 12;
         private static float[] _vertices;
 
-        static BoundingSphereRenderer()
+        public static void Init(Resource.ResourceManager globalContent)
         {
             _vertices = new float[(_resolution + 1) * 3 * 3];
 
@@ -46,13 +46,12 @@ namespace Gk3Main.Graphics
 
                 index++;
             }
+
+            _effect = globalContent.Load<Effect>("wireframe.fx");
         }
 
         public static void Render(Camera camera, float x, float y, float z, float radius)
         {
-            if (_effect == null)
-                _effect = (Effect)Resource.ResourceManager.Load("wireframe.fx");
-
             _effect.Bind();
             _effect.SetParameter("ModelViewProjection", Math.Matrix.Scale(radius, radius, radius) * Math.Matrix.Translate(x, y, z) * camera.View * camera.Projection);
             _effect.Begin();

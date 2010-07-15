@@ -20,7 +20,7 @@ namespace Gk3Main.Graphics
         private static int[] _indices = new int[] {0, 1, 2, 0, 2, 3};
         private static float[] _workingVertices = new float[4 * (2 + 2)];
 
-        public SpriteBatch()
+        public static void Init(Resource.ResourceManager content)
         {
             if (_vertexDeclaration == null)
             {
@@ -32,7 +32,7 @@ namespace Gk3Main.Graphics
 
             if (_2dEffect == null)
             {
-                _2dEffect = (Effect)Resource.ResourceManager.Load("2d.fx");
+                _2dEffect = content.Load<Effect>("2d.fx");
             }
         }
 

@@ -6,12 +6,14 @@ class MainMenu
 {
     public MainMenu()
     {
-        _theme = (Gk3Main.Sound.Sound)Gk3Main.Resource.ResourceManager.Load("THEME.WAV");
-        _background = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("TITLE.BMP");
-        _introButton = new Gk3Main.Gui.Button("TITLE_INTRO_D.BMP", "TITLE_INTRO_H.BMP", "TITLE_INTRO_U.BMP", "TITLE_INTRO_X.BMP", "SIDBUTN-1.WAV");
-        _playButton = new Gk3Main.Gui.Button("TITLE_PLAY_D.BMP", "TITLE_PLAY_H.BMP", "TITLE_PLAY_U.BMP", "TITLE_PLAY_X.BMP", "SIDBUTN-1.WAV");
-        _restoreButton = new Gk3Main.Gui.Button("TITLE_RESTORE_D.BMP", "TITLE_RESTORE_H.BMP", "TITLE_RESTORE_U.BMP", "TITLE_RESTORE_X.BMP", "SIDBUTN-1.WAV");
-        _quitButton = new Gk3Main.Gui.Button("TITLE_QUIT_D.BMP", "TITLE_QUIT_H.BMP", "TITLE_QUIT_U.BMP", "TITLE_QUIT_X.BMP", "SIDBUTN-1.WAV");
+        _content = new Gk3Main.Resource.ResourceManager();
+
+        _theme = _content.Load<Gk3Main.Sound.Sound>("THEME.WAV");
+        _background = _content.Load<Gk3Main.Graphics.TextureResource>("TITLE.BMP");
+        _introButton = new Gk3Main.Gui.Button(_content, "TITLE_INTRO_D.BMP", "TITLE_INTRO_H.BMP", "TITLE_INTRO_U.BMP", "TITLE_INTRO_X.BMP", "SIDBUTN-1.WAV");
+        _playButton = new Gk3Main.Gui.Button(_content, "TITLE_PLAY_D.BMP", "TITLE_PLAY_H.BMP", "TITLE_PLAY_U.BMP", "TITLE_PLAY_X.BMP", "SIDBUTN-1.WAV");
+        _restoreButton = new Gk3Main.Gui.Button(_content, "TITLE_RESTORE_D.BMP", "TITLE_RESTORE_H.BMP", "TITLE_RESTORE_U.BMP", "TITLE_RESTORE_X.BMP", "SIDBUTN-1.WAV");
+        _quitButton = new Gk3Main.Gui.Button(_content, "TITLE_QUIT_D.BMP", "TITLE_QUIT_H.BMP", "TITLE_QUIT_U.BMP", "TITLE_QUIT_X.BMP", "SIDBUTN-1.WAV");
 
         _introButton.X = new Gk3Main.Gui.Unit(0.35f, 0);
         _introButton.Y = new Gk3Main.Gui.Unit(1.0f, -50);
@@ -106,4 +108,5 @@ class MainMenu
     private Gk3Main.Gui.Button _playButton;
     private Gk3Main.Gui.Button _restoreButton;
     private Gk3Main.Gui.Button _quitButton;
+    private Gk3Main.Resource.ResourceManager _content;
 }

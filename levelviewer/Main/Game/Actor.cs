@@ -17,7 +17,7 @@ namespace Gk3Main.Game
         private bool _faceIsDirty;
         private bool _isEmptyFace;
 
-        public ActorFace(string actorCode)
+        public ActorFace(Resource.ResourceManager content, string actorCode)
         {
             _actorCode = actorCode;
             _faceDefinition = FaceDefinitions.GetFaceDefinition(actorCode);
@@ -29,21 +29,21 @@ namespace Gk3Main.Game
                 return;
             }
 
-            _baseFace = (Graphics.TextureResource)Resource.ResourceManager.Load(_faceDefinition.FaceName + ".BMP");
+            _baseFace = content.Load<Graphics.TextureResource>(_faceDefinition.FaceName + ".BMP");
 
             _mouths = new Graphics.TextureResource[8];
-            _mouths[0] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH00.BMP");
-            _mouths[1] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH01.BMP");
-            _mouths[2] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH02.BMP");
-            _mouths[3] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH03.BMP");
-            _mouths[4] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH04.BMP");
-            _mouths[5] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH05.BMP");
-            _mouths[6] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH06.BMP");
-            _mouths[7] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_MOUTH07.BMP");
+            _mouths[0] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH00.BMP");
+            _mouths[1] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH01.BMP");
+            _mouths[2] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH02.BMP");
+            _mouths[3] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH03.BMP");
+            _mouths[4] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH04.BMP");
+            _mouths[5] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH05.BMP");
+            _mouths[6] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH06.BMP");
+            _mouths[7] = content.Load<Graphics.TextureResource>(actorCode + "_MOUTH07.BMP");
 
             _smiles = new Graphics.TextureResource[2];
-            _smiles[0] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_SMILE_01.BMP");
-            _smiles[1] = (Graphics.TextureResource)Resource.ResourceManager.Load(actorCode + "_SMILE_02.BMP");
+            _smiles[0] = content.Load<Graphics.TextureResource>(actorCode + "_SMILE_01.BMP");
+            _smiles[1] = content.Load<Graphics.TextureResource>(actorCode + "_SMILE_02.BMP");
 
             if (Graphics.RendererManager.CurrentRenderer.RenderToTextureSupported)
             {
@@ -137,7 +137,7 @@ namespace Gk3Main.Game
         }
     }
 
-    public class Actor : IDisposable
+    public class Actor
     {
         private string _code;
         private string _noun;
@@ -148,15 +148,15 @@ namespace Gk3Main.Game
         private bool _isEgo;
         private ActorFace _face;
 
-        public Actor(string modelName, string noun, bool isEgo)
+        public Actor(Resource.ResourceManager content, string modelName, string noun, bool isEgo)
         {
             _code = GetActorCodeFromNoun(noun);
             _noun = noun;
             _modelName = modelName;
             _isEgo = isEgo;
 
-            _model = (Graphics.ModelResource)Resource.ResourceManager.Load(Utils.MakeEndsWith(modelName, ".MOD"));
-            _face = new ActorFace(_code);
+            _model = content.Load<Graphics.ModelResource>(modelName);
+            _face = new ActorFace(content, _code);
 
             if (_model.Meshes != null)
             {
@@ -171,15 +171,6 @@ namespace Gk3Main.Game
                         }
                     }
                 }
-            }
-        }
-
-        public void Dispose()
-        {
-            if (_model != null)
-            {
-                Resource.ResourceManager.Unload(_model);
-                _model = null;
             }
         }
 
@@ -241,7 +232,7 @@ namespace Gk3Main.Game
             get { return _model; }
         }
 
-        public void LoadClothing()
+        public void LoadClothing(Resource.ResourceManager content)
         {
             // apparently when an actor is loaded we need to look 
             // for the most recent [Actor]CLOTHES[Timeblock].ANM file.
@@ -253,8 +244,8 @@ namespace Gk3Main.Game
             {
                 try
                 {
-                    string file = _code + "CLOTHES" + Game.GameManager.GetTimeBlockString((Timeblock)timeblock) + ".ANM";
-                    clothesAnm = (MomResource)Resource.ResourceManager.Load(file);
+                    string file = _code + "CLOTHES" + Game.GameManager.GetTimeBlockString((Timeblock)timeblock);
+                    clothesAnm = content.Load<MomResource>(file);
 
                     // guess we found it
                     break;

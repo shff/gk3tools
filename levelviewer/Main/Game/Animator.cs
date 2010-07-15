@@ -45,7 +45,7 @@ namespace Gk3Main.Game
             {
                 if (_anms[i] != null)
                 {
-                    Resource.ResourceManager.Unload(_anms[i]);
+                    _anms[i].Stop();
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Gk3Main.Game
             {
                 if (_yaks[i] != null)
                 {
-                    Resource.ResourceManager.Unload(_yaks[i]);
+                    _yaks[i].Stop();
                 }
             }
 
@@ -81,7 +81,6 @@ namespace Gk3Main.Game
                     if (_yaks[i].IsPlaying == false)
                     {
                         // done playing the yak, so we can remove it
-                        Resource.ResourceManager.Unload(_yaks[i]);
                         _yaks[i] = null;
                     }
                     else
@@ -124,7 +123,6 @@ namespace Gk3Main.Game
                     if (_anms[i].IsFinished)
                     {
                         // done playing the ANM, so we can remove it
-                        Resource.ResourceManager.Unload(_anms[i]);
                         _anms[i] = null;
                     }
                     else

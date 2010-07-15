@@ -58,8 +58,11 @@ namespace Gk3Main.Graphics
 
     public class LightmapResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name += ".MUL";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
             LightmapResource resource = new LightmapResource(name, stream);

@@ -73,7 +73,7 @@ namespace Gk3Main.Sound
         StopImmediately = 2
     }
 
-    class SoundTrackSoundNode : ISoundTrackNode, IDisposable
+    class SoundTrackSoundNode : ISoundTrackNode
     {
         protected string _name = "default";
         protected float _volume = 1.0f;
@@ -96,7 +96,7 @@ namespace Gk3Main.Sound
         protected Sound _sound;
         protected PlayingSound _playingSound;
 
-        public SoundTrackSoundNode(Resource.InfoSection soundSection)
+        public SoundTrackSoundNode(Resource.InfoSection soundSection, Resource.ResourceManager content)
         {
             foreach (Resource.InfoLine line in soundSection.Lines)
             {
@@ -148,7 +148,7 @@ namespace Gk3Main.Sound
 
                 try
                 {
-                    _sound = (Sound)Resource.ResourceManager.Load(fileToLoad);
+                    _sound = content.Load<Sound>(fileToLoad);
 
                     _sound.DefaultMinDistance = _minDist;
                     _sound.DefaultMaxDistance = _maxDist;
@@ -167,15 +167,6 @@ namespace Gk3Main.Sound
                 _repeatEnabled = true;
         }
 
-        public void Dispose()
-        {
-            if (_sound != null)
-            {
-                Resource.ResourceManager.Unload(_sound);
-                _sound = null;
-            }
-        }
-
         public virtual SoundTrackNodeType Type { get { return SoundTrackNodeType.Sound; } }
         public bool Enabled { get { return _enabled; } set { _enabled = value; } }
         public int Repeat { get { return _repeat; } set { _repeat = value; } }
@@ -192,8 +183,8 @@ namespace Gk3Main.Sound
 
     class SoundTrackPrsNode : SoundTrackSoundNode
     {
-        public SoundTrackPrsNode(Resource.InfoSection section)
-            : base(section)
+        public SoundTrackPrsNode(Resource.InfoSection section, Resource.ResourceManager content)
+            : base(section, content)
         {
         }
 
@@ -216,7 +207,7 @@ namespace Gk3Main.Sound
         }
     }
 
-    class SoundTrackResource : Resource.InfoResource
+    public class SoundTrackResource : Resource.InfoResource
     {
         private SoundTrackChannel _channel = SoundTrackChannel.Music;
         private List<ISoundTrackNode> _nodes = new List<ISoundTrackNode>();
@@ -227,7 +218,7 @@ namespace Gk3Main.Sound
         private PlayingSound? _playingSound;
         private bool _playing;
 
-        public SoundTrackResource(string name, System.IO.Stream stream)
+        public SoundTrackResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, stream)
         {
             foreach (Resource.InfoSection section in Sections)
@@ -256,11 +247,11 @@ namespace Gk3Main.Sound
                 }
                 else if (section.Name.Equals("Sound", StringComparison.OrdinalIgnoreCase))
                 {
-                    _nodes.Add(new SoundTrackSoundNode(section));
+                    _nodes.Add(new SoundTrackSoundNode(section, content));
                 }
                 else if (section.Name.Equals("PRS", StringComparison.OrdinalIgnoreCase))
                 {
-                    _nodes.Add(new SoundTrackPrsNode(section));
+                    _nodes.Add(new SoundTrackPrsNode(section, content));
                 }
             }
         }
@@ -415,11 +406,11 @@ namespace Gk3Main.Sound
 
     public class SoundTrackLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
-            return new SoundTrackResource(name, stream);
+            return new SoundTrackResource(name, stream, content);
         }
 
         public string[] SupportedExtensions { get { return _supportedExtensions; } }

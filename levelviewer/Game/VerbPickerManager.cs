@@ -9,6 +9,7 @@ namespace Game
     {
         private static Gk3Main.Gui.VerbButtonSet _vbs;
         private static int _mouseDownX, _mouseDownY;
+        private static Gk3Main.Resource.ResourceManager _content = new Gk3Main.Resource.ResourceManager();
 
         public static Gk3Main.Gui.VerbButtonSet VerbButtonSet
         {
@@ -25,7 +26,6 @@ namespace Game
         {
             if (_vbs != null && _vbs.Active == false)
             {
-                _vbs.Dispose();
                 _vbs = null;
             }
         }
@@ -57,7 +57,7 @@ namespace Game
 
                 if (nvcs != null)
                 {
-                    _vbs = new Gk3Main.Gui.VerbButtonSet(x, y, nvcs, true);
+                    _vbs = new Gk3Main.Gui.VerbButtonSet(_content, x, y, nvcs, true);
                     _vbs.KeepInsideViewport(Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport);
                 }
             }
@@ -100,7 +100,6 @@ namespace Game
             if (camera == null)
                 throw new ArgumentNullException("camera");
 
-            // TODO: replace this junk with our own matrix unproject stuff and get rid of the OpenGL stuff
             Gk3Main.Math.Vector3 unprojected = camera.Unproject(new Gk3Main.Math.Vector3(mx, my, 0));
             
            

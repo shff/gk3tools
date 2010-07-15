@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gk3Main.Game
 {
-    class MomResource : AnimationResource
+    public class MomResource : AnimationResource
     {
         private struct MomAct
         {
@@ -13,6 +13,7 @@ namespace Gk3Main.Game
             public bool IsAbsolute;
         }
 
+        private Resource.ResourceManager _content;
         private AnimationResourceSection _actionSection;
         private AnimationResourceSection _modelVisibilitySection;
         private AnimationResourceSection _modelTexturesSection;
@@ -23,9 +24,14 @@ namespace Gk3Main.Game
         private int _timeElapsedSinceStart;
         private bool _playingFirstFrame;
 
-        public MomResource(string name, System.IO.Stream stream)
+        public MomResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, stream)
         {
+            if (content == null)
+                throw new ArgumentNullException("content");
+
+            _content = content;
+
             foreach (AnimationResourceSection section in Sections)
             {
                 if (section.SectionName.Equals("ACTIONS", StringComparison.OrdinalIgnoreCase))
@@ -42,7 +48,7 @@ namespace Gk3Main.Game
                     foreach (AnimationResourceSectionLine line in section.Lines)
                     {
                         string soundName = line.Params[0].StringValue;
-                        Sound.Sound sound = (Sound.Sound)Resource.ResourceManager.Load(soundName);
+                        Sound.Sound sound = content.Load<Sound.Sound>(soundName);
                         _sounds.Add(sound);
                     }
                 }
@@ -76,6 +82,11 @@ namespace Gk3Main.Game
             Play();
 
             return new AnmWaitHandle(this);
+        }
+
+        public void Stop()
+        {
+            // TODO
         }
 
         public void Step()
@@ -185,7 +196,7 @@ namespace Gk3Main.Game
                         actName += ".ACT";
 
                     MomAct act;
-                    act.Act = (Graphics.ActResource)Resource.ResourceManager.Load(actName);
+                    act.Act = _content.Load<Graphics.ActResource>(actName);
                     act.Model = SceneManager.GetSceneModel(act.Act.ModelName);
 
                     // check if this is an absolute animation or contains a transformation
@@ -193,7 +204,6 @@ namespace Gk3Main.Game
 
                     if (act.Model == null)
                     {
-                        Resource.ResourceManager.Unload(act.Act);
                         continue;
                     }
                     
@@ -234,11 +244,14 @@ namespace Gk3Main.Game
 
         public bool EmptyResourceIfNotFound { get { return false; } }
 
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+               name += ".ANM";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
-            MomResource resource = new MomResource(name, stream);
+            MomResource resource = new MomResource(name, stream, content);
 
             stream.Close();
 

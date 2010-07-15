@@ -132,7 +132,7 @@ namespace Gk3Main.Graphics
         public float[] Vertices;
     }
 
-    class ActResource : Resource.Resource
+    public class ActResource : Resource.Resource
     {
         const int _millisecondsPerFrame = 67;
 
@@ -631,7 +631,7 @@ namespace Gk3Main.Graphics
 
     public class ActResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 

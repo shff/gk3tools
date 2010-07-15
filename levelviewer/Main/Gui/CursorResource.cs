@@ -7,7 +7,7 @@ namespace Gk3Main.Gui
 {
     public class CursorResource : Resource.Resource
     {
-        public CursorResource(string name, System.IO.Stream stream)
+        public CursorResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, true)
         {
             _frameCount = 1;
@@ -75,7 +75,7 @@ namespace Gk3Main.Gui
 
         public override void Dispose()
         {
-            Resource.ResourceManager.Unload(_cursor);
+            _cursor.Dispose();
         }
 
         private Graphics.TextureResource _cursor;
@@ -85,11 +85,11 @@ namespace Gk3Main.Gui
 
     public class CursorResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
-            return new CursorResource(name, stream);
+            return new CursorResource(name, stream, content);
         }
 
         public string[] SupportedExtensions { get { return _supportedExtensions; } }

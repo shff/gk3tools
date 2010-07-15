@@ -6,6 +6,7 @@ namespace Game
 {
     class TimeBlockSplash : IDisposable 
     {
+        private Gk3Main.Resource.ResourceManager _content;
         private Gk3Main.Graphics.TextureResource _background;
         private List<Gk3Main.Graphics.TextureResource> _title;
         private Gk3Main.Sound.Sound _ticktock;
@@ -17,14 +18,16 @@ namespace Game
 
         public TimeBlockSplash(Gk3Main.Game.Timeblock timeblock)
         {
+            _content = new Gk3Main.Resource.ResourceManager();
+
             string timeblockName = Gk3Main.Game.GameManager.GetTimeBlockString(timeblock);
-            _background = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("TBT" + timeblockName + ".BMP");
+            _background = _content.Load<Gk3Main.Graphics.TextureResource>("TBT" + timeblockName);
 
             _title = new List<Gk3Main.Graphics.TextureResource>();
             int counter = 0;
             while(true)
             {
-                Gk3Main.Graphics.TextureResource title = (Gk3Main.Graphics.TextureResource)Gk3Main.Resource.ResourceManager.Load("D" + timeblockName + "_" + (counter+1).ToString("00") + ".BMP");
+                Gk3Main.Graphics.TextureResource title = _content.Load<Gk3Main.Graphics.TextureResource>("D" + timeblockName + "_" + (counter + 1).ToString("00"));
                 if (title == null || title.Loaded == false) break;
                 
                 _title.Add(title);
@@ -32,13 +35,13 @@ namespace Game
                 counter++;
             }
 
-            _ticktock = (Gk3Main.Sound.Sound)Gk3Main.Resource.ResourceManager.Load("CLOCKTIMEBLOCK.WAV");
+            _ticktock = _content.Load<Gk3Main.Sound.Sound>("CLOCKTIMEBLOCK");
             _ticktock.Play2D(Gk3Main.Sound.SoundTrackChannel.UI);
         }
 
         public void Dispose()
         {
-            Gk3Main.Resource.ResourceManager.Unload(_background);
+            _content.Dispose();
         }
 
         public void Render(Gk3Main.Graphics.SpriteBatch sb)

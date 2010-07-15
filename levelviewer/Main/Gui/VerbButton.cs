@@ -10,10 +10,10 @@ namespace Gk3Main.Gui
         private string _verb;
         private string _script;
 
-        public VerbButton(string noun, string verb, string script,
+        public VerbButton(Resource.ResourceManager content, string noun, string verb, string script,
             string downImage, string hoverImage, string upImage, string disabledImage,
             string clickedSound, string tooltip)
-            : base(downImage, hoverImage, upImage, disabledImage, clickedSound)
+            : base(content, downImage, hoverImage, upImage, disabledImage, clickedSound)
         {
             _noun = noun;
             _verb = verb;

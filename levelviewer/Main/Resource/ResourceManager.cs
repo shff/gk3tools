@@ -26,7 +26,7 @@ namespace Gk3Main.Resource
         string[] SupportedExtensions { get; }
         bool EmptyResourceIfNotFound { get; }
 
-        Resource Load(string filename);
+        Resource Load(string filename, ResourceManager content);
     }
 
     /// <summary>
@@ -91,89 +91,86 @@ namespace Gk3Main.Resource
             : base(message) { }
     }
 
-    public class ResourceManager
+    public class ResourceManager : IDisposable
     {
-        public static Resource Load(string filename, string overrideExtension)
+
+        #region Instance members
+
+        public void Dispose()
         {
-            Resource resource;
-            if (_resources.TryGetValue(filename, out resource) == false)
-            {
-                // find the resource loader for this extension
-                IResourceLoader loader = getLoaderForExtension(overrideExtension);
-
-                if (loader == null)
-                    throw new CannotFindResourceLoaderException(
-                        "Cannot find loader for " + filename);
-
-                resource = load(filename, loader);
-            }
-
-            return resource;
+            UnloadAll();
         }
 
-        public static Resource Load(string filename)
+        public T Load<T>(string filename) where T : Resource
         {
-            Resource resource;
-            if (_resources.TryGetValue(filename, out resource) == false)
+            return Load<T>(filename, false);
+        }
+
+        public T Load<T>(string filename, bool keepExtension) where T : Resource
+        {
+            Type t = typeof(T);
+
+            // strip off the extension if it exists
+            string filenameWithoutExtension;
+            if (keepExtension == false)
+                filenameWithoutExtension = Utils.GetFilenameWithoutExtension(filename);
+            else
+                filenameWithoutExtension = filename;
+
+            // is the resource already loaded?
+            Dictionary<Type, Resource> rs;
+            Resource r;
+            if (_loadedContent.TryGetValue(filenameWithoutExtension, out rs))
+                if (rs.TryGetValue(t, out r))
+                    return (T)r;
+
+            // we need to load it
+            IResourceLoader loader = _loadersByType[t];
+            r = loader.Load(filename, this);
+
+            // cache the new resource.
+            // even though we just checked we need to check again
+            // since the resource we loaded could have loaded other
+            // stuff, so the state of the resource collection is unknown at this point
+            if (_loadedContent.TryGetValue(filenameWithoutExtension, out rs))
             {
-                // find the resource loader for this extension
-                IResourceLoader loader = getLoaderForFile(filename);
-
-                if (loader == null)
-                    throw new CannotFindResourceLoaderException(
-                        "Cannot find loader for " + filename);
-
-                resource = load(filename, loader);
+                Resource dummy;
+                if (rs.TryGetValue(t, out dummy))
+                {
+                    // nothing to do!
+                }
+                else
+                {
+                    rs.Add(t, r);
+                }
             }
             else
             {
-                resource.ReferenceCount++;
+                rs = new Dictionary<Type,Resource>();
+                rs.Add(t, r);
+                _loadedContent.Add(filenameWithoutExtension, rs);
             }
-            
-            return resource;
+
+            return (T)r;
         }
 
-        public static void Unload(Resource resource)
+        public void UnloadAll()
         {
-            if (resource.ReferenceCount <= 0)
-                throw new InvalidOperationException("Resource reference count was already 0.");
+            foreach (Dictionary<Type, Resource> d in _loadedContent.Values)
+                foreach (Resource r in d.Values)
+                    r.Dispose();
 
-            resource.ReferenceCount--;
-
-            if (resource.ReferenceCount < 1)
-            {
-                _resources.Remove(resource.Name);
-                resource.Dispose();               
-            }
-        }
-
-        public static Resource Get(string name)
-        {
-            Resource resource;
-            if (_resources.TryGetValue(name, out resource) == false)
-                return null;
-
-            return resource;
-        }
-
-        public static void AddResourceLoader(IResourceLoader loader)
-        {
-            string[] supportedExtensions = loader.SupportedExtensions;
-
-            foreach (string ext in supportedExtensions)
-            {
-                _loaders.Add(ext.ToUpper(), loader);
-            }
+            _loadedContent.Clear();
         }
 
         /// <summary>
         /// Returns a list of the names of loaded resources
         /// </summary>
-        public static IList<string> GetLoadedResourceNames()
+        public IList<string> GetLoadedResourceNames()
         {
             IList<string> list = new List<string>();
 
-            foreach (string key in _resources.Keys)
+            foreach (string key in _loadedContent.Keys)
             {
                 list.Add(key);
             }
@@ -181,27 +178,34 @@ namespace Gk3Main.Resource
             return list;
         }
 
-        public static IList<T> GetLoadedResources<T>() where T: Resource
+        public IList<T> GetLoadedResources<T>() where T : Resource
         {
             List<T> list = new List<T>();
-            foreach(Resource r in _resources.Values)
+            foreach (Dictionary<Type, Resource> d in _loadedContent.Values)
             {
-                if (r is T)
+                Resource r;
+                if (d.TryGetValue(typeof(T), out r))
                     list.Add((T)r);
             }
 
             return list;
         }
 
-        private static Resource load(string filename, IResourceLoader loader)
+        private Dictionary<string, Dictionary<Type, Resource>> _loadedContent 
+            = new Dictionary<string, Dictionary<Type, Resource>>(StringComparer.OrdinalIgnoreCase);
+
+        #endregion
+
+        public static void AddResourceLoader(IResourceLoader loader, Type type)
         {
-            Resource resource = loader.Load(filename);
-            resource.ReferenceCount++;
-            _resources.Add(filename, resource);
+            string[] supportedExtensions = loader.SupportedExtensions;
 
-            Logger.WriteInfo("Loaded " + filename, LoggerStream.Resource);
+            foreach (string ext in supportedExtensions)
+            {
+                _loaders.Add(ext.ToUpper(), loader);
+            }
 
-            return resource;
+            _loadersByType.Add(type, loader);
         }
 
         private static IResourceLoader getLoaderForFile(string filename)
@@ -224,6 +228,7 @@ namespace Gk3Main.Resource
         }
 
         private static Dictionary<string, IResourceLoader> _loaders = new Dictionary<string,IResourceLoader>();
-        private static Dictionary<string, Resource> _resources = new Dictionary<string, Resource>();
+        private static Dictionary<Type, IResourceLoader> _loadersByType = new Dictionary<Type, IResourceLoader>();
+        //private static Dictionary<string, Resource> _resources = new Dictionary<string, Resource>();
     }
 }

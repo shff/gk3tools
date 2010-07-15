@@ -41,7 +41,7 @@ namespace Gk3Main.Game
             if (plateHasLanguageCode == false)
                 licensePlate = "E" + licensePlate;
 
-            YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("{0}.YAK", licensePlate));
+            YakResource yak = SceneManager.SceneContentManager.Load<YakResource>(string.Format("{0}.YAK", licensePlate));
             _lastYak = new LinkedListNode<YakResource>(yak);
             _yaks.AddLast(yak);
             _lastLicensePlate = licensePlate.Substring(1); // remove the language code
@@ -71,7 +71,7 @@ namespace Gk3Main.Game
 
         public static WaitHandle PlayMom(string momFile, bool wait)
         {
-            _lastMom = (Game.MomResource)Resource.ResourceManager.Load(string.Format("E{0}.MOM", momFile));
+            _lastMom = SceneManager.SceneContentManager.Load<Game.MomResource>("E" + momFile);
             _lastMom.Play();
 
             if (wait)
@@ -99,7 +99,7 @@ namespace Gk3Main.Game
                     // load the new yak
                     _lastLicensePlate = incrementLicensePlate(_lastLicensePlate, 1);
                     
-                    YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", _lastLicensePlate));
+                    YakResource yak = SceneManager.SceneContentManager.Load<YakResource>("E" + _lastLicensePlate);
                     _lastYak = new LinkedListNode<YakResource>(yak);
                     _yaks.AddLast(_lastYak);
 
@@ -116,9 +116,6 @@ namespace Gk3Main.Game
             {
                 if (yakNode.Value.IsPlaying == false)
                 {
-                    // remove it
-                    Resource.ResourceManager.Unload(yakNode.Value);
-
                     if (_lastYak == yakNode)
                     {
                         _lastYak = null;
@@ -143,7 +140,6 @@ namespace Gk3Main.Game
             // if the Mom is finished then get rid of it
             if (_lastMom != null && _lastMom.IsFinished)
             {
-                Resource.ResourceManager.Unload(_lastMom);
                 _lastMom = null;
             }
         }

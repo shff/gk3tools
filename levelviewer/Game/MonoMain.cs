@@ -59,6 +59,7 @@ class MonoMain
     private static GameState _state;
     private static bool _isDemo;
     private static Gk3Main.Graphics.SpriteBatch _spriteBatch;
+    private static Gk3Main.Resource.ResourceManager _globalContent;
 
 	public static void Main(string[] args)
 	{
@@ -135,23 +136,23 @@ class MonoMain
         Gk3Main.FileSystem.AddPathToSearchPath("Shaders");
         Gk3Main.FileSystem.AddPathToSearchPath("Icons");
 
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader(), typeof(Gk3Main.Game.ScnResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader(), typeof(Gk3Main.Game.SifResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader(), typeof(Gk3Main.Game.NvcResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader(), typeof(Gk3Main.Graphics.BspResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader(), typeof(Gk3Main.Graphics.TextureResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader(), typeof(Gk3Main.Graphics.LightmapResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader(), typeof(Gk3Main.Graphics.ModelResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader(), typeof(Gk3Main.Graphics.ActResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader(), typeof(Gk3Main.Graphics.Effect));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader(), typeof(Gk3Main.Gui.Font));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader(), typeof(Gk3Main.Gui.CursorResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.Sound));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader(), typeof(Gk3Main.Sound.SoundTrackResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader(), typeof(Gk3Main.Game.YakResource));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader(), typeof(Gk3Main.Game.MomResource));
         //Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.AnmLoader());
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader());
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader(), typeof(Gk3Main.Game.GasResource));
 
         try
         {
@@ -175,8 +176,10 @@ class MonoMain
             return null;
         }
 
-        Gk3Main.Sound.SoundManager.Init();
+        _globalContent = new Gk3Main.Resource.ResourceManager();
 
+        Gk3Main.Sound.SoundManager.Init();
+        
         Gk3Main.SceneManager.LightmapsEnabled = true;
         Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
         Gk3Main.SceneManager.DoubleLightmapValues = true;
@@ -195,6 +198,12 @@ class MonoMain
             return null;
         }
 
+        Gk3Main.Graphics.BspResource.Init(_globalContent);
+        Gk3Main.Graphics.SpriteBatch.Init(_globalContent);
+        Gk3Main.Graphics.SkyBox.Init(_globalContent);
+        Gk3Main.Graphics.BillboardManager.Init(_globalContent);
+        Gk3Main.Graphics.AxisAlignedBoundingBox.Init(_globalContent);
+
         _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
 
         Sdl.SDL_ShowCursor(0);
@@ -202,11 +211,11 @@ class MonoMain
         _state = GameState.MainMenu;
 
         Gk3Main.Game.GameManager.Load();
-        Gk3Main.Game.HelperIcons.Load();
-        Gk3Main.Gui.CursorResource waitCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_WAIT.CUR");
-        _pointCursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_POINT.CUR");
-        _zoom1Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM.CUR");
-        Gk3Main.Gui.CursorResource zoom2Cursor = (Gk3Main.Gui.CursorResource)Gk3Main.Resource.ResourceManager.Load("C_ZOOM_2.CUR");
+        Gk3Main.Game.HelperIcons.Load(_globalContent);
+        Gk3Main.Gui.CursorResource waitCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_WAIT.CUR");
+        _pointCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_POINT.CUR");
+        _zoom1Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM.CUR");
+        Gk3Main.Gui.CursorResource zoom2Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM_2.CUR");
 
         //Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
         // Gk3Main.SceneManager.CurrentCamera = camera;
@@ -375,7 +384,7 @@ class MonoMain
                 _timeBlockSplash = null;
             }
 
-            Gk3Main.SceneManager.Initialize();
+            Gk3Main.SceneManager.Initialize(_globalContent);
             if (_isDemo)
             {
 
@@ -452,13 +461,13 @@ class MonoMain
 			else if (args[i] == "-scn")
 			{
                 _state = GameState.Game;
-                Gk3Main.SceneManager.Initialize();
+                Gk3Main.SceneManager.Initialize(_globalContent);
 				Gk3Main.SceneManager.LoadScene(args[++i]);
 			}
 			else if (args[i] == "-sif")
 			{
                 _state = GameState.Game;
-                Gk3Main.SceneManager.Initialize();
+                Gk3Main.SceneManager.Initialize(_globalContent);
                 Gk3Main.SceneManager.LoadSif(args[++i]);
 			}
 			else if (args[i] == "-mod")
@@ -486,7 +495,7 @@ class MonoMain
 
     private static void renderStats()
     {
-        Gk3Main.Gui.Font font = (Gk3Main.Gui.Font)Gk3Main.Resource.ResourceManager.Load("F_CONSOLE_DISPLAY.FON");
+        Gk3Main.Gui.Font font = _globalContent.Load<Gk3Main.Gui.Font>("F_CONSOLE_DISPLAY.FON");
 
         _spriteBatch.Begin();
 

@@ -14,7 +14,7 @@ namespace Gk3Main.Graphics
         private static Effect _effect;
         private static VertexElementSet _declaration;
 
-        static AxisAlignedBoundingBox()
+        public static void Init(Resource.ResourceManager globalContent)
         {
             _indices = new int[]
             {
@@ -36,6 +36,12 @@ namespace Gk3Main.Graphics
                 2, 6,
                 3, 7
             };
+
+            _effect = globalContent.Load<Effect>("wireframe.fx");
+
+            _declaration = new VertexElementSet(new VertexElement[] {
+                new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
+            });
         }
 
         public AxisAlignedBoundingBox(Math.Vector3 min, Math.Vector3 max)
@@ -66,14 +72,6 @@ namespace Gk3Main.Graphics
 
         public void Render(Camera camera, Math.Matrix world)
         {
-            if (_effect == null)
-                _effect = (Effect)Resource.ResourceManager.Load("wireframe.fx");
-
-            if (_declaration == null)
-                _declaration = new VertexElementSet(new VertexElement[] {
-                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
-                });
-
             if (_vertices == null)
                 createVertices();
 

@@ -701,8 +701,7 @@ namespace Gk3Main.Sheep
             if (animation.EndsWith(".ANM", StringComparison.OrdinalIgnoreCase) == false)
                 animation += ".ANM";
 
-            //Game.AnmResource anm = (Game.AnmResource)Resource.ResourceManager.Load(animation);
-            Game.MomResource anm = (Game.MomResource)Resource.ResourceManager.Load(animation);
+            Game.MomResource anm = SceneManager.SceneContentManager.Load<Game.MomResource>(animation);
             
             if (SheepMachine.IsInWaitSection(vm))
             {
@@ -752,7 +751,7 @@ namespace Gk3Main.Sheep
             string id = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
-            Game.YakResource yak = (Game.YakResource)Resource.ResourceManager.Load(string.Format("E{0}.YAK", id));
+            Game.YakResource yak = SceneManager.SceneContentManager.Load<Game.YakResource>("E" + id);
 
             if (SheepMachine.IsInWaitSection(vm))
             {

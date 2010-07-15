@@ -169,8 +169,11 @@ namespace Gk3Main.Sound
             get { return false; }
         }
 
-        public Resource.Resource Load(string filename)
+        public Resource.Resource Load(string filename, Resource.ResourceManager content)
         {
+            if (filename.IndexOf('.') < 0)
+                filename += ".WAV";
+
             System.IO.Stream stream = FileSystem.Open(filename);
 
             Sound sound = new Sound(filename, stream);

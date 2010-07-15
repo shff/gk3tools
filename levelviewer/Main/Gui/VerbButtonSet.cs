@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gk3Main.Gui
 {
-    public class VerbButtonSet : IDisposable
+    public class VerbButtonSet
     {
         const int ButtonWidth = 32;
         private List<Button> _buttons = new List<Button>();
@@ -12,7 +12,8 @@ namespace Gk3Main.Gui
         private Button _tooltipButton = null;
         private int _tooltipX, _tooltipY;
 
-        public VerbButtonSet(int screenX, int screenY, List<Game.NounVerbCase> nvcs, bool cancel)
+        public VerbButtonSet(Resource.ResourceManager content, 
+            int screenX, int screenY, List<Game.NounVerbCase> nvcs, bool cancel)
         {
             int buttonOffsetX = screenX;
 
@@ -20,7 +21,7 @@ namespace Gk3Main.Gui
             {
                 Game.VerbInfo info = Game.GameManager.Verbs[nvc.Verb];
 
-                VerbButton b = new VerbButton(nvc.Noun, nvc.Verb, nvc.Script,
+                VerbButton b = new VerbButton(content, nvc.Noun, nvc.Verb, nvc.Script,
                     string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
@@ -40,7 +41,7 @@ namespace Gk3Main.Gui
             {
                 Game.VerbInfo info = Game.GameManager.Verbs["t_cancel"];
 
-                Button b = new Button(string.Format("{0}.BMP", info.DownButton),
+                Button b = new Button(content, string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
                     info.DisableButton != null ? string.Format("{0}.BMP", info.DisableButton) : null,
@@ -54,16 +55,6 @@ namespace Gk3Main.Gui
 
                 buttonOffsetX += ButtonWidth;
             }
-        }
-
-        public void Dispose()
-        {
-            foreach (Button b in _buttons)
-            {
-                b.Dispose();
-            }
-
-            _buttons = null;
         }
 
         public void KeepInsideViewport(Graphics.Viewport viewport)

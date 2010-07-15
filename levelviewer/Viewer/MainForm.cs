@@ -56,6 +56,8 @@ namespace Viewer
                 }
             }
 
+            // TODO: get this working again!
+            /*
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
@@ -63,6 +65,7 @@ namespace Viewer
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
+            */
 
             try
             {
@@ -120,8 +123,9 @@ namespace Viewer
             {
                 Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
 
-                IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
-                _resourceViewerForm.UpdateResources(resources);
+                // TODO: fix this!
+                //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
+                //_resourceViewerForm.UpdateResources(resources);
             }
         }
 
@@ -137,7 +141,7 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
-                Gk3Main.Game.SifResource sif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
+                Gk3Main.Game.SifResource sif = null; // TODO: (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
 
                 Gk3Main.SceneManager.LoadScene(sif.Scene);
 
@@ -150,8 +154,9 @@ namespace Viewer
                     }
                 }
 
-                IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
-                _resourceViewerForm.UpdateResources(resources);
+                // TODO: fix this!
+                //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
+                //_resourceViewerForm.UpdateResources(resources);
             }
         }
 
@@ -169,8 +174,9 @@ namespace Viewer
             {
                 Gk3Main.SceneManager.AddModel(dialog.SelectedScene, true);
 
-                IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
-                _resourceViewerForm.UpdateResources(resources);
+                // TODO: fix this!
+                //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
+                //_resourceViewerForm.UpdateResources(resources);
             }
         }
 

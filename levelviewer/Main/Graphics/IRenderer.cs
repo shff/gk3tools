@@ -142,7 +142,7 @@ namespace Gk3Main.Graphics
             get { return false; }
         }
 
-        public Gk3Main.Resource.Resource Load(string filename)
+        public Gk3Main.Resource.Resource Load(string filename, Resource.ResourceManager content)
         {
             IRenderer renderer = RendererManager.CurrentRenderer;
             System.IO.Stream stream = FileSystem.Open(filename + renderer.ShaderFilenameSuffix);

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gk3Main.Game
 {
-    class YakResource : AnimationResource
+    public class YakResource : AnimationResource
     {
         private string _speaker;
         private AnimationResourceSection _gk3Section;
@@ -13,7 +13,7 @@ namespace Gk3Main.Game
         private int _timeAtPlayStart;
         private int _cueTime = -1;
 
-        public YakResource(string name, System.IO.Stream stream)
+        public YakResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, stream)
         {
             foreach (AnimationResourceSection section in Sections)
@@ -23,7 +23,7 @@ namespace Gk3Main.Game
                     foreach (AnimationResourceSectionLine line in section.Lines)
                     {
                         string soundName = line.Params[0].StringValue;
-                        _sounds.Add((Sound.Sound)Resource.ResourceManager.Load(soundName, "WAV"));
+                        _sounds.Add(content.Load<Sound.Sound>(soundName, true));
                     }
                 }
                 else if (section.SectionName.Equals("GK3", StringComparison.OrdinalIgnoreCase))
@@ -49,18 +49,6 @@ namespace Gk3Main.Game
                     _gk3Section = section;
                 }
             }
-        }
-
-        public override void Dispose()
-        {
-            foreach (Sound.Sound sound in _sounds)
-            {
-                Resource.ResourceManager.Unload(sound);
-            }
-
-            _sounds = null;
-
-            base.Dispose();
         }
 
         public void Play()
@@ -93,6 +81,15 @@ namespace Gk3Main.Game
             }
 
             return null;
+        }
+
+        public void Stop()
+        {
+            if (_playingSound.HasValue)
+            {
+                Sound.SoundManager.Stop(_playingSound.Value);
+                _playingSound = null;
+            }
         }
 
         /// <summary>
@@ -137,7 +134,7 @@ namespace Gk3Main.Game
             get { return _speaker; }
         }
 
-        public AnimationResourceSection Gk3Section
+        internal AnimationResourceSection Gk3Section
         {
             get { return _gk3Section; }
         }
@@ -157,11 +154,14 @@ namespace Gk3Main.Game
 
         public bool EmptyResourceIfNotFound { get { return false; } }
 
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name += ".YAK";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
-            YakResource resource = new YakResource(name, stream);
+            YakResource resource = new YakResource(name, stream, content);
 
             stream.Close();
 

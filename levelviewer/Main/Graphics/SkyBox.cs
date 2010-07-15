@@ -2,25 +2,21 @@ using System;
 
 namespace Gk3Main.Graphics
 {
-    class SkyBox
+    public class SkyBox
     {
-        private VertexBuffer _vertices;
-        private IndexBuffer _indices;
+        private static VertexBuffer _vertices;
+        private static IndexBuffer _indices;
         private static VertexElementSet _declaration;
+        private static Effect _skyboxEffect;
 
         private CubeMapResource _cubeMap;
-        private Effect _skyboxEffect;
 
         private float _azimuth;
         private const int _stride = 3;
         private const float _size = 500.0f;
 
-        public SkyBox(string name, string front, string back, string left, string right,
-            string up, string down, float azimuth)
+        public static void Init(Resource.ResourceManager globalContent)
         {
-            _cubeMap = Graphics.RendererManager.CurrentRenderer.CreateCubeMap(name, front, back, left, right, up, down);
-            _azimuth = azimuth;
-
             if (_declaration == null)
             {
                 _declaration = new VertexElementSet(new VertexElement[]
@@ -93,7 +89,14 @@ namespace Gk3Main.Graphics
             _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(vertices, _declaration.Stride);
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
-            _skyboxEffect = (Effect)Resource.ResourceManager.Load("skybox.fx");
+            _skyboxEffect = globalContent.Load<Effect>("skybox.fx");
+        }
+
+        public SkyBox(string name, string front, string back, string left, string right,
+            string up, string down, float azimuth)
+        {
+            _cubeMap = Graphics.RendererManager.CurrentRenderer.CreateCubeMap(name, front, back, left, right, up, down);
+            _azimuth = azimuth;
         }
 
         public void Render(Camera camera)

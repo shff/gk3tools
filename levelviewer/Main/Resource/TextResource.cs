@@ -53,7 +53,7 @@ namespace Gk3Main.Resource
 
         public bool EmptyResourceIfNotFound { get { return false; } }
 
-        public Resource Load(string name)
+        public Resource Load(string name, ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 

@@ -103,7 +103,21 @@ namespace Gk3Main.Graphics
 
     public class BspResource : Resource.Resource
     {
-        public BspResource(string name, System.IO.Stream stream)
+        public static void Init(Resource.ResourceManager content)
+        {
+            _basicTexturedEffect = content.Load<Effect>("basic_textured.fx");
+            _lightmapEffect = content.Load<Effect>("basic_lightmapped.fx");
+            _lightmapNoTextureEffect = content.Load<Effect>("basic_lightmapped_notexture.fx");
+
+            if (_vertexDeclaration == null)
+                _vertexDeclaration = new VertexElementSet(new VertexElement[] {
+                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0),
+                    new VertexElement(sizeof(float) * 3, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
+                    new VertexElement(sizeof(float) * 5, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 1)
+                });
+        }
+
+        public BspResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, true)
         {
             System.IO.BinaryReader reader = 
@@ -331,18 +345,7 @@ namespace Gk3Main.Graphics
             reader.Close();
 
             setupLightmapCoords();
-            loadTextures();
-
-            _basicTexturedEffect = (Effect)Resource.ResourceManager.Load("basic_textured.fx");
-            _lightmapEffect = (Effect)Resource.ResourceManager.Load("basic_lightmapped.fx");
-            _lightmapNoTextureEffect = (Effect)Resource.ResourceManager.Load("basic_lightmapped_notexture.fx");
-
-            if (_vertexDeclaration == null)
-                _vertexDeclaration = new VertexElementSet(new VertexElement[] {
-                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0),
-                    new VertexElement(sizeof(float) * 3, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
-                    new VertexElement(sizeof(float) * 5, VertexElementFormat.Float2, VertexElementUsage.TexCoord, 1)
-                });
+            loadTextures(content);
         }
 
         public void Render(Camera camera, LightmapResource lightmaps)
@@ -440,11 +443,11 @@ namespace Gk3Main.Graphics
             }
         }
 
-        private void loadTextures()
+        private void loadTextures(Resource.ResourceManager content)
         {
             foreach (BspSurface surface in _surfaces)
             {
-                surface.textureResource = (TextureResource)Resource.ResourceManager.Load(surface.texture.ToUpper() + ".BMP");
+                surface.textureResource = content.Load<TextureResource>(surface.texture);
             }
         }
 
@@ -588,19 +591,22 @@ namespace Gk3Main.Graphics
         private Math.Vector4[] _boundingSpheres;
         private string[] _modelsNames;
 
-        private Effect _basicTexturedEffect;
-        private Effect _lightmapEffect;
-        private Effect _lightmapNoTextureEffect;
+        private static Effect _basicTexturedEffect;
+        private static Effect _lightmapEffect;
+        private static Effect _lightmapNoTextureEffect;
         private static VertexElementSet _vertexDeclaration;
     }
 
     public class BspResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name += ".BSP";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
-            BspResource resource = new BspResource(name, stream);
+            BspResource resource = new BspResource(name, stream, content);
 
             stream.Close();
 

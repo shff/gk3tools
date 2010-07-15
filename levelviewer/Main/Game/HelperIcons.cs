@@ -9,10 +9,10 @@ namespace Gk3Main.Game
         private static Graphics.TextureResource _camera;
         private static Graphics.TextureResource _flag;
 
-        public static void Load()
+        public static void Load(Resource.ResourceManager content)
         {
-            _camera = (Graphics.TextureResource)Resource.ResourceManager.Load("Icons/camera.bmp");
-            _flag = (Graphics.TextureResource)Resource.ResourceManager.Load("Icons/flag.bmp");
+            _camera = content.Load<Graphics.TextureResource>("Icons/camera.bmp");
+            _flag = content.Load<Graphics.TextureResource>("Icons/flag.bmp");
         }
 
         public static Graphics.TextureResource Camera

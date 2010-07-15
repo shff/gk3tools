@@ -6,6 +6,7 @@ namespace Gk3Main.Game
 {
     public class GasResource : Resource.TextResource
     {
+        private Resource.ResourceManager _content;
         private bool _playing;
         private bool _suspended;
         private bool _timeSinceSuspend;
@@ -13,9 +14,13 @@ namespace Gk3Main.Game
         private WaitHandle _currentWait;
         private List<GasScriptLine> _lines = new List<GasScriptLine>();
 
-        public GasResource(string name, System.IO.Stream stream)
+        public GasResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, stream)
         {
+            if (content == null)
+                throw new ArgumentNullException("content");
+
+            _content = content;
             parse(Text);
         }
 
@@ -156,7 +161,8 @@ namespace Gk3Main.Game
             }
 
             //AnmResource anm = (AnmResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
-            MomResource mom = (MomResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
+            //MomResource mom = (MomResource)Resource.ResourceManager.Load(string.Format("{0}.ANM", filename));
+            MomResource mom = _content.Load<MomResource>(filename);
             _currentWait = Animator.Add(mom, true);
 
             _suspended = true;
@@ -218,11 +224,14 @@ namespace Gk3Main.Game
 
         public bool EmptyResourceIfNotFound { get { return false; } }
 
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name += ".GAS";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
-            GasResource resource = new GasResource(name, stream);
+            GasResource resource = new GasResource(name, stream, content);
 
             stream.Close();
 

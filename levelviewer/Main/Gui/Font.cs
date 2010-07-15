@@ -6,7 +6,7 @@ namespace Gk3Main.Gui
 {
     public class Font : Resource.TextResource
     {
-        public Font(string name, System.IO.Stream stream)
+        public Font(string name, System.IO.Stream stream, Resource.ResourceManager content)
             : base(name, stream)
         {
             // joy! there's actually a document included with GK3 explaining the font file format!
@@ -60,11 +60,8 @@ namespace Gk3Main.Gui
             }
 
             // load the images
-            if (bitmap.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase))
-                _texture = (Graphics.TextureResource)Resource.ResourceManager.Load(bitmap);
-            else
-                _texture = (Graphics.TextureResource)Resource.ResourceManager.Load(bitmap + ".BMP");
-
+            _texture = content.Load<Graphics.TextureResource>(bitmap);
+        
             buildCharacterInfo();
         }
 
@@ -211,11 +208,11 @@ namespace Gk3Main.Gui
 
     public class FontResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             System.IO.Stream stream = FileSystem.Open(name);
 
-            return new Font(name, stream);
+            return new Font(name, stream, content);
         }
 
         public string[] SupportedExtensions { get { return _supportedExtensions; } }

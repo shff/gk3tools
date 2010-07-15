@@ -4,25 +4,25 @@ using System.Text;
 
 namespace Gk3Main.Game
 {
-    struct AnimationResourceSectionLineParam
+    internal struct AnimationResourceSectionLineParam
     {
         public string StringValue;
         public int IntValue;
     }
 
-    class AnimationResourceSectionLine
+    internal class AnimationResourceSectionLine
     {
         public int FrameNum;
         public List<AnimationResourceSectionLineParam> Params = new List<AnimationResourceSectionLineParam>();
     }
 
-    class AnimationResourceSection
+    internal class AnimationResourceSection
     {
         public string SectionName;
         public List<AnimationResourceSectionLine> Lines = new List<AnimationResourceSectionLine>();
     }
 
-    class AnimationResource : Resource.TextResource
+    public class AnimationResource : Resource.TextResource
     {
         private int _numFrames;
         private List<AnimationResourceSection> _sections;
@@ -157,9 +157,9 @@ namespace Gk3Main.Game
         }
 
         public int NumFrames { get { return _numFrames; } }
-        public List<AnimationResourceSection> Sections { get { return _sections; } }
+        internal List<AnimationResourceSection> Sections { get { return _sections; } }
 
-        public static void GetAllFramesSince(AnimationResourceSection section, int timeSinceStart, int duration, int millisecondsPerFrame,
+        internal static void GetAllFramesSince(AnimationResourceSection section, int timeSinceStart, int duration, int millisecondsPerFrame,
             out int startIndex, out int count)
         {
             startIndex = -1;

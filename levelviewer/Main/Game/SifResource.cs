@@ -317,8 +317,11 @@ namespace Gk3Main.Game
 
     public class SifResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name = name + ".SIF";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
             return new SifResource(name, stream);

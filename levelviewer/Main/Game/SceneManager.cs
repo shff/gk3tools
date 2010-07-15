@@ -54,21 +54,22 @@ namespace Gk3Main
 
     public static class SceneManager
     {
-        public static void Initialize()
+        public static void Initialize(Resource.ResourceManager globalContent)
         {
             ///_verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
+            loadGlobalNvc(globalContent);
         }
 
         public static void LoadSif(string location, string timeblock)
         {
             try
             {
-                LoadSif(location + timeblock + ".SIF");
+                LoadSif(location + timeblock);
             }
             catch (System.IO.FileNotFoundException)
             {
                 // try something else...
-                LoadSif(location + ".SIF");
+                LoadSif(location);
             }
         }
 
@@ -76,10 +77,18 @@ namespace Gk3Main
         {
             Logger.WriteInfo("Loading SIF: " + sif, LoggerStream.Normal);
 
+            if (_sceneContentManager != null)
+                _sceneContentManager.UnloadAll();
+            else
+                _sceneContentManager = new Resource.ResourceManager();
+
             Animator.StopAll();
+            Sheep.SheepMachine.CancelAllWaits();
 
-            Gk3Main.Game.SifResource sifResource = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(sif);
+            SifResource sifResource = _sceneContentManager.Load<SifResource>(sif);
 
+            _currentRoom = null;
+            _currentLightmaps = null;
             _roomPositions.Clear();
             _cameras.Clear();
             _modelNounMap.Clear();
@@ -89,12 +98,12 @@ namespace Gk3Main
 
             // attempt to load a "parent" sif
             Gk3Main.Game.SifResource parentSif = null;
-            string parentSifName = sif.Substring(0, 3) + ".SIF";
+            string parentSifName = sif.Substring(0, 3);
             if (parentSifName.Equals(sif, StringComparison.OrdinalIgnoreCase) == false)
             {
                 try
                 {
-                    parentSif = (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(parentSifName);
+                    parentSif = _sceneContentManager.Load<SifResource>(parentSifName);
                 }
                 catch
                 {
@@ -113,7 +122,6 @@ namespace Gk3Main
             if (parentSif != null) loadSifModels(parentSif);
 
             // load the NVCs
-            loadGlobalNvc();
             loadSifNvcs(sifResource);
             if (parentSif != null) loadSifNvcs(parentSif);
 
@@ -154,25 +162,18 @@ namespace Gk3Main
         {
             try
             {
-                Game.ScnResource scnFile = (Game.ScnResource)Resource.ResourceManager.Load(scn);
+                ScnResource scnFile = _sceneContentManager.Load<ScnResource>(scn);
+                string scnWithoutExtension = Utils.GetFilenameWithoutExtension(scn);
 
-                string bspFile = scnFile.BspFile.ToUpper() + ".BSP";
+                string bspFile = scnFile.BspFile;
 
-                // load the BSP
-                if (_currentRoom != null)
-                    Resource.ResourceManager.Unload(_currentRoom);
-
-                _currentRoom = (Graphics.BspResource)Resource.ResourceManager.Load(bspFile);
+                _currentRoom = _sceneContentManager.Load<Graphics.BspResource>(bspFile);
                 _currentSkybox = loadSkybox(scnFile);
 
                 // load the lightmaps
-                if (_currentLightmaps != null)
-                    Resource.ResourceManager.Unload(_currentLightmaps);
+                _currentLightmaps = _sceneContentManager.Load<Graphics.LightmapResource>(scnWithoutExtension);
 
-                string lightmapFile = Utils.GetFilenameWithoutExtension(scn) + ".MUL";
-                _currentLightmaps = (Graphics.LightmapResource)Resource.ResourceManager.Load(lightmapFile);
-
-                unloadModels();
+                _models.Clear();
                 unloadActors();
             }
             catch (System.IO.FileNotFoundException ex)
@@ -185,7 +186,7 @@ namespace Gk3Main
         {
             SceneModel sceneModel;
             sceneModel.Name = modelname;
-            sceneModel.Model = (Graphics.ModelResource)Resource.ResourceManager.Load(modelname + ".MOD");
+            sceneModel.Model = _sceneContentManager.Load<Graphics.ModelResource>(modelname);
             sceneModel.Visible = visible;
 
             _models.Add(sceneModel);
@@ -193,12 +194,7 @@ namespace Gk3Main
 
         public static void AddGas(string gasFileName)
         {
-            string fileWithExtension = gasFileName;
-            if (fileWithExtension.EndsWith(".GAS", StringComparison.OrdinalIgnoreCase) == false)
-                fileWithExtension = fileWithExtension + ".GAS";
-
-            Game.GasResource gas =
-                (Game.GasResource)Resource.ResourceManager.Load(fileWithExtension);
+            GasResource gas = _sceneContentManager.Load<GasResource>(gasFileName);
 
             _modelGases.Add(gas);
             gas.Play();
@@ -206,13 +202,13 @@ namespace Gk3Main
 
         public static void AddActor(string modelName, string noun, Math.Vector3 position, float heading, bool isEgo)
         {
-            Game.Actor actor = new Game.Actor(modelName, noun, isEgo);
+            Game.Actor actor = new Game.Actor(_sceneContentManager, modelName, noun, isEgo);
             actor.Position = position;
             actor.FacingAngle = heading;
 
             _actors.Add(actor);
 
-            actor.LoadClothing();
+            actor.LoadClothing(_sceneContentManager);
         }
 
         public static Actor GetActor(string actorNoun)
@@ -256,30 +252,10 @@ namespace Gk3Main
         public static void SetModelTexture(string model, int meshIndex, int groupIndex, string texture)
         {
             // find the model
-            Graphics.ModelResource m = null;
-            for (int i = 0; i < _models.Count; i++)
-            {
-                if (_models[i].Name.Equals(model, StringComparison.OrdinalIgnoreCase))
-                {
-                    m = _models[i].Model;
-                    break;
-                }
-            }
+            Graphics.ModelResource m = GetSceneModel(model);
 
-            // found it yet? no? maybe it's an actor model
-            if (m == null)
-            {
-                for (int i = 0; i < _actors.Count; i++)
-                {
-                    if (_actors[i].ModelName.Equals(model, StringComparison.OrdinalIgnoreCase))
-                    {
-                        m = _actors[i].Model;
-                        break;
-                    }
-                }
-            }
-
-            m.ReplaceTexture(meshIndex, groupIndex, texture + ".BMP");
+            if (m != null)
+                m.ReplaceTexture(meshIndex, groupIndex, texture + ".BMP");
         }
 
         public static void Render()
@@ -342,7 +318,6 @@ namespace Gk3Main
 
                 if (node.Value.Playing == false)
                 {
-                    Resource.ResourceManager.Unload(node.Value);
                     _playingSoundTracks.Remove(node);
                 }
 
@@ -352,6 +327,11 @@ namespace Gk3Main
             // run any GASes
             for (int i = 0; i < _modelGases.Count; i++)
                 _modelGases[i].Continue();
+        }
+
+        public static Resource.ResourceManager SceneContentManager
+        {
+            get { return _sceneContentManager; }
         }
 
         public static Graphics.Camera CurrentCamera
@@ -441,6 +421,13 @@ namespace Gk3Main
                 }
             }
 
+            // check the global nvc
+            foreach (Game.NounVerbCase nvc in _globalNvcs.NounVerbCases)
+            {
+                if (nvc.Target != null && nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+                    count++;
+            }
+
             return count;
         }
 
@@ -452,64 +439,41 @@ namespace Gk3Main
             {
                 foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
                 {
-                    if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
-                        {
-                            // is this noun/verb combination already in the list?
-                            bool alreadyExists = false;
-                            for (int i = 0; i < nvcs.Count; i++)
-                            {
-                                if (nvcs[i].Noun.Equals(nvc.Noun, StringComparison.OrdinalIgnoreCase) &&
-                                    nvcs[i].Verb.Equals(nvc.Verb, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    alreadyExists = true;
-                                    break;
-                                }
-                            }
-
-                            if (alreadyExists == false)
-                                nvcs.Add(nvc);
-
-                            /*// HACK: we can't modify the collection while iterating
-                            // over it, so we have to remember what to do later.
-                            // >= 0 is the index to replace, -1 = add normally, -2 = ignore
-                            int whatToDo = -1; 
-                            for (int i = 0; i < nvcs.Count; i++)
-                            {
-                                if (nvcs[i].Noun.Equals(nvc.Noun, StringComparison.OrdinalIgnoreCase) &&
-                                    nvcs[i].Verb.Equals(nvc.Verb, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    if (isCustomNvcLogic(nvcs[i].Case))
-                                    {
-                                        // ignore the new nvc
-                                        whatToDo = -2;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        // replace the old nvc with this one
-                                        whatToDo = i;
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (whatToDo >= 0)
-                            {
-                                nvcs.RemoveAt(whatToDo);
-                                nvcs.Add(nvc);
-                            }
-                            else if (whatToDo == -1)
-                            {
-                                nvcs.Add(nvc);
-                            }*/
-                        }
-                    }
+                    addIfNVCBelongsToNoun(noun, nvc, nvcs);
                 }
             }
 
+            // now check the global NVC
+            foreach (Game.NounVerbCase nvc in _globalNvcs.NounVerbCases)
+            {
+                addIfNVCBelongsToNoun(noun, nvc, nvcs);
+            }
+
             return nvcs;
+        }
+
+        private static void addIfNVCBelongsToNoun(string noun, Game.NounVerbCase nvc, List<Game.NounVerbCase> nvcs)
+        {
+            if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+            {
+                if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
+                {
+                    // is this noun/verb combination already in the list?
+                    bool alreadyExists = false;
+                    for (int i = 0; i < nvcs.Count; i++)
+                    {
+                        if (nvcs[i].Noun.Equals(nvc.Noun, StringComparison.OrdinalIgnoreCase) &&
+                            nvcs[i].Verb.Equals(nvc.Verb, StringComparison.OrdinalIgnoreCase))
+                        {
+                            alreadyExists = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyExists == false)
+                        nvcs.Add(nvc);
+                }
+            }
         }
 
         public static Game.NounVerbCase? GetNounVerbCase(string noun, string verb, bool evaluate)
@@ -616,7 +580,7 @@ namespace Gk3Main
 
         public static void PlaySoundTrack(string name)
         {
-            Sound.SoundTrackResource stk = (Sound.SoundTrackResource)Resource.ResourceManager.Load(name);
+            Sound.SoundTrackResource stk = _sceneContentManager.Load<Sound.SoundTrackResource>(name);
             stk.Start(GameManager.TickCount);
 
             _playingSoundTracks.AddFirst(stk);
@@ -630,7 +594,6 @@ namespace Gk3Main
                 if (node.Value.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                 {
                     _playingSoundTracks.Remove(node);
-                    Resource.ResourceManager.Unload(node.Value);
                     break;
                 }
             }
@@ -686,7 +649,7 @@ namespace Gk3Main
                 // play the first frame of the init animation (if it exists)
                 if (model.InitAnim != null)
                 {
-                    ((MomResource)Resource.ResourceManager.Load(model.InitAnim + ".ANM")).Play(true);
+                    _sceneContentManager.Load<MomResource>(model.InitAnim + ".ANM").Play(true);
                 }
             }
         }
@@ -706,19 +669,19 @@ namespace Gk3Main
                 // play the first frame of the init animation (if it exists)
                 if (actor.InitAnim != null)
                 {
-                    ((MomResource)Resource.ResourceManager.Load(actor.InitAnim + ".ANM")).Play(true);
+                    _sceneContentManager.Load<MomResource>(actor.InitAnim + ".ANM").Play(true);
                 }
             }
         }
 
-        private static void loadGlobalNvc()
+        private static void loadGlobalNvc(Resource.ResourceManager content)
         {
-            Game.NvcResource nvc = (Game.NvcResource)Resource.ResourceManager.Load("GLB_ALL.NVC");
-            _nvcs.Add(nvc);
+            _globalNvcs = content.Load<NvcResource>("GLB_ALL.NVC");
 
-            foreach (KeyValuePair<string, string> nvcLogic in nvc.Logic)
+            _globalNVCLogicAliases = new Dictionary<string,string>();
+            foreach (KeyValuePair<string, string> nvcLogic in _globalNvcs.Logic)
             {
-                _nvcLogicAliases.Add(nvcLogic.Key, nvcLogic.Value);
+                _globalNVCLogicAliases.Add(nvcLogic.Key, nvcLogic.Value);
             }
         }
 
@@ -743,7 +706,7 @@ namespace Gk3Main
                         }
                     }
 
-                    Game.NvcResource nvc = (Game.NvcResource)Resource.ResourceManager.Load(nvcFile);
+                    NvcResource nvc = _sceneContentManager.Load<NvcResource>(nvcFile);
                     _nvcs.Add(nvc);
 
                     foreach (KeyValuePair<string, string> nvcLogic in nvc.Logic)
@@ -762,7 +725,7 @@ namespace Gk3Main
         {
             foreach (string stkFile in sif.SoundTracks)
             {
-                Sound.SoundTrackResource stk = (Sound.SoundTrackResource)Resource.ResourceManager.Load(stkFile);
+                Sound.SoundTrackResource stk = _sceneContentManager.Load<Sound.SoundTrackResource>(stkFile);
                 stk.Start(Game.GameManager.TickCount);
 
                 _stks.Add(stk);
@@ -822,6 +785,8 @@ namespace Gk3Main
             string condition;
             if (_nvcLogicAliases.ContainsKey(conditionName))
                 condition = _nvcLogicAliases[conditionName];
+            else if (_globalNVCLogicAliases.ContainsKey(conditionName))
+                condition = _globalNVCLogicAliases[conditionName];
             else
             {
                 if (_nvcLogicAliases.TryGetValue("G_" + conditionName, out condition) == false)
@@ -851,22 +816,7 @@ namespace Gk3Main
 
         private static void unloadActors()
         {
-            foreach (Game.Actor actor in _actors)
-            {
-                actor.Dispose();
-            }
-
             _actors.Clear();
-        }
-
-        private static void unloadModels()
-        {
-            foreach (SceneModel model in _models)
-            {
-                Resource.ResourceManager.Unload(model.Model);
-            }
-
-            _models.Clear();
         }
 
         private static Graphics.SkyBox loadSkybox(Game.ScnResource scn)
@@ -894,11 +844,14 @@ namespace Gk3Main
         private static List<Game.GasResource> _modelGases = new List<GasResource>();
         private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
+        private static Game.NvcResource _globalNvcs;
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();
         private static Dictionary<string, SifRoomCamera> _cameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, string> _globalNVCLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, string> _nvcLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static LinkedList<Sound.SoundTrackResource> _playingSoundTracks = new LinkedList<Sound.SoundTrackResource>();
+        private static Resource.ResourceManager _sceneContentManager;
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;

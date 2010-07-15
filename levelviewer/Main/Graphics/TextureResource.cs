@@ -372,10 +372,13 @@ namespace Gk3Main.Graphics
 
     public class TextureResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
             try
             {
+                if (name.IndexOf('.') < 0)
+                    name += ".BMP";
+
                 System.IO.Stream stream = FileSystem.Open(name);
 
                 Resource.Resource resource = RendererManager.CurrentRenderer.CreateTexture(name, stream);

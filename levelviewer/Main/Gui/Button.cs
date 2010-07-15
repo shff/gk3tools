@@ -4,52 +4,42 @@ using System.Text;
 
 namespace Gk3Main.Gui
 {
-    public class Button : IDisposable
+    public class Button
     {
-        public Button(string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound)
+        public Button(Resource.ResourceManager content, string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound)
         {
-            _downImage = (Graphics.TextureResource)Resource.ResourceManager.Load(downImage);
-            _hoverImage = (Graphics.TextureResource)Resource.ResourceManager.Load(hoverImage);
-            _upImage = (Graphics.TextureResource)Resource.ResourceManager.Load(upImage);
+            _downImage = content.Load<Graphics.TextureResource>(downImage);
+            _hoverImage = content.Load<Graphics.TextureResource>(hoverImage);
+            _upImage = content.Load<Graphics.TextureResource>(upImage);
 
             if (string.IsNullOrEmpty(disabledImage) == false)
-                _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
+                _disabledImage = content.Load<Graphics.TextureResource>(disabledImage);
 
             if (string.IsNullOrEmpty(clickedSound) == false)
-                _clickedSound = (Sound.Sound)Resource.ResourceManager.Load(clickedSound);
+                _clickedSound = content.Load<Sound.Sound>(clickedSound);
 
             _enabled = true;
         }
 
-        public Button(string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound, string tooltip)
+        public Button(Resource.ResourceManager content, string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound, string tooltip)
         {
-            _downImage = (Graphics.TextureResource)Resource.ResourceManager.Load(downImage);
-            _hoverImage = (Graphics.TextureResource)Resource.ResourceManager.Load(hoverImage);
-            _upImage = (Graphics.TextureResource)Resource.ResourceManager.Load(upImage);
+            _downImage = content.Load<Graphics.TextureResource>(downImage);
+            _hoverImage = content.Load<Graphics.TextureResource>(hoverImage);
+            _upImage = content.Load<Graphics.TextureResource>(upImage);
 
             if (string.IsNullOrEmpty(disabledImage) == false)
-                _disabledImage = (Graphics.TextureResource)Resource.ResourceManager.Load(disabledImage);
+                _disabledImage = content.Load<Graphics.TextureResource>(disabledImage);
 
             if (string.IsNullOrEmpty(clickedSound) == false)
-                _clickedSound = (Sound.Sound)Resource.ResourceManager.Load(clickedSound);
+                _clickedSound = content.Load<Sound.Sound>(clickedSound);
 
             _tooltip = tooltip;
             if (tooltip != null)
             {
-                _tooltipFont = (Gui.Font)Resource.ResourceManager.Load("F_TOOLTIP.FON");
+                _tooltipFont = content.Load<Gui.Font>("F_TOOLTIP.FON");
             }
 
             _enabled = true;
-        }
-
-        public void Dispose()
-        {
-            if (_downImage != null) Resource.ResourceManager.Unload(_downImage);
-            if (_hoverImage != null) Resource.ResourceManager.Unload(_hoverImage);
-            if (_upImage != null) Resource.ResourceManager.Unload(_upImage);
-            if (_disabledImage != null) Resource.ResourceManager.Unload(_disabledImage);
-            if (_clickedSound != null) Resource.ResourceManager.Unload(_clickedSound);
-            if (_tooltipFont != null) Resource.ResourceManager.Unload(_tooltipFont);
         }
 
         public void OnMouseDown(int button)

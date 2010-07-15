@@ -30,7 +30,7 @@ namespace Gk3Main.Graphics
         private static float[] _vertices = new float[_maxBillboards * _billboardVertexStride];
         private static int[] _indices = new int[_maxBillboards * 6];
 
-        static BillboardManager()
+        public static void Init(Resource.ResourceManager globalContent)
         {
             // create the indices
             for (int i = 0; i < _maxBillboards; i++)
@@ -50,6 +50,8 @@ namespace Gk3Main.Graphics
                 new VertexElement(3 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
                 new VertexElement(5 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 1)
             });
+
+            _shader = globalContent.Load<Effect>("texturedBillboard.fx");
         }
 
         public static void AddBillboard(Math.Vector3 position, float width, float height,
@@ -74,9 +76,6 @@ namespace Gk3Main.Graphics
         {
             if (camera == null)
                 throw new ArgumentNullException("camera");
-
-            if (_shader == null)
-                _shader = (Effect)Resource.ResourceManager.Load("texturedBillboard.fx");
 
             // setup the vertex buffer
             // vertices are stored in this format:

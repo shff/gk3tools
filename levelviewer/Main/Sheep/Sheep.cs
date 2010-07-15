@@ -316,6 +316,11 @@ namespace Gk3Main.Sheep
             }
         }
 
+        public static void CancelAllWaits()
+        {
+            // TODO
+        }
+
         public static IntPtr GetCurrentContext(IntPtr vm)
         {
             return SHP_GetCurrentContext(vm);

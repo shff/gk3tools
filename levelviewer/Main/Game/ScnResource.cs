@@ -77,8 +77,11 @@ namespace Gk3Main.Game
 
     public class ScnResourceLoader : Resource.IResourceLoader
     {
-        public Resource.Resource Load(string name)
+        public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name += ".SCN";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
             return new ScnResource(name, stream);
