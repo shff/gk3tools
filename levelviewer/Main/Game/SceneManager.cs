@@ -211,6 +211,8 @@ namespace Gk3Main
             actor.FacingAngle = heading;
 
             _actors.Add(actor);
+
+            actor.LoadClothing();
         }
 
         public static Actor GetActor(string actorNoun)
@@ -249,6 +251,35 @@ namespace Gk3Main
                     _models[i] = model;
                 }
             }
+        }
+
+        public static void SetModelTexture(string model, int meshIndex, int groupIndex, string texture)
+        {
+            // find the model
+            Graphics.ModelResource m = null;
+            for (int i = 0; i < _models.Count; i++)
+            {
+                if (_models[i].Name.Equals(model, StringComparison.OrdinalIgnoreCase))
+                {
+                    m = _models[i].Model;
+                    break;
+                }
+            }
+
+            // found it yet? no? maybe it's an actor model
+            if (m == null)
+            {
+                for (int i = 0; i < _actors.Count; i++)
+                {
+                    if (_actors[i].ModelName.Equals(model, StringComparison.OrdinalIgnoreCase))
+                    {
+                        m = _actors[i].Model;
+                        break;
+                    }
+                }
+            }
+
+            m.ReplaceTexture(meshIndex, groupIndex, texture + ".BMP");
         }
 
         public static void Render()

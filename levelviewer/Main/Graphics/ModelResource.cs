@@ -514,6 +514,15 @@ namespace Gk3Main.Graphics
             return false;
         }
 
+        public void ReplaceTexture(int meshIndex, int groupIndex, string textureName)
+        {
+            TextureResource texture = (TextureResource)Resource.ResourceManager.Load(textureName);
+            if (_meshes[meshIndex].sections[groupIndex].textureResource != null)
+                Resource.ResourceManager.Unload(_meshes[meshIndex].sections[groupIndex].textureResource);
+
+            _meshes[meshIndex].sections[groupIndex].textureResource = texture;
+        }
+
         public override void Dispose()
         {
             // nothing

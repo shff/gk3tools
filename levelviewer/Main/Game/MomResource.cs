@@ -15,6 +15,7 @@ namespace Gk3Main.Game
 
         private AnimationResourceSection _actionSection;
         private AnimationResourceSection _modelVisibilitySection;
+        private AnimationResourceSection _modelTexturesSection;
         private AnimationResourceSection _soundSection;
         private AnimationResourceSection _gk3Section;
         private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
@@ -31,6 +32,8 @@ namespace Gk3Main.Game
                     _actionSection = section;
                 else if (section.SectionName.Equals("MVISIBILITY", StringComparison.OrdinalIgnoreCase))
                     _modelVisibilitySection = section;
+                else if (section.SectionName.Equals("MTEXTURES", StringComparison.OrdinalIgnoreCase))
+                    _modelTexturesSection = section;
                 else if (section.SectionName.Equals("SOUNDS", StringComparison.OrdinalIgnoreCase))
                 {
                     _soundSection = section;
@@ -108,6 +111,22 @@ namespace Gk3Main.Game
                     bool visible = onoff.Equals("on", StringComparison.OrdinalIgnoreCase);
 
                     SceneManager.SetSceneModelVisibility(model, visible);
+                }
+            }
+
+            if (_modelTexturesSection != null)
+            {
+                GetAllFramesSince(_modelTexturesSection, timeSinceStart, duration, MillisecondsPerFrame,
+                    out startIndex, out count);
+
+                for (int i = startIndex; i < startIndex + count; i++)
+                {
+                    string model = _modelTexturesSection.Lines[i].Params[0].StringValue;
+                    int meshIndex = _modelTexturesSection.Lines[i].Params[1].IntValue;
+                    int groupIndex = _modelTexturesSection.Lines[i].Params[2].IntValue;
+                    string texture = _modelTexturesSection.Lines[i].Params[3].StringValue;
+
+                    SceneManager.SetModelTexture(model, meshIndex, groupIndex, texture);
                 }
             }
 

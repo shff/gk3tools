@@ -139,6 +139,7 @@ namespace Gk3Main.Game
 
     public class Actor : IDisposable
     {
+        private string _code;
         private string _noun;
         private string _modelName;
         private Math.Vector3 _position;
@@ -149,13 +150,13 @@ namespace Gk3Main.Game
 
         public Actor(string modelName, string noun, bool isEgo)
         {
-            string actorName = GetActorCodeFromNoun(noun);
+            _code = GetActorCodeFromNoun(noun);
             _noun = noun;
             _modelName = modelName;
             _isEgo = isEgo;
 
             _model = (Graphics.ModelResource)Resource.ResourceManager.Load(Utils.MakeEndsWith(modelName, ".MOD"));
-            _face = new ActorFace(actorName);
+            _face = new ActorFace(_code);
 
             if (_model.Meshes != null)
             {
@@ -238,6 +239,36 @@ namespace Gk3Main.Game
         public Graphics.ModelResource Model
         {
             get { return _model; }
+        }
+
+        public void LoadClothing()
+        {
+            // apparently when an actor is loaded we need to look 
+            // for the most recent [Actor]CLOTHES[Timeblock].ANM file.
+            // So start at the current timeblock and work backwards.
+            Game.Timeblock now = Game.GameManager.CurrentTime;
+
+            MomResource clothesAnm = null;
+            for (int timeblock = (int)now; timeblock >= 0; timeblock--)
+            {
+                try
+                {
+                    string file = _code + "CLOTHES" + Game.GameManager.GetTimeBlockString((Timeblock)timeblock) + ".ANM";
+                    clothesAnm = (MomResource)Resource.ResourceManager.Load(file);
+
+                    // guess we found it
+                    break;
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // didn't find it, so keep looking
+                }
+            }
+
+            if (clothesAnm != null)
+            {
+                clothesAnm.Play();
+            }
         }
 
         public static string GetActorCodeFromNoun(string noun)

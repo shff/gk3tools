@@ -6,7 +6,7 @@ namespace Gk3Main.Game
 {
     public enum Timeblock
     {
-        Day1_10AM,
+        Day1_10AM = 0,
         Day1_12PM,
         Day1_02PM,
         Day1_04PM,
