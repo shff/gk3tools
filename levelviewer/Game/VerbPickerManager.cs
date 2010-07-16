@@ -9,6 +9,8 @@ namespace Game
     {
         private static Gk3Main.Gui.VerbButtonSet _vbs;
         private static int _mouseDownX, _mouseDownY;
+        private static string _lastNoun;
+        private static int _lastNounVerbCount;
         private static Gk3Main.Resource.ResourceManager _content = new Gk3Main.Resource.ResourceManager();
 
         public static Gk3Main.Gui.VerbButtonSet VerbButtonSet
@@ -77,9 +79,9 @@ namespace Game
                 return;
             }
 
-            List<Gk3Main.Game.NounVerbCase> nvcs = getNounVerbCasesUnderCursor(camera, mx, my);
+            int count = getNounVerbCaseCountUnderCursor(camera, mx, my);
 
-            if (nvcs == null || nvcs.Count == 0)
+            if (count == 0)
             {
                 point.Render(sb, mx, my);
             }
@@ -87,7 +89,6 @@ namespace Game
             {
                 zoom.Render(sb, mx, my);
             }
-
         }
 
         public static bool VerbButtonsVisible
@@ -121,6 +122,45 @@ namespace Game
             }
 
             return null;
+        }
+
+        private static int getNounVerbCaseCountUnderCursor(Gk3Main.Graphics.Camera camera, int mx, int my)
+        {
+            if (camera == null)
+                throw new ArgumentNullException("camera");
+
+            Gk3Main.Math.Vector3 unprojected = camera.Unproject(new Gk3Main.Math.Vector3(mx, my, 0));
+
+
+            string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, (unprojected - camera.Position).Normalize(), 1000.0f);
+            string noun = null;
+
+            if (model != null)
+            {
+                noun = Gk3Main.SceneManager.GetModelNoun(model);
+
+                if (_lastNoun != noun)
+                {
+                    _lastNoun = noun;
+
+                    if (noun != null)
+                    {
+                        int count = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun).Count;
+                        _lastNounVerbCount = count;
+                    }
+                    else
+                    {
+                        _lastNounVerbCount = 0;
+                    }
+                }
+            }
+            else
+            {
+                _lastNoun = null;
+                _lastNounVerbCount = 0;
+            }
+
+            return _lastNounVerbCount;
         }
     }
 }

@@ -75,10 +75,6 @@ class MonoMain
 
             update();
 
-            //if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
-            //   renderStats();
-
-            
             Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
 
             render(camera, Game.Input.MouseX, Game.Input.MouseY);
@@ -265,6 +261,9 @@ class MonoMain
         Game.VerbPickerManager.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
         Game.VerbPickerManager.RenderProperCursor(_spriteBatch, camera, mouseX, mouseY, _pointCursor, _zoom1Cursor);
         _spriteBatch.End();
+
+        //if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
+            renderStats();
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
     }

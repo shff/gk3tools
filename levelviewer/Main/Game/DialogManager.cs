@@ -71,7 +71,7 @@ namespace Gk3Main.Game
 
         public static WaitHandle PlayMom(string momFile, bool wait)
         {
-            _lastMom = SceneManager.SceneContentManager.Load<Game.MomResource>("E" + momFile);
+            _lastMom = SceneManager.SceneContentManager.Load<Game.MomResource>("E" + momFile + ".MOM");
             _lastMom.Play();
 
             if (wait)

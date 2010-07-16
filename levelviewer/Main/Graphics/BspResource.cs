@@ -379,6 +379,10 @@ namespace Gk3Main.Graphics
 
             RendererManager.CurrentRenderer.VertexDeclaration = _vertexDeclaration;
             currentEffect.Bind();
+
+            if (lightmappingEnabled)
+                currentEffect.SetParameter("LightmapMultiplier", lightmapMultiplier);
+            currentEffect.SetParameter("ModelViewProjection", camera.ViewProjection);
             currentEffect.Begin();
             for (int i = 0; i < _surfaces.Length; i++)
             {
@@ -544,11 +548,7 @@ namespace Gk3Main.Graphics
             if (camera.Frustum.IsSphereOutside(surface.boundingSphere))
                 return;
 
-            effect.SetParameter("ModelViewProjection", camera.ViewProjection);
             effect.SetParameter("Diffuse", surface.textureResource, 0);
-
-            if (lightmappingEnabled)
-                effect.SetParameter("LightmapMultiplier", lightmapMultiplier);
 
             if (lightmap != null)
                 effect.SetParameter("Lightmap", lightmap, 1);

@@ -39,7 +39,7 @@ namespace Gk3Main.Sheep
                 try
                 {
                     _vm = SHP_CreateNewVM();
-                    SHP_SetVerbosity(_vm, 3);
+                    SHP_SetVerbosity(_vm, 1);
 
                     _compilerOutputDelegate = new CompilerOutputDelegate(compilerOutputCallback);
                     _endWaitDelegate = new SheepEndWaitDelegate(endWaitCallback);
