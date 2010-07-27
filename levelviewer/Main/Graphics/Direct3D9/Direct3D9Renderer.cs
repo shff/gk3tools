@@ -168,21 +168,24 @@ namespace Gk3Main.Graphics.Direct3D9
     public class Direct3D9VertexBuffer : VertexBuffer
     {
         private SlimDX.Direct3D9.VertexBuffer _buffer;
-        private int _length;
+        private int _numVertices;
 
-        internal Direct3D9VertexBuffer(SlimDX.Direct3D9.Device device, float[] data, int stride)
+        internal static Direct3D9VertexBuffer CreateBuffer<T>(SlimDX.Direct3D9.Device device, 
+            T[] data, int numVertices, VertexElementSet vertexElements) where T: struct
         {
-            _stride = stride;
-            _length = data.Length;
+            Direct3D9VertexBuffer buffer = new Direct3D9VertexBuffer();
+            buffer._declaration = vertexElements;
+            buffer._numVertices = numVertices;
+            buffer._buffer = new SlimDX.Direct3D9.VertexBuffer(device, numVertices * vertexElements.Stride, Usage.WriteOnly, VertexFormat.None, Pool.Default);
 
-            _buffer = new SlimDX.Direct3D9.VertexBuffer(device, data.Length * sizeof(float), Usage.WriteOnly, VertexFormat.None, Pool.Default);
-
-            SlimDX.DataStream ds = _buffer.Lock(0, _length * sizeof(float), LockFlags.None);
+            SlimDX.DataStream ds = buffer._buffer.Lock(0, numVertices * vertexElements.Stride, LockFlags.None);
 
             for (int i = 0; i < data.Length; i++)
                 ds.Write(data[i]);
 
-            _buffer.Unlock();
+            buffer._buffer.Unlock();
+
+            return buffer;
         }
 
         public override void Dispose()
@@ -192,7 +195,7 @@ namespace Gk3Main.Graphics.Direct3D9
 
         public override int Length
         {
-            get { return _length; }
+            get { return _numVertices; }
         }
 
         internal SlimDX.Direct3D9.VertexBuffer InternalBuffer
@@ -452,9 +455,9 @@ namespace Gk3Main.Graphics.Direct3D9
             return new Direct3D9Effect(name, stream);
         }
 
-        public VertexBuffer CreateVertexBuffer(float[] data, int stride)
+        public VertexBuffer CreateVertexBuffer<T>(T[] data, int numVertices, VertexElementSet declaration) where T: struct
         {
-            return new Direct3D9VertexBuffer(_device, data, stride);
+            return Direct3D9VertexBuffer.CreateBuffer(_device, data, numVertices, declaration);
         }
 
         public IndexBuffer CreateIndexBuffer(uint[] data)
@@ -558,10 +561,18 @@ namespace Gk3Main.Graphics.Direct3D9
             Direct3D9VertexBuffer vertexBuffer = (Direct3D9VertexBuffer)vertices;
             Direct3D9IndexBuffer indexBuffer = (Direct3D9IndexBuffer)indices;
 
-            _device.SetStreamSource(0, vertexBuffer.InternalBuffer, 0, vertices.Stride);
-            _device.Indices = indexBuffer.InternalBuffer;
+            _device.SetStreamSource(0, vertexBuffer.InternalBuffer, 0, vertices.VertexElements.Stride);
 
-            _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.Length / 3, 0, indices.Length / 3);
+            if (indexBuffer != null)
+            {
+                _device.Indices = indexBuffer.InternalBuffer;
+
+                _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.Length / 3, 0, indices.Length / 3);
+            }
+            else
+            {
+                _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, vertexBuffer.Length / 3);
+            }
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct

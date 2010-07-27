@@ -158,11 +158,11 @@ namespace Gk3Main.Graphics
 
     public abstract class VertexBuffer : IDisposable
     {
-        protected int _stride;
+        protected VertexElementSet _declaration;
 
         public abstract void Dispose();
 
-        public int Stride { get { return _stride; } }
+        public VertexElementSet VertexElements { get { return _declaration; } }
         public abstract int Length { get; }
     }
 
@@ -480,7 +480,7 @@ namespace Gk3Main.Graphics
         TextureResource DefaultTexture { get; }
         TextureResource ErrorTexture { get; }
 
-        VertexBuffer CreateVertexBuffer(float[] data, int stride);
+        VertexBuffer CreateVertexBuffer<T>(T[] data, int numVertices, VertexElementSet declaration) where T: struct;
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         BlendState BlendState { get; set; }

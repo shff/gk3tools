@@ -86,7 +86,7 @@ namespace Gk3Main.Graphics
                 5, 7, 4
             };
 
-            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(vertices, _declaration.Stride);
+            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(vertices, 8, _declaration);
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
             _skyboxEffect = globalContent.Load<Effect>("skybox.fx");

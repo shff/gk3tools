@@ -6,18 +6,21 @@ namespace Gk3Main.Graphics.OpenGl
     public class GlVertexBuffer : VertexBuffer
     {
         private int _buffer;
-        private int _length;
+        private int _numVertices;
 
-        public GlVertexBuffer(float[] data, int stride)
+        internal static GlVertexBuffer CreateBuffer<T>(T[] data, int numVertices, VertexElementSet vertexElements) where T: struct
         {
-            _stride = stride;
-            _length = data.Length;
+            GlVertexBuffer buffer = new GlVertexBuffer();
+            buffer._declaration = vertexElements;
+            buffer._numVertices = numVertices;
 
-            Gl.glGenBuffers(1, out _buffer);
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, _buffer);
-            Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(data.Length * sizeof(float)), data, Gl.GL_STATIC_DRAW);
+            Gl.glGenBuffers(1, out buffer._buffer);
+            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, buffer._buffer);
+            Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(numVertices * vertexElements.Stride), data, Gl.GL_STATIC_DRAW);
 
             Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, 0);
+
+            return buffer;
         }
 
         public override void Dispose()
@@ -37,7 +40,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public override int Length
         {
-            get { return _length; }
+            get { return _numVertices; }
         }
     }
 }

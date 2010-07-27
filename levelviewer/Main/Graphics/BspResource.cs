@@ -74,10 +74,12 @@ namespace Gk3Main.Graphics
         // not loaded from the file, just used for color-coding surfaces (if needed)
         public float r, g, b;
         public uint index;
+        public uint numTriangles;
         public float[] vertices;
         public float[] lightmapCoords;
         public float[] textureCoords;
         public BspVertex[] combinedVertices;
+        public VertexBuffer vertexBuffer;
         public TextureResource textureResource;
 
         public Math.Vector4 boundingSphere;
@@ -273,7 +275,7 @@ namespace Gk3Main.Graphics
                 reader.ReadBytes(12);
 
                 uint numIndices = reader.ReadUInt32();
-                uint numTriangles = reader.ReadUInt32();
+                _surfaces[i].numTriangles = reader.ReadUInt32();
 
                 UInt16[] myindices = new UInt16[numIndices];
                 for (uint j = 0; j < numIndices; j++)
@@ -281,18 +283,18 @@ namespace Gk3Main.Graphics
                     myindices[j] = reader.ReadUInt16();
                 }
 
-                _surfaces[i].indices = new ushort[numTriangles * 3];
-                _surfaces[i].combinedVertices = new BspVertex[numTriangles * 3];
-                _surfaces[i].vertices = new float[numTriangles * 3 * 3];
-                _surfaces[i].textureCoords = new float[numTriangles * 3 * 2];
-                for (uint j = 0; j < numTriangles; j++)
+                _surfaces[i].indices = new ushort[_surfaces[i].numTriangles * 3];
+                _surfaces[i].combinedVertices = new BspVertex[_surfaces[i].numTriangles * 3];
+                _surfaces[i].vertices = new float[_surfaces[i].numTriangles * 3 * 3];
+                _surfaces[i].textureCoords = new float[_surfaces[i].numTriangles * 3 * 2];
+                for (uint j = 0; j < _surfaces[i].numTriangles; j++)
                 {
                     ushort x = reader.ReadUInt16();
                     ushort y = reader.ReadUInt16();
                     ushort z = reader.ReadUInt16();
 
                     _surfaces[i].indices[j * 3 + 0] = myindices[x];
-                    _surfaces[i].indices[j * 3 + 1] = myindices[y]; 
+                    _surfaces[i].indices[j * 3 + 1] = myindices[y];
                     _surfaces[i].indices[j * 3 + 2] = myindices[z];
 
                     // TODO: since we aren't using indices the hardware can't cache vertices,
@@ -346,6 +348,12 @@ namespace Gk3Main.Graphics
 
             setupLightmapCoords();
             loadTextures(content);
+
+            // create each surface's vertes buffer
+            for (int i = 0; i < header.numSurfaces; i++)
+            {
+                _surfaces[i].vertexBuffer = RendererManager.CurrentRenderer.CreateVertexBuffer(_surfaces[i].combinedVertices, (int)_surfaces[i].numTriangles * 3, _vertexDeclaration);
+            }
         }
 
         public void Render(Camera camera, LightmapResource lightmaps)
@@ -555,7 +563,8 @@ namespace Gk3Main.Graphics
 
             effect.CommitParams();
 
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Triangles, 0, surface.combinedVertices.Length, surface.combinedVertices);
+            RendererManager.CurrentRenderer.RenderBuffers(surface.vertexBuffer, null);
+            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Triangles, 0, surface.combinedVertices.Length, surface.combinedVertices);
         }
 
         private int findParent(BspNode[] nodes, int index)

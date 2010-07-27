@@ -249,9 +249,9 @@ namespace Gk3Main.Graphics.OpenGl
             //return new CgEffect(name, stream, _cgContext);
         }
 
-        public VertexBuffer CreateVertexBuffer(float[] data, int stride)
+        public VertexBuffer CreateVertexBuffer<T>(T[] data, int numVertices, VertexElementSet declaration) where T : struct
         {
-            return new GlVertexBuffer(data, stride);
+            return GlVertexBuffer.CreateBuffer(data, numVertices, declaration);
         }
 
         public IndexBuffer CreateIndexBuffer(uint[] data)
