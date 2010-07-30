@@ -111,7 +111,7 @@ namespace Gk3Main.Game
                 else if (lastBracket >= 0)
                     nvc.Script = nvc.Script.Substring(0, lastBracket);
 
-                _nvcs.Add(nvc);
+                add(nvc);
             }
         }
 
@@ -123,6 +123,23 @@ namespace Gk3Main.Game
         public List<KeyValuePair<string, string>> Logic
         {
             get { return _logic; }
+        }
+
+        private void add(NounVerbCase nvc)
+        {
+            // apparently GK3 mostly prioritizes NVCs alphabetically
+            // by case. dunno why...
+            for (int i = 0; i < _nvcs.Count; i++)
+            {
+                if (string.Compare(nvc.Case, _nvcs[i].Case, true) < 0)
+                {
+                    _nvcs.Insert(i, nvc);
+                    return;
+                }
+            }
+
+            // still here? we didn't find a matching Noun/Verb pair to replace
+            _nvcs.Add(nvc);
         }
 
         private List<NounVerbCase> _nvcs = new List<NounVerbCase>();
