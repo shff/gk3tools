@@ -49,6 +49,7 @@ namespace Gk3Main.Graphics.OpenGl
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
         private BlendState _currentBlendState;
+        private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
 
         public OpenGLRenderer()
         {
@@ -58,6 +59,10 @@ namespace Gk3Main.Graphics.OpenGl
 
             // set default render states
             BlendState = BlendState.Opaque;
+
+            _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
+            SamplerStates[0] = SamplerState.LinearWrap;
+            SamplerStates[1] = SamplerState.LinearClamp;
         }
 
         #region Render states
@@ -192,6 +197,20 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
+        public SamplerStateCollection SamplerStates
+        {
+            get { return _currentSamplerStates; }
+        }
+
+        private void samplerStateChanged(SamplerState newSampler, SamplerState oldSampler, int index)
+        {
+            // TODO: only modify the changed states
+            Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
+            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, convertTextureAddressMode(newSampler.AddressU));
+            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, convertTextureAddressMode(newSampler.AddressV));
+            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_R, convertTextureAddressMode(newSampler.AddressW));
+        }
+
         #endregion Render states
 
         public Viewport Viewport
@@ -295,17 +314,28 @@ namespace Gk3Main.Graphics.OpenGl
             GlIndexBuffer glIndices = (GlIndexBuffer)indices;
 
             glVertices.Bind();
-            glIndices.Bind();
+            if (glIndices != null) glIndices.Bind();
 
-            Gl.glEnableVertexAttribArray(0);
-            Gl.glVertexAttribPointer(0, 3, Gl.GL_FLOAT, 0, 0, IntPtr.Zero);
+            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
+            {
+                Gl.glEnableVertexAttribArray(i);
+                Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                    Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
+            }
 
-            Gl.glDrawElements(Gl.GL_TRIANGLES, indices.Length, Gl.GL_UNSIGNED_INT, null);
+            if (glIndices != null)
+                Gl.glDrawElements(Gl.GL_TRIANGLES, indices.Length, Gl.GL_UNSIGNED_INT, null);
+            else
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, vertices.Length);
 
-            Gl.glDisableVertexAttribArray(0);
+            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
+            {
+                Gl.glDisableVertexAttribArray(i);
+            }
 
             glVertices.Unbind();
-            glIndices.Unbind();
+
+            if (glIndices != null) glIndices.Unbind();
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct
@@ -499,6 +529,16 @@ namespace Gk3Main.Graphics.OpenGl
                 return Gl.GL_MIN;
             else
                 return Gl.GL_MAX;
+        }
+
+        private static int convertTextureAddressMode(TextureAddressMode mode)
+        {
+            if (mode == TextureAddressMode.Clamp)
+                return Gl.GL_CLAMP_TO_EDGE;
+            else if (mode == TextureAddressMode.Mirror)
+                return Gl.GL_MIRRORED_REPEAT;
+            else
+                return Gl.GL_REPEAT;
         }
     }
 }
