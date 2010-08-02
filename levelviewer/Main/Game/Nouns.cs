@@ -1380,6 +1380,8 @@ namespace Gk3Main.Game
     public static class NounUtils
     {
         private static Dictionary<string, Nouns> _stringMap = new Dictionary<string, Nouns>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<Nouns, List<Nouns>> _nounToGroupMap = new Dictionary<Nouns, List<Nouns>>();
+        private static Dictionary<Nouns, List<Nouns>> _groupToNounMap = new Dictionary<Nouns, List<Nouns>>();
 
         static NounUtils()
         {
@@ -1387,6 +1389,15 @@ namespace Gk3Main.Game
             {
                 _stringMap.Add(((Nouns)i).ToString().Substring(2), (Nouns)i);
             }
+
+            // nouns can be grouped together, and then the nouns referred
+            // to by the group name. For example, sometimes Lady Howard
+            // and Estelle are grouped together by the NVCs into a single
+            // noun. We need this map so that we know when the user clicks
+            // on Estelle or Lady Howard to also check the group names
+            // for any NVCs.
+            addNounToGroup(Nouns.N_ESTELLE, Nouns.N_LADY_H_ESTELLE);
+            addNounToGroup(Nouns.N_LADY_HOWARD, Nouns.N_LADY_H_ESTELLE);
         }
 
         public static Nouns ConvertStringToNoun(string noun)
@@ -1396,6 +1407,25 @@ namespace Gk3Main.Game
                 return result;
 
             return Nouns.N_NONE;
+        }
+
+        /// <summary>
+        /// Returns a list of all noun groups that the given noun is a member of
+        /// </summary>
+        public static List<Nouns> GetNounGroupsFromMember(Nouns noun)
+        {
+            List<Nouns> groups = null;
+            _nounToGroupMap.TryGetValue(noun, out groups);
+
+            return groups;
+        }
+
+        private static void addNounToGroup(Nouns noun, Nouns group)
+        {
+            if (_nounToGroupMap.ContainsKey(noun) == false)
+                _nounToGroupMap.Add(noun, new List<Nouns>());
+
+            _nounToGroupMap[noun].Add(group);
         }
     }
 }

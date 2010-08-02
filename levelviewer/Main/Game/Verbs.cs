@@ -379,5 +379,13 @@ namespace Gk3Main.Game
 
             return Verbs.V_NONE;
         }
+
+        public static bool IsTopicVerb(Verbs verb)
+        {
+            const Verbs first = Verbs.V_T_ABBE;
+            const Verbs last = Verbs.V_T_WILKES;
+
+            return verb >= first && verb <= last;
+        }
     }
 }

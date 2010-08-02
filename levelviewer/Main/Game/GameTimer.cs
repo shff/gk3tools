@@ -30,8 +30,8 @@ namespace Gk3Main.Game
 
     public struct GameTimer
     {
-        public string Noun;
-        public string Verb;
+        public Nouns Noun;
+        public Verbs Verb;
         public int Duration;
         public int TimeAtExpiration;
     }

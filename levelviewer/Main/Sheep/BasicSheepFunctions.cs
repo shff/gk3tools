@@ -393,7 +393,8 @@ namespace Gk3Main.Sheep
         {
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            int c = Game.GameManager.GetChatCount(noun);
+            Game.Nouns n = Game.NounUtils.ConvertStringToNoun(noun);
+            int c = Game.GameManager.GetChatCount(n);
 
             SheepMachine.PushIntOntoStack(vm, c);
         }
@@ -427,7 +428,8 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            int count = Game.GameManager.GetNounVerbCount(noun, verb);
+            Game.Verbs v = Game.VerbsUtils.ConvertStringToVerbs(verb);
+            int count = Game.GameManager.GetNounVerbCount(noun, v);
 
             SheepMachine.PushIntOntoStack(vm, count);
         }
@@ -527,7 +529,9 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            Game.GameManager.IncrementNounVerbCount(noun, verb);
+            Game.Nouns n = Game.NounUtils.ConvertStringToNoun(noun);
+            Game.Verbs v = Game.VerbsUtils.ConvertStringToVerbs(verb);
+            Game.GameManager.IncrementNounVerbCount(n, v);
         }
 
         private static void sheep_IncNounVerbCountBoth(IntPtr vm)
@@ -535,8 +539,10 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            Game.GameManager.IncrementNounVerbCount(noun, verb, true);
-            Game.GameManager.IncrementNounVerbCount(noun, verb, false);
+            Game.Nouns n = Game.NounUtils.ConvertStringToNoun(noun);
+            Game.Verbs v = Game.VerbsUtils.ConvertStringToVerbs(verb);
+            Game.GameManager.IncrementNounVerbCount(n, v, true);
+            Game.GameManager.IncrementNounVerbCount(n, v, false);
         }
 
         private static void sheep_FinishedScreen(IntPtr vm)
@@ -604,7 +610,9 @@ namespace Gk3Main.Sheep
             string verb = SheepMachine.PopStringOffStack(vm);
             string noun = SheepMachine.PopStringOffStack(vm);
 
-            Game.GameManager.AddGameTimer(noun, verb, milliseconds);
+            Game.Nouns n = Game.NounUtils.ConvertStringToNoun(noun);
+            Game.Verbs v = Game.VerbsUtils.ConvertStringToVerbs(verb);
+            Game.GameManager.AddGameTimer(n, v, milliseconds);
         }
 
         private static void sheep_SetListenGas(IntPtr vm)
@@ -762,6 +770,8 @@ namespace Gk3Main.Sheep
             {
                 yak.Play();
             }
+
+            Logger.WriteDebug("Called StartVoiceOver({0}, {1})", id, count);
         }
 
         private static void sheep_StopSoundTrack(IntPtr vm)

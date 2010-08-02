@@ -8,7 +8,8 @@ namespace Gk3Main
     {
         Normal,
         Resource,
-        Animation
+        Animation,
+        Debug
     }
 
     public static class Logger
@@ -27,12 +28,14 @@ namespace Gk3Main
                 // declared in the LoggerStream enum!
                 new LoggerStreamInfo(LoggerStream.Normal),
                 new LoggerStreamInfo(LoggerStream.Resource),
-                new LoggerStreamInfo(LoggerStream.Animation)
+                new LoggerStreamInfo(LoggerStream.Animation),
+                new LoggerStreamInfo(LoggerStream.Debug)
             };
 
             WriteInfo("Logging started");
 #if DEBUG
             _streams[(int)LoggerStream.Normal].LocalEcho = true;
+            _streams[(int)LoggerStream.Debug].LocalEcho = true;
 #endif
         }
 

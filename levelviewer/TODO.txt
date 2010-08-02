@@ -1,0 +1,39 @@
+
+Last updated: 2010-07-30
+--------------------------
+This file contains TODO items. They're arranged more-or-less in order of priority. Once everything on this list we'll have (in theory) a perfect copy of the GK3 engine!
+--------------------------
+
+* Noun aliases
+Sometimes NVCs contain nouns that aren't "real". For example, MS3110A.NVC is an NVC for the museum, Day 1, 10:00 AM, and it has a noun called "LADY_H_ESTELLE" which refers to both Lady Howard and Estelle. But right now the Scene Manager only knows about the nouns for each individual actor, and not LADY_H_ESTELLE. I suppose we'll just have to hard-code the noun aliases as we find them and modify the code so that when you ask the Scene Manager for all NVCs for a given noun it must also search for any NVCs using an alias.
+
+* Add regions
+SIF files can define regions, and when the player moves into the region it can trigger an action. Or some NVCs check to see if an actor is inside a region.
+
+* Fix animation timing
+There's a weird bug in the animation timing. This is most obvious when looking at the ceiling fans in the hotel lobby. The fans don't spin at a consistent speed.
+
+* Fix actor headings
+Sometimes an actor faces the opposite direction that it should. No idea why. The heading info is loaded from the .SIF files. Sometimes the heading is correct, and sometimes it's 180 degrees wrong.
+
+* Fix model animation orientation
+Sometimes models are not oriented correctly during the animation. For example, Mosely is holding his newspaper sideways during the first dining room scene Day 1 10:00 AM, and Lady Howard's torso is floating near her body in the museum Day 1 10:00 AM.
+
+* Walking
+Actors need to be able to walk. This is a big one. This means pathfinding, and handling when the player wants to move somewhere, and all the "approach" stuff in the NVCs, etc.
+
+* Fidgiting
+Actors need to fidgit.
+
+* Camera clipping
+Not sure about this, but there seems to be a .MOD file that represents camera boundaries for a given .BSP. Need to look into exactly how to do the intersection test (sphere-triangle intersection? ray-triangle using camera movement vector as the ray?).
+
+* Model cracks during animation
+When models are animated using transformation matrices (very crude skeletal animation) cracks appear between sections of the models. We need to stitch those up.
+
+
+
+
+COMPLETED
+------------
+nothing yet...

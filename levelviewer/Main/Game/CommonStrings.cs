@@ -141,7 +141,7 @@ namespace Gk3Main.Game
     public class LocalizedStrings : Resource.TextResource
     {
         private Dictionary<string, string> _common = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private Dictionary<string, string> _verbs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private Dictionary<Verbs, string> _verbs = new Dictionary<Verbs, string>();
 
         public LocalizedStrings(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -163,14 +163,18 @@ namespace Gk3Main.Game
                         continue;
 
                     if (left.StartsWith("V_", StringComparison.OrdinalIgnoreCase))
-                        _verbs.Add(left.Substring(2).Trim(), right.Trim());
+                    {
+                        Verbs v = VerbsUtils.ConvertStringToVerbs(left.Substring(2).Trim());
+                        if (v != Verbs.V_NONE) // not sure why, but estrings.txt seems to have some extra verbs in it?
+                            _verbs.Add(v, right.Trim());
+                    }
                     else
                         _common.Add(left.Trim(), right.Trim());
                 }
             }
         }
 
-        public string GetVerbTooltip(string verb)
+        public string GetVerbTooltip(Verbs verb)
         {
             string tooltip;
             if (_verbs.TryGetValue(verb, out tooltip))

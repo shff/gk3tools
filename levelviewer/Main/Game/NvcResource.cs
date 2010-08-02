@@ -13,8 +13,8 @@ namespace Gk3Main.Game
 
     public struct NounVerbCase
     {
-        public string Noun;
-        public string Verb;
+        public Nouns Noun;
+        public Verbs Verb;
         public string Case;
         public NvcApproachType Approach;
         public string Target;
@@ -77,8 +77,8 @@ namespace Gk3Main.Game
             foreach (Resource.InfoLine line in GlobalSection.Lines)
             {
                 NounVerbCase nvc;
-                nvc.Noun = line.Value;
-                nvc.Verb = line.Attributes[0].Key;
+                nvc.Noun = NounUtils.ConvertStringToNoun(line.Value);
+                nvc.Verb = VerbsUtils.ConvertStringToVerbs(line.Attributes[0].Key);
                 nvc.Case = line.Attributes[1].Key;
 
                 string approach;
@@ -128,7 +128,8 @@ namespace Gk3Main.Game
         private void add(NounVerbCase nvc)
         {
             // apparently GK3 mostly prioritizes NVCs alphabetically
-            // by case. dunno why...
+            // by case, and sometimes that affects which action plays
+            // when the player uses a noun/verb combo.
             for (int i = 0; i < _nvcs.Count; i++)
             {
                 if (string.Compare(nvc.Case, _nvcs[i].Case, true) < 0)
@@ -138,7 +139,7 @@ namespace Gk3Main.Game
                 }
             }
 
-            // still here? we didn't find a matching Noun/Verb pair to replace
+            // still here? add normally
             _nvcs.Add(nvc);
         }
 
@@ -172,7 +173,7 @@ namespace Gk3Main.Game
 
     public struct VerbInfo
     {
-        public string Verb;
+        public Verbs Verb;
         public string Cursor;
         public string UpButton;
         public string DownButton;
@@ -191,7 +192,7 @@ namespace Gk3Main.Game
                 foreach (Resource.InfoLine line in section.Lines)
                 {
                     VerbInfo verb;
-                    verb.Verb = line.Value;
+                    verb.Verb = VerbsUtils.ConvertStringToVerbs(line.Value);
 
                     line.TryGetAttribute("cursor", out verb.Cursor);
                     line.TryGetAttribute("up", out verb.UpButton);
@@ -217,7 +218,7 @@ namespace Gk3Main.Game
                             throw new Resource.InfoResourceException("Unknown verb button type: " + type);
                     }
 
-                    _verbs.Add(line.Value, verb);
+                    _verbs.Add(verb.Verb, verb);
                 }
             }
         }
@@ -226,16 +227,27 @@ namespace Gk3Main.Game
         {
             get
             {
-                // TODO: how to we properly handle ANY_INV_ITEM?
-                if (name.Equals("ANY_INV_ITEM", StringComparison.OrdinalIgnoreCase) ||
-                    name.Equals("TIMER_EXP", StringComparison.OrdinalIgnoreCase))
-                    return new VerbInfo();
+                Verbs verb = VerbsUtils.ConvertStringToVerbs(name);
 
-                return _verbs[name];
+                return this[verb];
             }
         }
 
-        private Dictionary<string, VerbInfo> _verbs = new Dictionary<string, VerbInfo>(StringComparer.OrdinalIgnoreCase);
+        public VerbInfo this[Verbs verb]
+        {
+            get
+            {
+                // TODO: how to we properly handle ANY_INV_ITEM?
+                if (verb == Verbs.V_ANY_INV_ITEM ||
+                    verb == Verbs.V_TIMER_EXP)
+
+                    return new VerbInfo();
+
+                return _verbs[verb];
+            }
+        }
+
+        private Dictionary<Verbs, VerbInfo> _verbs = new Dictionary<Verbs, VerbInfo>();
     }
 
     public class VerbFileLoader : Resource.IResourceLoader

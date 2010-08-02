@@ -9,7 +9,7 @@ namespace Game
     {
         private static Gk3Main.Gui.VerbButtonSet _vbs;
         private static int _mouseDownX, _mouseDownY;
-        private static string _lastNoun;
+        private static Gk3Main.Game.Nouns _lastNoun;
         private static int _lastNounVerbCount;
         private static Gk3Main.Resource.ResourceManager _content = new Gk3Main.Resource.ResourceManager();
 
@@ -108,9 +108,9 @@ namespace Game
 
             if (model != null)
             {
-                string noun = Gk3Main.SceneManager.GetModelNoun(model);
+                Gk3Main.Game.Nouns noun = Gk3Main.SceneManager.GetModelNoun(model);
 
-                if (noun != null)
+                if (noun != Gk3Main.Game.Nouns.N_NONE)
                 {
                     List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun);
 
@@ -133,7 +133,7 @@ namespace Game
 
 
             string model = Gk3Main.SceneManager.GetCollisionModel(camera.Position, (unprojected - camera.Position).Normalize(), 1000.0f);
-            string noun = null;
+            Gk3Main.Game.Nouns noun;
 
             if (model != null)
             {
@@ -143,7 +143,7 @@ namespace Game
                 {
                     _lastNoun = noun;
 
-                    if (noun != null)
+                    if (noun != Gk3Main.Game.Nouns.N_NONE)
                     {
                         int count = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun).Count;
                         _lastNounVerbCount = count;
@@ -156,7 +156,7 @@ namespace Game
             }
             else
             {
-                _lastNoun = null;
+                _lastNoun = Gk3Main.Game.Nouns.N_NONE;
                 _lastNounVerbCount = 0;
             }
 

@@ -401,9 +401,9 @@ namespace Gk3Main
             return null;
         }
 
-        public static string GetModelNoun(string model)
+        public static Nouns GetModelNoun(string model)
         {
-            string noun = null;
+            Nouns noun = Nouns.N_NONE;
             _modelNounMap.TryGetValue(model, out noun);
 
             return noun;
@@ -411,12 +411,14 @@ namespace Gk3Main
 
         public static int GetNounVerbCaseCountForNoun(string noun)
         {
+            Nouns n = NounUtils.ConvertStringToNoun(noun); 
+
             int count = 0;
             foreach (Game.NvcResource nvcResource in _nvcs)
             {
                 foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
                 {
-                    if (nvc.Target != null && nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+                    if (nvc.Target != null && nvc.Noun == n)
                         count++;
                 }
             }
@@ -424,14 +426,14 @@ namespace Gk3Main
             // check the global nvc
             foreach (Game.NounVerbCase nvc in _globalNvcs.NounVerbCases)
             {
-                if (nvc.Target != null && nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+                if (nvc.Target != null && nvc.Noun == n)
                     count++;
             }
 
             return count;
         }
 
-        public static List<Game.NounVerbCase> GetNounVerbCasesForNoun(string noun)
+        public static List<Game.NounVerbCase> GetNounVerbCasesForNoun(Nouns noun)
         {
             List<Game.NounVerbCase> nvcs = new List<Gk3Main.Game.NounVerbCase>();
 
@@ -452,9 +454,9 @@ namespace Gk3Main
             return nvcs;
         }
 
-        private static void addIfNVCBelongsToNoun(string noun, Game.NounVerbCase nvc, List<Game.NounVerbCase> nvcs)
+        private static void addIfNVCBelongsToNoun(Game.Nouns noun, Game.NounVerbCase nvc, List<Game.NounVerbCase> nvcs)
         {
-            if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase))
+            if (doesNounMatch(noun, nvc.Noun, true))
             {
                 if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
                 {
@@ -462,8 +464,8 @@ namespace Gk3Main
                     bool alreadyExists = false;
                     for (int i = 0; i < nvcs.Count; i++)
                     {
-                        if (nvcs[i].Noun.Equals(nvc.Noun, StringComparison.OrdinalIgnoreCase) &&
-                            nvcs[i].Verb.Equals(nvc.Verb, StringComparison.OrdinalIgnoreCase))
+                        if (nvcs[i].Noun == nvc.Noun &&
+                            nvcs[i].Verb == nvc.Verb)
                         {
                             alreadyExists = true;
                             break;
@@ -476,14 +478,33 @@ namespace Gk3Main
             }
         }
 
-        public static Game.NounVerbCase? GetNounVerbCase(string noun, string verb, bool evaluate)
+        private static bool doesNounMatch(Game.Nouns noun, Game.Nouns nvcNoun, bool checkGroups)
+        {
+            if (noun == nvcNoun) return true;
+
+            // nouns don't match, but that may be because the nvcNoun is the name of a group!
+            if (checkGroups)
+            {
+                List<Nouns> groups = NounUtils.GetNounGroupsFromMember(noun);
+                if (groups != null)
+                {
+                    foreach (Nouns group in groups)
+                        if (group == nvcNoun)
+                            return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static Game.NounVerbCase? GetNounVerbCase(Nouns noun, Verbs verb, bool evaluate)
         {
             foreach (Game.NvcResource nvcResource in _nvcs)
             {
                 foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
                 {
-                    if (nvc.Noun.Equals(noun, StringComparison.OrdinalIgnoreCase) &&
-                        nvc.Verb.Equals(verb, StringComparison.OrdinalIgnoreCase) &&
+                    if (nvc.Noun == noun &&
+                        nvc.Verb == verb &&
                         (!evaluate || evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case)))
                     {
                         return nvc;
@@ -644,7 +665,10 @@ namespace Gk3Main
                 }
 
                 if (string.IsNullOrEmpty(model.Noun) == false)
-                    _modelNounMap.Add(model.Name, model.Noun);
+                {
+                    Nouns n = NounUtils.ConvertStringToNoun(model.Noun);
+                    _modelNounMap.Add(model.Name, n);
+                }
 
                 // play the first frame of the init animation (if it exists)
                 if (model.InitAnim != null)
@@ -664,7 +688,10 @@ namespace Gk3Main
                     SetActorPosition(actor.Noun, actor.Pos);
 
                 if (string.IsNullOrEmpty(actor.Noun) == false)
-                    _modelNounMap.Add(actor.Model, actor.Noun);
+                {
+                    Nouns n = NounUtils.ConvertStringToNoun(actor.Noun);
+                    _modelNounMap.Add(actor.Model, n);
+                }
 
                 // play the first frame of the init animation (if it exists)
                 if (actor.InitAnim != null)
@@ -745,7 +772,7 @@ namespace Gk3Main
             return true;
         }
 
-        private static bool evaluateNvcLogic(string noun, string verb, string conditionName)
+        private static bool evaluateNvcLogic(Nouns noun, Verbs verb, string conditionName)
         {
             if (conditionName.Equals("ALL", StringComparison.OrdinalIgnoreCase))
                 return true;
@@ -808,10 +835,7 @@ namespace Gk3Main
                 condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
             }*/
 
-            Verbs verbEnum = VerbsUtils.ConvertStringToVerbs(verb);
-            Nouns nounEnum = NounUtils.ConvertStringToNoun(noun);
-
-            return Sheep.SheepMachine.RunSnippet(condition, nounEnum, verbEnum) > 0;
+            return Sheep.SheepMachine.RunSnippet(condition, noun, verb) > 0;
         }
 
         private static void unloadActors()
@@ -842,7 +866,7 @@ namespace Gk3Main
         private static List<Game.Actor> _actors = new List<Actor>();
         private static List<SceneModel> _models = new List<SceneModel>();
         private static List<Game.GasResource> _modelGases = new List<GasResource>();
-        private static Dictionary<string, string> _modelNounMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, Nouns> _modelNounMap = new Dictionary<string, Nouns>(StringComparer.OrdinalIgnoreCase);
         private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
         private static Game.NvcResource _globalNvcs;
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();

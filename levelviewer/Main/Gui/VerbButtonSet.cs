@@ -27,7 +27,7 @@ namespace Gk3Main.Gui
                     string.Format("{0}.BMP", info.UpButton),
                     info.DisableButton != null ? string.Format("{0}.BMP", info.DisableButton) : null,
                     null,
-                    info.Verb != null ? Game.GameManager.Strings.GetVerbTooltip(info.Verb) : null);
+                    info.Verb != Game.Verbs.V_NONE ? Game.GameManager.Strings.GetVerbTooltip(info.Verb) : null);
                 b.X = new Unit(0, buttonOffsetX);
                 b.Y = new Unit(0, screenY);
                 b.OnClick += new EventHandler(buttonClicked);
@@ -132,11 +132,11 @@ namespace Gk3Main.Gui
             Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", button.Verb);
             Sheep.SheepMachine.RunCommand(button.Script);
 
-            if (button.Verb.Equals("Z_CHAT", StringComparison.OrdinalIgnoreCase))
+            if (button.Verb == Game.Verbs.V_Z_CHAT)
             {
                 Game.GameManager.IncrementChatCount(button.Noun);
             }
-            else if (button.Verb.StartsWith("T_", StringComparison.OrdinalIgnoreCase))
+            else if (Game.VerbsUtils.IsTopicVerb(button.Verb))
             {
                 Game.GameManager.IncrementTopicCount(button.Noun, button.Verb);
             }

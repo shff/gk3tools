@@ -138,14 +138,14 @@ namespace Gk3Main.Game
         public static void SetLocation(string location)
         {
             SceneManager.LoadSif(location, GetTimeBlockString(_currentTime));
-            List<NounVerbCase> nvcs = SceneManager.GetNounVerbCasesForNoun("SCENE");
+            List<NounVerbCase> nvcs = SceneManager.GetNounVerbCasesForNoun(Nouns.N_SCENE);
 
             _lastLocation = _location;
             _location = location;
 
             foreach (NounVerbCase nvc in nvcs)
             {
-                if (nvc.Verb.Equals("ENTER", StringComparison.OrdinalIgnoreCase))
+                if (nvc.Verb == Game.Verbs.V_ENTER)
                 {
                     Sheep.SheepMachine.RunCommand(nvc.Script);
                 }
@@ -161,10 +161,10 @@ namespace Gk3Main.Game
             return 0;
         }
 
-        public static int GetNounVerbCount(string noun, string verb)
+        public static int GetNounVerbCount(string noun, Verbs verb)
         {
             return GetNounVerbCount(NounUtils.ConvertStringToNoun(noun),
-                VerbsUtils.ConvertStringToVerbs(verb), CurrentEgo == Ego.Gabriel);
+                verb, CurrentEgo == Ego.Gabriel);
         }
 
         public static int GetNounVerbCount(Nouns noun, Verbs verb)
@@ -179,12 +179,15 @@ namespace Gk3Main.Game
 
         public static void SetNounVerbCount(string noun, string verb, int count)
         {
-            SetNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel, count);   
+            SetNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel, count);
+
+            Logger.WriteInfo("Set NVC count '{0}','{1}' to {2}", LoggerStream.Debug,
+                noun, verb, count);
         }
 
-        public static void IncrementNounVerbCount(string noun, string verb, bool isGabe)
+        public static void IncrementNounVerbCount(Nouns noun, Verbs verb, bool isGabe)
         {
-            NounVerbCombination nv = new NounVerbCombination(NounUtils.ConvertStringToNoun(noun), VerbsUtils.ConvertStringToVerbs(verb), CurrentEgo == Ego.Gabriel);
+            NounVerbCombination nv = new NounVerbCombination(noun, verb, CurrentEgo == Ego.Gabriel);
             if (_nounVerbCounts.ContainsKey(nv) == false)
                 _nounVerbCounts[nv] = 1;
             else
@@ -192,9 +195,12 @@ namespace Gk3Main.Game
                 int c = _nounVerbCounts[nv];
                 _nounVerbCounts[nv] = c + 1;
             }
+
+            Logger.WriteInfo("Incremented NVC count '{0}','{1}' to {2}", LoggerStream.Debug,
+                noun, verb, _nounVerbCounts[nv]);
         }
 
-        public static void IncrementNounVerbCount(string noun, string verb)
+        public static void IncrementNounVerbCount(Nouns noun, Verbs verb)
         {
             IncrementNounVerbCount(noun, verb, CurrentEgo == Ego.Gabriel);
         }
@@ -211,9 +217,11 @@ namespace Gk3Main.Game
         public static void SetIntegerGameVariable(string variable, int value)
         {
             _integerGameVariables[variable] = value;
+
+            Logger.WriteInfo("Set game variable '{0}' to {1}", LoggerStream.Debug, variable, value);
         }
 
-        public static int GetChatCount(string noun)
+        public static int GetChatCount(Nouns noun)
         {
             if (_chatCounts.ContainsKey(noun) == false)
                 return 0;
@@ -221,7 +229,7 @@ namespace Gk3Main.Game
             return _chatCounts[noun];
         }
 
-        public static void IncrementChatCount(string noun)
+        public static void IncrementChatCount(Nouns noun)
         {
             if (_chatCounts.ContainsKey(noun) == false)
                 _chatCounts[noun] = 1;
@@ -230,6 +238,8 @@ namespace Gk3Main.Game
                 int c = _chatCounts[noun];
                 _chatCounts[noun] = c + 1;
             }
+
+            Logger.WriteInfo("Incremented chat count '{0}' to {1}", LoggerStream.Debug, noun, _chatCounts[noun]);
         }
 
         public static int GetTopicCount(string noun, string verb)
@@ -246,10 +256,10 @@ namespace Gk3Main.Game
             return _topicCounts[nounverb];
         }
 
-        public static void IncrementTopicCount(string noun, string verb)
+        public static void IncrementTopicCount(Nouns noun, Verbs verb)
         {
-            int inoun = (int)NounUtils.ConvertStringToNoun(noun);
-            int iverb = (int)VerbsUtils.ConvertStringToVerbs(verb);
+            int inoun = (int)noun;
+            int iverb = (int)verb;
 
             int nounverb = (int)inoun * (int)Game.Verbs._LAST + (int)iverb;
             if (_topicCounts.ContainsKey(nounverb) == false)
@@ -259,6 +269,9 @@ namespace Gk3Main.Game
                 int c = _topicCounts[nounverb];
                 _topicCounts[nounverb] = c + 1;
             }
+
+            Logger.WriteInfo("Incremented topic count '{0}','{1}' to {2}", LoggerStream.Debug,
+                noun, verb, _topicCounts[nounverb]);
         }
 
         public static void SetFlag(string name)
@@ -269,6 +282,8 @@ namespace Gk3Main.Game
             {
                 _flags.Add(name, true);
             }
+
+            Logger.WriteInfo("Set flag '{0}'", LoggerStream.Debug, name);
         }
 
         public static bool GetFlag(string name)
@@ -312,7 +327,7 @@ namespace Gk3Main.Game
                 _graceInventory.Add(name);
         }
 
-        public static void AddGameTimer(string noun, string verb, int duration)
+        public static void AddGameTimer(Nouns noun, Verbs verb, int duration)
         {
             Game.GameTimer timer;
             timer.Noun = noun;
@@ -393,7 +408,7 @@ namespace Gk3Main.Game
         private static LocalizedStrings _strings;
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, int> _chatCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<Nouns, int> _chatCounts = new Dictionary<Nouns, int>();
         private static Dictionary<int, int> _topicCounts = new Dictionary<int, int>();
         private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();
         private static List<string> _gabeInventory = new List<string>();

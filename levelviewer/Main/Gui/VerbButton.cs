@@ -6,11 +6,11 @@ namespace Gk3Main.Gui
 {
     class VerbButton : Button
     {
-        private string _noun;
-        private string _verb;
+        private Game.Nouns _noun;
+        private Game.Verbs _verb;
         private string _script;
 
-        public VerbButton(Resource.ResourceManager content, string noun, string verb, string script,
+        public VerbButton(Resource.ResourceManager content, Game.Nouns noun, Game.Verbs verb, string script,
             string downImage, string hoverImage, string upImage, string disabledImage,
             string clickedSound, string tooltip)
             : base(content, downImage, hoverImage, upImage, disabledImage, clickedSound)
@@ -20,12 +20,12 @@ namespace Gk3Main.Gui
             _script = script;
         }
 
-        public string Noun
+        public Game.Nouns Noun
         {
             get { return _noun; }
         }
 
-        public string Verb
+        public Game.Verbs Verb
         {
             get { return _verb; }
         }
