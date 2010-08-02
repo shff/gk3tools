@@ -342,14 +342,14 @@ class MonoMain
             Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
                 "Timer expired- noun: {0} verb: {1}", timer.Value.Noun, timer.Value.Verb);
 
-            Gk3Main.Game.NounVerbCase? nvc = Gk3Main.SceneManager.GetNounVerbCase(timer.Value.Noun, timer.Value.Verb, true);
+            List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.Game.NvcManager.GetNounVerbCases(timer.Value.Noun, timer.Value.Verb, true);
 
-            if (nvc.HasValue)
+            foreach(Gk3Main.Game.NounVerbCase nvc in nvcs)
             {
                 Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
-                    "Executing timer NVC: {0}", nvc.Value.Script);
+                    "Executing timer NVC: {0}", nvc.Script);
 
-                Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Value.Script);
+                Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Script);
             }
         }
     }

@@ -112,7 +112,7 @@ namespace Game
 
                 if (noun != Gk3Main.Game.Nouns.N_NONE)
                 {
-                    List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun);
+                    List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.Game.NvcManager.GetNounVerbCases(noun, true);
 
                     if (nvcs.Count > 0)
                     {
@@ -145,7 +145,7 @@ namespace Game
 
                     if (noun != Gk3Main.Game.Nouns.N_NONE)
                     {
-                        int count = Gk3Main.SceneManager.GetNounVerbCasesForNoun(noun).Count;
+                        int count = Gk3Main.Game.NvcManager.GetNounVerbCases(noun, true).Count;
                         _lastNounVerbCount = count;
                     }
                     else

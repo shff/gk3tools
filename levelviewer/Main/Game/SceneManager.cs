@@ -92,9 +92,8 @@ namespace Gk3Main
             _roomPositions.Clear();
             _cameras.Clear();
             _modelNounMap.Clear();
-            _nvcs.Clear();
-            _nvcLogicAliases.Clear();
             _stks.Clear();
+            NvcManager.Reset();
 
             // attempt to load a "parent" sif
             Gk3Main.Game.SifResource parentSif = null;
@@ -124,6 +123,7 @@ namespace Gk3Main
             // load the NVCs
             loadSifNvcs(sifResource);
             if (parentSif != null) loadSifNvcs(parentSif);
+            NvcManager.Compile();
 
             // load the STKs
             Sound.SoundManager.StopChannel(Sound.SoundTrackChannel.Music);
@@ -409,112 +409,6 @@ namespace Gk3Main
             return noun;
         }
 
-        public static int GetNounVerbCaseCountForNoun(string noun)
-        {
-            Nouns n = NounUtils.ConvertStringToNoun(noun); 
-
-            int count = 0;
-            foreach (Game.NvcResource nvcResource in _nvcs)
-            {
-                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
-                {
-                    if (nvc.Target != null && nvc.Noun == n)
-                        count++;
-                }
-            }
-
-            // check the global nvc
-            foreach (Game.NounVerbCase nvc in _globalNvcs.NounVerbCases)
-            {
-                if (nvc.Target != null && nvc.Noun == n)
-                    count++;
-            }
-
-            return count;
-        }
-
-        public static List<Game.NounVerbCase> GetNounVerbCasesForNoun(Nouns noun)
-        {
-            List<Game.NounVerbCase> nvcs = new List<Gk3Main.Game.NounVerbCase>();
-
-            foreach (Game.NvcResource nvcResource in _nvcs)
-            {
-                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
-                {
-                    addIfNVCBelongsToNoun(noun, nvc, nvcs);
-                }
-            }
-
-            // now check the global NVC
-            foreach (Game.NounVerbCase nvc in _globalNvcs.NounVerbCases)
-            {
-                addIfNVCBelongsToNoun(noun, nvc, nvcs);
-            }
-
-            return nvcs;
-        }
-
-        private static void addIfNVCBelongsToNoun(Game.Nouns noun, Game.NounVerbCase nvc, List<Game.NounVerbCase> nvcs)
-        {
-            if (doesNounMatch(noun, nvc.Noun, true))
-            {
-                if (evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case))
-                {
-                    // is this noun/verb combination already in the list?
-                    bool alreadyExists = false;
-                    for (int i = 0; i < nvcs.Count; i++)
-                    {
-                        if (nvcs[i].Noun == nvc.Noun &&
-                            nvcs[i].Verb == nvc.Verb)
-                        {
-                            alreadyExists = true;
-                            break;
-                        }
-                    }
-
-                    if (alreadyExists == false)
-                        nvcs.Add(nvc);
-                }
-            }
-        }
-
-        private static bool doesNounMatch(Game.Nouns noun, Game.Nouns nvcNoun, bool checkGroups)
-        {
-            if (noun == nvcNoun) return true;
-
-            // nouns don't match, but that may be because the nvcNoun is the name of a group!
-            if (checkGroups)
-            {
-                List<Nouns> groups = NounUtils.GetNounGroupsFromMember(noun);
-                if (groups != null)
-                {
-                    foreach (Nouns group in groups)
-                        if (group == nvcNoun)
-                            return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static Game.NounVerbCase? GetNounVerbCase(Nouns noun, Verbs verb, bool evaluate)
-        {
-            foreach (Game.NvcResource nvcResource in _nvcs)
-            {
-                foreach (Game.NounVerbCase nvc in nvcResource.NounVerbCases)
-                {
-                    if (nvc.Noun == noun &&
-                        nvc.Verb == verb &&
-                        (!evaluate || evaluateNvcLogic(nvc.Noun, nvc.Verb, nvc.Case)))
-                    {
-                        return nvc;
-                    }
-                }
-            }
-
-            return null;
-        }
-
         public static List<string> GetAllModels()
         {
             if (_currentRoom != null)
@@ -703,13 +597,7 @@ namespace Gk3Main
 
         private static void loadGlobalNvc(Resource.ResourceManager content)
         {
-            _globalNvcs = content.Load<NvcResource>("GLB_ALL.NVC");
-
-            _globalNVCLogicAliases = new Dictionary<string,string>();
-            foreach (KeyValuePair<string, string> nvcLogic in _globalNvcs.Logic)
-            {
-                _globalNVCLogicAliases.Add(nvcLogic.Key, nvcLogic.Value);
-            }
+            NvcManager.AddNvc(content.Load<NvcResource>("GLB_ALL.NVC"), true);
         }
 
         private static void loadSifNvcs(Game.SifResource sif)
@@ -734,12 +622,7 @@ namespace Gk3Main
                     }
 
                     NvcResource nvc = _sceneContentManager.Load<NvcResource>(nvcFile);
-                    _nvcs.Add(nvc);
-
-                    foreach (KeyValuePair<string, string> nvcLogic in nvc.Logic)
-                    {
-                        _nvcLogicAliases.Add(nvcLogic.Key, nvcLogic.Value);
-                    }
+                    NvcManager.AddNvc(nvc, false);
                 }
                 catch (System.IO.FileNotFoundException)
                 {
@@ -772,72 +655,7 @@ namespace Gk3Main
             return true;
         }
 
-        private static bool evaluateNvcLogic(Nouns noun, Verbs verb, string conditionName)
-        {
-            if (conditionName.Equals("ALL", StringComparison.OrdinalIgnoreCase))
-                return true;
-            if (conditionName.Equals("GRACE_ALL", StringComparison.OrdinalIgnoreCase))
-                return GameManager.CurrentEgo == Ego.Grace;
-            if (conditionName.Equals("GABE_ALL", StringComparison.OrdinalIgnoreCase))
-                return GameManager.CurrentEgo == Ego.Gabriel;
-            if (conditionName.Equals("1ST_TIME", StringComparison.OrdinalIgnoreCase))
-                return GameManager.GetNounVerbCount(noun, verb) == 0;
-            if (conditionName.Equals("2CD_TIME", StringComparison.OrdinalIgnoreCase) ||
-                conditionName.Equals("2ND_TIME", StringComparison.OrdinalIgnoreCase))
-                return GameManager.GetNounVerbCount(noun, verb) == 1;
-            if (conditionName.Equals("3RD_TIME", StringComparison.OrdinalIgnoreCase))
-                return GameManager.GetNounVerbCount(noun, verb) == 2;
-            if (conditionName.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase))
-                return GameManager.GetNounVerbCount(noun, verb) > 0;
-            if (conditionName.Equals("TIME_BLOCK", StringComparison.OrdinalIgnoreCase))
-                return true; // TODO: what does this case mean?
-            if (conditionName.Equals("TIME_BLOCK_OVERRIDE", StringComparison.OrdinalIgnoreCase))
-                return true; // TODO: what does this case mean?
-            if (conditionName.Equals("DIALOGUE_TOPICS_INTRO", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-            if (conditionName.Equals("DIALOGUE_TOPICS_NOT_INTRO", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-            if (conditionName.Equals("DIALOGUE_TOPICS_LEFT", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-            if (conditionName.Equals("NOT_DIALOGUE_TOPICS_LEFT", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-            if (conditionName.Equals("CLOSE_UP", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-            if (conditionName.Equals("NOT_CLOSEUP", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-            if (conditionName.Equals("IN_INVENTORY", StringComparison.OrdinalIgnoreCase))
-                return false; // TODO
-
-            // guess it was something else
-            string condition;
-            if (_nvcLogicAliases.ContainsKey(conditionName))
-                condition = _nvcLogicAliases[conditionName];
-            else if (_globalNVCLogicAliases.ContainsKey(conditionName))
-                condition = _globalNVCLogicAliases[conditionName];
-            else
-            {
-                if (_nvcLogicAliases.TryGetValue("G_" + conditionName, out condition) == false)
-                    return false; // apparently some cases just don't exist anywhere
-            }
-
-            /*// HACK: until we support passing variables to snippets we
-            // have to do some ugly manipulation like this to handle GetNounVerbCountInt()
-            if (condition.IndexOf("GetNounVerbCountInt", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                condition = Utils.ReplaceStringCaseInsensitive(condition, "GetNounVerbCountInt", "GetNounVerbCount");
-                condition = Utils.ReplaceStringCaseInsensitive(condition, "n$", string.Format("\"{0}\"", noun));
-                condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
-            }
-            if (condition.IndexOf("GetTopicCountInt", StringComparison.OrdinalIgnoreCase) >= 0)
-            {
-                condition = Utils.ReplaceStringCaseInsensitive(condition, "GetTopicCountInt", "GetTopicCount");
-                condition = Utils.ReplaceStringCaseInsensitive(condition, "n$", string.Format("\"{0}\"", noun));
-                condition = Utils.ReplaceStringCaseInsensitive(condition, "v$", string.Format("\"{0}\"", verb));
-            }*/
-
-            return Sheep.SheepMachine.RunSnippet(condition, noun, verb) > 0;
-        }
-
+        
         private static void unloadActors()
         {
             _actors.Clear();
@@ -867,13 +685,9 @@ namespace Gk3Main
         private static List<SceneModel> _models = new List<SceneModel>();
         private static List<Game.GasResource> _modelGases = new List<GasResource>();
         private static Dictionary<string, Nouns> _modelNounMap = new Dictionary<string, Nouns>(StringComparer.OrdinalIgnoreCase);
-        private static List<Game.NvcResource> _nvcs = new List<Gk3Main.Game.NvcResource>();
-        private static Game.NvcResource _globalNvcs;
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();
         private static Dictionary<string, SifRoomCamera> _cameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, string> _globalNVCLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private static Dictionary<string, string> _nvcLogicAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static LinkedList<Sound.SoundTrackResource> _playingSoundTracks = new LinkedList<Sound.SoundTrackResource>();
         private static Resource.ResourceManager _sceneContentManager;
 
