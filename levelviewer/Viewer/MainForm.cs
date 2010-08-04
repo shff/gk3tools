@@ -186,9 +186,8 @@ namespace Viewer
                     }
                 }*/
 
-                // TODO: fix this!
-                //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
-                //_resourceViewerForm.UpdateResources(resources);
+                IList<string> resources = Gk3Main.SceneManager.SceneContentManager.GetLoadedResourceNames();
+                _resourceViewerForm.UpdateResources(resources);
             }
         }
 
@@ -220,15 +219,16 @@ namespace Viewer
 
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)
         {
-            if (_initialDataLoaded)
-            {
                 _window.Renderer.Clear();
-                _window.Renderer.BeginScene();
-                Gk3Main.SceneManager.Render(_camera);
-                _window.Renderer.EndScene();
+
+                if (_initialDataLoaded)
+                {
+                    _window.Renderer.BeginScene();
+                    Gk3Main.SceneManager.Render(_camera);
+                    _window.Renderer.EndScene();
+                }
 
                 _window.Present();
-            }
         }
         
         private void pbRenderWindow_Resize(object sender, EventArgs e)

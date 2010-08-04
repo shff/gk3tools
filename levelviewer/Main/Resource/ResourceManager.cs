@@ -170,9 +170,12 @@ namespace Gk3Main.Resource
         {
             IList<string> list = new List<string>();
 
-            foreach (string key in _loadedContent.Keys)
+            foreach (KeyValuePair<string, Dictionary<Type, Resource>> content in _loadedContent)
             {
-                list.Add(key);
+                foreach (KeyValuePair<Type,Resource> v in content.Value)
+                {
+                    list.Add(v.Value.Name);
+                }
             }
 
             return list;
