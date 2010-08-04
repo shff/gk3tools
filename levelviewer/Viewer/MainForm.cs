@@ -12,7 +12,8 @@ namespace Viewer
         public MainForm()
         {
             InitializeComponent();
-            simpleOpenGlControl1.InitializeContexts();
+            _window = new Direct3D9RenderWindow(pbRenderWindow);
+            Gk3Main.Graphics.RendererManager.CurrentRenderer = _window.CreateRenderer();
 
             _pathEditor = new SearchPathEditor();
             _pathEditor.Hide();
@@ -56,16 +57,21 @@ namespace Viewer
                 }
             }
 
-            // TODO: get this working again!
-            /*
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader());
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader());
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader());
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader());
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader());
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader());
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader());
-            */
+            _globalContent = new Gk3Main.Resource.ResourceManager();
+
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader(), typeof(Gk3Main.Game.NvcResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.ScnResourceLoader(), typeof(Gk3Main.Game.ScnResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.SifResourceLoader(), typeof(Gk3Main.Game.SifResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader(), typeof(Gk3Main.Game.MomResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.GasResourceLoader(), typeof(Gk3Main.Game.GasResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.BspResourceLoader(), typeof(Gk3Main.Graphics.BspResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.TextureResourceLoader(), typeof(Gk3Main.Graphics.TextureResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.LightmapResourceLoader(), typeof(Gk3Main.Graphics.LightmapResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader(), typeof(Gk3Main.Graphics.ModelResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader(), typeof(Gk3Main.Graphics.ActResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader(), typeof(Gk3Main.Graphics.Effect));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader(), typeof(Gk3Main.Sound.SoundTrackResource));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.Sound));
 
             try
             {
@@ -76,14 +82,36 @@ namespace Viewer
                 Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
             }
 
+            
+
+
+
             bool zNegOne = (Gk3Main.Graphics.RendererManager.CurrentRenderer.ZClipMode == Gk3Main.Graphics.ZClipMode.NegativeOne);
-            _camera = new Gk3Main.Graphics.Camera(1.04719755f, simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 5000.0f, zNegOne);
+            _camera = new Gk3Main.Graphics.Camera(1.04719755f, (float)pbRenderWindow.Width / pbRenderWindow.Height, 1.0f, 5000.0f, zNegOne);
 
             Gk3Main.SceneManager.LightmapsEnabled = true;
             Gk3Main.SceneManager.DoubleLightmapValues = true;
             Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
+        }
 
-            Video.Init(simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);
+        private void loadInitialData()
+        {
+            if (_initialDataLoaded == false)
+            {
+                // BUG: this code runs the first time the user tries
+                // to open a SCN or SIF or MOD, and never runs again.
+                // But meanwhile the search paths might change.
+                Gk3Main.Graphics.BspResource.Init(_globalContent);
+                Gk3Main.Graphics.SpriteBatch.Init(_globalContent);
+                Gk3Main.Graphics.SkyBox.Init(_globalContent);
+                Gk3Main.Graphics.BillboardManager.Init(_globalContent);
+                Gk3Main.Graphics.AxisAlignedBoundingBox.Init(_globalContent);
+                Gk3Main.Sound.SoundManager.Init();
+                Gk3Main.SceneManager.Initialize(_globalContent);
+                Gk3Main.Game.GameManager.Load();
+            }
+
+            _initialDataLoaded = true;
         }
 
         bool run(string[] args, Gk3Main.Console console)
@@ -121,6 +149,7 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
+                loadInitialData();
                 Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
 
                 // TODO: fix this!
@@ -141,18 +170,21 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
-                Gk3Main.Game.SifResource sif = null; // TODO: (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
+                //Gk3Main.Game.SifResource sif = null; // TODO: (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
+                
+                loadInitialData();
+                Gk3Main.SceneManager.LoadSif(dialog.SelectedScene);
 
-                Gk3Main.SceneManager.LoadScene(sif.Scene);
+                //Gk3Main.SceneManager.LoadScene(sif.Scene);
 
-                // load the models
+                /*// load the models
                 foreach (Gk3Main.Game.SifModel model in sif.Models)
                 {
                     if (model.Type == Gk3Main.Game.SifModelType.Prop)
                     {
                         Gk3Main.SceneManager.AddModel(model.Name, !model.Hidden);
                     }
-                }
+                }*/
 
                 // TODO: fix this!
                 //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
@@ -172,6 +204,7 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
+                loadInitialData();
                 Gk3Main.SceneManager.AddModel(dialog.SelectedScene, true);
 
                 // TODO: fix this!
@@ -182,22 +215,27 @@ namespace Viewer
 
         private void takeScreenshotToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Video.SaveScreenshot("screenshot.bmp");
+            //Video.SaveScreenshot("screenshot.bmp");
         }
 
         private void simpleOpenGlControl1_Paint(object sender, PaintEventArgs e)
         {
-            Tao.OpenGl.Gl.glClear(Tao.OpenGl.Gl.GL_COLOR_BUFFER_BIT | Tao.OpenGl.Gl.GL_DEPTH_BUFFER_BIT);
-            Gk3Main.SceneManager.Render(_camera);
+            if (_initialDataLoaded)
+            {
+                _window.Renderer.Clear();
+                _window.Renderer.BeginScene();
+                Gk3Main.SceneManager.Render(_camera);
+                _window.Renderer.EndScene();
 
-            Tao.OpenGl.Gl.glFlush();
+                _window.Present();
+            }
         }
         
-        private void simpleOpenGlControl1_Resize(object sender, EventArgs e)
+        private void pbRenderWindow_Resize(object sender, EventArgs e)
         {
-            Video.Init(simpleOpenGlControl1.Width, simpleOpenGlControl1.Height);
+            _window.Resize(pbRenderWindow.Width, pbRenderWindow.Height);
             _camera.Projection = Gk3Main.Math.Matrix.Perspective(1.04719755f,
-                (float)simpleOpenGlControl1.Width / simpleOpenGlControl1.Height, 1.0f, 5000.0f);
+                (float)pbRenderWindow.Width / pbRenderWindow.Height, 1.0f, 5000.0f);
         }
 
         private void simpleOpenGlControl1_MouseDown(object sender, MouseEventArgs e)
@@ -241,17 +279,17 @@ namespace Viewer
 
                     if (_keys[(int)Keys.ShiftKey])
                     {
-                        _camera.AdjustYaw(-relx * 0.01f);
-                        _camera.AdjustPitch(-rely * 0.01f);
+                        _camera.AdjustYaw(relx * 0.01f);
+                        _camera.AdjustPitch(rely * 0.01f);
                     }
                     else
                     {
-                        _camera.AdjustYaw(-relx * 0.01f);
-                        _camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(0, 0, rely));
+                        _camera.AdjustYaw(relx * 0.01f);
+                        _camera.AddRelativePositionOffset(new Gk3Main.Math.Vector3(0, 0, -rely));
                     }
                 }
 
-                simpleOpenGlControl1.Draw();
+                pbRenderWindow.Refresh();
             }
             
             _oldMouseX = e.X;
@@ -307,7 +345,7 @@ namespace Viewer
                 Gk3Main.SceneManager.LightmapsEnabled = true;
             }
 
-            simpleOpenGlControl1.Draw();
+            pbRenderWindow.Refresh();
         }
 
         private void texturingToolStripMenuItem_Click(object sender, EventArgs e)
@@ -323,7 +361,7 @@ namespace Viewer
                 Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
             }
 
-            simpleOpenGlControl1.Draw();
+            pbRenderWindow.Refresh();
         }
 
         private void xLightmapsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -339,7 +377,7 @@ namespace Viewer
                 Gk3Main.SceneManager.DoubleLightmapValues = true;
             }
 
-            simpleOpenGlControl1.Draw();
+            pbRenderWindow.Refresh();
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -352,10 +390,13 @@ namespace Viewer
 
         #endregion
 
+        private Direct3D9RenderWindow _window;
+        private Gk3Main.Resource.ResourceManager _globalContent;
         private Gk3Main.Graphics.Camera _camera;
         private SearchPathEditor _pathEditor;
         private ConsoleForm _consoleForm;
         private ResourceViewer _resourceViewerForm;
+        private bool _initialDataLoaded;
         private bool _leftMouseButton, _rightMouseButton;
         private bool[] _keys = new bool[MaxKeyValue+1];
 

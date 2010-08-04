@@ -28,7 +28,6 @@ namespace Viewer
         /// </summary>
         private void InitializeComponent()
         {
-            this.simpleOpenGlControl1 = new Tao.Platform.Windows.SimpleOpenGlControl();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openSCNToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -45,32 +44,9 @@ namespace Viewer
             this.xLightmapsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pbRenderWindow = new Viewer.Direct3D9RenderControl();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // simpleOpenGlControl1
-            // 
-            this.simpleOpenGlControl1.AccumBits = ((byte)(0));
-            this.simpleOpenGlControl1.AutoCheckErrors = false;
-            this.simpleOpenGlControl1.AutoFinish = false;
-            this.simpleOpenGlControl1.AutoMakeCurrent = true;
-            this.simpleOpenGlControl1.AutoSwapBuffers = true;
-            this.simpleOpenGlControl1.BackColor = System.Drawing.Color.Black;
-            this.simpleOpenGlControl1.ColorBits = ((byte)(32));
-            this.simpleOpenGlControl1.DepthBits = ((byte)(16));
-            this.simpleOpenGlControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.simpleOpenGlControl1.Location = new System.Drawing.Point(0, 24);
-            this.simpleOpenGlControl1.Name = "simpleOpenGlControl1";
-            this.simpleOpenGlControl1.Size = new System.Drawing.Size(547, 402);
-            this.simpleOpenGlControl1.StencilBits = ((byte)(0));
-            this.simpleOpenGlControl1.TabIndex = 0;
-            this.simpleOpenGlControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.simpleOpenGlControl1_Paint);
-            this.simpleOpenGlControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseMove);
-            this.simpleOpenGlControl1.KeyUp += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyUp);
-            this.simpleOpenGlControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseDown);
-            this.simpleOpenGlControl1.Resize += new System.EventHandler(this.simpleOpenGlControl1_Resize);
-            this.simpleOpenGlControl1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseUp);
-            this.simpleOpenGlControl1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyDown);
             // 
             // menuStrip1
             // 
@@ -166,7 +142,7 @@ namespace Viewer
             this.lightmappingToolStripMenuItem.Checked = true;
             this.lightmappingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.lightmappingToolStripMenuItem.Name = "lightmappingToolStripMenuItem";
-            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.lightmappingToolStripMenuItem.Text = "Lightmapping";
             this.lightmappingToolStripMenuItem.Click += new System.EventHandler(this.lightmappingToolStripMenuItem_Click);
             // 
@@ -175,7 +151,7 @@ namespace Viewer
             this.texturingToolStripMenuItem.Checked = true;
             this.texturingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.texturingToolStripMenuItem.Name = "texturingToolStripMenuItem";
-            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.texturingToolStripMenuItem.Text = "Texturing";
             this.texturingToolStripMenuItem.Click += new System.EventHandler(this.texturingToolStripMenuItem_Click);
             // 
@@ -184,7 +160,7 @@ namespace Viewer
             this.xLightmapsToolStripMenuItem.Checked = true;
             this.xLightmapsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.xLightmapsToolStripMenuItem.Name = "xLightmapsToolStripMenuItem";
-            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
             this.xLightmapsToolStripMenuItem.Text = "2X Lightmaps";
             this.xLightmapsToolStripMenuItem.Click += new System.EventHandler(this.xLightmapsToolStripMenuItem_Click);
             // 
@@ -203,12 +179,28 @@ namespace Viewer
             this.aboutToolStripMenuItem.Text = "About";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
+            // pbRenderWindow
+            // 
+            this.pbRenderWindow.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pbRenderWindow.Location = new System.Drawing.Point(0, 24);
+            this.pbRenderWindow.Name = "pbRenderWindow";
+            this.pbRenderWindow.Size = new System.Drawing.Size(547, 402);
+            this.pbRenderWindow.TabIndex = 2;
+            this.pbRenderWindow.Text = "direct3D9RenderControl1";
+            this.pbRenderWindow.Paint += new System.Windows.Forms.PaintEventHandler(this.simpleOpenGlControl1_Paint);
+            this.pbRenderWindow.MouseMove += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseMove);
+            this.pbRenderWindow.KeyUp += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyUp);
+            this.pbRenderWindow.MouseDown += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseDown);
+            this.pbRenderWindow.Resize += new System.EventHandler(this.pbRenderWindow_Resize);
+            this.pbRenderWindow.MouseUp += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseUp);
+            this.pbRenderWindow.KeyDown += new System.Windows.Forms.KeyEventHandler(this.simpleOpenGlControl1_KeyDown);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(547, 426);
-            this.Controls.Add(this.simpleOpenGlControl1);
+            this.Controls.Add(this.pbRenderWindow);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
@@ -222,7 +214,6 @@ namespace Viewer
 
         #endregion
 
-        private Tao.Platform.Windows.SimpleOpenGlControl simpleOpenGlControl1;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem fileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem openSCNToolStripMenuItem;
@@ -239,6 +230,7 @@ namespace Viewer
         private System.Windows.Forms.ToolStripMenuItem openSifMenuItem;
         private System.Windows.Forms.ToolStripMenuItem xLightmapsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem takeScreenshotToolStripMenuItem;
+        private Direct3D9RenderControl pbRenderWindow;
     }
 }
 

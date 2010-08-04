@@ -4,89 +4,56 @@ using System.Text;
 using System.Drawing;
 using System.Drawing.Imaging;
 
-using Tao.OpenGl;
+using System;
+using System.Windows.Forms;
 
 namespace Viewer
 {
-    static class Video
+    class Direct3D9RenderWindow : Gk3Main.Graphics.RenderWindow
     {
-        public static void Init(int width, int height)
+        private Direct3D9RenderControl _renderWindow;
+        private Gk3Main.Graphics.Direct3D9.Direct3D9Renderer _renderer;
+        private int _maxWidth, _maxHeight;
+
+        public Direct3D9RenderWindow(Direct3D9RenderControl renderWindow)
         {
-            #region Perspective view setup
-            float ratio = (float)width / height;
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport
-                = new Gk3Main.Graphics.Viewport(0, 0, width, height);
-
-            Gl.glMatrixMode(Gl.GL_PROJECTION);
-            Gl.glLoadIdentity();
-
-            Glu.gluPerspective(60.0f, ratio, 1.0f, 5000.0f);
-
-            Gl.glMatrixMode(Gl.GL_MODELVIEW);
-            Gl.glScalef(1.0f, 1.0f, -1.0f);
-            Glu.gluLookAt(0, 0, 0, 0, 0, 1.0f, 0, 1.0f, 0);
-            #endregion
-
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
-            Gl.glAlphaFunc(Gl.GL_GREATER, 0.9f);
-
-            Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;
+            _renderWindow = renderWindow;
         }
 
-        public static void SaveScreenshot(string filename)
+        public Gk3Main.Graphics.IRenderer Renderer
         {
-            Gk3Main.Graphics.Viewport viewport = Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport;
+            get { return _renderer; }
+        }
 
-            byte[] pixels = new byte[viewport.Width * viewport.Height * 3];
-            byte[] paddingArray = {0,0,0,0};
-            
-            Gl.glPixelStorei(Gl.GL_PACK_ALIGNMENT, 1);
-            Gl.glReadPixels(viewport.X, viewport.Y, viewport.Width, viewport.Height, Gl.GL_RGB, Gl.GL_UNSIGNED_BYTE, pixels);
+        public override void Present()
+        {
+            _renderer.Present();
+        }
 
-            // now write the bitmap
-            int padding = (viewport.Width * 3 % 4 == 0 ? 0 : 4 - viewport.Width * 3 % 4);
-            int rowsize = viewport.Width * 3 + padding;
-            using (System.IO.FileStream bitmap = new System.IO.FileStream(filename, System.IO.FileMode.Create))
-            {
-                System.IO.BinaryWriter writer = new System.IO.BinaryWriter(bitmap);
+        public override Gk3Main.Graphics.IRenderer CreateRenderer()
+        {
+            _maxWidth = Screen.PrimaryScreen.Bounds.Width;
+            _maxHeight = Screen.PrimaryScreen.Bounds.Height;
 
-                writer.Write((ushort)0x4d42);
-                writer.Write((uint)(rowsize * viewport.Height + 54));
-                writer.Write((ushort)0);
-                writer.Write((ushort)0);
-                writer.Write((uint)54);
+            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(_renderWindow.Handle, _maxWidth, _maxHeight, true);
 
-                writer.Write((uint)40);
-                writer.Write((uint)viewport.Width);
-                writer.Write((uint)viewport.Height);
-                writer.Write((ushort)1);
-                writer.Write((ushort)24);
-                writer.Write((uint)0);
-                writer.Write((uint)(rowsize * viewport.Height));
-                writer.Write((uint)0);
-                writer.Write((uint)0);
-                writer.Write((uint)0);
-                writer.Write((uint)0);
+            return _renderer;
+        }
 
-                // now write the pixels
-                for (int i = 0; i < viewport.Height; i++)
-                {
-                    // swap B and R
-                    for (int j = 0; j < viewport.Width; j++)
-                    {
-                        byte pixel = pixels[(i * viewport.Width + j) * 3 + 0];
-                        pixels[(i * viewport.Width + j) * 3 + 0] = pixels[(i * viewport.Width + j) * 3 + 2];
-                        pixels[(i * viewport.Width + j) * 3 + 2] = pixel;
-                    }
+        public void Resize(int width, int height)
+        {
+            width = Math.Min(width, _maxWidth);
+            height = Math.Min(height, _maxHeight);
 
-                    writer.Write(pixels, i * viewport.Width * 3, viewport.Width * 3);
+            //_renderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
+        }
+    }
 
-                    // add padding
-                    writer.Write(paddingArray, 0, padding);
-                }
-            }
+    class Direct3D9RenderControl : Control
+    {
+        protected override void OnPaintBackground(PaintEventArgs pevent)
+        {
+            // nothing
         }
     }
 }

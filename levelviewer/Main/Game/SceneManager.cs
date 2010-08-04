@@ -58,6 +58,13 @@ namespace Gk3Main
         {
             ///_verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
             loadGlobalNvc(globalContent);
+
+            _sceneContentManager = new Resource.ResourceManager();
+        }
+
+        public static void Reset()
+        {
+            _sceneContentManager.UnloadAll();
         }
 
         public static void LoadSif(string location, string timeblock)
@@ -77,11 +84,6 @@ namespace Gk3Main
         {
             Logger.WriteInfo("Loading SIF: " + sif, LoggerStream.Normal);
 
-            if (_sceneContentManager != null)
-                _sceneContentManager.UnloadAll();
-            else
-                _sceneContentManager = new Resource.ResourceManager();
-
             Animator.StopAll();
             Sheep.SheepMachine.CancelAllWaits();
 
@@ -97,16 +99,19 @@ namespace Gk3Main
 
             // attempt to load a "parent" sif
             Gk3Main.Game.SifResource parentSif = null;
-            string parentSifName = sif.Substring(0, 3);
-            if (parentSifName.Equals(sif, StringComparison.OrdinalIgnoreCase) == false)
+            if (sif.IndexOf('.') != 3 && sif.Length > 3) //if we're loading "XXX.SIF" then we're already loading the parent sif
             {
-                try
+                string parentSifName = sif.Substring(0, 3);
+                if (parentSifName.Equals(sif, StringComparison.OrdinalIgnoreCase) == false)
                 {
-                    parentSif = _sceneContentManager.Load<SifResource>(parentSifName);
-                }
-                catch
-                {
-                    // ignore
+                    try
+                    {
+                        parentSif = _sceneContentManager.Load<SifResource>(parentSifName);
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
                 }
             }
 

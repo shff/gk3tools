@@ -30,7 +30,7 @@ namespace Game
             SDL_SysWMinfo wmInfo;
             SDL_GetWMInfo(out wmInfo);
 
-            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(wmInfo.window, _width, _height);
+            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(wmInfo.window, _width, _height, false);
 
             return _renderer;
         }

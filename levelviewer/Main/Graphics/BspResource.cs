@@ -363,7 +363,10 @@ namespace Gk3Main.Graphics
             if (SceneManager.LightmapsEnabled && lightmaps != null)
             {
                 if (SceneManager.CurrentShadeMode == ShadeMode.Flat)
+                {
                     currentEffect = _lightmapNoTextureEffect;
+                    lightmappingEnabled = true;
+                }
                 else
                 {
                     currentEffect = _lightmapEffect;
@@ -397,7 +400,7 @@ namespace Gk3Main.Graphics
                 if (_surfaces[i].Hidden == false)
                 {
                     BspSurface surface = _surfaces[i];
-                    TextureResource lightmap = lightmaps[i];
+                    TextureResource lightmap = (lightmappingEnabled ? lightmaps[i] : null);
 
                     drawSurface(surface, lightmap, currentEffect, camera, lightmappingEnabled, lightmapMultiplier);
                 }

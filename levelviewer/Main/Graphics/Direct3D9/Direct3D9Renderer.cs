@@ -176,7 +176,7 @@ namespace Gk3Main.Graphics.Direct3D9
             Direct3D9VertexBuffer buffer = new Direct3D9VertexBuffer();
             buffer._declaration = vertexElements;
             buffer._numVertices = numVertices;
-            buffer._buffer = new SlimDX.Direct3D9.VertexBuffer(device, numVertices * vertexElements.Stride, Usage.WriteOnly, VertexFormat.None, Pool.Default);
+            buffer._buffer = new SlimDX.Direct3D9.VertexBuffer(device, numVertices * vertexElements.Stride, Usage.WriteOnly, VertexFormat.None, Pool.Managed);
 
             SlimDX.DataStream ds = buffer._buffer.Lock(0, numVertices * vertexElements.Stride, LockFlags.None);
 
@@ -212,7 +212,7 @@ namespace Gk3Main.Graphics.Direct3D9
         internal Direct3D9IndexBuffer(SlimDX.Direct3D9.Device device, uint[] data)
         {
             _length = data.Length;
-            _buffer = new SlimDX.Direct3D9.IndexBuffer(device, data.Length * sizeof(uint), Usage.WriteOnly, Pool.Default, false);
+            _buffer = new SlimDX.Direct3D9.IndexBuffer(device, data.Length * sizeof(uint), Usage.WriteOnly, Pool.Managed, false);
 
             SlimDX.DataStream ds = _buffer.Lock(0, _length * sizeof(uint), LockFlags.None);
 
@@ -241,6 +241,7 @@ namespace Gk3Main.Graphics.Direct3D9
     public class Direct3D9Renderer : IRenderer
     {
         private Device _device;
+        private PresentParameters _pp;
         private int _currentDeclarationStride;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
@@ -248,21 +249,29 @@ namespace Gk3Main.Graphics.Direct3D9
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
 
-        public Direct3D9Renderer(IntPtr windowHandle, int width, int height)
+        public Direct3D9Renderer(IntPtr windowHandle, int width, int height, bool hosted)
         {
-            PresentParameters pp = new PresentParameters();
-            pp.BackBufferWidth = width;
-            pp.BackBufferHeight = height;
-            pp.DeviceWindowHandle = windowHandle;
-            pp.SwapEffect = SwapEffect.Discard;
-            pp.EnableAutoDepthStencil = true;
-            pp.AutoDepthStencilFormat = Format.D16;
-            pp.BackBufferCount = 2;
+            _pp = new PresentParameters();
+            _pp.BackBufferWidth = width;
+            _pp.BackBufferHeight = height;
+            _pp.DeviceWindowHandle = windowHandle;
+            _pp.EnableAutoDepthStencil = true;
+            _pp.AutoDepthStencilFormat = Format.D16;
+            if (hosted)
+            {
+                _pp.SwapEffect = SwapEffect.Flip;
+                _pp.BackBufferCount = 1;
+            }
+            else
+            {
+                _pp.SwapEffect = SwapEffect.Discard;
+                _pp.BackBufferCount = 2;
+            }
 
             Direct3D d3d = new Direct3D();
 
             _device = new Device(d3d, 0, DeviceType.Hardware, windowHandle,
-                CreateFlags.HardwareVertexProcessing | CreateFlags.FpuPreserve | CreateFlags.PureDevice, pp);
+                CreateFlags.HardwareVertexProcessing | CreateFlags.FpuPreserve | CreateFlags.PureDevice, _pp);
 
             
             _device.VertexFormat = VertexFormat.None;
@@ -274,6 +283,14 @@ namespace Gk3Main.Graphics.Direct3D9
             SamplerStates[0] = SamplerState.LinearWrap;
             SamplerStates[1] = SamplerState.LinearClamp;
             BlendState = BlendState.Opaque;
+        }
+
+        public void Reset(int width, int height)
+        {
+            _pp.BackBufferWidth = width;
+            _pp.BackBufferHeight = height;
+
+            _device.Reset(_pp);
         }
 
         #region Render states

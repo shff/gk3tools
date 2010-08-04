@@ -1,5 +1,6 @@
 float4 Viewport;
 float4x4 ModelViewProjection;
+float LightmapMultiplier;
 
 struct VS_INPUT
 {
@@ -32,37 +33,24 @@ struct PS_INPUT
     float2 lightmapCoords : TEXCOORD1;
 };
 
-/*texture DiffuseTexture;
-sampler2D Diffuse = sampler_state {
-    Texture = <DiffuseTexture>;
+texture Diffuse;
+sampler2D DiffuseSampler = sampler_state {
+    Texture = <Diffuse>;
 };
 
-texture LightmapTexture;
-sampler2D Lightmap = sampler_state {
-    Texture = <LightmapTexture>;
-};*/
-
-sampler2D Diffuse;
-sampler2D Lightmap;
+texture Lightmap;
+sampler2D LightmapSampler = sampler_state {
+    Texture = <Lightmap>;
+};
 
 float4 ps_main(PS_INPUT input) : COLOR0
 {
-    float4 lightmap = tex2D(Lightmap, input.lightmapCoords);
+    float4 lightmap = tex2D(LightmapSampler, input.lightmapCoords) * LightmapMultiplier;
     
     return float4(lightmap.rgb, 1.0);
     //return float4(1.0, 0, 0, 1.0);
 }
 
-#ifdef OPENGL
-technique GL
-{
-    pass P0
-    {
-        VertexProgram = compile arbvp1 vs_main();
-        FragmentProgram = compile arbfp1 ps_main();
-    }
-}
-#endif
 
 
 technique D3D
