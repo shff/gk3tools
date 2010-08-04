@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using System.Drawing.Imaging;
-
-using System;
 using System.Windows.Forms;
 
 namespace Viewer

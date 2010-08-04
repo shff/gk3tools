@@ -155,6 +155,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("SetCameraAngleType", _setCameraAngleType,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
+            SheepMachine.AddImport("SetConversation", _dummyString,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("SetDefaultDialogueCamera", _dummyString,
                 SymbolType.Void, SymbolType.String);
 

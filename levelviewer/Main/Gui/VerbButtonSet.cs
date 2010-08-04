@@ -22,6 +22,7 @@ namespace Gk3Main.Gui
                 Game.VerbInfo info = Game.GameManager.Verbs[nvc.Verb];
 
                 VerbButton b = new VerbButton(content, nvc.Noun, nvc.Verb, nvc.Script,
+                    nvc.Approach, nvc.Target,
                     string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
@@ -130,6 +131,14 @@ namespace Gk3Main.Gui
             VerbButton button = (VerbButton)sender;
 
             Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", button.Verb);
+            
+            // TODO: this is temporary. Eventually we have to handle the approach
+            // correctly. But for now we'll just teleport the actor to the location.
+            if (button.Approach == Gk3Main.Game.NvcApproachType.WalkTo)
+            {
+                SceneManager.SetEgoToSifPosition(button.ApproachTarget);
+            }
+            
             Sheep.SheepMachine.RunCommand(button.Script);
 
             if (button.Verb == Game.Verbs.V_Z_CHAT)

@@ -646,20 +646,6 @@ namespace Gk3Main
                 _stks.Add(stk);
             }
         }
-
-        private static bool isCustomNvcLogic(string condition)
-        {
-            if (condition.Equals("ALL", StringComparison.OrdinalIgnoreCase) ||
-                condition.Equals("GRACE_ALL", StringComparison.OrdinalIgnoreCase) ||
-                condition.Equals("GABE_ALL", StringComparison.OrdinalIgnoreCase) ||
-                condition.Equals("1ST_TIME", StringComparison.OrdinalIgnoreCase) ||
-                condition.Equals("OTR_TIME", StringComparison.OrdinalIgnoreCase) ||
-                condition.Equals("TIME_BLOCK", StringComparison.OrdinalIgnoreCase))
-                return false;
-
-            return true;
-        }
-
         
         private static void unloadActors()
         {

@@ -153,7 +153,10 @@ namespace Gk3Main.Sheep
                 int err = SHP_RunNounVerbSnippet(_vm, snippet, (int)noun, (int)verb, out result);
 
                 if (err != 0)
+                {
+                    Logger.WriteError("Error ({0}) received when attempting to execute snippet: {1}", err, snippet);
                     throw new SheepException("Unable to execute snippet");
+                }
 
                 return result;
             }
@@ -175,7 +178,10 @@ namespace Gk3Main.Sheep
                 int err = SHP_RunSnippet(_vm, snippet, out result);
 
                 if (err != 0)
+                {
+                    Logger.WriteError("Error ({0}) received when attempting to execute snippet: {1}", err, snippet);
                     throw new SheepException("Unable to execute snippet");
+                }
 
                 return result;
             }
@@ -196,7 +202,10 @@ namespace Gk3Main.Sheep
                 int err = SHP_RunScript(_vm, sheep, "main$");
 
                 if (err != 0)
-                    throw new SheepException("Unable to execute snippet: " + err.ToString());
+                {
+                    Logger.WriteError("Error ({0}) received when attempting to execute Sheep command: {1}", err, command);
+                    throw new SheepException("Unable to execute command: " + err.ToString());
+                }
             }
             else
             {
