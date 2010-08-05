@@ -53,6 +53,8 @@ namespace GK3BB
 
             // build the preview extensions map
             _previewExtensionsMap = new Dictionary<string, string>();
+            _previewExtensionsMap.Add("CUR", "TXT");
+            _previewExtensionsMap.Add("FON", "TXT");
             _previewExtensionsMap.Add("TXT", "TXT");
             _previewExtensionsMap.Add("ANM", "TXT");
             _previewExtensionsMap.Add("GAS", "TXT");

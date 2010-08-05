@@ -199,10 +199,10 @@
     <value>Tools</value>
   </data>
   <data name="TypeAct" xml:space="preserve">
-    <value>ACT file?</value>
+    <value>ACT animation</value>
   </data>
   <data name="TypeAnm" xml:space="preserve">
-    <value>ANM file?</value>
+    <value>Animation script</value>
   </data>
   <data name="TypeBmp" xml:space="preserve">
     <value>Bitmap</value>
@@ -223,7 +223,7 @@
     <value>Font</value>
   </data>
   <data name="TypeGas" xml:space="preserve">
-    <value>GAS file?</value>
+    <value>GEngine script</value>
   </data>
   <data name="TypeHtml" xml:space="preserve">
     <value>HTML document</value>
@@ -232,7 +232,7 @@
     <value>Model geometry</value>
   </data>
   <data name="TypeMom" xml:space="preserve">
-    <value>MOM file?</value>
+    <value>MOM animation script</value>
   </data>
   <data name="TypeMul" xml:space="preserve">
     <value>Room lightmap</value>
@@ -262,6 +262,6 @@
     <value>WAV audio</value>
   </data>
   <data name="TypeYak" xml:space="preserve">
-    <value>YAK file</value>
+    <value>YAK dialog file</value>
   </data>
 </root>
