@@ -43,14 +43,14 @@ namespace Gk3Main.Game
 
         public static int ElapsedTickCount
         {
-            get { return _tickCount - _prevTickCount; }
+            get { return _elapsedTickCount; }
         }
 
         public static float SecsPerFrame
         {
             get
             {
-                return (_tickCount - _prevTickCount) * 0.001f;
+                return _elapsedTickCount * 0.001f;
             }
         }
 
@@ -125,14 +125,14 @@ namespace Gk3Main.Game
             throw new ArgumentException("Invalid TimeBlock");
         }
 
-        public static void InjectTickCount(int tickCount)
+        /// <summary>
+        /// Tells the game engine how many milliseconds have passed since
+        /// the last frame was processed. Call this once per frame!
+        /// </summary>
+        public static void InjectTickCount(int elapsedtickCount)
         {
-            // don't let TOO much time pass...
-            if (tickCount - _prevTickCount > 500)
-                tickCount = _prevTickCount + 500;
-
-            _prevTickCount = _tickCount;
-            _tickCount = tickCount;
+            _elapsedTickCount = elapsedtickCount;
+            _tickCount += elapsedtickCount;
         }
 
         public static void SetLocation(string location)
@@ -399,7 +399,7 @@ namespace Gk3Main.Game
             return new Gk3Main.Graphics.Camera(fov, Graphics.RendererManager.CurrentRenderer.Viewport.Aspect, 5.0f, 5000.0f, zNegOne);
         }
 
-        private static int _tickCount, _prevTickCount;
+        private static int _tickCount, _elapsedTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
         private static Ego _currentEgo;
         private static VerbDefinitions _verbs;

@@ -268,6 +268,7 @@ class MonoMain
         Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
     }
 
+    private static int _lastTickCount = 0;
     private static void update()
     {
         // TODO: this still needs cleaning up!
@@ -314,7 +315,10 @@ class MonoMain
         if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
             Game.VerbPickerManager.MouseMove(Game.Input.MouseX, Game.Input.MouseY);
 
-        Gk3Main.Game.GameManager.InjectTickCount(Sdl.SDL_GetTicks());
+        int ticks = Sdl.SDL_GetTicks();
+        int elapsed = Math.Min(ticks - _lastTickCount, 1000);
+        _lastTickCount = ticks;
+        Gk3Main.Game.GameManager.InjectTickCount(elapsed);
 
 
         if (camera != null)

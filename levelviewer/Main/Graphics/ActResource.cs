@@ -282,6 +282,7 @@ namespace Gk3Main.Graphics
                         FrameTransformation.LerpToMatrix(percent, ref _animationFrames[i][frame1].Transform, ref _animationFrames[i][frame2].Transform, out animatedTransform);
                         //model.Meshes[i].AnimatedTransformMatrix = animatedTransform;
                         model.Meshes[i].SetTransform(animatedTransform);
+                        //model.Meshes[i].SetTransform(_animationFrames[i][frame1].Transform.Original);
                         model.Meshes[i].AnimatedTransformIsAbsolute = absolute;
                     }
 

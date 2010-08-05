@@ -135,6 +135,16 @@ namespace Gk3Main.Game
 
         private static void add<T>(List<T> list, T item)
         {
+            // HACK: there's a bug where the GAS engine detects that an animation has finished,
+            // then it loops and gives the same ANM or MOM back to the Animator, but the Animator
+            // didn't know the ANM/MOM was finished, so it never removed it, so the same ANM/MOM
+            // gets added twice, and since they're the same instance they both get marked as *not* finished,
+            // and they both run. SO... if we're adding an existing item to the collection we're
+            // assuming that someone smarter than the Animator knows it was finished and just wants
+            // to restart it.
+            if (list.Contains(item))
+                return;
+
             // try to add in an empty spot first
             for (int i = 0; i < list.Count; i++)
             {
