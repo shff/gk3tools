@@ -6,7 +6,7 @@ namespace Gk3Main.Gui
 {
     public class Button
     {
-        public Button(Resource.ResourceManager content, string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound)
+        public Button(IButtonContainer container, Resource.ResourceManager content, string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound)
         {
             _downImage = content.Load<Graphics.TextureResource>(downImage);
             _hoverImage = content.Load<Graphics.TextureResource>(hoverImage);
@@ -18,10 +18,11 @@ namespace Gk3Main.Gui
             if (string.IsNullOrEmpty(clickedSound) == false)
                 _clickedSound = content.Load<Sound.Sound>(clickedSound);
 
+            _container = container;
             _enabled = true;
         }
 
-        public Button(Resource.ResourceManager content, string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound, string tooltip)
+        public Button(IButtonContainer container, Resource.ResourceManager content, string downImage, string hoverImage, string upImage, string disabledImage, string clickedSound, string tooltip)
         {
             _downImage = content.Load<Graphics.TextureResource>(downImage);
             _hoverImage = content.Load<Graphics.TextureResource>(hoverImage);
@@ -39,6 +40,7 @@ namespace Gk3Main.Gui
                 _tooltipFont = content.Load<Gui.Font>("F_TOOLTIP.FON");
             }
 
+            _container = container;
             _enabled = true;
         }
 
@@ -116,13 +118,13 @@ namespace Gk3Main.Gui
         public Unit X
         {
             get { return _x; }
-            set { _x = value; calculateScreenCoordinates(); }
+            set { _x = value; CalculateScreenCoordinates(); }
         }
 
         public Unit Y
         {
             get { return _y; }
-            set { _y = value; calculateScreenCoordinates(); }
+            set { _y = value; CalculateScreenCoordinates(); }
         }
 
         public bool Enabled
@@ -142,14 +144,21 @@ namespace Gk3Main.Gui
             return (mouseX >= _screenX && mouseX < _screenX + _upImage.Width &&
                 mouseY >= _screenY && mouseY < _screenY + _upImage.Height);
         }
-   
 
-        private void calculateScreenCoordinates()
+        internal void CalculateScreenCoordinates()
         {
             Graphics.Viewport vp = Graphics.RendererManager.CurrentRenderer.Viewport;
 
-            _screenX = (int)(vp.X + _x.Scale * vp.Width + _x.Offset);
-            _screenY = (int)(vp.Y + _y.Scale * vp.Height + _y.Offset);
+            if (_container != null)
+            {
+                _screenX = (int)(vp.X + (_x.Scale + _container.X.Scale) * vp.Width + _x.Offset + _container.X.Offset);
+                _screenY = (int)(vp.Y + (_y.Scale + _container.Y.Scale) * vp.Height + _y.Offset + _container.Y.Offset);
+            }
+            else
+            {
+                _screenX = (int)(vp.X + _x.Scale * vp.Width + _x.Offset);
+                _screenY = (int)(vp.Y + _y.Scale * vp.Height + _y.Offset);
+            }
         }
 
         
@@ -160,6 +169,7 @@ namespace Gk3Main.Gui
         private Unit _x, _y;
         private bool _enabled;
 
+        private IButtonContainer _container;
         private Gui.Font _tooltipFont;
         private Graphics.TextureResource _downImage;
         private Graphics.TextureResource _hoverImage;
@@ -171,5 +181,11 @@ namespace Gk3Main.Gui
         private bool _tooltipVisible;
 
         private EventHandler _onButtonClicked;
+    }
+
+    public interface IButtonContainer
+    {
+        Unit X { get; }
+        Unit Y { get; }
     }
 }

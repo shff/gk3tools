@@ -32,6 +32,15 @@ namespace Game
             }
         }
 
+        public static void Dismiss()
+        {
+            if (_vbs != null && _vbs.Active == true)
+            {
+                _vbs.Dismiss();
+                _vbs = null;
+            }
+        }
+
         public static void Show(string noun)
         {
             if (_vbs == null)

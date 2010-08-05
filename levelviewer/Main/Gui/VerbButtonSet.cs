@@ -4,24 +4,27 @@ using System.Text;
 
 namespace Gk3Main.Gui
 {
-    public class VerbButtonSet
+    public class VerbButtonSet : IButtonContainer
     {
         const int ButtonWidth = 32;
         private List<Button> _buttons = new List<Button>();
         private bool _active = true;
         private Button _tooltipButton = null;
+        private int _screenX, _screenY;
         private int _tooltipX, _tooltipY;
 
         public VerbButtonSet(Resource.ResourceManager content, 
             int screenX, int screenY, List<Game.NounVerbCase> nvcs, bool cancel)
         {
-            int buttonOffsetX = screenX;
+            _screenX = screenX;
+            _screenY = screenY;
+            int buttonOffsetX = 0;
 
             foreach (Game.NounVerbCase nvc in nvcs)
             {
                 Game.VerbInfo info = Game.GameManager.Verbs[nvc.Verb];
 
-                VerbButton b = new VerbButton(content, nvc.Noun, nvc.Verb, nvc.Script,
+                VerbButton b = new VerbButton(this, content, nvc.Noun, nvc.Verb, nvc.Script,
                     nvc.Approach, nvc.Target,
                     string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
@@ -30,7 +33,6 @@ namespace Gk3Main.Gui
                     null,
                     info.Verb != Game.Verbs.V_NONE ? Game.GameManager.Strings.GetVerbTooltip(info.Verb) : null);
                 b.X = new Unit(0, buttonOffsetX);
-                b.Y = new Unit(0, screenY);
                 b.OnClick += new EventHandler(buttonClicked);
 
                 _buttons.Add(b);
@@ -42,14 +44,13 @@ namespace Gk3Main.Gui
             {
                 Game.VerbInfo info = Game.GameManager.Verbs["t_cancel"];
 
-                Button b = new Button(content, string.Format("{0}.BMP", info.DownButton),
+                Button b = new Button(this, content, string.Format("{0}.BMP", info.DownButton),
                     string.Format("{0}.BMP", info.HoverButton),
                     string.Format("{0}.BMP", info.UpButton),
                     info.DisableButton != null ? string.Format("{0}.BMP", info.DisableButton) : null,
                     null,
                     Game.GameManager.Strings.GetVerbTooltip(info.Verb));
                 b.X = new Unit(0, buttonOffsetX);
-                b.Y = new Unit(0, screenY);
                 b.OnClick += delegate { cancelClicked(); };
 
                 _buttons.Add(b);
@@ -64,12 +65,19 @@ namespace Gk3Main.Gui
             {
                 int totalWidth = _buttons.Count * ButtonWidth;
 
-                int overflowX = (_buttons[0].X.Offset + totalWidth) - viewport.Width;
+                int overflowX = (_screenX + totalWidth) - viewport.Width;
 
                 if (overflowX > 0)
-                    foreach (Button b in _buttons)
-                        b.X = new Unit(0, b.X.Offset - overflowX);
+                    _screenX -= overflowX;
+
+                foreach (Button button in _buttons)
+                    button.CalculateScreenCoordinates();
             }
+        }
+
+        public void Dismiss()
+        {
+            _active = false;
         }
 
         public void Render(Graphics.SpriteBatch sb, int tickCount)
@@ -114,6 +122,16 @@ namespace Gk3Main.Gui
             {
                 b.OnMouseUp(0);
             }
+        }
+
+        public Unit X
+        {
+            get { return new Unit(0, _screenX); }
+        }
+
+        public Unit Y
+        {
+            get { return new Unit(0, _screenY); }
         }
 
         public bool Active

@@ -10,10 +10,10 @@ class MainMenu
 
         _theme = _content.Load<Gk3Main.Sound.Sound>("THEME.WAV");
         _background = _content.Load<Gk3Main.Graphics.TextureResource>("TITLE.BMP");
-        _introButton = new Gk3Main.Gui.Button(_content, "TITLE_INTRO_D.BMP", "TITLE_INTRO_H.BMP", "TITLE_INTRO_U.BMP", "TITLE_INTRO_X.BMP", "SIDBUTN-1.WAV");
-        _playButton = new Gk3Main.Gui.Button(_content, "TITLE_PLAY_D.BMP", "TITLE_PLAY_H.BMP", "TITLE_PLAY_U.BMP", "TITLE_PLAY_X.BMP", "SIDBUTN-1.WAV");
-        _restoreButton = new Gk3Main.Gui.Button(_content, "TITLE_RESTORE_D.BMP", "TITLE_RESTORE_H.BMP", "TITLE_RESTORE_U.BMP", "TITLE_RESTORE_X.BMP", "SIDBUTN-1.WAV");
-        _quitButton = new Gk3Main.Gui.Button(_content, "TITLE_QUIT_D.BMP", "TITLE_QUIT_H.BMP", "TITLE_QUIT_U.BMP", "TITLE_QUIT_X.BMP", "SIDBUTN-1.WAV");
+        _introButton = new Gk3Main.Gui.Button(null, _content, "TITLE_INTRO_D.BMP", "TITLE_INTRO_H.BMP", "TITLE_INTRO_U.BMP", "TITLE_INTRO_X.BMP", "SIDBUTN-1.WAV");
+        _playButton = new Gk3Main.Gui.Button(null, _content, "TITLE_PLAY_D.BMP", "TITLE_PLAY_H.BMP", "TITLE_PLAY_U.BMP", "TITLE_PLAY_X.BMP", "SIDBUTN-1.WAV");
+        _restoreButton = new Gk3Main.Gui.Button(null, _content, "TITLE_RESTORE_D.BMP", "TITLE_RESTORE_H.BMP", "TITLE_RESTORE_U.BMP", "TITLE_RESTORE_X.BMP", "SIDBUTN-1.WAV");
+        _quitButton = new Gk3Main.Gui.Button(null, _content, "TITLE_QUIT_D.BMP", "TITLE_QUIT_H.BMP", "TITLE_QUIT_U.BMP", "TITLE_QUIT_X.BMP", "SIDBUTN-1.WAV");
 
         _introButton.X = new Gk3Main.Gui.Unit(0.35f, 0);
         _introButton.Y = new Gk3Main.Gui.Unit(1.0f, -50);

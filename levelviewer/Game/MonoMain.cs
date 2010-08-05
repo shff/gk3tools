@@ -55,6 +55,7 @@ class MonoMain
     private static Gk3Main.Gui.CursorResource _pointCursor;
     private static Gk3Main.Gui.CursorResource _zoom1Cursor;
     private static MainMenu _menu;
+    private static Gk3Main.Gui.OptionsMenu _optionsMenu;
     private static int _timeAtLastStateChange;
     private static GameState _state;
     private static bool _isDemo;
@@ -258,8 +259,14 @@ class MonoMain
             }
         }
 
+        if (_optionsMenu != null)
+            _optionsMenu.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
+
         Game.VerbPickerManager.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
         Game.VerbPickerManager.RenderProperCursor(_spriteBatch, camera, mouseX, mouseY, _pointCursor, _zoom1Cursor);
+
+        
+        
         _spriteBatch.End();
 
         //if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
@@ -273,8 +280,22 @@ class MonoMain
     {
         // TODO: this still needs cleaning up!
 
-        Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
 
+        if (Game.Input.LeftMousePressedFirstTime)
+            onMouseLeftDown(Game.Input.MouseX, Game.Input.MouseY);
+        else if (Game.Input.LeftMouseReleasedFirstTime)
+            onMouseLeftUp(Game.Input.MouseX, Game.Input.MouseY);
+        if (Game.Input.RightMousePressedFirstTime)
+            onMouseRightDown(Game.Input.MouseX, Game.Input.MouseY);
+        else if (Game.Input.RightMouseReleasedFirstTime)
+            onMouseRightUp(Game.Input.MouseX, Game.Input.MouseY);
+
+        if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
+            onMouseMove(Game.Input.MouseX, Game.Input.MouseY);
+
+
+        Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+        /*
         if (camera != null)
         {
             if (Game.Input.LeftMousePressed)
@@ -305,15 +326,37 @@ class MonoMain
                     }
 
                     if (Game.Input.LeftMousePressedFirstTime)
+                    {
                         Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
+                        if (_optionsMenu != null)
+                            _optionsMenu.OnMouseDown(Game.Input.MouseX, Game.Input.MouseY);
+                    }
                 }
             }
             else if (Game.Input.LeftMouseReleasedFirstTime && camera != null)
+            {
                 Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
-        }
-       
+
+                if (_optionsMenu != null)
+                    _optionsMenu.OnMouseUp(Game.Input.MouseX, Game.Input.MouseY);
+            }
+            else if (Game.Input.RightMousePressedFirstTime && camera != null)
+            {
+                if (_optionsMenu == null)
+                    _optionsMenu = new Gk3Main.Gui.OptionsMenu(_globalContent, Game.Input.MouseX, Game.Input.MouseY);
+                else
+                    _optionsMenu = null;
+            }
+                
+        }*/
+
         if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
+        {
             Game.VerbPickerManager.MouseMove(Game.Input.MouseX, Game.Input.MouseY);
+
+            if (_optionsMenu != null)
+                _optionsMenu.OnMouseMove(Game.Input.MouseX, Game.Input.MouseY);
+        }
 
         int ticks = Sdl.SDL_GetTicks();
         int elapsed = Math.Min(ticks - _lastTickCount, 1000);
@@ -332,10 +375,6 @@ class MonoMain
         if (_state == GameState.TimeBlockSplash)
         {
             updateTimeBlockSplash();
-        }
-        else if (_state == GameState.MainMenu)
-        {
-            updateMainMenu();
         }
 
         Game.VerbPickerManager.Process();
@@ -356,22 +395,6 @@ class MonoMain
                 Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Script);
             }
         }
-    }
-
-    private static void updateMainMenu()
-    {
-        if (Game.Input.LeftMousePressedFirstTime)
-        {
-            _menu.OnMouseDown(0);
-        }
-        else if (Game.Input.LeftMouseReleasedFirstTime)
-        {
-            _menu.OnMouseUp(0);
-        }
-
-        if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
-            _menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount,
-                Game.Input.MouseX, Game.Input.MouseY);
     }
 
     private static void updateTimeBlockSplash()
@@ -450,6 +473,90 @@ class MonoMain
     private static Gk3Main.Graphics.RenderWindow setupDirect3D9(int width, int height, int depth, bool fullscreen)
     {
         return new Game.Direct3D9RenderWindow(width, height, depth, fullscreen);
+    }
+
+    private static void onMouseLeftDown(int mx, int my)
+    {
+        if (_menu != null && _state == GameState.MainMenu)
+            _menu.OnMouseDown(0);
+        if (_optionsMenu != null)
+            _optionsMenu.OnMouseDown(Game.Input.MouseX, Game.Input.MouseY);
+        else
+            Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
+    }
+
+    private static void onMouseLeftUp(int mx, int my)
+    {
+        if (_menu != null)
+            _menu.OnMouseUp(0);
+        if (_optionsMenu != null)
+            _optionsMenu.OnMouseUp(Game.Input.MouseX, Game.Input.MouseY);
+
+        Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+        if (camera != null)
+            Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
+    }
+
+    private static void onMouseRightDown(int mx, int my)
+    {
+    }
+
+    private static void onMouseRightUp(int mx, int my)
+    {
+        if (Game.VerbPickerManager.VerbButtonsVisible)
+            Game.VerbPickerManager.Dismiss();
+        else
+        {
+            Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+            if (camera != null)
+            {
+                if (_optionsMenu == null)
+                    _optionsMenu = new Gk3Main.Gui.OptionsMenu(_globalContent);
+
+                if (_optionsMenu.IsActive)
+                    _optionsMenu.Dismiss();
+                else
+                    _optionsMenu.Show(mx, my);
+            }
+        }
+    }
+
+    private static void onMouseMove(int mx, int my)
+    {
+        if (_menu != null)
+            _menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
+        if (_optionsMenu != null)
+            _optionsMenu.OnMouseMove(mx, my);
+
+        Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+        if (camera != null && (_optionsMenu == null || _optionsMenu.IsActive == false))
+        {
+            if (Game.Input.LeftMousePressed)
+            {
+                if (Game.Input.RightMousePressed)
+                {
+                    camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Right * Game.Input.RelMouseX);
+                    camera.AddPositionOffset(0, -Game.Input.RelMouseY, 0);
+                }
+                else
+                {
+                    if (Game.VerbPickerManager.VerbButtonsVisible == false)
+                    {
+                        if (Game.Input.Keys[Sdl.SDLK_LSHIFT] != 0 ||
+                            Game.Input.Keys[Sdl.SDLK_RSHIFT] != 0)
+                        {
+                            camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
+                            camera.AdjustPitch(Game.Input.RelMouseY * 0.01f);
+                        }
+                        else
+                        {
+                            camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * Game.Input.RelMouseY);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 	private static void parseArgs(string[] args)

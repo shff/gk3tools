@@ -68,6 +68,11 @@ namespace Game
             get { return !_leftMousePressed && _oldLeftMousePressed; }
         }
 
+        public static bool RightMouseReleasedFirstTime
+        {
+            get { return !_rightMousePressed && _oldRightMousePressed; }
+        }
+
         public static byte[] Keys
         {
             get { return _keys; }

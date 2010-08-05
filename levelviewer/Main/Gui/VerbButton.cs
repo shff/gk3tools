@@ -12,11 +12,11 @@ namespace Gk3Main.Gui
         private string _approachTarget;
         private string _script;
 
-        public VerbButton(Resource.ResourceManager content, Game.Nouns noun, Game.Verbs verb, string script,
+        public VerbButton(VerbButtonSet vbs, Resource.ResourceManager content, Game.Nouns noun, Game.Verbs verb, string script,
             Game.NvcApproachType approach, string approachTarget,
             string downImage, string hoverImage, string upImage, string disabledImage,
             string clickedSound, string tooltip)
-            : base(content, downImage, hoverImage, upImage, disabledImage, clickedSound)
+            : base(vbs, content, downImage, hoverImage, upImage, disabledImage, clickedSound)
         {
             _noun = noun;
             _verb = verb;
