@@ -503,6 +503,8 @@ namespace Gk3Main.Graphics
         bool RenderToTextureSupported { get; }
 
         string ShaderFilenameSuffix { get; }
+
+        RenderWindow ParentWindow { get; }
     }
 
     public static class RendererManager

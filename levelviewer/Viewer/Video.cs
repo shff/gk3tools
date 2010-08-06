@@ -33,9 +33,15 @@ namespace Viewer
             _maxWidth = Screen.PrimaryScreen.Bounds.Width;
             _maxHeight = Screen.PrimaryScreen.Bounds.Height;
 
-            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(_renderWindow.Handle, _maxWidth, _maxHeight, true);
+            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(this, _renderWindow.Handle, _maxWidth, _maxHeight, true);
 
             return _renderer;
+        }
+
+        public override List<Gk3Main.Graphics.DisplayMode> GetSupportedDisplayModes()
+        {
+            // we have no reason to support this since nothing should ever call this
+            return null;
         }
 
         public void Resize(int width, int height)

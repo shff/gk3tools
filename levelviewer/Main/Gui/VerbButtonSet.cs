@@ -134,6 +134,9 @@ namespace Gk3Main.Gui
             get { return new Unit(0, _screenY); }
         }
 
+        public int ScreenX { get { return _screenX; } }
+        public int ScreenY { get { return _screenY; } }
+
         public bool Active
         {
             get { return _active; }

@@ -114,6 +114,11 @@ namespace Gk3Main.Gui
             return r;
         }
 
+        public int LineHeight
+        {
+            get { return _height; }
+        }
+
         private void buildCharacterInfo()
         {
             // set the height of each character
@@ -210,6 +215,9 @@ namespace Gk3Main.Gui
     {
         public Resource.Resource Load(string name, Resource.ResourceManager content)
         {
+            if (name.IndexOf('.') < 0)
+                name = name + ".FON";
+
             System.IO.Stream stream = FileSystem.Open(name);
 
             return new Font(name, stream, content);

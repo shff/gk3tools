@@ -17,9 +17,12 @@ namespace Gk3Main.Gui
         private Graphics.TextureResource _upperBackground;
         private Graphics.TextureResource _optionsBackground;
         private Graphics.TextureResource _advancedBackground;
+        private Graphics.TextureResource _graphicsBackground;
         private Button[] _upperButtons;
         private Button[] _optionsButtons;
         private Button[] _advancedOptionsButtons;
+        private Dropdown _3dDriverDropdown;
+        private Dropdown _resolutionDropdown;
         private bool _active;
 
         enum OptionsMenuState
@@ -59,10 +62,12 @@ namespace Gk3Main.Gui
             _upperBackground = globalContent.Load<Graphics.TextureResource>(layoutInfo["backSprite"]);
             _optionsBackground = globalContent.Load<Graphics.TextureResource>(layoutInfo["optBackSprite"]);
             _advancedBackground = globalContent.Load<Graphics.TextureResource>(layoutInfo["advOptBackSprite"]);
+            _graphicsBackground = globalContent.Load<Graphics.TextureResource>(layoutInfo["graphicsOptBackSprite"]);
 
             setupUpperButtons(globalContent, layoutInfo);
             setupOptionsButtons(globalContent, layoutInfo);
             setupAdvancedOptionsButtons(globalContent, layoutInfo);
+            setupGraphicsOptionsButtons(globalContent, layoutInfo);
         }
 
         private void setupUpperButtons(Resource.ResourceManager globalContent, Dictionary<string, string> layoutInfo)
@@ -125,6 +130,37 @@ namespace Gk3Main.Gui
             positionButton(_advancedOptionsButtons[0], layoutInfo, "advOptSoundPos", 0, _upperBackground.Height + _optionsBackground.Height);
             positionButton(_advancedOptionsButtons[1], layoutInfo, "advOptGraphicsPos", 0, _upperBackground.Height + _optionsBackground.Height);
             positionButton(_advancedOptionsButtons[2], layoutInfo, "advOptGamePos", 0, _upperBackground.Height + _optionsBackground.Height);
+
+            _advancedOptionsButtons[1].OnClick += new EventHandler(onGraphicsOptionsClicked);
+        }
+
+        private void setupGraphicsOptionsButtons(Resource.ResourceManager globalContent, Dictionary<string, string> layoutInfo)
+        {
+            float width, height;
+            tryParse2f(layoutInfo["graphOptDriverBoxSize"], out width, out height);
+            _3dDriverDropdown = new Dropdown(this, globalContent, (int)width, layoutInfo["graphOptDriverSpriteDown"], layoutInfo["graphOptDriverSpriteHov"], layoutInfo["graphOptDriverSpriteUp"]);
+
+            float x, y;
+            tryParse2f(layoutInfo["graphOptDriverPos"], out x, out y);
+            _3dDriverDropdown.X = new Unit(0, (int)x);
+            _3dDriverDropdown.Y = new Unit(0, _upperBackground.Height + _optionsBackground.Height + _advancedBackground.Height + (int)y);
+
+            _3dDriverDropdown.Items.Add(new KeyValuePair<string, string>("d3d", "Direct3D 9"));
+            _3dDriverDropdown.Items.Add(new KeyValuePair<string, string>("gl", "OpenGL 3.0"));
+
+            tryParse2f(layoutInfo["graphOptResolutionBoxSize"], out width, out height);
+            _resolutionDropdown = new Dropdown(this, globalContent, (int)width, layoutInfo["graphOptResolutionSpriteDown"], layoutInfo["graphOptDriverSpriteHov"], layoutInfo["graphOptDriverSpriteUp"]);
+
+            tryParse2f(layoutInfo["graphOptResolutionPos"], out x, out y);
+            _resolutionDropdown.X = new Unit(0, (int)x);
+            _resolutionDropdown.Y = new Unit(0, _upperBackground.Height + _optionsBackground.Height + _advancedBackground.Height + (int)y);
+
+            List<Graphics.DisplayMode> modes = Graphics.RendererManager.CurrentRenderer.ParentWindow.GetSupportedDisplayModes();
+            foreach (Graphics.DisplayMode mode in modes)
+            {
+                string modeStr = mode.Width.ToString() + " x " + mode.Height.ToString();
+                _resolutionDropdown.Items.Add(new KeyValuePair<string, string>(modeStr, modeStr));
+            }
         }
 
         private void positionButton(Button button, Dictionary<string, string> layoutInfo, string positionKey)
@@ -175,6 +211,9 @@ namespace Gk3Main.Gui
                 btn.CalculateScreenCoordinates();
             }
 
+            _3dDriverDropdown.CalculateScreenCoordinates();
+            _resolutionDropdown.CalculateScreenCoordinates();
+
             _state = OptionsMenuState.Initial;
         }
 
@@ -209,13 +248,22 @@ namespace Gk3Main.Gui
                         b.Render(sb, tickCount);
                     }
 
-                    if (_state == OptionsMenuState.AdvancedOption)
+                    if (_state == OptionsMenuState.AdvancedOption ||
+                        _state == OptionsMenuState.GraphicsOptions)
                     {
                         sb.Draw(_advancedBackground, new Math.Vector2(_screenX, _screenY + _upperBackground.Height + _optionsBackground.Height));
 
                         foreach (Button b in _advancedOptionsButtons)
                         {
                             b.Render(sb, tickCount);
+                        }
+
+                        if (_state == OptionsMenuState.GraphicsOptions)
+                        {
+                            sb.Draw(_graphicsBackground, new Gk3Main.Math.Vector2(_screenX, _screenY + _upperBackground.Height + _optionsBackground.Height + _advancedBackground.Height));
+
+                            _resolutionDropdown.Render(sb, tickCount);
+                            _3dDriverDropdown.Render(sb, tickCount);
                         }
                     }
                 }
@@ -238,11 +286,18 @@ namespace Gk3Main.Gui
                         b.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
                     }
 
-                    if (_state == OptionsMenuState.AdvancedOption)
+                    if (_state == OptionsMenuState.AdvancedOption ||
+                        _state == OptionsMenuState.GraphicsOptions)
                     {
                         foreach (Button b in _advancedOptionsButtons)
                         {
                             b.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+                        }
+
+                        if (_state == OptionsMenuState.GraphicsOptions)
+                        {
+                            _3dDriverDropdown.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+                            _resolutionDropdown.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
                         }
                     }
                 }
@@ -266,11 +321,18 @@ namespace Gk3Main.Gui
                         b.OnMouseDown(0);
                     }
 
-                    if (_state == OptionsMenuState.AdvancedOption)
+                    if (_state == OptionsMenuState.AdvancedOption ||
+                        _state == OptionsMenuState.GraphicsOptions)
                     {
                         foreach (Button b in _advancedOptionsButtons)
                         {
                             b.OnMouseDown(0);
+                        }
+
+                        if (_state == OptionsMenuState.GraphicsOptions)
+                        {
+                            _3dDriverDropdown.OnMouseDown(0);
+                            _resolutionDropdown.OnMouseDown(0);
                         }
                     }
                 }
@@ -293,11 +355,18 @@ namespace Gk3Main.Gui
                         b.OnMouseUp(0);
                     }
 
-                    if (_state == OptionsMenuState.AdvancedOption)
+                    if (_state == OptionsMenuState.AdvancedOption ||
+                        _state == OptionsMenuState.GraphicsOptions)
                     {
                         foreach (Button b in _advancedOptionsButtons)
                         {
                             b.OnMouseUp(0);
+                        }
+
+                        if (_state == OptionsMenuState.GraphicsOptions)
+                        {
+                            _3dDriverDropdown.OnMouseUp(0, mouseX, mouseY);
+                            _resolutionDropdown.OnMouseUp(0, mouseX, mouseY);
                         }
                     }
                 }
@@ -313,6 +382,9 @@ namespace Gk3Main.Gui
         {
             get { return new Unit(0, _screenY); }
         }
+
+        public int ScreenX { get { return _screenX; } }
+        public int ScreenY { get { return _screenY; } }
 
         private void onOptionsClicked(object sender, EventArgs e)
         {
@@ -333,6 +405,14 @@ namespace Gk3Main.Gui
                 _state = OptionsMenuState.AdvancedOption;
             else
                 _state = OptionsMenuState.Options;
+        }
+
+        private void onGraphicsOptionsClicked(object sender, EventArgs e)
+        {
+            if (_state == OptionsMenuState.AdvancedOption)
+                _state = OptionsMenuState.GraphicsOptions;
+            else
+                _state = OptionsMenuState.AdvancedOption;
         }
     }
 }

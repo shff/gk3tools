@@ -115,6 +115,7 @@
     <Compile Include="Graphics\Utils.cs" />
     <Compile Include="Gui\Button.cs" />
     <Compile Include="Gui\CursorResource.cs" />
+    <Compile Include="Gui\Dropdown.cs" />
     <Compile Include="Gui\Font.cs" />
     <Compile Include="Gui\OptionsMenu.cs" />
     <Compile Include="Gui\Unit.cs" />

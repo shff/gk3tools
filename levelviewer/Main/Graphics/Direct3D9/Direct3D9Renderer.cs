@@ -240,6 +240,7 @@ namespace Gk3Main.Graphics.Direct3D9
 
     public class Direct3D9Renderer : IRenderer
     {
+        private RenderWindow _parentWindow;
         private Device _device;
         private PresentParameters _pp;
         private int _currentDeclarationStride;
@@ -249,8 +250,10 @@ namespace Gk3Main.Graphics.Direct3D9
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
 
-        public Direct3D9Renderer(IntPtr windowHandle, int width, int height, bool hosted)
+        public Direct3D9Renderer(RenderWindow parentWindow, IntPtr windowHandle, int width, int height, bool hosted)
         {
+            _parentWindow = parentWindow;
+
             _pp = new PresentParameters();
             _pp.BackBufferWidth = width;
             _pp.BackBufferHeight = height;
@@ -655,6 +658,11 @@ namespace Gk3Main.Graphics.Direct3D9
         public string ShaderFilenameSuffix
         {
             get { return ".hlsl"; }
+        }
+
+        public RenderWindow ParentWindow
+        {
+            get { return _parentWindow; }
         }
 
         internal Device Direct3D9Device

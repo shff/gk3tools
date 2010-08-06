@@ -127,6 +127,9 @@ namespace Gk3Main.Gui
             set { _y = value; CalculateScreenCoordinates(); }
         }
 
+        public int Width { get { return _upImage.Width; } }
+        public int Height { get { return _upImage.Height; } }
+
         public bool Enabled
         {
             get { return _enabled; }
@@ -151,8 +154,8 @@ namespace Gk3Main.Gui
 
             if (_container != null)
             {
-                _screenX = (int)(vp.X + (_x.Scale + _container.X.Scale) * vp.Width + _x.Offset + _container.X.Offset);
-                _screenY = (int)(vp.Y + (_y.Scale + _container.Y.Scale) * vp.Height + _y.Offset + _container.Y.Offset);
+                _screenX = (int)(vp.X + _x.Scale * vp.Width + _x.Offset) + _container.ScreenX;
+                _screenY = (int)(vp.Y + _y.Scale * vp.Height + _y.Offset) + _container.ScreenY;
             }
             else
             {
@@ -185,7 +188,7 @@ namespace Gk3Main.Gui
 
     public interface IButtonContainer
     {
-        Unit X { get; }
-        Unit Y { get; }
+        int ScreenX { get; }
+        int ScreenY { get; }
     }
 }

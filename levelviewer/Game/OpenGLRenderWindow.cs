@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Tao.Sdl;
 
 namespace Game
@@ -59,7 +60,7 @@ namespace Game
             wglMakeCurrent(hdc, context);
             wglDeleteContext(info.hglrc);
 
-            _renderer = new Gk3Main.Graphics.OpenGl.OpenGLRenderer();
+            _renderer = new Gk3Main.Graphics.OpenGl.OpenGLRenderer(this);
 
             return _renderer;
         }
@@ -67,6 +68,19 @@ namespace Game
         public override void Present()
         {
             Sdl.SDL_GL_SwapBuffers();
+        }
+
+        public override List<Gk3Main.Graphics.DisplayMode> GetSupportedDisplayModes()
+        {
+            List<Gk3Main.Graphics.DisplayMode> results = new List<Gk3Main.Graphics.DisplayMode>();
+
+            Sdl.SDL_Rect[] modes = Sdl.SDL_ListModes(IntPtr.Zero, Sdl.SDL_HWSURFACE | Sdl.SDL_FULLSCREEN);
+            foreach (Sdl.SDL_Rect r in modes)
+            {
+                results.Add(new Gk3Main.Graphics.DisplayMode(r.w, r.h));
+            }
+
+            return results;
         }
 
 

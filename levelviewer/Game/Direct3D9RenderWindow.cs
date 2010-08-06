@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Tao.Sdl;
 
 namespace Game
@@ -30,7 +31,7 @@ namespace Game
             SDL_SysWMinfo wmInfo;
             SDL_GetWMInfo(out wmInfo);
 
-            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(wmInfo.window, _width, _height, false);
+            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(this, wmInfo.window, _width, _height, false);
 
             return _renderer;
         }
@@ -38,6 +39,21 @@ namespace Game
         public override void Present()
         {
             _renderer.Present();
+        }
+
+        public override List<Gk3Main.Graphics.DisplayMode> GetSupportedDisplayModes()
+        {
+            List<Gk3Main.Graphics.DisplayMode> results = new List<Gk3Main.Graphics.DisplayMode>();
+
+            // we're relying on SDL for this instead of directly asking Direct3D.
+            // not sure if that will always work in every case...
+            Sdl.SDL_Rect[] modes = Sdl.SDL_ListModes(IntPtr.Zero, Sdl.SDL_HWSURFACE | Sdl.SDL_FULLSCREEN);
+            foreach (Sdl.SDL_Rect r in modes)
+            {
+                results.Add(new Gk3Main.Graphics.DisplayMode(r.w, r.h));
+            }
+
+            return results;
         }
 
         private struct SDL_SysWMinfo

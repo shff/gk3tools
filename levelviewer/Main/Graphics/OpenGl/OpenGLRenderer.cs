@@ -44,6 +44,7 @@ namespace Gk3Main.Graphics.OpenGl
 
     public class OpenGLRenderer : IRenderer
     {
+        private RenderWindow _parentWindow;
         private VertexElementSet _vertexDeclaration;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
@@ -51,7 +52,7 @@ namespace Gk3Main.Graphics.OpenGl
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
 
-        public OpenGLRenderer()
+        public OpenGLRenderer(RenderWindow parentWindow)
         {
             // load extensions
             //_renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
@@ -63,6 +64,8 @@ namespace Gk3Main.Graphics.OpenGl
             _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
             SamplerStates[0] = SamplerState.LinearWrap;
             SamplerStates[1] = SamplerState.LinearClamp;
+
+            _parentWindow = parentWindow;
         }
 
         #region Render states
@@ -497,6 +500,11 @@ namespace Gk3Main.Graphics.OpenGl
         public string ShaderFilenameSuffix
         {
             get { return ".glsl"; }
+        }
+
+        public RenderWindow ParentWindow
+        {
+            get { return _parentWindow; }
         }
 
         private static int convertBlendMode(BlendMode mode)
