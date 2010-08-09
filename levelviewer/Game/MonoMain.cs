@@ -51,11 +51,8 @@ class MonoMain
 
     private static float _screenWidth = DefaultScreenWidth;
     private static float _screenHeight = DefaultScreenHeight;
-    private static Game.TimeBlockSplash _timeBlockSplash;
     private static Gk3Main.Gui.CursorResource _pointCursor;
     private static Gk3Main.Gui.CursorResource _zoom1Cursor;
-    private static MainMenu _menu;
-    private static Gk3Main.Gui.OptionsMenu _optionsMenu;
     private static int _timeAtLastStateChange;
     private static GameState _state;
     private static bool _isDemo;
@@ -217,12 +214,11 @@ class MonoMain
         //Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
         // Gk3Main.SceneManager.CurrentCamera = camera;
 
-        _menu = null;
         if (_state == GameState.MainMenu)
         {
-            _menu = new MainMenu();
-            _menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
-            _menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
+            Gk3Main.Gui.MainMenu menu = Gk3Main.Gui.GuiMaster.ShowMainMenu(_globalContent);
+            menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
+            menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
         }
 
         return renderWindow;
@@ -246,21 +242,12 @@ class MonoMain
 
         if (_state == GameState.TimeBlockSplash)
         {
-            if (_timeBlockSplash != null)
-            {
-                _timeBlockSplash.Render(_spriteBatch);
-            }
         }
         else if (_state == GameState.MainMenu)
         {
-            if (_menu != null)
-            {
-                _menu.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
-            }
         }
 
-        if (_optionsMenu != null)
-            _optionsMenu.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
+        Gk3Main.Gui.GuiMaster.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
 
         Game.VerbPickerManager.Render(_spriteBatch, Gk3Main.Game.GameManager.TickCount);
         Game.VerbPickerManager.RenderProperCursor(_spriteBatch, camera, mouseX, mouseY, _pointCursor, _zoom1Cursor);
@@ -353,9 +340,6 @@ class MonoMain
         if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
         {
             Game.VerbPickerManager.MouseMove(Game.Input.MouseX, Game.Input.MouseY);
-
-            if (_optionsMenu != null)
-                _optionsMenu.OnMouseMove(Game.Input.MouseX, Game.Input.MouseY);
         }
 
         int ticks = Sdl.SDL_GetTicks();
@@ -370,12 +354,6 @@ class MonoMain
         Gk3Main.Game.Animator.Advance(Gk3Main.Game.GameManager.ElapsedTickCount);
         Gk3Main.Game.DialogManager.Step();
         Gk3Main.Sheep.SheepMachine.ResumeIfNoMoreBlockingWaits();
-
-
-        if (_state == GameState.TimeBlockSplash)
-        {
-            updateTimeBlockSplash();
-        }
 
         Game.VerbPickerManager.Process();
 
@@ -397,36 +375,29 @@ class MonoMain
         }
     }
 
-    private static void updateTimeBlockSplash()
+    public static void onTimeBlockSplashFinished(object sender, EventArgs e)
     {
-        if (_timeAtLastStateChange + 4000 < Gk3Main.Game.GameManager.TickCount)
+        ((Gk3Main.Gui.TimeBlockSplash)sender).Dismiss();
+
+        _state = GameState.Game;
+        _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
+
+        Gk3Main.SceneManager.Initialize(_globalContent);
+        if (_isDemo)
         {
-            _state = GameState.Game;
-            _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
 
-            if (_timeBlockSplash != null)
-            {
-                _timeBlockSplash.Dispose();
-                _timeBlockSplash = null;
-            }
-
-            Gk3Main.SceneManager.Initialize(_globalContent);
-            if (_isDemo)
-            {
-
-                Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
-                Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Grace;
-                Gk3Main.Game.GameManager.SetLocation("CSE");
-            }
-            else
-            {
-                Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day1_10AM;
-                Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Gabriel;
-                Gk3Main.Game.GameManager.SetLocation("R25");
-            }
-
-            Gk3Main.Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Music);
+            Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
+            Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Grace;
+            Gk3Main.Game.GameManager.SetLocation("CSE");
         }
+        else
+        {
+            Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day1_10AM;
+            Gk3Main.Game.GameManager.CurrentEgo = Gk3Main.Game.Ego.Gabriel;
+            Gk3Main.Game.GameManager.SetLocation("R25");
+        }
+
+        Gk3Main.Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Music);
     }
 
     private static void refreshInput()
@@ -445,16 +416,16 @@ class MonoMain
 
     static void menu_OnPlayClicked(object sender, EventArgs e)
     {
-        if (_timeBlockSplash == null)
-        {
-            if (_isDemo)
-                _timeBlockSplash = new Game.TimeBlockSplash(Gk3Main.Game.Timeblock.Day2_12PM);
-            else
-                _timeBlockSplash = new Game.TimeBlockSplash(Gk3Main.Game.Timeblock.Day1_10AM);
+        Gk3Main.Gui.TimeBlockSplash splash;
 
-            _state = GameState.TimeBlockSplash;
-            _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
-        }
+        if (_isDemo)
+            splash = Gk3Main.Gui.GuiMaster.ShowTimeBlockSplash(_globalContent, Gk3Main.Game.Timeblock.Day2_12PM);
+        else
+            splash = Gk3Main.Gui.GuiMaster.ShowTimeBlockSplash(_globalContent, Gk3Main.Game.Timeblock.Day1_10AM);
+
+        _state = GameState.TimeBlockSplash;
+        _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
+        splash.OnFinished += new EventHandler(onTimeBlockSplashFinished);
     }
 
     static void menu_OnQuitClicked(object sender, EventArgs e)
@@ -477,24 +448,18 @@ class MonoMain
 
     private static void onMouseLeftDown(int mx, int my)
     {
-        if (_menu != null && _state == GameState.MainMenu)
-            _menu.OnMouseDown(0);
-        if (_optionsMenu != null)
-            _optionsMenu.OnMouseDown(Game.Input.MouseX, Game.Input.MouseY);
-        else
-            Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
+        Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
+
+        Gk3Main.Gui.GuiMaster.OnMouseDown(0, mx, my);
     }
 
     private static void onMouseLeftUp(int mx, int my)
     {
-        if (_menu != null)
-            _menu.OnMouseUp(0);
-        if (_optionsMenu != null)
-            _optionsMenu.OnMouseUp(Game.Input.MouseX, Game.Input.MouseY);
-
         Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
         if (camera != null)
             Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
+
+        Gk3Main.Gui.GuiMaster.OnMouseUp(0, mx, my);
     }
 
     private static void onMouseRightDown(int mx, int my)
@@ -510,26 +475,15 @@ class MonoMain
             Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
             if (camera != null)
             {
-                if (_optionsMenu == null)
-                    _optionsMenu = new Gk3Main.Gui.OptionsMenu(_globalContent);
-
-                if (_optionsMenu.IsActive)
-                    _optionsMenu.Dismiss();
-                else
-                    _optionsMenu.Show(mx, my);
+                Gk3Main.Gui.GuiMaster.ToggleOptionsMenu(_globalContent, mx, my);
             }
         }
     }
 
     private static void onMouseMove(int mx, int my)
     {
-        if (_menu != null)
-            _menu.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
-        if (_optionsMenu != null)
-            _optionsMenu.OnMouseMove(mx, my);
-
         Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
-        if (camera != null && (_optionsMenu == null || _optionsMenu.IsActive == false))
+        if (camera != null)
         {
             if (Game.Input.LeftMousePressed)
             {
@@ -557,6 +511,8 @@ class MonoMain
                 }
             }
         }
+
+        Gk3Main.Gui.GuiMaster.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
     }
 
 	private static void parseArgs(string[] args)

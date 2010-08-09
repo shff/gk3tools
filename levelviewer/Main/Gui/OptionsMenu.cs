@@ -7,7 +7,7 @@ namespace Gk3Main.Gui
     /// <summary>
     /// GUI menu for the options menu that shows up when the user right-clicks in the game
     /// </summary>
-    public class OptionsMenu : IButtonContainer
+    public class OptionsMenu : IButtonContainer, IGuiLayer
     {
         private const float _leftGutter = 5.0f;
         private const float _upperButtonOffsetY = 39.0f;
@@ -270,20 +270,20 @@ namespace Gk3Main.Gui
             }
         }
 
-        public void OnMouseMove(int mouseX, int mouseY)
+        public void OnMouseMove(int tickCount, int mouseX, int mouseY)
         {
             if (_active)
             {
                 foreach (Button b in _upperButtons)
                 {
-                    b.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+                    b.OnMouseMove(tickCount, mouseX, mouseY);
                 }
 
                 if (_state != OptionsMenuState.Initial)
                 {
                     foreach (Button b in _optionsButtons)
                     {
-                        b.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+                        b.OnMouseMove(tickCount, mouseX, mouseY);
                     }
 
                     if (_state == OptionsMenuState.AdvancedOption ||
@@ -291,20 +291,20 @@ namespace Gk3Main.Gui
                     {
                         foreach (Button b in _advancedOptionsButtons)
                         {
-                            b.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+                            b.OnMouseMove(tickCount, mouseX, mouseY);
                         }
 
                         if (_state == OptionsMenuState.GraphicsOptions)
                         {
-                            _3dDriverDropdown.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
-                            _resolutionDropdown.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mouseX, mouseY);
+                            _3dDriverDropdown.OnMouseMove(tickCount, mouseX, mouseY);
+                            _resolutionDropdown.OnMouseMove(tickCount, mouseX, mouseY);
                         }
                     }
                 }
             }
         }
 
-        public void OnMouseDown(int mouseX, int mouseY)
+        public void OnMouseDown(int button, int mouseX, int mouseY)
         {
             if (_active)
             {
@@ -339,7 +339,7 @@ namespace Gk3Main.Gui
             }
         }
 
-        public void OnMouseUp(int mouseX, int mouseY)
+        public void OnMouseUp(int button, int mouseX, int mouseY)
         {
             if (_active)
             {
@@ -372,6 +372,8 @@ namespace Gk3Main.Gui
                 }
             }
         }
+
+        public bool IsPopup { get { return true; } }
 
         public Unit X
         {

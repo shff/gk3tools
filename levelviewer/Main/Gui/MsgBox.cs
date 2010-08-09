@@ -10,7 +10,19 @@ namespace Gk3Main.Gui
         OK
     }
 
-    public class MsgBox : IButtonContainer
+    public enum MsgBoxResult
+    {
+        Yes,
+        No,
+        Cancel
+    }
+
+    public class MsgBoxResultEventArgs : EventArgs
+    {
+        public MsgBoxResult Result;
+    }
+
+    public class MsgBox : IButtonContainer, IGuiLayer
     {
         private MsgBoxType _type;
         private Font _font;
@@ -30,12 +42,15 @@ namespace Gk3Main.Gui
         private float _fontHeight;
         private float _textOffsetX, _textOffsetY;
         private List<string> _lines = new List<string>();
+        private EventHandler<MsgBoxResultEventArgs> _onResult;
+        private bool _isActive;
 
         private const float _buttonPadding = 5.0f;
 
         public MsgBox(Resource.ResourceManager globalContent, string text, MsgBoxType type)
         {
             _type = type;
+            _isActive = true;
 
             // we need to load all the positioning data and whatnot from a file...
             Resource.TextResource layout = new Gk3Main.Resource.TextResource("MSGBOX.TXT", FileSystem.Open("MSGBOX.TXT"));
@@ -78,6 +93,19 @@ namespace Gk3Main.Gui
             else
                 positionButtons(false, false, true);
         }
+
+        public void Dismiss()
+        {
+            _isActive = false;
+        }
+
+        public event EventHandler<MsgBoxResultEventArgs> OnResult
+        {
+            add { _onResult += value; }
+            remove { _onResult -= value; }
+        }
+
+        #region IGuiLayer stuff
 
         public void Render(Graphics.SpriteBatch sb, int tickCount)
         {
@@ -154,6 +182,12 @@ namespace Gk3Main.Gui
                 _ok.OnMouseUp(button);
             }
         }
+
+        public bool IsPopup { get { return true; } }
+
+        public bool IsActive { get { return _isActive; } }
+
+        #endregion
 
         #region IButtonContainer stuff
 
