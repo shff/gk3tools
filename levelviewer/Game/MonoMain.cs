@@ -53,6 +53,8 @@ class MonoMain
     private static Gk3Main.Gui.CursorResource _pointCursor;
     private static Gk3Main.Gui.CursorResource _zoom1Cursor;
     private static int _timeAtLastStateChange;
+    private static bool _leftDownWhileRightDown;
+    private static bool _rightDownWhileLeftDown;
     private static GameState _state;
     private static bool _isDemo;
     private static Gk3Main.Graphics.SpriteBatch _spriteBatch;
@@ -471,6 +473,9 @@ class MonoMain
 
     private static void onMouseLeftDown(int mx, int my)
     {
+        if (Game.Input.RightMousePressed)
+            _leftDownWhileRightDown = true;
+
         Game.VerbPickerManager.MouseDown(0, Game.Input.MouseX, Game.Input.MouseY);
 
         Gk3Main.Gui.GuiMaster.OnMouseDown(0, mx, my);
@@ -483,17 +488,24 @@ class MonoMain
             Game.VerbPickerManager.MouseUp(camera, 0, Game.Input.MouseX, Game.Input.MouseY);
 
         Gk3Main.Gui.GuiMaster.OnMouseUp(0, mx, my);
+
+        _rightDownWhileLeftDown = false;
     }
 
     private static void onMouseRightDown(int mx, int my)
     {
+        if (Game.Input.LeftMousePressed)
+        {
+            _rightDownWhileLeftDown = true;
+            _leftDownWhileRightDown = true;
+        }
     }
 
     private static void onMouseRightUp(int mx, int my)
     {
         if (Game.VerbPickerManager.VerbButtonsVisible)
             Game.VerbPickerManager.Dismiss();
-        else
+        else if (_leftDownWhileRightDown == false && Game.Input.LeftMousePressed == false)
         {
             Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
             if (camera != null)
@@ -501,6 +513,8 @@ class MonoMain
                 Gk3Main.Gui.GuiMaster.ToggleOptionsMenu(_globalContent, mx, my);
             }
         }
+
+        _leftDownWhileRightDown = false;
     }
 
     private static void onMouseMove(int mx, int my)

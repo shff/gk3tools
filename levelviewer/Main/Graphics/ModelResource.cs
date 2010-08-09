@@ -428,9 +428,12 @@ namespace Gk3Main.Graphics
 
                 _effect.End();
 
-                foreach (ModMesh mesh in _meshes)
+                if (Settings.ShowBoundingBoxes)
                 {
-                    mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Identity);
+                    foreach (ModMesh mesh in _meshes)
+                    {
+                        mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Identity);
+                    }
                 }
             }
         }
@@ -484,7 +487,8 @@ namespace Gk3Main.Graphics
                     }
                 }
 
-                RenderAABBAt(position, angle, camera);
+                if (Settings.ShowBoundingBoxes)
+                    RenderAABBAt(position, angle, camera);
             }
         }
 
