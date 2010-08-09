@@ -60,8 +60,8 @@ namespace Gk3Main.Graphics
         public void Draw(TextureResource texture, Math.Vector2 position)
         {
             Rect destination;
-            destination.X = (int)position.X;
-            destination.Y = (int)position.Y;
+            destination.X = position.X;
+            destination.Y = position.Y;
 
             destination.Width = texture.Width;
             destination.Height = texture.Height;
@@ -72,8 +72,8 @@ namespace Gk3Main.Graphics
         public void Draw(TextureResource texture, Math.Vector2 position, Rect? source)
         {
             Rect destination;
-            destination.X = (int)position.X;
-            destination.Y = (int)position.Y;
+            destination.X = position.X;
+            destination.Y = position.Y;
 
             if (source.HasValue)
             {
@@ -101,6 +101,10 @@ namespace Gk3Main.Graphics
 
         private void flush(IRenderer renderer)
         {
+            _2dEffect.Bind();
+            _2dEffect.SetParameter("Viewport", renderer.Viewport.Vector);
+            _2dEffect.Begin();
+
             for (int i = 0; i < _sprites.Count; i++)
             {
                 Sprite s = _sprites[i];
@@ -141,19 +145,17 @@ namespace Gk3Main.Graphics
 
                 Math.Vector4 color = new Gk3Main.Math.Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-                _2dEffect.Bind();
-                _2dEffect.SetParameter("Viewport", renderer.Viewport.Vector);
+
                 _2dEffect.SetParameter("Color", color);
                 _2dEffect.SetParameter("Diffuse", s.Texture, 0);
-                _2dEffect.Begin();
+                _2dEffect.CommitParams();
 
                 //s.Texture.Bind();
 
                 renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices);
-
-                _2dEffect.End();
             }
 
+            _2dEffect.End();
             _sprites.Clear();
         }
     }

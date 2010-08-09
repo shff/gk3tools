@@ -94,7 +94,21 @@ namespace Gk3Main.Gui
             }
         }
 
+        [Obsolete("Use MeasureString() instead")]
         public Graphics.Rect GetPrintedRect(string text)
+        {
+            Math.Vector2 size = MeasureString(text);
+
+            Graphics.Rect r;
+            r.X = 0;
+            r.Y = 0;
+            r.Width = size.X;
+            r.Height = size.Y;
+
+            return r;
+        }
+
+        public Math.Vector2 MeasureString(string text)
         {
             float cursorX = 0;
 
@@ -105,13 +119,11 @@ namespace Gk3Main.Gui
                 cursorX += _characterInfo[index].SourceRect.Width;
             }
 
-            Graphics.Rect r;
-            r.X = 0;
-            r.Y = 0;
-            r.Width = cursorX;
-            r.Height = _height;
+            Math.Vector2 size;
+            size.X = cursorX;
+            size.Y = _height;
 
-            return r;
+            return size;
         }
 
         public int LineHeight
