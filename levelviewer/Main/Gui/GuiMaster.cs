@@ -12,18 +12,28 @@ namespace Gk3Main.Gui
 
         public static void Render(Graphics.SpriteBatch sb, int tickCount)
         {
+            // remove inactive layers
             for (int i = _layers.Count - 1; i >= 0; i--)
             {
                 if (_layers[i].IsActive == false)
-                {
                     _layers.RemoveAt(i);
-                    continue;
-                }
-
-                _layers[i].Render(sb, tickCount);
-
-                if (_layers[i].IsPopup == false)
+                else
                     break;
+            }
+
+            // look for the first layer that needs rendering...
+            int firstNonPopupLayer = _layers.Count - 1;
+            while (firstNonPopupLayer >= 0 && _layers[firstNonPopupLayer].IsPopup)
+            {
+                firstNonPopupLayer--;
+            }
+
+            if (firstNonPopupLayer < 0) firstNonPopupLayer = 0;
+
+            // now start rendering layers
+            for (int i = firstNonPopupLayer; i < _layers.Count; i++)
+            {
+                _layers[i].Render(sb, tickCount);
             }
         }
 
@@ -79,35 +89,23 @@ namespace Gk3Main.Gui
 
         public static void OnMouseUp(int button, int mx, int my)
         {
-            for (int i = _layers.Count - 1; i >= 0; i--)
-            {
-                _layers[i].OnMouseUp(button, mx, my);
-
-                if (_layers[i].IsPopup == false)
-                    break;
-            }
+            // only the first layer gets events
+            if (_layers.Count > 0)
+                _layers[_layers.Count - 1].OnMouseUp(button, mx, my);
         }
 
         public static void OnMouseDown(int button, int mx, int my)
         {
-            for (int i = _layers.Count - 1; i >= 0; i--)
-            {
-                _layers[i].OnMouseDown(button, mx, my);
-
-                if (_layers[i].IsPopup == false)
-                    break;
-            }
+            // only the first layer gets events
+            if (_layers.Count > 0)
+                _layers[_layers.Count - 1].OnMouseDown(button, mx, my);
         }
 
         public static void OnMouseMove(int tickCount, int mx, int my)
         {
-            for (int i = _layers.Count - 1; i >= 0; i--)
-            {
-                _layers[i].OnMouseMove(tickCount, mx, my);
-
-                if (_layers[i].IsPopup == false)
-                    break;
-            }
+            // only the first layer gets events
+            if (_layers.Count > 0)
+                _layers[_layers.Count - 1].OnMouseMove(tickCount, mx, my);
         }
     }
 

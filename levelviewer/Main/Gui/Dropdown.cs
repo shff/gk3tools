@@ -20,6 +20,7 @@ namespace Gk3Main.Gui
         int _width;
         private int _screenX, _screenY;
         private Graphics.Rect _boxRect;
+        private EventHandler _onSelectedItemChanged;
 
         public Dropdown(IButtonContainer container, Resource.ResourceManager globalContent, int width, 
             string arrowDownSprite, string arrowHoverSprite, string arrowUpSprite)
@@ -92,6 +93,8 @@ namespace Gk3Main.Gui
 
         public List<KeyValuePair<string, string>> Items { get { return _items; } }
 
+        public int SelectedIndex { get { return _selectedIndex; } }
+
         public int ScreenX { get { return _screenX; } }
         public int ScreenY { get { return _screenY; } }
 
@@ -131,8 +134,13 @@ namespace Gk3Main.Gui
 
                 if (item >= 0)
                 {
+                    int oldSelectedIndex = _selectedIndex;
                     _selectedIndex = item;
                     _down = false;
+
+                    if (oldSelectedIndex != _selectedIndex &&
+                        _onSelectedItemChanged != null)
+                        _onSelectedItemChanged(this, EventArgs.Empty);
                 }
             }
         }
@@ -140,6 +148,12 @@ namespace Gk3Main.Gui
         public void OnMouseDown(int button)
         {
             _downArrow.OnMouseDown(button);
+        }
+
+        public event EventHandler OnSelectedItemChanged
+        {
+            add { _onSelectedItemChanged += value; }
+            remove { _onSelectedItemChanged -= value; }
         }
 
         private void calculateBoxRect()

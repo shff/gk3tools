@@ -46,11 +46,10 @@ class MonoMain
         Game
     }
 
-    const float DefaultScreenWidth = 640.0f;
-    const float DefaultScreenHeight = 480.0f;
+    const string DefaultRenderer = "d3d9";
+    const int DefaultScreenWidth = 640;
+    const int DefaultScreenHeight = 480;
 
-    private static float _screenWidth = DefaultScreenWidth;
-    private static float _screenHeight = DefaultScreenHeight;
     private static Gk3Main.Gui.CursorResource _pointCursor;
     private static Gk3Main.Gui.CursorResource _zoom1Cursor;
     private static int _timeAtLastStateChange;
@@ -61,6 +60,11 @@ class MonoMain
 
 	public static void Main(string[] args)
 	{
+        Gk3Main.Settings.ScreenWidth = DefaultScreenWidth;
+        Gk3Main.Settings.ScreenHeight = DefaultScreenHeight;
+        Gk3Main.Settings.Renderer = DefaultRenderer;
+        Gk3Main.Settings.Load("settings.txt");
+
         Gk3Main.Graphics.RenderWindow renderWindow = init(args);
         if (renderWindow == null) return; // something bad happened
 
@@ -87,11 +91,27 @@ class MonoMain
 	{
         Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
-        //Gk3Main.Graphics.RenderWindow window = setupOpenGL(width, height, depth, fullscreen);
-        Gk3Main.Graphics.RenderWindow window = setupDirect3D9(width, height, depth, fullscreen);
-        Gk3Main.Graphics.RendererManager.CurrentRenderer = window.CreateRenderer();
-        
+        Gk3Main.Graphics.RenderWindow window;
+        try
+        {
+            if (Gk3Main.Settings.Renderer.Equals("gl30", StringComparison.OrdinalIgnoreCase))
+                window = setupOpenGL(width, height, depth, fullscreen);
+            else if (Gk3Main.Settings.Renderer.Equals("d3d9", StringComparison.OrdinalIgnoreCase))
+                window = setupDirect3D9(width, height, depth, fullscreen);
+            else
+            {
+                Gk3Main.Logger.WriteError("Unknown renderer specified! Defaulting to Direct3D 9.");
+                window = setupDirect3D9(width, height, depth, fullscreen);
+            }
 
+            Gk3Main.Graphics.RendererManager.CurrentRenderer = window.CreateRenderer();
+        }
+        catch(Exception e)
+        {
+            showMessageBox("Error while trying to setup the renderer: " + e.Message, true);
+            return null;
+        }
+        
         Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;
@@ -184,7 +204,10 @@ class MonoMain
         Gk3Main.Graphics.RenderWindow renderWindow;
         try
         {
-            renderWindow = SetupGraphics((int)_screenWidth, (int)_screenHeight, 16, false);
+            renderWindow = SetupGraphics(Gk3Main.Settings.ScreenWidth, Gk3Main.Settings.ScreenHeight,
+                16, false);
+            if (renderWindow == null)
+                return null;
         }
         catch (DllNotFoundException ex)
         {
@@ -547,12 +570,21 @@ class MonoMain
             else if (args[i] == "-width")
             {
                 string width = args[++i];
-                float.TryParse(width, out _screenWidth);
+                int screenWidth;
+                if (int.TryParse(width, out screenWidth))
+                    Gk3Main.Settings.ScreenWidth = screenWidth;
             }
             else if (args[i] == "-height")
             {
                 string height = args[++i];
-                float.TryParse(height, out _screenHeight);
+                int screenHeight;
+                if (int.TryParse(height, out screenHeight))
+                    Gk3Main.Settings.ScreenHeight = screenHeight;
+            }
+            else if (args[i] == "-renderer")
+            {
+                string renderer = args[++i];
+                Gk3Main.Settings.Renderer = renderer;
             }
 			
 			i++;
@@ -569,4 +601,29 @@ class MonoMain
 
         _spriteBatch.End();
     }
+
+    private static void showMessageBox(string message, bool isError)
+    {
+        if (isError)
+            Gk3Main.Logger.WriteError(message);
+        else
+            Gk3Main.Logger.WriteInfo(message);
+
+        try
+        {
+            const uint MB_ICONINFORMATION = 0x40;
+            const uint MB_ICONERROR = 0x10;
+            const uint MB_OK = 0x00;
+
+            MessageBox(IntPtr.Zero, message, (isError ? "Error!" : "FYI..."), MB_OK | (isError ? MB_ICONERROR : MB_ICONINFORMATION));
+        }
+        catch (DllNotFoundException)
+        {
+            // hmm, this isn't windows, apparently...
+        }
+    }
+
+    [System.Runtime.InteropServices.DllImport("User32")]
+    private static extern int MessageBox(IntPtr hWnd, string lpText, string lpCaption, uint uType);
+
 }

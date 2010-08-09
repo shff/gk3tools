@@ -13,6 +13,7 @@ namespace Gk3Main.Gui
         private const float _upperButtonOffsetY = 39.0f;
         private const float _upperButtonWidth = 35.0f;
 
+        private Resource.ResourceManager _content;
         private int _screenX, _screenY;
         private Graphics.TextureResource _upperBackground;
         private Graphics.TextureResource _optionsBackground;
@@ -23,6 +24,7 @@ namespace Gk3Main.Gui
         private Button[] _advancedOptionsButtons;
         private Dropdown _3dDriverDropdown;
         private Dropdown _resolutionDropdown;
+        private MsgBox _restartNotice;
         private bool _active;
 
         enum OptionsMenuState
@@ -41,6 +43,7 @@ namespace Gk3Main.Gui
         {
             _upperButtons = new Button[7];
             _optionsButtons = new Button[4];
+            _content = globalContent;
 
             // we need to load all the positioning data and whatnot from a file...
             Resource.TextResource layout = new Gk3Main.Resource.TextResource("RC_LAYOUT.TXT", FileSystem.Open("RC_LAYOUT.TXT"));
@@ -139,17 +142,19 @@ namespace Gk3Main.Gui
             float width, height;
             tryParse2f(layoutInfo["graphOptDriverBoxSize"], out width, out height);
             _3dDriverDropdown = new Dropdown(this, globalContent, (int)width, layoutInfo["graphOptDriverSpriteDown"], layoutInfo["graphOptDriverSpriteHov"], layoutInfo["graphOptDriverSpriteUp"]);
+            _3dDriverDropdown.OnSelectedItemChanged += new EventHandler(onGraphicsDriverChanged);
 
             float x, y;
             tryParse2f(layoutInfo["graphOptDriverPos"], out x, out y);
             _3dDriverDropdown.X = new Unit(0, (int)x);
             _3dDriverDropdown.Y = new Unit(0, _upperBackground.Height + _optionsBackground.Height + _advancedBackground.Height + (int)y);
 
-            _3dDriverDropdown.Items.Add(new KeyValuePair<string, string>("d3d", "Direct3D 9"));
-            _3dDriverDropdown.Items.Add(new KeyValuePair<string, string>("gl", "OpenGL 3.0"));
+            _3dDriverDropdown.Items.Add(new KeyValuePair<string, string>("d3d9", "Direct3D 9"));
+            _3dDriverDropdown.Items.Add(new KeyValuePair<string, string>("gl30", "OpenGL 3.0"));
 
             tryParse2f(layoutInfo["graphOptResolutionBoxSize"], out width, out height);
             _resolutionDropdown = new Dropdown(this, globalContent, (int)width, layoutInfo["graphOptResolutionSpriteDown"], layoutInfo["graphOptDriverSpriteHov"], layoutInfo["graphOptDriverSpriteUp"]);
+            _resolutionDropdown.OnSelectedItemChanged += new EventHandler(onGraphicsResChanged);
 
             tryParse2f(layoutInfo["graphOptResolutionPos"], out x, out y);
             _resolutionDropdown.X = new Unit(0, (int)x);
@@ -158,8 +163,9 @@ namespace Gk3Main.Gui
             List<Graphics.DisplayMode> modes = Graphics.RendererManager.CurrentRenderer.ParentWindow.GetSupportedDisplayModes();
             foreach (Graphics.DisplayMode mode in modes)
             {
+                string keyStr = mode.Width.ToString() + "," + mode.Height.ToString();
                 string modeStr = mode.Width.ToString() + " x " + mode.Height.ToString();
-                _resolutionDropdown.Items.Add(new KeyValuePair<string, string>(modeStr, modeStr));
+                _resolutionDropdown.Items.Add(new KeyValuePair<string, string>(keyStr, modeStr));
             }
         }
 
@@ -415,6 +421,35 @@ namespace Gk3Main.Gui
                 _state = OptionsMenuState.GraphicsOptions;
             else
                 _state = OptionsMenuState.AdvancedOption;
+        }
+
+        private void onGraphicsDriverChanged(object sender, EventArgs e)
+        {
+            _restartNotice = GuiMaster.ShowMessageBox(_content, "Changing renderers on-the-fly isn't supported (yet). You'll have to restart the game before settings take effect.", MsgBoxType.OK);
+            _restartNotice.OnResult += new EventHandler<MsgBoxResultEventArgs>(onRestartNoticeResult);
+
+            Settings.Renderer = _3dDriverDropdown.Items[_3dDriverDropdown.SelectedIndex].Key;
+            Settings.Save();
+        }
+
+        private void onGraphicsResChanged(object sender, EventArgs e)
+        {
+            _restartNotice = GuiMaster.ShowMessageBox(_content, "Changing resolution on-the-fly isn't supported (yet). You'll have to restart the game before settings take effect.", MsgBoxType.OK);
+            _restartNotice.OnResult += new EventHandler<MsgBoxResultEventArgs>(onRestartNoticeResult);
+
+            string res = _resolutionDropdown.Items[_resolutionDropdown.SelectedIndex].Key;
+            float w, h;
+            if (tryParse2f(res, out w, out h))
+            {
+                Settings.ScreenWidth = (int)w;
+                Settings.ScreenHeight = (int)h;
+                Settings.Save();
+            }
+        }
+
+        private void onRestartNoticeResult(object sender, MsgBoxResultEventArgs e)
+        {
+            _restartNotice.Dismiss();
         }
     }
 }

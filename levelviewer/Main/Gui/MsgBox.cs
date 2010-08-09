@@ -14,7 +14,7 @@ namespace Gk3Main.Gui
     {
         Yes,
         No,
-        Cancel
+        Okay
     }
 
     public class MsgBoxResultEventArgs : EventArgs
@@ -74,6 +74,10 @@ namespace Gk3Main.Gui
             _yes = new Button(this, globalContent, layoutInfo["yesSpriteDown"], layoutInfo["yesSpriteHov"], layoutInfo["yesSpriteUp"], null, null);
             _no = new Button(this, globalContent, layoutInfo["noSpriteDown"], layoutInfo["noSpriteHov"], layoutInfo["noSpriteUp"], null, null);
             _ok = new Button(this, globalContent, layoutInfo["okSpriteDown"], layoutInfo["okSpriteHov"], layoutInfo["okSpriteUp"], null, null);
+            _yes.OnClick += new EventHandler(onButtonClicked);
+            _no.OnClick += new EventHandler(onButtonClicked);
+            _ok.OnClick += new EventHandler(onButtonClicked);
+
 
             _bg = globalContent.Load<Graphics.TextureResource>("black");
             _vert = globalContent.Load<Graphics.TextureResource>(layoutInfo["vertSprite"]);
@@ -306,6 +310,23 @@ namespace Gk3Main.Gui
 
             return float.TryParse(str.Substring(0, comma), out f1) &&
                 float.TryParse(str.Substring(comma + 1), out f2);
+        }
+
+        private void onButtonClicked(object sender, EventArgs e)
+        {
+            if (_onResult != null)
+            {
+                MsgBoxResultEventArgs args = new MsgBoxResultEventArgs();
+
+                if (sender == _ok)
+                    args.Result = MsgBoxResult.Okay;
+                else if (sender == _yes)
+                    args.Result = MsgBoxResult.Yes;
+                else if (sender == _no)
+                    args.Result = MsgBoxResult.No;
+
+                _onResult(this, args);
+            }
         }
     }
 }

@@ -134,6 +134,7 @@
     <Compile Include="Resource\InfoResource.cs" />
     <Compile Include="Resource\ResourceManager.cs" />
     <Compile Include="Resource\TextResource.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Sheep\BasicSheepFunctions.cs" />
     <Compile Include="Sheep\Sheep.cs" />
     <Compile Include="Sound\Sound.cs" />
