@@ -393,6 +393,10 @@ namespace Gk3Main.Graphics
             }
         }
 
+        /// <summary>
+        /// "Batched" version of Render(). This version is much faster, but
+        /// it must be called between BeginBatchRender() and EndBatchRender().
+        /// </summary>
         public void RenderBatch(Camera camera)
         {
             if (!_isBillboard)
@@ -462,6 +466,10 @@ namespace Gk3Main.Graphics
             }
         }
 
+        /// <summary>
+        /// "Batched" version of RenderAt(). This version is much faster, but
+        /// it must be called between BeginBatchRender() and EndBatchRender().
+        /// </summary>
         public void RenderAtBatch(Math.Vector3 position, float angle, Camera camera)
         {
             Math.Matrix world = Math.Matrix.RotateY(angle)
@@ -559,6 +567,15 @@ namespace Gk3Main.Graphics
             get { return _meshes; }
         }
 
+        /// <summary>
+        /// Sets up a "batch" render.
+        /// </summary>
+        /// <remarks>
+        /// Batching models together during rendering is *much* faster than
+        /// rendering one at a time. If you can, use these batching render methods.
+        /// The more models you can rendering in one batch the more bang for your
+        /// buck you can get!
+        /// </remarks>
         public static void BeginBatchRender()
         {
             RendererManager.CurrentRenderer.VertexDeclaration = _elements;

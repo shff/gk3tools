@@ -58,6 +58,9 @@ namespace Gk3Main.Graphics
 
     public class BspSurface
     {
+        public int VertexIndex;
+        public int VertexCount;
+
         public uint modelIndex;
         public string texture;
         public float uCoord, vCoord;
@@ -75,11 +78,6 @@ namespace Gk3Main.Graphics
         public float r, g, b;
         public uint index;
         public uint numTriangles;
-        public float[] vertices;
-        public float[] lightmapCoords;
-        public float[] textureCoords;
-        public BspVertex[] combinedVertices;
-        public VertexBuffer vertexBuffer;
         public TextureResource textureResource;
 
         public Math.Vector4 boundingSphere;
@@ -264,6 +262,7 @@ namespace Gk3Main.Graphics
             }
 
             // load the "thingies", whatever that means
+            List<BspVertex> allVerts = new List<BspVertex>();
             for (int i = 0; i < header.numSurfaces; i++)
             {
                 // throw junk away
@@ -283,10 +282,8 @@ namespace Gk3Main.Graphics
                     myindices[j] = reader.ReadUInt16();
                 }
 
+                _surfaces[i].VertexIndex = allVerts.Count;
                 _surfaces[i].indices = new ushort[_surfaces[i].numTriangles * 3];
-                _surfaces[i].combinedVertices = new BspVertex[_surfaces[i].numTriangles * 3];
-                _surfaces[i].vertices = new float[_surfaces[i].numTriangles * 3 * 3];
-                _surfaces[i].textureCoords = new float[_surfaces[i].numTriangles * 3 * 2];
                 for (uint j = 0; j < _surfaces[i].numTriangles; j++)
                 {
                     ushort x = reader.ReadUInt16();
@@ -301,59 +298,39 @@ namespace Gk3Main.Graphics
                     // so there's some performance loss. Figure out a good way to still use indices.
 
                     // vertex 1
-                    _surfaces[i].vertices[(j * 3 + 0) * 3 + 0] = _vertices[myindices[x] * 3 + 0];
-                    _surfaces[i].vertices[(j * 3 + 0) * 3 + 1] = _vertices[myindices[x] * 3 + 1];
-                    _surfaces[i].vertices[(j * 3 + 0) * 3 + 2] = _vertices[myindices[x] * 3 + 2];
-
-                    _surfaces[i].textureCoords[(j * 3 + 0) * 2 + 0] = _texcoords[myindices[x] * 2 + 0];
-                    _surfaces[i].textureCoords[(j * 3 + 0) * 2 + 1] = _texcoords[myindices[x] * 2 + 1];
-
-                    _surfaces[i].combinedVertices[j * 3 + 0].X = _vertices[myindices[x] * 3 + 0];
-                    _surfaces[i].combinedVertices[j * 3 + 0].Y = _vertices[myindices[x] * 3 + 1];
-                    _surfaces[i].combinedVertices[j * 3 + 0].Z = _vertices[myindices[x] * 3 + 2];
-                    _surfaces[i].combinedVertices[j * 3 + 0].U = _texcoords[myindices[x] * 2 + 0];
-                    _surfaces[i].combinedVertices[j * 3 + 0].V = _texcoords[myindices[x] * 2 + 1];
+                    BspVertex vertex = new BspVertex();
+                    vertex.X = _vertices[myindices[x] * 3 + 0];
+                    vertex.Y = _vertices[myindices[x] * 3 + 1];
+                    vertex.Z = _vertices[myindices[x] * 3 + 2];
+                    vertex.U = _texcoords[myindices[x] * 2 + 0];
+                    vertex.V = _texcoords[myindices[x] * 2 + 1];
+                    allVerts.Add(vertex);
 
                     // vertex 2
-                    _surfaces[i].vertices[(j * 3 + 1) * 3 + 0] = _vertices[myindices[y] * 3 + 0];
-                    _surfaces[i].vertices[(j * 3 + 1) * 3 + 1] = _vertices[myindices[y] * 3 + 1];
-                    _surfaces[i].vertices[(j * 3 + 1) * 3 + 2] = _vertices[myindices[y] * 3 + 2];
-
-                    _surfaces[i].textureCoords[(j * 3 + 1) * 2 + 0] = _texcoords[myindices[y] * 2 + 0];
-                    _surfaces[i].textureCoords[(j * 3 + 1) * 2 + 1] = _texcoords[myindices[y] * 2 + 1];
-
-                    _surfaces[i].combinedVertices[j * 3 + 1].X = _vertices[myindices[y] * 3 + 0];
-                    _surfaces[i].combinedVertices[j * 3 + 1].Y = _vertices[myindices[y] * 3 + 1];
-                    _surfaces[i].combinedVertices[j * 3 + 1].Z = _vertices[myindices[y] * 3 + 2];
-                    _surfaces[i].combinedVertices[j * 3 + 1].U = _texcoords[myindices[y] * 2 + 0];
-                    _surfaces[i].combinedVertices[j * 3 + 1].V = _texcoords[myindices[y] * 2 + 1];
+                    vertex.X = _vertices[myindices[y] * 3 + 0];
+                    vertex.Y = _vertices[myindices[y] * 3 + 1];
+                    vertex.Z = _vertices[myindices[y] * 3 + 2];
+                    vertex.U = _texcoords[myindices[y] * 2 + 0];
+                    vertex.V = _texcoords[myindices[y] * 2 + 1];
+                    allVerts.Add(vertex);
 
                     // vertex 3
-                    _surfaces[i].vertices[(j * 3 + 2) * 3 + 0] = _vertices[myindices[z] * 3 + 0];
-                    _surfaces[i].vertices[(j * 3 + 2) * 3 + 1] = _vertices[myindices[z] * 3 + 1];
-                    _surfaces[i].vertices[(j * 3 + 2) * 3 + 2] = _vertices[myindices[z] * 3 + 2];
-
-                    _surfaces[i].textureCoords[(j * 3 + 2) * 2 + 0] = _texcoords[myindices[z] * 2 + 0];
-                    _surfaces[i].textureCoords[(j * 3 + 2) * 2 + 1] = _texcoords[myindices[z] * 2 + 1];
-
-                    _surfaces[i].combinedVertices[j * 3 + 2].X = _vertices[myindices[z] * 3 + 0];
-                    _surfaces[i].combinedVertices[j * 3 + 2].Y = _vertices[myindices[z] * 3 + 1];
-                    _surfaces[i].combinedVertices[j * 3 + 2].Z = _vertices[myindices[z] * 3 + 2];
-                    _surfaces[i].combinedVertices[j * 3 + 2].U = _texcoords[myindices[z] * 2 + 0];
-                    _surfaces[i].combinedVertices[j * 3 + 2].V = _texcoords[myindices[z] * 2 + 1];
+                    vertex.X = _vertices[myindices[z] * 3 + 0];
+                    vertex.Y = _vertices[myindices[z] * 3 + 1];
+                    vertex.Z = _vertices[myindices[z] * 3 + 2];
+                    vertex.U = _texcoords[myindices[z] * 2 + 0];
+                    vertex.V = _texcoords[myindices[z] * 2 + 1];
+                    allVerts.Add(vertex);
                 }
+                _surfaces[i].VertexCount = allVerts.Count - _surfaces[i].VertexIndex;
             }
 
             reader.Close();
 
-            setupLightmapCoords();
+            setupLightmapCoords(allVerts);
             loadTextures(content);
 
-            // create each surface's vertes buffer
-            for (int i = 0; i < header.numSurfaces; i++)
-            {
-                _surfaces[i].vertexBuffer = RendererManager.CurrentRenderer.CreateVertexBuffer(_surfaces[i].combinedVertices, (int)_surfaces[i].numTriangles * 3, _vertexDeclaration);
-            }
+            _allVertices = RendererManager.CurrentRenderer.CreateVertexBuffer(allVerts.ToArray(), allVerts.Count, _vertexDeclaration);
         }
 
         public void Render(Camera camera, LightmapResource lightmaps)
@@ -388,7 +365,7 @@ namespace Gk3Main.Graphics
             else
                 lightmapMultiplier = 1.0f;
 
-            RendererManager.CurrentRenderer.VertexDeclaration = _vertexDeclaration;
+            RendererManager.CurrentRenderer.SetVertexBuffer(_allVertices);
             currentEffect.Bind();
 
             if (lightmappingEnabled)
@@ -466,13 +443,12 @@ namespace Gk3Main.Graphics
             }
         }
 
-        private void setupLightmapCoords()
+        private void setupLightmapCoords(List<BspVertex> verts)
         {
             _lightmapcoords = new float[_texcoords.Length];
 
             for (int i = 0; i < _surfaces.Length; i++)
             {
-                _surfaces[i].lightmapCoords = new float[_surfaces[i].indices.Length * 2];
                 for (int j = 0; j < _surfaces[i].indices.Length; j++)
                 {
                     float u = (_surfaces[i].uCoord + _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
@@ -481,11 +457,10 @@ namespace Gk3Main.Graphics
                     _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
                     _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
 
-                    _surfaces[i].lightmapCoords[j * 2 + 0] = u;
-                    _surfaces[i].lightmapCoords[j * 2 + 1] = v;
-
-                    _surfaces[i].combinedVertices[j].LU = u;
-                    _surfaces[i].combinedVertices[j].LV = v;
+                    BspVertex vertex = verts[_surfaces[i].VertexIndex + j];
+                    vertex.LU = u;
+                    vertex.LV = v;
+                    verts[_surfaces[i].VertexIndex + j] = vertex;
                 }
             }
         }
@@ -566,8 +541,7 @@ namespace Gk3Main.Graphics
 
             effect.CommitParams();
 
-            RendererManager.CurrentRenderer.RenderBuffers(surface.vertexBuffer, null);
-            //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Triangles, 0, surface.combinedVertices.Length, surface.combinedVertices);
+            RendererManager.CurrentRenderer.RenderBuffers(surface.VertexIndex, surface.VertexCount);
         }
 
         private int findParent(BspNode[] nodes, int index)
@@ -597,6 +571,7 @@ namespace Gk3Main.Graphics
         private float[] _vertices;
         private float[] _texcoords;
         private float[] _lightmapcoords;
+        private VertexBuffer _allVertices;
         private BspSurface[] _surfaces;
         private BspNode[] _nodes;
         private BspPolygon[] _polygons;

@@ -576,6 +576,14 @@ namespace Gk3Main.Graphics.Direct3D9
 
         #region Rendering
 
+        public void SetVertexBuffer(VertexBuffer buffer)
+        {
+            Direct3D9VertexBuffer vertexBuffer = (Direct3D9VertexBuffer)buffer;
+
+            _device.SetStreamSource(0, vertexBuffer.InternalBuffer, 0, vertexBuffer.VertexElements.Stride);
+            _device.VertexDeclaration = vertexBuffer.VertexElements.D3D9Declaration;
+        }
+
         public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
         {
             Direct3D9VertexBuffer vertexBuffer = (Direct3D9VertexBuffer)vertices;
@@ -593,6 +601,11 @@ namespace Gk3Main.Graphics.Direct3D9
             {
                 _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, vertexBuffer.Length / 3);
             }
+        }
+
+        public void RenderBuffers(int firstVertex, int vertexCount)
+        {
+            _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, firstVertex, vertexCount / 3);
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct

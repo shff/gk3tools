@@ -311,6 +311,11 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
+        public void SetVertexBuffer(VertexBuffer buffer)
+        {
+            throw new NotImplementedException();
+        }
+
         public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
         {
             GlVertexBuffer glVertices = (GlVertexBuffer)vertices;
@@ -339,6 +344,11 @@ namespace Gk3Main.Graphics.OpenGl
             glVertices.Unbind();
 
             if (glIndices != null) glIndices.Unbind();
+        }
+
+        public void RenderBuffers(int firstVertex, int vertexCount)
+        {
+            throw new NotImplementedException();
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct

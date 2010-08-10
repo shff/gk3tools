@@ -486,7 +486,9 @@ namespace Gk3Main.Graphics
         BlendState BlendState { get; set; }
         //SamplerStateCollection SamplerStates { get; }
 
+        void SetVertexBuffer(VertexBuffer buffer);
         void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
+        void RenderBuffers(int startVertex, int numVertices);
         void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct;
         void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct;
 
