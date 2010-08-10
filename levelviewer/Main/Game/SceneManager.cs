@@ -283,15 +283,31 @@ namespace Gk3Main
                     _currentRoom.Render(camera, _currentLightmaps);
 
                 // render the models
+                Graphics.ModelResource.BeginBatchRender();
                 foreach (SceneModel model in _models)
                 {
                     if (model.Visible)
-                        model.Model.Render(camera);
+                        model.Model.RenderBatch(camera);
                 }
 
                 // render the actors
                 foreach (Game.Actor actor in _actors)
-                    actor.Render(camera);
+                    actor.RenderBatch(camera);
+
+                Graphics.ModelResource.EndBatchRender();
+
+                // render model AABBs (if needed)
+                if (Settings.ShowBoundingBoxes)
+                {
+                    foreach (SceneModel model in _models)
+                    {
+                        if (model.Visible)
+                            model.Model.RenderAABB(camera);
+                    }
+
+                    foreach (Game.Actor actor in _actors)
+                        actor.RenderAABB(camera);
+                }
 
                 // add helpers to the billboard list
                 foreach (KeyValuePair<string, SifPosition> position in _roomPositions)

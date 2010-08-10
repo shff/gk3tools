@@ -222,6 +222,7 @@ class MonoMain
         Gk3Main.Graphics.SkyBox.Init(_globalContent);
         Gk3Main.Graphics.BillboardManager.Init(_globalContent);
         Gk3Main.Graphics.AxisAlignedBoundingBox.Init(_globalContent);
+        Gk3Main.Graphics.ModelResource.LoadGlobalContent(_globalContent);
 
         _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
 

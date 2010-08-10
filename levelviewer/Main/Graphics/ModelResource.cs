@@ -120,11 +120,15 @@ namespace Gk3Main.Graphics
             });
         }
 
+        public static void LoadGlobalContent(Resource.ResourceManager globalContent)
+        {
+            _effect = globalContent.Load<Effect>("basic_textured.fx");
+        }
+
         public ModelResource(string name, Resource.ResourceManager content)
             : base(name, false)
         {
             _content = content;
-            _effect = content.Load<Effect>("basic_textured.fx");
         }
 
         public ModelResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
@@ -348,8 +352,6 @@ namespace Gk3Main.Graphics
                     }
                 }
             }
-
-            _effect = _content.Load<Effect>("basic_textured.fx");
         }
 
         public void Render(Camera camera)
@@ -360,71 +362,7 @@ namespace Gk3Main.Graphics
                 _effect.Bind();
                 _effect.Begin();
 
-                if (!_isBillboard)
-                {
-                    foreach (ModMesh mesh in _meshes)
-                    {
-                        Math.Matrix worldview;
-                        if (mesh.AnimatedTransformMatrix.HasValue)
-                            worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
-                        else
-                            worldview = mesh.TransformMatrix * camera.ViewProjection;
-
-                       
-
-                        foreach (ModMeshSection section in mesh.sections)
-                        {
-                            if (section.textureResource.ContainsAlpha)
-                                RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
-                            _effect.SetParameter("ModelViewProjection", worldview);
-                            _effect.SetParameter("Diffuse", section.textureResource, 0);
-                            _effect.CommitParams();
-
-                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
-                                section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
-
-                            if (section.textureResource.ContainsAlpha)
-                                RendererManager.CurrentRenderer.AlphaTestEnabled = false;  
-                        }
-
-                    }
-                }
-                else
-                {
-                    // render the model as a billboard
-                    for (int i = 0; i < _meshes.Length; i++)
-                    {
-                        Math.Vector3 meshPosition;
-                        if (_useBillboardCenter)
-                        {
-                            meshPosition = _billboardCenter;
-                        }
-                        else
-                        {
-                            meshPosition = _meshes[i].OriginalBoundingBox.Center;
-                        }
-                        
-                        Math.Matrix billboardMatrix;
-                        camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
-
-                        foreach (ModMeshSection section in _meshes[i].sections)
-                        {
-                            if (section.textureResource.ContainsAlpha)
-                                RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
-                            _effect.SetParameter("ModelViewProjection",  billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
-                            _effect.SetParameter("Diffuse", section.textureResource, 0);
-                            _effect.CommitParams();
-
-                            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
-                                section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
-
-                            if (section.textureResource.ContainsAlpha)
-                                RendererManager.CurrentRenderer.AlphaTestEnabled = false;
-                        }
-                    }
-                }
+                RenderBatch(camera);
 
                 _effect.End();
 
@@ -443,52 +381,136 @@ namespace Gk3Main.Graphics
             if (_loaded == true)
             {
                 RendererManager.CurrentRenderer.VertexDeclaration = _elements;
+                _effect.Bind();
+                _effect.Begin();
 
-                Math.Matrix world = Math.Matrix.RotateY(angle)
-                    * Math.Matrix.Translate(position);
+                RenderAtBatch(position, angle, camera);
 
-                foreach (ModMesh mesh in _meshes)
-                {
-                    Math.Matrix worldview;
-
-                    if (mesh.AnimatedTransformMatrix.HasValue)
-                    {
-                        if (mesh.AnimatedTransformIsAbsolute)
-                            worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
-                        else
-                            worldview = mesh.AnimatedTransformMatrix.Value * world * camera.ViewProjection;
-                    }
-                    else
-                        worldview = mesh.TransformMatrix * world * camera.ViewProjection;
-
-                    foreach (ModMeshSection section in mesh.sections)
-                    {
-                        if (section.textureResource != null && section.textureResource.ContainsAlpha)
-                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
-                        _effect.Bind();
-                        _effect.SetParameter("ModelViewProjection", worldview);
-                        _effect.SetParameter("Diffuse", section.textureResource, 0);
-                        _effect.Begin();
-
-                        float[] vertices;
-                        if (section.AnimatedVertices != null)
-                            vertices = section.AnimatedVertices;
-                        else
-                            vertices = section.vertices;
-
-                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0, 
-                            vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices);
-                    
-                        _effect.End();
-
-                        if (section.textureResource != null && section.textureResource.ContainsAlpha)
-                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-                    }
-                }
+                _effect.End();
 
                 if (Settings.ShowBoundingBoxes)
                     RenderAABBAt(position, angle, camera);
+            }
+        }
+
+        public void RenderBatch(Camera camera)
+        {
+            if (!_isBillboard)
+            {
+                foreach (ModMesh mesh in _meshes)
+                {
+                    Math.Matrix worldview;
+                    if (mesh.AnimatedTransformMatrix.HasValue)
+                        worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
+                    else
+                        worldview = mesh.TransformMatrix * camera.ViewProjection;
+
+
+
+                    foreach (ModMeshSection section in mesh.sections)
+                    {
+                        if (section.textureResource.ContainsAlpha)
+                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+
+                        _effect.SetParameter("ModelViewProjection", worldview);
+                        _effect.SetParameter("Diffuse", section.textureResource, 0);
+                        _effect.CommitParams();
+
+                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
+                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
+
+                        if (section.textureResource.ContainsAlpha)
+                            RendererManager.CurrentRenderer.AlphaTestEnabled = false;
+                    }
+
+                }
+            }
+            else
+            {
+                // render the model as a billboard
+                for (int i = 0; i < _meshes.Length; i++)
+                {
+                    Math.Vector3 meshPosition;
+                    if (_useBillboardCenter)
+                    {
+                        meshPosition = _billboardCenter;
+                    }
+                    else
+                    {
+                        meshPosition = _meshes[i].OriginalBoundingBox.Center;
+                    }
+
+                    Math.Matrix billboardMatrix;
+                    camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
+
+                    foreach (ModMeshSection section in _meshes[i].sections)
+                    {
+                        if (section.textureResource.ContainsAlpha)
+                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+
+                        _effect.SetParameter("ModelViewProjection", billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
+                        _effect.SetParameter("Diffuse", section.textureResource, 0);
+                        _effect.CommitParams();
+
+                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
+                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
+
+                        if (section.textureResource.ContainsAlpha)
+                            RendererManager.CurrentRenderer.AlphaTestEnabled = false;
+                    }
+                }
+            }
+        }
+
+        public void RenderAtBatch(Math.Vector3 position, float angle, Camera camera)
+        {
+            Math.Matrix world = Math.Matrix.RotateY(angle)
+                    * Math.Matrix.Translate(position);
+
+            foreach (ModMesh mesh in _meshes)
+            {
+                Math.Matrix worldview;
+
+                if (mesh.AnimatedTransformMatrix.HasValue)
+                {
+                    if (mesh.AnimatedTransformIsAbsolute)
+                        worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
+                    else
+                        worldview = mesh.AnimatedTransformMatrix.Value * world * camera.ViewProjection;
+                }
+                else
+                    worldview = mesh.TransformMatrix * world * camera.ViewProjection;
+
+                _effect.SetParameter("ModelViewProjection", worldview);
+
+                foreach (ModMeshSection section in mesh.sections)
+                {
+                    if (section.textureResource != null && section.textureResource.ContainsAlpha)
+                        RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+
+                    _effect.SetParameter("Diffuse", section.textureResource, 0);
+                    _effect.CommitParams();
+
+                    float[] vertices;
+                    if (section.AnimatedVertices != null)
+                        vertices = section.AnimatedVertices;
+                    else
+                        vertices = section.vertices;
+
+                    RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
+                        vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices);
+
+                    if (section.textureResource != null && section.textureResource.ContainsAlpha)
+                        RendererManager.CurrentRenderer.AlphaTestEnabled = true;
+                }
+            }
+        }
+
+        public void RenderAABB(Camera camera)
+        {
+            foreach (ModMesh mesh in _meshes)
+            {
+                mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Identity);
             }
         }
 
@@ -537,12 +559,25 @@ namespace Gk3Main.Graphics
             get { return _meshes; }
         }
 
+        public static void BeginBatchRender()
+        {
+            RendererManager.CurrentRenderer.VertexDeclaration = _elements;
+            _effect.Bind();
+            _effect.Begin();
+        }
+
+        public static void EndBatchRender()
+        {
+            _effect.End();
+        }
+
         private ModMesh[] _meshes;
-        private Effect _effect;
+        
         private bool _isBillboard;
         private bool _useBillboardCenter;
         private Math.Vector3 _billboardCenter;
         private Resource.ResourceManager _content;
+        private static Effect _effect;
         private static VertexElementSet _elements;
     }
 

@@ -182,6 +182,22 @@ namespace Gk3Main.Game
             }
         }
 
+        public void RenderBatch(Graphics.Camera camera)
+        {
+            if (_model != null)
+            {
+                _model.RenderAtBatch(_position, _facingAngle, camera);
+            }
+        }
+
+        public void RenderAABB(Graphics.Camera camera)
+        {
+            if (_model != null)
+            {
+                _model.RenderAABBAt(_position, _facingAngle, camera);
+            }
+        }
+
         public void SetMouth(string mouth)
         {
             if (_face.IsEmptyFace == false)
