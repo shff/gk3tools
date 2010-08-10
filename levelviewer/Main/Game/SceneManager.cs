@@ -178,6 +178,8 @@ namespace Gk3Main
                 // load the lightmaps
                 _currentLightmaps = _sceneContentManager.Load<Graphics.LightmapResource>(scnWithoutExtension);
 
+                _currentRoom.FinalizeVertices(_currentLightmaps);
+
                 _models.Clear();
                 unloadActors();
             }

@@ -262,7 +262,7 @@ namespace Gk3Main.Graphics
             }
 
             // load the "thingies", whatever that means
-            List<BspVertex> allVerts = new List<BspVertex>();
+            _bspVertices = new List<BspVertex>();
             for (int i = 0; i < header.numSurfaces; i++)
             {
                 // throw junk away
@@ -282,7 +282,7 @@ namespace Gk3Main.Graphics
                     myindices[j] = reader.ReadUInt16();
                 }
 
-                _surfaces[i].VertexIndex = allVerts.Count;
+                _surfaces[i].VertexIndex = _bspVertices.Count;
                 _surfaces[i].indices = new ushort[_surfaces[i].numTriangles * 3];
                 for (uint j = 0; j < _surfaces[i].numTriangles; j++)
                 {
@@ -304,7 +304,7 @@ namespace Gk3Main.Graphics
                     vertex.Z = _vertices[myindices[x] * 3 + 2];
                     vertex.U = _texcoords[myindices[x] * 2 + 0];
                     vertex.V = _texcoords[myindices[x] * 2 + 1];
-                    allVerts.Add(vertex);
+                    _bspVertices.Add(vertex);
 
                     // vertex 2
                     vertex.X = _vertices[myindices[y] * 3 + 0];
@@ -312,7 +312,7 @@ namespace Gk3Main.Graphics
                     vertex.Z = _vertices[myindices[y] * 3 + 2];
                     vertex.U = _texcoords[myindices[y] * 2 + 0];
                     vertex.V = _texcoords[myindices[y] * 2 + 1];
-                    allVerts.Add(vertex);
+                    _bspVertices.Add(vertex);
 
                     // vertex 3
                     vertex.X = _vertices[myindices[z] * 3 + 0];
@@ -320,17 +320,40 @@ namespace Gk3Main.Graphics
                     vertex.Z = _vertices[myindices[z] * 3 + 2];
                     vertex.U = _texcoords[myindices[z] * 2 + 0];
                     vertex.V = _texcoords[myindices[z] * 2 + 1];
-                    allVerts.Add(vertex);
+                    _bspVertices.Add(vertex);
                 }
-                _surfaces[i].VertexCount = allVerts.Count - _surfaces[i].VertexIndex;
+                _surfaces[i].VertexCount = _bspVertices.Count - _surfaces[i].VertexIndex;
             }
 
             reader.Close();
 
-            setupLightmapCoords(allVerts);
             loadTextures(content);
+        }
 
-            _allVertices = RendererManager.CurrentRenderer.CreateVertexBuffer(allVerts.ToArray(), allVerts.Count, _vertexDeclaration);
+        public void FinalizeVertices(LightmapResource lightmap)
+        {
+            _lightmapcoords = new float[_texcoords.Length];
+
+            for (int i = 0; i < _surfaces.Length; i++)
+            {
+                for (int j = 0; j < _surfaces[i].indices.Length; j++)
+                {
+                    float u = (_surfaces[i].uCoord + _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
+                    float v = (_surfaces[i].vCoord + _texcoords[_surfaces[i].indices[j] * 2 + 1]) * _surfaces[i].vScale;
+
+                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
+                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
+
+                    Rect lightmapRect = lightmap.PackedLightmaps.GetPackedTextureRect(i);
+
+                    BspVertex vertex = _bspVertices[_surfaces[i].VertexIndex + j];
+                    vertex.LU = lightmapRect.X + u * lightmapRect.Width;
+                    vertex.LV = lightmapRect.Y + v * lightmapRect.Height;
+                    _bspVertices[_surfaces[i].VertexIndex + j] = vertex;
+                }
+            }
+
+            _allVertices = RendererManager.CurrentRenderer.CreateVertexBuffer(_bspVertices.ToArray(), _bspVertices.Count, _vertexDeclaration);
         }
 
         public void Render(Camera camera, LightmapResource lightmaps)
@@ -371,14 +394,19 @@ namespace Gk3Main.Graphics
             if (lightmappingEnabled)
                 currentEffect.SetParameter("LightmapMultiplier", lightmapMultiplier);
             currentEffect.SetParameter("ModelViewProjection", camera.ViewProjection);
+
+            TextureResource lightmap = lightmaps.PackedLightmaps.PackedTexture;
+            if (lightmap != null)
+                currentEffect.SetParameter("Lightmap", lightmap, 1);
+
             currentEffect.Begin();
             for (int i = 0; i < _surfaces.Length; i++)
             {
                 if (_surfaces[i].Hidden == false)
                 {
                     BspSurface surface = _surfaces[i];
-                    TextureResource lightmap = (lightmappingEnabled ? lightmaps[i] : null);
-
+                    //TextureResource lightmap = (lightmappingEnabled ? lightmaps[i] : null);
+  
                     drawSurface(surface, lightmap, currentEffect, camera, lightmappingEnabled, lightmapMultiplier);
                 }
             }
@@ -440,28 +468,6 @@ namespace Gk3Main.Graphics
             foreach (BspSurface surface in _surfaces)
             {
                 surface.textureResource = content.Load<TextureResource>(surface.texture);
-            }
-        }
-
-        private void setupLightmapCoords(List<BspVertex> verts)
-        {
-            _lightmapcoords = new float[_texcoords.Length];
-
-            for (int i = 0; i < _surfaces.Length; i++)
-            {
-                for (int j = 0; j < _surfaces[i].indices.Length; j++)
-                {
-                    float u = (_surfaces[i].uCoord + _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
-                    float v = (_surfaces[i].vCoord + _texcoords[_surfaces[i].indices[j] * 2 + 1]) * _surfaces[i].vScale;
-
-                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
-                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
-
-                    BspVertex vertex = verts[_surfaces[i].VertexIndex + j];
-                    vertex.LU = u;
-                    vertex.LV = v;
-                    verts[_surfaces[i].VertexIndex + j] = vertex;
-                }
             }
         }
 
@@ -536,9 +542,6 @@ namespace Gk3Main.Graphics
 
             effect.SetParameter("Diffuse", surface.textureResource, 0);
 
-            if (lightmap != null)
-                effect.SetParameter("Lightmap", lightmap, 1);
-
             effect.CommitParams();
 
             RendererManager.CurrentRenderer.RenderBuffers(surface.VertexIndex, surface.VertexCount);
@@ -571,6 +574,7 @@ namespace Gk3Main.Graphics
         private float[] _vertices;
         private float[] _texcoords;
         private float[] _lightmapcoords;
+        private List<BspVertex> _bspVertices;
         private VertexBuffer _allVertices;
         private BspSurface[] _surfaces;
         private BspNode[] _nodes;

@@ -111,6 +111,7 @@
     <Compile Include="Graphics\RenderWindow.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />
+    <Compile Include="Graphics\TextureAtlas.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="Graphics\Utils.cs" />
     <Compile Include="Gui\Button.cs" />

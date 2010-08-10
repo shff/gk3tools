@@ -12,9 +12,9 @@ namespace Gk3Main.Graphics.Direct3D9
         public Direct3D9UpdatableTexture(string name, int width, int height)
             : base(name, width, height)
         {
-            if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
-                Gk3Main.Utils.IsPowerOfTwo(height) == false)
-                throw new ArgumentException("Width and height must be power-of-two");
+            //if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
+            //    Gk3Main.Utils.IsPowerOfTwo(height) == false)
+            //    throw new ArgumentException("Width and height must be power-of-two");
 
             Direct3D9Renderer renderer = (Direct3D9Renderer)RendererManager.CurrentRenderer;
 

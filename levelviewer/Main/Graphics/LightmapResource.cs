@@ -35,6 +35,8 @@ namespace Gk3Main.Graphics
 
             for (int i = 0; i < numMaps; i++)
                 _maps[i] = RendererManager.CurrentRenderer.CreateTexture(name + "_map_" + i.ToString(), stream, true);
+
+            _packedMaps = new TextureAtlas(_maps);
         }
 
         public override void Dispose()
@@ -53,6 +55,12 @@ namespace Gk3Main.Graphics
             get { return _maps; }
         }
 
+        public TextureAtlas PackedLightmaps
+        {
+            get { return _packedMaps; }
+        }
+
+        private TextureAtlas _packedMaps;
         private TextureResource[] _maps;
     }
 
