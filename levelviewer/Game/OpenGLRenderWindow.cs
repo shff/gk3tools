@@ -8,6 +8,8 @@ namespace Game
     {
         int _width, _height, _depth;
         bool _fullscreen;
+        bool _screenshotRequested;
+        string _screenshotName;
         Gk3Main.Graphics.OpenGl.OpenGLRenderer _renderer;
 
         public OpenGLRenderWindow(int width, int height, int depth, bool fullscreen)
@@ -70,6 +72,10 @@ namespace Game
             Sdl.SDL_GL_SwapBuffers();
         }
 
+        public void RequestScreenshot()
+        {
+            _screenshotRequested = true;
+        }
         public override List<Gk3Main.Graphics.DisplayMode> GetSupportedDisplayModes()
         {
             List<Gk3Main.Graphics.DisplayMode> results = new List<Gk3Main.Graphics.DisplayMode>();

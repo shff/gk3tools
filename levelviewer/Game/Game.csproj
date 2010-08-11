@@ -53,11 +53,9 @@
   <ItemGroup>
     <Compile Include="Direct3D9RenderWindow.cs" />
     <Compile Include="Input.cs" />
-    <Compile Include="MainMenu.cs" />
     <Compile Include="MonoMain.cs" />
     <Compile Include="OpenGLRenderWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TimeBlockSplash.cs" />
     <Compile Include="VerbPickerManager.cs" />
   </ItemGroup>
   <ItemGroup>

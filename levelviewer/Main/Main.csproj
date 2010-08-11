@@ -78,6 +78,7 @@
     <Compile Include="Game\HelperIcons.cs" />
     <Compile Include="Game\MomResource.cs" />
     <Compile Include="Game\Nouns.cs" />
+    <Compile Include="Game\NvcManager.cs" />
     <Compile Include="Game\NvcResource.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
@@ -108,11 +109,18 @@
     <Compile Include="Graphics\RenderWindow.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
     <Compile Include="Graphics\SpriteBatch.cs" />
+    <Compile Include="Graphics\TextureAtlas.cs" />
     <Compile Include="Graphics\TextureResource.cs" />
     <Compile Include="Graphics\Utils.cs" />
     <Compile Include="Gui\Button.cs" />
     <Compile Include="Gui\CursorResource.cs" />
+    <Compile Include="Gui\Dropdown.cs" />
     <Compile Include="Gui\Font.cs" />
+    <Compile Include="Gui\GuiMaster.cs" />
+    <Compile Include="Gui\MainMenu.cs" />
+    <Compile Include="Gui\MsgBox.cs" />
+    <Compile Include="Gui\OptionsMenu.cs" />
+    <Compile Include="Gui\TimeBlockSplash.cs" />
     <Compile Include="Gui\Unit.cs" />
     <Compile Include="Gui\VerbButton.cs" />
     <Compile Include="Gui\VerbButtonSet.cs" />
@@ -125,6 +133,7 @@
     <Compile Include="Resource\InfoResource.cs" />
     <Compile Include="Resource\ResourceManager.cs" />
     <Compile Include="Resource\TextResource.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="Sheep\BasicSheepFunctions.cs" />
     <Compile Include="Sheep\Sheep.cs" />
     <Compile Include="Sound\Sound.cs" />

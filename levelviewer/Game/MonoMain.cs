@@ -96,7 +96,12 @@ class MonoMain
         Gk3Main.Graphics.RenderWindow window;
         try
         {
-            if (Gk3Main.Settings.Renderer.Equals("gl30", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(Gk3Main.Settings.Renderer))
+            {
+                Gk3Main.Logger.WriteInfo("No renderer specified. Defaulting to Direct3D 9.");
+                window = setupDirect3D9(width, height, depth, fullscreen);
+            }
+            else if (Gk3Main.Settings.Renderer.Equals("gl30", StringComparison.OrdinalIgnoreCase))
                 window = setupOpenGL(width, height, depth, fullscreen);
             else if (Gk3Main.Settings.Renderer.Equals("d3d9", StringComparison.OrdinalIgnoreCase))
                 window = setupDirect3D9(width, height, depth, fullscreen);

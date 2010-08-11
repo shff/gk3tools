@@ -46,6 +46,7 @@ namespace Gk3Main.Graphics.OpenGl
     {
         private RenderWindow _parentWindow;
         private VertexElementSet _vertexDeclaration;
+        private GlVertexBuffer _currentVertexBuffer;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
@@ -313,23 +314,49 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void SetVertexBuffer(VertexBuffer buffer)
         {
-            throw new NotImplementedException();
-        }
-
-        public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
-        {
-            GlVertexBuffer glVertices = (GlVertexBuffer)vertices;
-            GlIndexBuffer glIndices = (GlIndexBuffer)indices;
+            _vertexDeclaration = buffer.VertexElements;
+            
+            GlVertexBuffer glVertices = (GlVertexBuffer)buffer;
 
             glVertices.Bind();
-            if (glIndices != null) glIndices.Bind();
-
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
                 Gl.glEnableVertexAttribArray(i);
                 Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
                     Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
             }
+
+            // disable the rest
+            // TODO: we need to figure out what the maximum number of vertex elements is and use that!
+            for (int i = _vertexDeclaration.Elements.Length; i < 12; i++)
+            {
+                Gl.glDisableVertexAttribArray(i);
+            }
+
+            _currentVertexBuffer = glVertices;
+        }
+
+        public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
+        {
+            if (_currentVertexBuffer != null)
+            {
+                _currentVertexBuffer.Unbind();
+                _currentVertexBuffer = null;
+            }
+
+            GlVertexBuffer glVertices = (GlVertexBuffer)vertices;
+
+            glVertices.Bind();
+            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
+            {
+                Gl.glEnableVertexAttribArray(i);
+                Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                    Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
+            }
+
+
+            GlIndexBuffer glIndices = (GlIndexBuffer)indices;
+            if (glIndices != null) glIndices.Bind();
 
             if (glIndices != null)
                 Gl.glDrawElements(Gl.GL_TRIANGLES, indices.Length, Gl.GL_UNSIGNED_INT, null);
@@ -348,11 +375,17 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void RenderBuffers(int firstVertex, int vertexCount)
         {
-            throw new NotImplementedException();
+            Gl.glDrawArrays(Gl.GL_TRIANGLES, firstVertex, vertexCount);
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct
         {
+            if (_currentVertexBuffer != null)
+            {
+                _currentVertexBuffer.Unbind();
+                _currentVertexBuffer = null;
+            }
+
             unsafe
             {
                 System.Runtime.InteropServices.GCHandle ptrptr=
@@ -396,6 +429,12 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct
         {
+            if (_currentVertexBuffer != null)
+            {
+                _currentVertexBuffer.Unbind();
+                _currentVertexBuffer = null;
+            }
+
             unsafe
             {
                 System.Runtime.InteropServices.GCHandle ptrptr=
