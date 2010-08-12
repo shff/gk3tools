@@ -76,12 +76,6 @@ namespace Gk3Main.Graphics.OpenGl
             set { if (value) Gl.glEnable(Gl.GL_BLEND); else Gl.glDisable(Gl.GL_BLEND); }
         }
 
-        public bool AlphaTestEnabled
-        {
-            get { return Gl.glIsEnabled(Gl.GL_ALPHA_TEST) == Gl.GL_TRUE; }
-            set { if (value) Gl.glEnable(Gl.GL_ALPHA_TEST); else Gl.glDisable(Gl.GL_ALPHA_TEST); }
-        }
-
         public bool DepthTestEnabled
         {
             get { return Gl.glIsEnabled(Gl.GL_DEPTH_TEST) == Gl.GL_TRUE; }
@@ -123,61 +117,6 @@ namespace Gk3Main.Graphics.OpenGl
                     else
                         Gl.glFrontFace(Gl.GL_CW);
                 }
-            }
-        }
-
-        public CompareFunction AlphaTestFunction
-        {
-            get
-            {
-                int func;
-                Gl.glGetIntegerv(Gl.GL_ALPHA_TEST_FUNC, out func);
-
-                if (func == Gl.GL_ALWAYS)
-                    return CompareFunction.Always;
-                else if (func == Gl.GL_NEVER)
-                    return CompareFunction.Never;
-                else if (func == Gl.GL_EQUAL)
-                    return CompareFunction.Equal;
-                else if (func == Gl.GL_NOTEQUAL)
-                    return CompareFunction.NotEqual;
-                else if (func == Gl.GL_GREATER)
-                    return CompareFunction.Greater;
-                else if (func == Gl.GL_LESS)
-                    return CompareFunction.Less;
-                else if (func == Gl.GL_LEQUAL)
-                    return CompareFunction.LessOrEqual;
-                else if (func == Gl.GL_GEQUAL)
-                    return CompareFunction.GreaterOrEqual;
-
-                throw new NotImplementedException("Unknown OpenGL alpha test function");
-            }
-            set
-            {
-                if (value == CompareFunction.Always)
-                    Gl.glAlphaFunc(Gl.GL_ALWAYS, AlphaTestReference);
-                else if (value == CompareFunction.Greater)
-                    Gl.glAlphaFunc(Gl.GL_GREATER, AlphaTestReference);
-                else if (value == CompareFunction.GreaterOrEqual)
-                    Gl.glAlphaFunc(Gl.GL_GEQUAL, AlphaTestReference);
-            }
-        }
-
-        public float AlphaTestReference
-        {
-            get
-            {
-                float alphaRef;
-                Gl.glGetFloatv(Gl.GL_ALPHA_TEST_REF, out alphaRef);
-
-                return alphaRef;
-            }
-            set
-            {
-                int func;
-                Gl.glGetIntegerv(Gl.GL_ALPHA_TEST_FUNC, out func);
-
-                Gl.glAlphaFunc(func, value);
             }
         }
 

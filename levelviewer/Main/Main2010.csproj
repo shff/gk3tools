@@ -183,9 +183,9 @@
     <None Include="Shaders\basic_lightmapped.fx.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\basic_lightmapped.fx.hlsl">
+    <Content Include="Shaders\basic_lightmapped.fx.hlsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="Shaders\basic_lightmapped_notexture.fx.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -195,9 +195,9 @@
     <None Include="Shaders\basic_textured.fx.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Shaders\basic_textured.fx.hlsl">
+    <Content Include="Shaders\basic_textured.fx.hlsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    </Content>
     <None Include="Shaders\skybox.fx.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

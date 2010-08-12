@@ -35,8 +35,10 @@ sampler2D DiffuseSampler = sampler_state {
 
 float4 ps_main(PS_INPUT input) : COLOR0
 {
-    return tex2D(DiffuseSampler, input.texCoords);
-    //return float4(1.0, 0, 0, 1.0);
+    float4 color = tex2D(DiffuseSampler, input.texCoords);
+    clip(color.a - 0.5);
+
+    return color;
 }
 
 #ifdef OPENGL

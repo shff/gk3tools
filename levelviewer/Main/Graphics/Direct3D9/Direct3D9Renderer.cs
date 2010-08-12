@@ -303,12 +303,6 @@ namespace Gk3Main.Graphics.Direct3D9
             set { _device.SetRenderState(RenderState.AlphaBlendEnable, value); }
         }
 
-        public bool AlphaTestEnabled
-        {
-            get { return _device.GetRenderState(RenderState.AlphaTestEnable) != 0; }
-            set { _device.SetRenderState(RenderState.AlphaTestEnable, value); }
-        }
-
         public bool DepthTestEnabled
         {
             get { return _device.GetRenderState(RenderState.ZEnable) == (int)ZBufferType.UseZBuffer; }
@@ -344,58 +338,6 @@ namespace Gk3Main.Graphics.Direct3D9
                     cullMode = Cull.Counterclockwise;
 
                 _device.SetRenderState(RenderState.CullMode, cullMode);
-            }
-        }
-
-        public CompareFunction AlphaTestFunction
-        {
-            get
-            {
-                Compare func = (Compare)_device.GetRenderState(RenderState.AlphaFunc);
-
-                if (func == Compare.Always)
-                    return CompareFunction.Always;
-                else if (func == Compare.Never)
-                    return CompareFunction.Never;
-                else if (func == Compare.Equal)
-                    return CompareFunction.Equal;
-                else if (func == Compare.NotEqual)
-                    return CompareFunction.NotEqual;
-                else if (func == Compare.Greater)
-                    return CompareFunction.Greater;
-                else if (func == Compare.Less)
-                    return CompareFunction.Less;
-                else if (func == Compare.LessEqual)
-                    return CompareFunction.LessOrEqual;
-                else if (func == Compare.GreaterEqual)
-                    return CompareFunction.GreaterOrEqual;
-
-                throw new NotImplementedException("Unknown alpha test function");
-            }
-            set
-            {
-                if (value == CompareFunction.Always)
-                    _device.SetRenderState(RenderState.AlphaFunc, Compare.Always);
-                else if (value == CompareFunction.Greater)
-                    _device.SetRenderState(RenderState.AlphaFunc, Compare.Greater);
-                else if (value == CompareFunction.GreaterOrEqual)
-                    _device.SetRenderState(RenderState.AlphaFunc, Compare.GreaterEqual);
-            }
-        }
-
-        public float AlphaTestReference
-        {
-            get
-            {
-                int dword =_device.GetRenderState(RenderState.AlphaRef);
-
-                return (dword & 0xff) / 255.0f;
-            }
-            set
-            {
-                int dword = (int)(value * 255.0f);
-
-                _device.SetRenderState(RenderState.AlphaRef, dword);
             }
         }
 

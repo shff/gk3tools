@@ -116,7 +116,6 @@ namespace Gk3Main.Graphics
             }
 
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
-            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
 
             RendererManager.CurrentRenderer.VertexDeclaration = _elements;
             for (int i = 0; i < _numBillboards; i++)
@@ -137,7 +136,6 @@ namespace Gk3Main.Graphics
             
 
             RendererManager.CurrentRenderer.CullMode = CullMode.CounterClockwise;
-            RendererManager.CurrentRenderer.AlphaTestEnabled = false;
 
             // reset the billboard list
             _numBillboards = 0;

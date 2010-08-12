@@ -458,16 +458,10 @@ namespace Gk3Main.Graphics
         ZClipMode ZClipMode { get; }
 
         bool BlendEnabled { get; set; }
-        [Obsolete("Do alpha testing in the shader instead")]
-        bool AlphaTestEnabled { get; set; }
         bool DepthTestEnabled { get; set; }
         bool DepthWriteEnabled { get; set; }
         CullMode CullMode { get; set; }
         Viewport Viewport { get; set; }
-        [Obsolete("Do alpha testing in the shader instead")]
-        CompareFunction AlphaTestFunction { get; set; }
-        [Obsolete("Do alpha testing in the shader instead")]
-        float AlphaTestReference { get; set; }
 
         TextureResource CreateTexture(string name, System.IO.Stream stream);
         TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp);

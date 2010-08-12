@@ -107,6 +107,7 @@ namespace Viewer
                 Gk3Main.Graphics.BillboardManager.Init(_globalContent);
                 Gk3Main.Graphics.AxisAlignedBoundingBox.Init(_globalContent);
                 Gk3Main.Sound.SoundManager.Init();
+                Gk3Main.Graphics.ModelResource.LoadGlobalContent(_globalContent);
                 Gk3Main.SceneManager.Initialize(_globalContent);
                 Gk3Main.Game.GameManager.Load();
             }

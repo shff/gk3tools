@@ -413,18 +413,12 @@ namespace Gk3Main.Graphics
 
                     foreach (ModMeshSection section in mesh.sections)
                     {
-                        if (section.textureResource.ContainsAlpha)
-                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
                         _effect.SetParameter("ModelViewProjection", worldview);
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.CommitParams();
 
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
                             section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
-
-                        if (section.textureResource.ContainsAlpha)
-                            RendererManager.CurrentRenderer.AlphaTestEnabled = false;
                     }
 
                 }
@@ -449,18 +443,12 @@ namespace Gk3Main.Graphics
 
                     foreach (ModMeshSection section in _meshes[i].sections)
                     {
-                        if (section.textureResource.ContainsAlpha)
-                            RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
                         _effect.SetParameter("ModelViewProjection", billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.CommitParams();
 
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
                             section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
-
-                        if (section.textureResource.ContainsAlpha)
-                            RendererManager.CurrentRenderer.AlphaTestEnabled = false;
                     }
                 }
             }
@@ -493,9 +481,6 @@ namespace Gk3Main.Graphics
 
                 foreach (ModMeshSection section in mesh.sections)
                 {
-                    if (section.textureResource != null && section.textureResource.ContainsAlpha)
-                        RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-
                     _effect.SetParameter("Diffuse", section.textureResource, 0);
                     _effect.CommitParams();
 
@@ -507,9 +492,6 @@ namespace Gk3Main.Graphics
 
                     RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
                         vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices);
-
-                    if (section.textureResource != null && section.textureResource.ContainsAlpha)
-                        RendererManager.CurrentRenderer.AlphaTestEnabled = true;
                 }
             }
         }

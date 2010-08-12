@@ -7,12 +7,18 @@ namespace Gk3Main.Graphics
     class BitmapSurface
     {
         private byte[] _pixels;
+        private bool _is8bit;
         private int _width, _height;
         private bool _containsAlpha;
 
         private const uint Gk3BitmapHeader = 0x4D6E3136;
 
         public BitmapSurface(Stream stream)
+            : this(stream, true)
+        {
+        }
+
+        public BitmapSurface(Stream stream, bool convertFromIndexed)
         {
             int currentStreamPosition = (int)stream.Position;
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
@@ -26,12 +32,13 @@ namespace Gk3Main.Graphics
             if (header == Gk3BitmapHeader)
                 loadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
             else
-                loadWindowsBitmap(reader, out _pixels, out _width, out _height);
+                loadWindowsBitmap(reader, convertFromIndexed, out _pixels, out _width, out _height, out _is8bit);
         }
 
         public byte[] Pixels { get { return _pixels; } }
         public int Width { get { return _width; } }
         public int Height { get { return _height; } }
+        public bool Is8Bit { get { return _is8bit; } }
 
         public Color ReadColorAt(int x, int y)
         {
@@ -39,12 +46,20 @@ namespace Gk3Main.Graphics
                 y < 0 || y >= _height)
                 throw new ArgumentOutOfRangeException();
 
-            byte r = _pixels[(y * _width + x) * 4 + 0];
-            byte g = _pixels[(y * _width + x) * 4 + 1];
-            byte b = _pixels[(y * _width + x) * 4 + 2];
-            byte a = _pixels[(y * _width + x) * 4 + 3];
+            if (_is8bit == false)
+            {
+                byte r = _pixels[(y * _width + x) * 4 + 0];
+                byte g = _pixels[(y * _width + x) * 4 + 1];
+                byte b = _pixels[(y * _width + x) * 4 + 2];
+                byte a = _pixels[(y * _width + x) * 4 + 3];
 
-            return new Color(r, g, b, a);
+                return new Color(r, g, b, a);
+            }
+            else
+            {
+                byte c = _pixels[(y * _width + x) + 0];
+                return new Color(c, c, c, 255);
+            }
         }
 
         private static void loadGk3Bitmap(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height, out bool containsAlpha)
@@ -84,9 +99,11 @@ namespace Gk3Main.Graphics
             }
         }
 
-        private static void loadWindowsBitmap(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height)
+        private static void loadWindowsBitmap(System.IO.BinaryReader reader, bool convertFromIndexed, out byte[] pixels, out int width, out int height, out bool is8bit)
         {
             const string errorMessage = "This is not a valid Windows bitmap";
+            is8bit = false;
+
             uint startingPosition = (uint)reader.BaseStream.Position;
 
             ushort header = reader.ReadUInt16();
@@ -130,6 +147,9 @@ namespace Gk3Main.Graphics
 
                     reader.ReadByte();
                 }
+
+                if (convertFromIndexed == false)
+                    is8bit = true;
             }
 
             // pixels
@@ -160,9 +180,18 @@ namespace Gk3Main.Graphics
                         byte pixel = reader.ReadByte();
 
                         pixels[currentPixel + 3] = 255;
-                        pixels[currentPixel + 2] = palette[pixel].B;
-                        pixels[currentPixel + 1] = palette[pixel].G;
-                        pixels[currentPixel + 0] = palette[pixel].R;
+                        if (convertFromIndexed)
+                        {
+                            pixels[currentPixel + 2] = palette[pixel].B;
+                            pixels[currentPixel + 1] = palette[pixel].G;
+                            pixels[currentPixel + 0] = palette[pixel].R;
+                        }
+                        else
+                        {
+                            pixels[currentPixel + 2] = pixel;
+                            pixels[currentPixel + 1] = pixel;
+                            pixels[currentPixel + 0] = pixel;
+                        }
                     }
                     else
                     {

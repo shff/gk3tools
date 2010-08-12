@@ -46,6 +46,8 @@ sampler2D LightmapSampler = sampler_state {
 float4 ps_main(PS_INPUT input) : COLOR0
 {
     float4 diffuse = tex2D(DiffuseSampler, input.texCoords);
+    clip(diffuse.a - 0.5); 
+
     float4 lightmap = tex2D(LightmapSampler, input.lightmapCoords);
     
     //return lightmap;

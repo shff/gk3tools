@@ -32,8 +32,13 @@ namespace Gk3Main.Game
             Graphics.BitmapSurface map;
             using (System.IO.Stream stream = FileSystem.Open(pathMapName))
             {
-                map = new Gk3Main.Graphics.BitmapSurface(stream);
+                // apparently the color doesn't matter, the weights are
+                // stored as indices. So we don't want to convert!
+                map = new Gk3Main.Graphics.BitmapSurface(stream, false);
             }
+
+            // temporary
+            //Graphics.Utils.WriteTga("out.tga", map.Pixels, map.Width, map.Height);
 
             // read the pixels and convert them into weights
             _weightMap = new byte[map.Width * map.Height];
@@ -46,26 +51,7 @@ namespace Gk3Main.Game
                 {
                     Graphics.Color color = map.ReadColorAt(x, y);
 
-                    if (color == Graphics.Color.Black)
-                        _weightMap[y * _width + x] = 0;
-                    else if (color == Graphics.Color.White)
-                        _weightMap[y * _width + x] = 1;
-                    else if (color == Graphics.Color.Blue)
-                        _weightMap[y * _width + x] = 2;
-                    else if (color == Graphics.Color.Green)
-                        _weightMap[y * _width + x] = 3;
-                    else if (color == Graphics.Color.Red)
-                        _weightMap[y * _width + x] = 4;
-                    else if (color == Graphics.Color.Yellow)
-                        _weightMap[x * _width + x] = 5;
-                    else if (color == Graphics.Color.Purple)
-                        _weightMap[x * _width + x] = 6;
-                    else if (color == Graphics.Color.Gray)
-                        _weightMap[x * _width + x] = 7;
-                    else if (color == Graphics.Color.Teal)
-                        _weightMap[x * _width + x] = 8;
-                    else
-                        throw new Exception("Unknown color found in path map!");
+                    _weightMap[y * _width + x] = color.R;
                 }
             }
 
@@ -75,10 +61,6 @@ namespace Gk3Main.Game
             _fCost = new float[_width * _height];
             _gCost = new float[_width * _height];
             _hCost = new float[_width * _height];
-
-
-
-            Graphics.Utils.WriteTga("out.tga", map.Pixels, map.Width, map.Height);
         }
 
         public Math.Vector2 ScaledSize
@@ -183,10 +165,10 @@ namespace Gk3Main.Game
 
         private void check(int parentX, int parentY, int x, int y, int goalx, int goaly, PriorityQueue<MapNode> open)
         {
-            if (y >= 0)
+            if (y >= 0 && x >= 0)
             {
                 float weight = _weightMap[y * _width + x];
-                if (weight > 0)
+                if (weight < 255)
                 {
                     int whichList = _whichList[y * _width + x];
 

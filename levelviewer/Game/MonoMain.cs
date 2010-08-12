@@ -122,9 +122,6 @@ class MonoMain
         Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestEnabled = true;
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestFunction = Gk3Main.Graphics.CompareFunction.GreaterOrEqual;
-        Gk3Main.Graphics.RendererManager.CurrentRenderer.AlphaTestReference = 0.5f;
         Gk3Main.Graphics.RendererManager.CurrentRenderer.BlendState = Gk3Main.Graphics.BlendState.AlphaBlend;
 
         Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;

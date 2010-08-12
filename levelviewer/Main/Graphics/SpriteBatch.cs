@@ -45,7 +45,6 @@ namespace Gk3Main.Graphics
         {
             IRenderer renderer = RendererManager.CurrentRenderer;
             renderer.BlendEnabled = true;
-            renderer.AlphaTestEnabled = false;
             renderer.DepthTestEnabled = false;
             renderer.CullMode = CullMode.CounterClockwise;
             renderer.BlendState = BlendState.AlphaBlend;
@@ -53,7 +52,6 @@ namespace Gk3Main.Graphics
             flush(renderer);
 
             renderer.BlendEnabled = false;
-            renderer.AlphaTestEnabled = true;
             renderer.DepthTestEnabled = true;
         }
 
