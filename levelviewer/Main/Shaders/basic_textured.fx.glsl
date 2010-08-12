@@ -24,6 +24,9 @@ out vec4 output;
 void main()
 {
 	output = texture2D(Diffuse, o_diffuseCoords);
+	
+	if (output.a < 0.5)
+		discard;
 }
 
 

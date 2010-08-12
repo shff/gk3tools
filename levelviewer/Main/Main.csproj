@@ -66,6 +66,7 @@
     <Compile Include="FileSystem\barn.cs" />
     <Compile Include="FileSystem\FileSystem.cs" />
     <Compile Include="Game\Actor.cs" />
+    <Compile Include="Game\ActorPathfinder.cs" />
     <Compile Include="Game\AnimationResource.cs" />
     <Compile Include="Game\Animator.cs" />
     <Compile Include="Game\AnmResource.cs" />
@@ -87,10 +88,12 @@
     <Compile Include="Game\YakResource.cs" />
     <Compile Include="Graphics\ActResource.cs" />
     <Compile Include="Graphics\BillboardManager.cs" />
+    <Compile Include="Graphics\BitmapSurface.cs" />
     <Compile Include="Graphics\BoundingBoxRenderer.cs" />
     <Compile Include="Graphics\BoundingSphereRenderer.cs" />
     <Compile Include="Graphics\BspResource.cs" />
     <Compile Include="Graphics\Camera.cs" />
+    <Compile Include="Graphics\Color.cs" />
     <Compile Include="Graphics\CubeMapResource.cs" />
     <Compile Include="Graphics\Direct3D9\Direct3D9Effect.cs" />
     <Compile Include="Graphics\Direct3D9\Direct3D9Renderer.cs" />

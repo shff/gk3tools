@@ -325,7 +325,8 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void RenderIndexedPrimitives(int firstIndex, int primitiveCount)
         {
-            Gl.glDrawElements(Gl.GL_TRIANGLES, primitiveCount * 3, Gl.GL_UNSIGNED_INT, null);
+            Gl.glDrawElements(Gl.GL_TRIANGLES, primitiveCount * 3, Gl.GL_UNSIGNED_INT, 
+                 Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, firstIndex * sizeof(int)));
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct
@@ -387,6 +388,12 @@ namespace Gk3Main.Graphics.OpenGl
             {
                 _currentVertexBuffer.Unbind();
                 _currentVertexBuffer = null;
+            }
+
+            if (_currentIndexBuffer != null)
+            {
+                _currentIndexBuffer.Unbind();
+                _currentIndexBuffer = null;
             }
 
             unsafe
