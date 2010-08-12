@@ -120,6 +120,22 @@ namespace Gk3Main
             else if (parentSif != null && string.IsNullOrEmpty(parentSif.Scene) == false)
                 LoadScene(parentSif.Scene);
 
+            // load the pathing info
+            if (string.IsNullOrEmpty(sifResource.Boundary) == false)
+                _currentPathMap = new ActorPathfinder(sifResource.Boundary, sifResource.BoundarySize, sifResource.BoundaryOffset);
+            else if (parentSif != null && string.IsNullOrEmpty(parentSif.Boundary) == false)
+                _currentPathMap = new ActorPathfinder(parentSif.Boundary, parentSif.BoundarySize, parentSif.BoundaryOffset);
+
+            // temp
+            Math.Vector2 start = new Math.Vector2(17,41);
+            Math.Vector2 end = new Math.Vector2(35, 45);
+            Math.Vector2[] path = _currentPathMap.CalculatePath(start, end);
+            Logger.WriteInfo("path from " + start.ToString() + " to " + end.ToString());
+            if (path == null)
+                Logger.WriteInfo("NO PATH FOUND!");
+            else
+               _currentPathMap.PrintPathToLogger(path);
+
             // load the models
             _modelNounMap.Clear();
             loadSifModels(sifResource);
@@ -690,6 +706,7 @@ namespace Gk3Main
         private static Graphics.SkyBox _currentSkybox;
         private static Graphics.BspResource _currentRoom;
         private static Graphics.LightmapResource _currentLightmaps;
+        private static ActorPathfinder _currentPathMap;
         private static List<Game.Actor> _actors = new List<Actor>();
         private static List<SceneModel> _models = new List<SceneModel>();
         private static List<Game.GasResource> _modelGases = new List<GasResource>();

@@ -16,14 +16,13 @@ namespace Gk3Main.Graphics
 
         public abstract void Unbind();
 
-        protected void loadFace(BinaryReader reader, out byte[] pixels, out int width, out int height)
+        protected void loadFace(Stream stream, out byte[] pixels, out int width, out int height)
         {
-            bool containsAlpha;
+            BitmapSurface face = new BitmapSurface(stream);
 
-            if (IsGk3Bitmap(reader))
-                LoadGk3Bitmap(reader, out pixels, out width, out height, out containsAlpha);
-            else
-                LoadWindowsBitmap(reader, out pixels, out width, out height);
+            pixels = face.Pixels;
+            width = face.Width;
+            height = face.Height;
         }
     }
 }

@@ -34,48 +34,30 @@ namespace Gk3Main.Graphics
         public TextureResource(string name, System.IO.Stream stream)
             : base(name, true)
         {
-            int currentStreamPosition = (int)stream.Position;
-            System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
+            BitmapSurface color = new BitmapSurface(stream);
 
-            // determine whether this is a GK3 bitmap or a Windows bitmap
-            uint header = reader.ReadUInt32();
-
-            // rewind the stream to where it was when we first got it
-            reader.BaseStream.Seek(currentStreamPosition, System.IO.SeekOrigin.Begin);
-
-            if (header == Gk3BitmapHeader)
-                LoadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
-            else
-                LoadWindowsBitmap(reader, out _pixels, out _width, out _height);
+            _width = color.Width;
+            _height = color.Height;
+            _pixels = color.Pixels;
         }
 
         public TextureResource(string name, System.IO.Stream colorMapStream, System.IO.Stream alphaMapStream)
             : base(name, true)
         {
-            System.IO.BinaryReader colorReader = new System.IO.BinaryReader(colorMapStream);
-            System.IO.BinaryReader alphaReader = new System.IO.BinaryReader(alphaMapStream);
+            BitmapSurface colorSurface = new BitmapSurface(colorMapStream);
+            BitmapSurface alphaSurface = new BitmapSurface(alphaMapStream);
 
-            // load the color info
-            if (IsGk3Bitmap(colorReader))
-                LoadGk3Bitmap(colorReader, out _pixels, out _width, out _height, out _containsAlpha);
-            else
-                LoadWindowsBitmap(colorReader, out _pixels, out _width, out _height);
-
-            // load the alpha info
-            byte[] alphaPixels;
-            int alphaWidth, alphaHeight;
-            if (IsGk3Bitmap(alphaReader))
-                LoadGk3Bitmap(alphaReader, out alphaPixels, out alphaWidth, out alphaHeight, out _containsAlpha);
-            else
-                LoadWindowsBitmap(alphaReader, out alphaPixels, out alphaWidth, out alphaHeight);
-
-            if (alphaWidth != _width || alphaHeight != _height)
+            if (alphaSurface.Width != colorSurface.Width || alphaSurface.Height != colorSurface.Height)
                 throw new Resource.InvalidResourceFileFormat("Color and alpha map dimensions do not match");
+
+            _width = colorSurface.Width;
+            _height = colorSurface.Height;
+            _pixels = colorSurface.Pixels;
 
             // merge color and alpha info
             for (int i = 0; i < _width * _height; i++)
             {
-                _pixels[i * 4 + 3] = alphaPixels[i * 4 + 0];
+                _pixels[i * 4 + 3] = alphaSurface.Pixels[i * 4 + 0];
             }
         }
 
@@ -102,130 +84,6 @@ namespace Gk3Main.Graphics
         /// Gets the ORIGINAL pixels as loaded from the bitmap, without any processing
         /// </summary>
         internal byte[] Pixels { get { return _pixels; } }
-
-        /// <summary>
-        /// Determines whether the bitmap is a GK3 bitmap or not.
-        /// </summary>
-        /// <param name="reader">A BinaryReader that *must* be positioned at the
-        /// beginning of the bitmap.</param>
-        /// <returns>True if this is a GK3 bitmap, false otherwise.</returns>
-        protected static bool IsGk3Bitmap(System.IO.BinaryReader reader)
-        {
-            long currentPosition = reader.BaseStream.Position;
-
-            // determine whether this is a GK3 bitmap or a Windows bitmap
-            uint header = reader.ReadUInt32();
-
-            // rewind the stream to where it was when we first got it
-            reader.BaseStream.Seek(currentPosition, System.IO.SeekOrigin.Begin);
-
-            // load the color info
-            if (header == Gk3BitmapHeader)
-                return true;
-
-            return false;
-        }
-
-        protected static void LoadGk3Bitmap(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height, out bool containsAlpha)
-        {
-            const string errorMessage = "This is not a valid GK3 bitmap";
-
-            containsAlpha = false;
-            uint header = reader.ReadUInt32();
-
-            if (header != Gk3BitmapHeader)
-                throw new Resource.InvalidResourceFileFormat(errorMessage);
-
-            height = reader.ReadUInt16();
-            width = reader.ReadUInt16();
-
-            pixels = new byte[width * height * 4];
-
-            byte r, g, b;
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int currentPixel = (y * width + x) * 4;
-                    ushort pixel = reader.ReadUInt16();
-
-                    convert565(pixel, out r, out g, out b);
-
-                    pixels[currentPixel + 0] = r;
-                    pixels[currentPixel + 1] = g;
-                    pixels[currentPixel + 2] = b;
-                    pixels[currentPixel + 3] = 255;
-                }
-
-                // do we need to skip a padding pixel?
-                if ((width & 0x00000001) != 0)
-                    reader.ReadUInt16();
-            }
-        }
-
-        protected static void LoadWindowsBitmap(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height)
-        {
-            const string errorMessage = "This is not a valid Windows bitmap";
-            uint startingPosition = (uint)reader.BaseStream.Position;
-
-            ushort header = reader.ReadUInt16();
-
-            if (header != 19778)
-                throw new Resource.InvalidResourceFileFormat(errorMessage);
-
-            uint size = reader.ReadUInt32();
-            reader.ReadUInt16();
-            reader.ReadUInt16();
-            uint pixelOffset = reader.ReadUInt32();
-
-            // info header
-            reader.ReadUInt32();
-            width = reader.ReadInt32();
-            height = reader.ReadInt32();
-            reader.ReadUInt16();
-            ushort bitsPerPixel = reader.ReadUInt16();
-
-            if (bitsPerPixel != 24 && bitsPerPixel != 8)
-                throw new Resource.InvalidResourceFileFormat("Only 24-bit or 8-bit grayscale bitmaps supported");
-
-            // pixels
-            reader.BaseStream.Seek(startingPosition + pixelOffset, System.IO.SeekOrigin.Begin);
-            pixels = new byte[width * height * 4];
-
-            for (int y = height - 1; y >= 0; y--)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    if (bitsPerPixel == 24)
-                    {
-                        int currentPixel = (y * width + x) * 4;
-
-                        byte r, g, b;
-                        b = reader.ReadByte();
-                        g = reader.ReadByte();
-                        r = reader.ReadByte();
-
-                        pixels[currentPixel + 0] = r;
-                        pixels[currentPixel + 1] = g;
-                        pixels[currentPixel + 2] = b;
-                        pixels[currentPixel + 3] = 255;
-                    }
-                    else
-                    {
-                        int currentPixel = (y * width + x) * 4;
-                        byte pixel = reader.ReadByte();
-
-                        pixels[currentPixel + 3] = 255;
-                        pixels[currentPixel + 2] = pixel;
-                        pixels[currentPixel + 1] = pixel;
-                        pixels[currentPixel + 0] = pixel;
-                    }
-                }
-
-                // skip any extra bytes
-                reader.ReadBytes(width % 4);
-            }
-        }
 
         protected static void ConvertToPowerOfTwo(byte[] pixels, int width, int height, 
             out byte[] newPixels, out int newWidth, out int newHeight)
@@ -271,18 +129,6 @@ namespace Gk3Main.Graphics
             }
 
             return n + 1;
-        }
-
-        private static void convert565(ushort pixel, out byte r, out byte g, out byte b)
-        {
-            int tr = ((pixel & 0xF800) >> 11);
-            int tg = ((pixel & 0x07E0) >> 5);
-            int tb = (pixel & 0x001F);
-
-            // now scale the values up to max of 255
-            r = (byte)(tr * 255 / 31);
-            g = (byte)(tg * 255 / 63);
-            b = (byte)(tb * 255 / 31);
         }
 
         /// <summary>

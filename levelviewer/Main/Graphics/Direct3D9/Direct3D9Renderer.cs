@@ -89,27 +89,27 @@ namespace Gk3Main.Graphics.Direct3D9
                 int width, height;
 
                 // load the first face so we can see the cube map dimensions
-                loadFace(new System.IO.BinaryReader(frontStream), out pixels, out width, out height);
+                loadFace(frontStream, out pixels, out width, out height);
 
                 _cubeMap = new CubeTexture(device, width, 0, Usage.AutoGenerateMipMap, Format.X8R8G8B8, Pool.Managed);
                 writeFacePixels(CubeMapFace.PositiveX, pixels, width, height);
 
                 // load the rest of the faces
-                loadFace(new System.IO.BinaryReader(backStream), out pixels, out width, out height);
+                loadFace(backStream, out pixels, out width, out height);
                 writeFacePixels(CubeMapFace.NegativeX, pixels, width, height);
 
-                loadFace(new System.IO.BinaryReader(rightStream), out pixels, out width, out height);
+                loadFace(rightStream, out pixels, out width, out height);
                 writeFacePixels(CubeMapFace.PositiveZ, pixels, width, height);
 
-                loadFace(new System.IO.BinaryReader(leftStream), out pixels, out width, out height);
+                loadFace(leftStream, out pixels, out width, out height);
                 writeFacePixels(CubeMapFace.NegativeZ, pixels, width, height);
 
-                loadFace(new System.IO.BinaryReader(upStream), out pixels, out width, out height);
+                loadFace(upStream, out pixels, out width, out height);
                 writeFacePixels(CubeMapFace.PositiveY, pixels, width, height);
 
                 if (downStream != null)
                 {
-                    loadFace(new System.IO.BinaryReader(downStream), out pixels, out width, out height);
+                    loadFace(downStream, out pixels, out width, out height);
                     writeFacePixels(CubeMapFace.NegativeY, pixels, width, height);
                 }
                 else

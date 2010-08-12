@@ -43,24 +43,24 @@ namespace Gk3Main.Graphics.OpenGl
 
                 byte[] pixels;
                 int width, height;
-                loadFace(new System.IO.BinaryReader(frontStream), out pixels, out width, out height);
+                loadFace(frontStream, out pixels, out width, out height);
                 Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
-                loadFace(new System.IO.BinaryReader(backStream), out pixels, out width, out height);
+                loadFace(backStream, out pixels, out width, out height);
                 Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
-                loadFace(new System.IO.BinaryReader(rightStream), out pixels, out width, out height);
+                loadFace(rightStream, out pixels, out width, out height);
                 Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
-                loadFace(new System.IO.BinaryReader(leftStream), out pixels, out width, out height);
+                loadFace(leftStream, out pixels, out width, out height);
                 Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
-                loadFace(new System.IO.BinaryReader(upStream), out pixels, out width, out height);
+                loadFace(upStream, out pixels, out width, out height);
                 Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, internalFormat, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
                 if (downStream != null)
                 {
-                    loadFace(new System.IO.BinaryReader(downStream), out pixels, out width, out height);
+                    loadFace(downStream, out pixels, out width, out height);
                     Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
                 }
                 else

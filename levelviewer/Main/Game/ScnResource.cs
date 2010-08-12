@@ -15,7 +15,7 @@ namespace Gk3Main.Game
             {
                 foreach (KeyValuePair<string, string> attribute in line.Attributes)
                 {
-                    if (attribute.Key.Equals("BSP", StringComparison.InvariantCultureIgnoreCase))
+                    if (attribute.Key.Equals("BSP", StringComparison.OrdinalIgnoreCase))
                         _bsp = attribute.Value;
                 }
             }

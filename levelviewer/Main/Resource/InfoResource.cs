@@ -230,6 +230,30 @@ namespace Gk3Main.Resource
             return false;
         }
 
+        public bool TryGetFloat2Attribute(string name, out float v1, out float v2)
+        {
+            v1 = 0;
+            v2 = 0;
+
+            foreach (KeyValuePair<string, string> attribute in _attributes)
+            {
+                if (attribute.Key.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    int open = attribute.Value.IndexOf('{');
+                    int comma = attribute.Value.IndexOf(',');
+                    int close = attribute.Value.IndexOf('}');
+
+                    if (open < 0 || comma < 0 || close < 0)
+                        break;
+
+                    return float.TryParse(attribute.Value.Substring(open + 1, comma - open - 1), out v1) &&
+                        float.TryParse(attribute.Value.Substring(comma + 1, close - comma - 1), out v2);
+                }
+            }
+
+            return false;
+        }
+
         public string Value { get { return _value; } }
         public List<KeyValuePair<string, string>> Attributes { get { return _attributes; } }
 

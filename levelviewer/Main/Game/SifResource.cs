@@ -83,6 +83,13 @@ namespace Gk3Main.Game
                     {
                         if (line.Value == null && line.Attributes[0].Key == "scene")
                             _scene = line.Attributes[0].Value.ToUpper() + ".SCN";
+                        else if (line.Value == null && line.Attributes[0].Key.Equals("boundary", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _boundary = line.Attributes[0].Value;
+
+                            line.TryGetFloat2Attribute("size", out _boundarySize.X, out _boundarySize.Y);
+                            line.TryGetFloat2Attribute("offset", out _boundaryOffset.X, out _boundaryOffset.Y);
+                        }
                     }
                 }
                 else if (section.Name == "ACTORS" &&
@@ -275,6 +282,21 @@ namespace Gk3Main.Game
             get { return _cameraBoundsModel; }
         }
 
+        public string Boundary
+        {
+            get { return _boundary; }
+        }
+
+        public Math.Vector2 BoundarySize
+        {
+            get { return _boundarySize; }
+        }
+
+        public Math.Vector2 BoundaryOffset
+        {
+            get { return _boundaryOffset; }
+        }
+
         public List<SifActor> Actors
         {
             get { return _actors; }
@@ -307,6 +329,9 @@ namespace Gk3Main.Game
 
         private string _scene;
         private string _cameraBoundsModel;
+        private string _boundary;
+        private Math.Vector2 _boundarySize;
+        private Math.Vector2 _boundaryOffset;
         private List<SifActor> _actors = new List<SifActor>();
         private List<SifModel> _models = new List<SifModel>();
         private List<SifRoomCamera> _cameras = new List<SifRoomCamera>();

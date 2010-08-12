@@ -31,6 +31,20 @@ namespace Gk3Main.Math
             Y = y;
         }
 
+        public override string ToString()
+        {
+            return "(" + X.ToString() + "," + Y.ToString() + ")";
+        }
+
+        public static Vector2 operator +(Vector2 v1, Vector2 v2)
+        {
+            Vector2 result;
+            result.X = v1.X + v2.X;
+            result.Y = v1.Y + v2.Y;
+
+            return result;
+        }
+
         public static Vector2 Zero { get { return new Vector2(0,0); } }
     }
 
