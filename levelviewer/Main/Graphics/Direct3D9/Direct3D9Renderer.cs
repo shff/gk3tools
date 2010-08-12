@@ -193,7 +193,7 @@ namespace Gk3Main.Graphics.Direct3D9
             _buffer.Dispose();
         }
 
-        public override int Length
+        public override int NumVertices
         {
             get { return _numVertices; }
         }
@@ -243,11 +243,13 @@ namespace Gk3Main.Graphics.Direct3D9
         private RenderWindow _parentWindow;
         private Device _device;
         private PresentParameters _pp;
-        private int _currentDeclarationStride;
+        private VertexElementSet _currentDeclaration;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
         private BlendState _currentBlendState;
+        private Direct3D9VertexBuffer _currentVertexBuffer;
+        private Direct3D9IndexBuffer _currentIndexBuffer;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
 
         public Direct3D9Renderer(RenderWindow parentWindow, IntPtr windowHandle, int width, int height, bool hosted)
@@ -459,12 +461,26 @@ namespace Gk3Main.Graphics.Direct3D9
             }
         }
 
-        public VertexElementSet VertexDeclaration
+        internal VertexElementSet VertexDeclaration
         {
             set
             {
                 _device.VertexDeclaration = value.D3D9Declaration;
-                _currentDeclarationStride = value.Stride;
+                _currentDeclaration = value;
+            }
+        }
+
+        public IndexBuffer Indices
+        {
+            get
+            {
+                return _currentIndexBuffer;
+            }
+            set
+            {
+                _currentIndexBuffer = (Direct3D9IndexBuffer)value;
+                if (_currentIndexBuffer != null)
+                    _device.Indices = _currentIndexBuffer.InternalBuffer;
             }
         }
 
@@ -524,6 +540,8 @@ namespace Gk3Main.Graphics.Direct3D9
 
             _device.SetStreamSource(0, vertexBuffer.InternalBuffer, 0, vertexBuffer.VertexElements.Stride);
             _device.VertexDeclaration = vertexBuffer.VertexElements.D3D9Declaration;
+
+            _currentVertexBuffer = vertexBuffer;
         }
 
         public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
@@ -537,21 +555,31 @@ namespace Gk3Main.Graphics.Direct3D9
             {
                 _device.Indices = indexBuffer.InternalBuffer;
 
-                _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.Length / 3, 0, indices.Length / 3);
+                _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.NumVertices / 3, 0, indices.Length / 3);
             }
             else
             {
-                _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, vertexBuffer.Length / 3);
+                _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, vertexBuffer.NumVertices / 3);
             }
         }
 
-        public void RenderBuffers(int firstVertex, int vertexCount)
+        public void RenderPrimitives(int firstVertex, int vertexCount)
         {
             _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, firstVertex, vertexCount / 3);
         }
 
-        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct
+        public void RenderIndexedPrimitives(int startIndex, int numPrimitives)
         {
+            _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, _currentVertexBuffer.NumVertices, startIndex, numPrimitives);
+        }
+
+        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct
+        {
+            if (declaration != _currentDeclaration)
+            {
+                VertexDeclaration = declaration;
+            }
+
             SlimDX.Direct3D9.PrimitiveType d3dType;
 
             int primitiveCount;
@@ -569,8 +597,13 @@ namespace Gk3Main.Graphics.Direct3D9
             _device.DrawUserPrimitives(d3dType, primitiveCount, vertices);
         }
 
-        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices, VertexElementSet declaration) where T: struct
         {
+            if (declaration != _currentDeclaration)
+            {
+                VertexDeclaration = declaration;
+            }
+
             SlimDX.Direct3D9.PrimitiveType d3dType;
 
             int primitiveCount;
@@ -591,7 +624,7 @@ namespace Gk3Main.Graphics.Direct3D9
             }
 
             _device.DrawIndexedUserPrimitives(d3dType, 0, vertexCount,
-                primitiveCount, indices, Format.Index32, vertices, _currentDeclarationStride);
+                primitiveCount, indices, Format.Index32, vertices, _currentDeclaration.Stride);
         }
 
 

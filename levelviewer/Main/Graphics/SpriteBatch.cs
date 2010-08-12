@@ -38,7 +38,7 @@ namespace Gk3Main.Graphics
 
         public void Begin()
         {
-            RendererManager.CurrentRenderer.VertexDeclaration = _vertexDeclaration;
+            // nothing
         }
 
         public void End()
@@ -150,7 +150,7 @@ namespace Gk3Main.Graphics
 
                 //s.Texture.Bind();
 
-                renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices);
+                renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices, _vertexDeclaration);
             }
 
             _2dEffect.End();

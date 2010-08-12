@@ -7,6 +7,7 @@ namespace Gk3Main.Graphics
     public class BoundingSphereRenderer
     {
         private static Effect _effect;
+        private static VertexElementSet _declaration;
         private const int _resolution = 12;
         private static float[] _vertices;
 
@@ -48,6 +49,10 @@ namespace Gk3Main.Graphics
             }
 
             _effect = globalContent.Load<Effect>("wireframe.fx");
+
+            _declaration = new VertexElementSet(new VertexElement[] { 
+                new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
+            });
         }
 
         public static void Render(Camera camera, float x, float y, float z, float radius)
@@ -57,9 +62,9 @@ namespace Gk3Main.Graphics
             _effect.Begin();
             
             int count = (_resolution + 1);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, count, _vertices);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count, count, _vertices);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count * 2, count, _vertices);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, count, _vertices, _declaration);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count, count, _vertices, _declaration);
+            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count * 2, count, _vertices, _declaration);
             _effect.End();
         }
     }

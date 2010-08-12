@@ -163,7 +163,7 @@ namespace Gk3Main.Graphics
         public abstract void Dispose();
 
         public VertexElementSet VertexElements { get { return _declaration; } }
-        public abstract int Length { get; }
+        public abstract int NumVertices { get; }
     }
 
     public abstract class IndexBuffer : IDisposable
@@ -480,13 +480,13 @@ namespace Gk3Main.Graphics
         BlendState BlendState { get; set; }
         //SamplerStateCollection SamplerStates { get; }
 
+        IndexBuffer Indices { get; set; }
         void SetVertexBuffer(VertexBuffer buffer);
-        void RenderBuffers(VertexBuffer vertices, IndexBuffer indices);
-        void RenderBuffers(int startVertex, int numVertices);
-        void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct;
-        void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct;
 
-        VertexElementSet VertexDeclaration { set; }
+        void RenderPrimitives(int startVertex, int numVertices);
+        void RenderIndexedPrimitives(int startIndex, int numPrimitives);
+        void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct;
+        void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices, VertexElementSet declaration) where T: struct;
 
         void BeginScene();
         void EndScene();

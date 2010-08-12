@@ -38,7 +38,7 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, 0);
         }
 
-        public override int Length
+        public override int NumVertices
         {
             get { return _numVertices; }
         }

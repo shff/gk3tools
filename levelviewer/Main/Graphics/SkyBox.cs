@@ -102,7 +102,8 @@ namespace Gk3Main.Graphics
         public void Render(Camera camera)
         {
             RendererManager.CurrentRenderer.DepthTestEnabled = false;
-            RendererManager.CurrentRenderer.VertexDeclaration = _declaration;
+            RendererManager.CurrentRenderer.SetVertexBuffer(_vertices);
+            RendererManager.CurrentRenderer.Indices = _indices;
 
             _skyboxEffect.Bind();
 
@@ -114,7 +115,7 @@ namespace Gk3Main.Graphics
             
             _skyboxEffect.Begin();
 
-            Graphics.RendererManager.CurrentRenderer.RenderBuffers(_vertices, _indices);
+            Graphics.RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, _indices.Length / 3);
 
             _skyboxEffect.End();
 

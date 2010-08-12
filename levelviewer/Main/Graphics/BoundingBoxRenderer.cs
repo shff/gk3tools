@@ -75,15 +75,13 @@ namespace Gk3Main.Graphics
             if (_vertices == null)
                 createVertices();
 
-            RendererManager.CurrentRenderer.VertexDeclaration = _declaration;
-
             Math.Matrix modelViewProjection = world * camera.ViewProjection;
 
             _effect.Bind();
             _effect.SetParameter("ModelViewProjection", modelViewProjection);
             _effect.Begin();
 
-            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Lines, 0, 12, _indices, _vertices);
+            RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Lines, 0, 12, _indices, _vertices, _declaration);
             //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 0, 8, _vertices);
             //RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.Lines, 8, 8, _vertices);
 

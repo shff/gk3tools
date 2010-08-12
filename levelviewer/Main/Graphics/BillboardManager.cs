@@ -117,7 +117,6 @@ namespace Gk3Main.Graphics
 
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
 
-            RendererManager.CurrentRenderer.VertexDeclaration = _elements;
             for (int i = 0; i < _numBillboards; i++)
             {
                 _shader.Bind();
@@ -127,7 +126,7 @@ namespace Gk3Main.Graphics
             
                 _shader.Begin();
 
-                RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, i * 6, 2, _indices, _vertices);
+                RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, i * 6, 2, _indices, _vertices, _elements);
             
             
                 _shader.End();

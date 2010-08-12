@@ -544,7 +544,7 @@ namespace Gk3Main.Graphics
 
             effect.CommitParams();
 
-            RendererManager.CurrentRenderer.RenderBuffers(surface.VertexIndex, surface.VertexCount);
+            RendererManager.CurrentRenderer.RenderPrimitives(surface.VertexIndex, surface.VertexCount);
         }
 
         private int findParent(BspNode[] nodes, int index)

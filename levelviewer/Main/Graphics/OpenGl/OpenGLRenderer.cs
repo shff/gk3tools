@@ -47,6 +47,7 @@ namespace Gk3Main.Graphics.OpenGl
         private RenderWindow _parentWindow;
         private VertexElementSet _vertexDeclaration;
         private GlVertexBuffer _currentVertexBuffer;
+        private GlIndexBuffer _currentIndexBuffer;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
@@ -243,11 +244,16 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
-        public VertexElementSet VertexDeclaration
+        public IndexBuffer Indices
         {
+            get
+            {
+                return _currentIndexBuffer;
+            }
             set
             {
-                _vertexDeclaration = value;
+                _currentIndexBuffer = (GlIndexBuffer)value;
+                if (_currentIndexBuffer != null) _currentIndexBuffer.Bind();
             }
         }
 
@@ -300,7 +306,7 @@ namespace Gk3Main.Graphics.OpenGl
             if (glIndices != null)
                 Gl.glDrawElements(Gl.GL_TRIANGLES, indices.Length, Gl.GL_UNSIGNED_INT, null);
             else
-                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, vertices.Length);
+                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, vertices.NumVertices);
 
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
@@ -312,13 +318,20 @@ namespace Gk3Main.Graphics.OpenGl
             if (glIndices != null) glIndices.Unbind();
         }
 
-        public void RenderBuffers(int firstVertex, int vertexCount)
+        public void RenderPrimitives(int firstVertex, int vertexCount)
         {
             Gl.glDrawArrays(Gl.GL_TRIANGLES, firstVertex, vertexCount);
         }
 
-        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices) where T: struct
+        public void RenderIndexedPrimitives(int firstIndex, int primitiveCount)
         {
+            Gl.glDrawElements(Gl.GL_TRIANGLES, primitiveCount * 3, Gl.GL_UNSIGNED_INT, null);
+        }
+
+        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct
+        {
+            _vertexDeclaration = declaration;
+
             if (_currentVertexBuffer != null)
             {
                 _currentVertexBuffer.Unbind();
@@ -366,8 +379,10 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
-        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices) where T: struct
+        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices, VertexElementSet declaration) where T: struct
         {
+            _vertexDeclaration = declaration;
+
             if (_currentVertexBuffer != null)
             {
                 _currentVertexBuffer.Unbind();

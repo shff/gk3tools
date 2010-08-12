@@ -358,7 +358,6 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
-                RendererManager.CurrentRenderer.VertexDeclaration = _elements;
                 _effect.Bind();
                 _effect.Begin();
 
@@ -380,7 +379,6 @@ namespace Gk3Main.Graphics
         {
             if (_loaded == true)
             {
-                RendererManager.CurrentRenderer.VertexDeclaration = _elements;
                 _effect.Bind();
                 _effect.Begin();
 
@@ -418,7 +416,7 @@ namespace Gk3Main.Graphics
                         _effect.CommitParams();
 
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
-                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
+                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices, _elements);
                     }
 
                 }
@@ -448,7 +446,7 @@ namespace Gk3Main.Graphics
                         _effect.CommitParams();
 
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
-                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices);
+                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices ,_elements);
                     }
                 }
             }
@@ -491,7 +489,7 @@ namespace Gk3Main.Graphics
                         vertices = section.vertices;
 
                     RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
-                        vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices);
+                        vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices, _elements);
                 }
             }
         }
@@ -560,7 +558,6 @@ namespace Gk3Main.Graphics
         /// </remarks>
         public static void BeginBatchRender()
         {
-            RendererManager.CurrentRenderer.VertexDeclaration = _elements;
             _effect.Bind();
             _effect.Begin();
         }
