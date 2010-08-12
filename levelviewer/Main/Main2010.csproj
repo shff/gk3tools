@@ -1,0 +1,245 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{CC878405-3C13-4940-A18C-9C035E91311C}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>gk3game</RootNamespace>
+    <AssemblyName>gk3game</AssemblyName>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;SOUND_DISABLED</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="irrKlang.NET2.0, Version=1.1.3.0, Culture=neutral, PublicKeyToken=a854741bd80517c7, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Users\bfarris\Documents\code\irrklang\irrKlang-1.1.3\bin\dotnet-2.0\irrKlang.NET2.0.dll</HintPath>
+    </Reference>
+    <Reference Include="SlimDX, Version=2.0.10.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=x86" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Tao.OpenGl, Version=2.1.0.12, Culture=neutral, PublicKeyToken=1ca010269a4501ef, processorArchitecture=MSIL" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Console.cs" />
+    <Compile Include="FileSystem\barn.cs" />
+    <Compile Include="FileSystem\FileSystem.cs" />
+    <Compile Include="Game\Actor.cs" />
+    <Compile Include="Game\ActorPathfinder.cs" />
+    <Compile Include="Game\AnimationResource.cs" />
+    <Compile Include="Game\Animator.cs" />
+    <Compile Include="Game\AnmResource.cs" />
+    <Compile Include="Game\CommonStrings.cs" />
+    <Compile Include="Game\DialogManager.cs" />
+    <Compile Include="Game\FaceDefinitions.cs" />
+    <Compile Include="Game\GameManager.cs" />
+    <Compile Include="Game\GameTimer.cs" />
+    <Compile Include="Game\GasResource.cs" />
+    <Compile Include="Game\HelperIcons.cs" />
+    <Compile Include="Game\MomResource.cs" />
+    <Compile Include="Game\Nouns.cs" />
+    <Compile Include="Game\NvcManager.cs" />
+    <Compile Include="Game\NvcResource.cs" />
+    <Compile Include="Game\SceneManager.cs" />
+    <Compile Include="Game\ScnResource.cs" />
+    <Compile Include="Game\SifResource.cs" />
+    <Compile Include="Game\Verbs.cs" />
+    <Compile Include="Game\YakResource.cs" />
+    <Compile Include="Graphics\ActResource.cs" />
+    <Compile Include="Graphics\BillboardManager.cs" />
+    <Compile Include="Graphics\BitmapSurface.cs" />
+    <Compile Include="Graphics\BoundingBoxRenderer.cs" />
+    <Compile Include="Graphics\BoundingSphereRenderer.cs" />
+    <Compile Include="Graphics\BspResource.cs" />
+    <Compile Include="Graphics\Camera.cs" />
+    <Compile Include="Graphics\Color.cs" />
+    <Compile Include="Graphics\CubeMapResource.cs" />
+    <Compile Include="Graphics\Direct3D9\Direct3D9Effect.cs" />
+    <Compile Include="Graphics\Direct3D9\Direct3D9Renderer.cs" />
+    <Compile Include="Graphics\Direct3D9\Direct3D9Texture.cs" />
+    <Compile Include="Graphics\Frustum.cs" />
+    <Compile Include="Graphics\IRenderer.cs" />
+    <Compile Include="Graphics\LightmapResource.cs" />
+    <Compile Include="Graphics\ModelResource.cs" />
+    <Compile Include="Graphics\OpenGl\GlCubeMap.cs" />
+    <Compile Include="Graphics\OpenGl\GlIndexBuffer.cs" />
+    <Compile Include="Graphics\OpenGl\GlRenderTarget.cs" />
+    <Compile Include="Graphics\OpenGl\GlslEffect.cs" />
+    <Compile Include="Graphics\OpenGl\GlTexture.cs" />
+    <Compile Include="Graphics\OpenGl\GlVertexBuffer.cs" />
+    <Compile Include="Graphics\OpenGl\OpenGLRenderer.cs" />
+    <Compile Include="Graphics\RenderWindow.cs" />
+    <Compile Include="Graphics\SkyBox.cs" />
+    <Compile Include="Graphics\SpriteBatch.cs" />
+    <Compile Include="Graphics\TextureAtlas.cs" />
+    <Compile Include="Graphics\TextureResource.cs" />
+    <Compile Include="Graphics\Utils.cs" />
+    <Compile Include="Gui\Button.cs" />
+    <Compile Include="Gui\CursorResource.cs" />
+    <Compile Include="Gui\Dropdown.cs" />
+    <Compile Include="Gui\Font.cs" />
+    <Compile Include="Gui\GuiMaster.cs" />
+    <Compile Include="Gui\MainMenu.cs" />
+    <Compile Include="Gui\MsgBox.cs" />
+    <Compile Include="Gui\OptionsMenu.cs" />
+    <Compile Include="Gui\TimeBlockSplash.cs" />
+    <Compile Include="Gui\Unit.cs" />
+    <Compile Include="Gui\VerbButton.cs" />
+    <Compile Include="Gui\VerbButtonSet.cs" />
+    <Compile Include="Logger.cs" />
+    <Compile Include="Math\Constants.cs" />
+    <Compile Include="Math\Matrix.cs" />
+    <Compile Include="Math\Quaternion.cs" />
+    <Compile Include="Math\Vector.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resource\InfoResource.cs" />
+    <Compile Include="Resource\ResourceManager.cs" />
+    <Compile Include="Resource\TextResource.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="Sheep\BasicSheepFunctions.cs" />
+    <Compile Include="Sheep\Sheep.cs" />
+    <Compile Include="Sound\Sound.cs" />
+    <Compile Include="Sound\SoundManager.cs" />
+    <Compile Include="Sound\SoundTrackResource.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="WaitHandle.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Icons\camera.bmp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\2d.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\2d.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_lightmapped.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_lightmapped.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_lightmapped_notexture.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_lightmapped_notexture.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_textured.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\basic_textured.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\skybox.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\skybox.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\texturedBillboard.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\texturedBillboard.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\wireframe.fx.glsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Shaders\wireframe.fx.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
