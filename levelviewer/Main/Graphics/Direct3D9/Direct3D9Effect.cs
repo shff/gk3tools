@@ -110,9 +110,7 @@ namespace Gk3Main.Graphics.Direct3D9
         public EffectHandle getParameter(string name)
         {
             EffectHandle param;
-            if (_parameters.ContainsKey(name))
-                param = _parameters[name];
-            else
+            if (_parameters.TryGetValue(name, out param) == false)
             {
                 param = _effect.GetParameter(null, name);
                 _parameters.Add(name, param);

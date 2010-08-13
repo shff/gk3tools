@@ -408,10 +408,9 @@ namespace Gk3Main.Graphics
                         worldview = mesh.TransformMatrix * camera.ViewProjection;
 
 
-
+                    _effect.SetParameter("ModelViewProjection", worldview);
                     foreach (ModMeshSection section in mesh.sections)
                     {
-                        _effect.SetParameter("ModelViewProjection", worldview);
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.CommitParams();
 
@@ -439,9 +438,9 @@ namespace Gk3Main.Graphics
                     Math.Matrix billboardMatrix;
                     camera.CreateBillboardMatrix(meshPosition, true, out billboardMatrix);
 
+                    _effect.SetParameter("ModelViewProjection", billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
                     foreach (ModMeshSection section in _meshes[i].sections)
                     {
-                        _effect.SetParameter("ModelViewProjection", billboardMatrix * _meshes[i].TransformMatrix * camera.ViewProjection);
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.CommitParams();
 

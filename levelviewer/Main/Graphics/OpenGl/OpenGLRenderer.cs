@@ -281,43 +281,6 @@ namespace Gk3Main.Graphics.OpenGl
             _currentVertexBuffer = glVertices;
         }
 
-        public void RenderBuffers(VertexBuffer vertices, IndexBuffer indices)
-        {
-            if (_currentVertexBuffer != null)
-            {
-                _currentVertexBuffer.Unbind();
-                _currentVertexBuffer = null;
-            }
-
-            GlVertexBuffer glVertices = (GlVertexBuffer)vertices;
-
-            glVertices.Bind();
-            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
-            {
-                Gl.glEnableVertexAttribArray(i);
-                Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
-                    Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
-            }
-
-
-            GlIndexBuffer glIndices = (GlIndexBuffer)indices;
-            if (glIndices != null) glIndices.Bind();
-
-            if (glIndices != null)
-                Gl.glDrawElements(Gl.GL_TRIANGLES, indices.Length, Gl.GL_UNSIGNED_INT, null);
-            else
-                Gl.glDrawArrays(Gl.GL_TRIANGLES, 0, vertices.NumVertices);
-
-            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
-            {
-                Gl.glDisableVertexAttribArray(i);
-            }
-
-            glVertices.Unbind();
-
-            if (glIndices != null) glIndices.Unbind();
-        }
-
         public void RenderPrimitives(int firstVertex, int vertexCount)
         {
             Gl.glDrawArrays(Gl.GL_TRIANGLES, firstVertex, vertexCount);

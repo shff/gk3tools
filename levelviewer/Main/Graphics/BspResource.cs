@@ -392,22 +392,20 @@ namespace Gk3Main.Graphics
             currentEffect.Bind();
 
             if (lightmappingEnabled)
+            {
                 currentEffect.SetParameter("LightmapMultiplier", lightmapMultiplier);
+                TextureResource lightmap = lightmaps.PackedLightmaps.PackedTexture;
+                if (lightmap != null)
+                    currentEffect.SetParameter("Lightmap", lightmap, 1);
+            }
+
             currentEffect.SetParameter("ModelViewProjection", camera.ViewProjection);
-
-            TextureResource lightmap = lightmaps.PackedLightmaps.PackedTexture;
-            if (lightmap != null)
-                currentEffect.SetParameter("Lightmap", lightmap, 1);
-
             currentEffect.Begin();
             for (int i = 0; i < _surfaces.Length; i++)
             {
                 if (_surfaces[i].Hidden == false)
                 {
-                    BspSurface surface = _surfaces[i];
-                    //TextureResource lightmap = (lightmappingEnabled ? lightmaps[i] : null);
-  
-                    drawSurface(surface, lightmap, currentEffect, camera, lightmappingEnabled, lightmapMultiplier);
+                    drawSurface(_surfaces[i], currentEffect, camera);
                 }
             }
             currentEffect.End();
@@ -535,7 +533,7 @@ namespace Gk3Main.Graphics
             }
         }
 
-        private void drawSurface(BspSurface surface, TextureResource lightmap, Effect effect, Camera camera, bool lightmappingEnabled, float lightmapMultiplier)
+        private void drawSurface(BspSurface surface, Effect effect, Camera camera)
         {
             if (camera.Frustum.IsSphereOutside(surface.boundingSphere))
                 return;
