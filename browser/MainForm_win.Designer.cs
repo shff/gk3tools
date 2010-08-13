@@ -76,7 +76,7 @@ namespace GK3BB
             this.helpToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(560, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(590, 24);
             this.menuStrip1.TabIndex = 0;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -226,7 +226,7 @@ namespace GK3BB
             this.mainListView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainListView.Location = new System.Drawing.Point(0, 24);
             this.mainListView.Name = "mainListView";
-            this.mainListView.Size = new System.Drawing.Size(560, 349);
+            this.mainListView.Size = new System.Drawing.Size(590, 349);
             this.mainListView.TabIndex = 1;
             this.mainListView.UseCompatibleStateImageBehavior = false;
             this.mainListView.View = System.Windows.Forms.View.Details;
@@ -245,10 +245,12 @@ namespace GK3BB
             // typeColumn
             // 
             this.typeColumn.Text = "Type";
+            this.typeColumn.Width = 112;
             // 
             // barnColumn
             // 
             this.barnColumn.Text = "Barn";
+            this.barnColumn.Width = 78;
             // 
             // compressionColumn
             // 
@@ -261,7 +263,7 @@ namespace GK3BB
             this.previewToolStripMenuItem,
             this.extractFilesToolStripMenuItem});
             this.mainContextMenu.Name = "mainContextMenu";
-            this.mainContextMenu.Size = new System.Drawing.Size(153, 70);
+            this.mainContextMenu.Size = new System.Drawing.Size(136, 48);
             this.mainContextMenu.Opening += new System.ComponentModel.CancelEventHandler(this.mainContextMenu_Opening);
             // 
             // previewToolStripMenuItem
@@ -282,7 +284,7 @@ namespace GK3BB
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(560, 373);
+            this.ClientSize = new System.Drawing.Size(590, 373);
             this.Controls.Add(this.mainListView);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;

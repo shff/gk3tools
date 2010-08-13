@@ -47,6 +47,7 @@ namespace GK3BB
             _imageList.Images.Add("binary", Image.FromFile("icons/binary.png"));
             _imageList.Images.Add("script", Image.FromFile("icons/script.png"));
             _imageList.Images.Add("font", Image.FromFile("icons/font.png"));
+            _imageList.Images.Add("cursor", Image.FromFile("icons/cursor.png"));
             mainListView.SmallImageList = _imageList;
 
             _sorter = new ListViewColumnSorter();
@@ -117,7 +118,7 @@ namespace GK3BB
                         else if (file.Extension == "HTML" || file.Extension == "HTM")
                             iconKey = "html";
                         else if (file.Extension == "MUL" || file.Extension == "MOD" ||
-                            file.Extension == "BSP")
+                            file.Extension == "BSP" || file.Extension == "ACT")
                             iconKey = "binary";
                         else if (file.Extension == "YAK" || file.Extension == "ANM" ||
                             file.Extension == "NVC" || file.Extension == "SIF" ||
@@ -126,6 +127,8 @@ namespace GK3BB
                             iconKey = "script";
                         else if (file.Extension == "FON")
                             iconKey = "font";
+                        else if (file.Extension == "CUR")
+                            iconKey = "cursor";
 
                         string compression;
                         if (file.Compression == BarnLib.Compression.None)
