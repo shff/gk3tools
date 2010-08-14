@@ -166,27 +166,17 @@ namespace BarnLib
 			//	outputPath, openChildBarns, decompress, convertBitmaps);
 			success = brn_ExtractFileByIndex(barnHandle, index, outputPath,
 				true, true);
-				
-			if (success == (int)BarnError.InvalidIndex)
-				throw new BarnException("invalid index");
-			else if (success == (int)BarnError.UnableToOpenChildBarn)
-				throw new BarnException("Unable to open child barn");
-			else if (success == (int)BarnError.UnableToOpenOutputFile)
-				throw new BarnException("Unable to open output file");
-			else if (success != (int)BarnError.Success)
-				throw new BarnException("Unable to extract file");
+
+            if (success != (int)BarnError.Success)
+                throw new BarnException(convertErrorNumberToString(success));
 		}
 
         public void ReadFile(string filename, byte[] buffer, bool openChildBarns)
         {
             int success = brn_ReadFile(barnHandle, filename, buffer, buffer.Length, openChildBarns);
 
-            if (success == (int)BarnError.UnableToOpenChildBarn)
-                throw new BarnException("Unable to open child barn");
-            else if (success == (int)BarnError.DecompressionError)
-                throw new BarnException("Error while decompressing file");
-            else if (success < 0)
-                throw new BarnException("Unable to read file");
+            if (success < 0)
+                throw new BarnException(convertErrorNumberToString(success));
         }
 
         public System.IO.Stream ReadFile(string filename, bool openChildBarns)
@@ -233,6 +223,22 @@ namespace BarnLib
             UnableToInitZLib = -8,
             DecompressionError = -9,
             Unknown = -100
+        }
+
+        private static string convertErrorNumberToString(int error)
+        {
+            if (error == (int)BarnError.UnableToOpenChildBarn)
+                return "Unable to open child barn";
+            else if (error == (int)BarnError.DecompressionError)
+                return "Error while decompressing file";
+            else if (error == (int)BarnError.UnableToOpenOutputFile)
+                return "Unable to open output file";
+            if (error == (int)BarnError.InvalidIndex)
+                return "Unvalid index";
+            else if (error < 0)
+                return "Unknown Barn error";
+
+            return "Success";
         }
 
 		[DllImport("barn")]

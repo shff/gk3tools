@@ -1,6 +1,12 @@
 Barn Browser Changelog
 ----------------------
 
+2.0.2.0 (2010-08-14)
+    * added some translations
+    * added a few icons
+    * updated a few file type descriptions
+    * added previewing to a few more file types
+
 2.0.1.0 (2008-12-20)
     * zlib decompression works
     * fixed bugs in RGB565 -> RGB888 bitmap conversion
