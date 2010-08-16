@@ -62,6 +62,7 @@ namespace GK3BB
             _previewExtensionsMap.Add("NVC", "TXT");
             _previewExtensionsMap.Add("SCN", "TXT");
             _previewExtensionsMap.Add("SIF", "TXT");
+            _previewExtensionsMap.Add("SHP", "TXT");
             _previewExtensionsMap.Add("STK", "TXT");
             _previewExtensionsMap.Add("YAK", "TXT");
             _previewExtensionsMap.Add("BMP", "BMP");
@@ -253,12 +254,17 @@ namespace GK3BB
                         string filename = filenameBuilder.ToString();
 
                         byte[] data = BarnManager.ExtractData(bf.Name);
+                        bool success = true;
 
                         // if it's a bitmap then convert it
                         if (bf.Extension == "BMP")
                         {
                             GK3Bitmap bmp = new GK3Bitmap(data);
                             bmp.Save(filename);
+                        }
+                        else if (bf.Extension == "SHP")
+                        {
+                            success = writeSheepPreview(filename, data);
                         }
                         else
                         {
@@ -267,10 +273,13 @@ namespace GK3BB
                             fs.Close();
                         }
 
-                        System.Diagnostics.Process.Start(filename);
+                        if (success)
+                        {
+                            System.Diagnostics.Process.Start(filename);
 
-                        // add the file to the list of files to delete when the browser closes
-                        _temporaryFiles.Add(filename);
+                            // add the file to the list of files to delete when the browser closes
+                            _temporaryFiles.Add(filename);
+                        }
                     }
                 }
                 catch(System.IO.FileNotFoundException)
@@ -408,6 +417,35 @@ namespace GK3BB
             // list context menu
             extractFilesToolStripMenuItem.Text = Strings.MainMenuExtractSelected;
             previewFileToolStripMenuItem.Text = Strings.MainMenuPreviewFile;
+        }
+
+        private bool writeSheepPreview(string filename, byte[] data)
+        {
+            if (data[0] == 'G')
+            {
+                // this is a compiled sheep, so disassemble it
+                string text = Sheep.GetDisassembly(data);
+
+                if (text != null)
+                {
+                    System.IO.StreamWriter writer = new System.IO.StreamWriter(filename, false);
+                    writer.WriteLine(text);
+                    writer.Close();
+
+                    return true;
+                }
+            }
+            else
+            {
+                // this is just a normal sheep script, so write it out
+                System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Create);
+                fs.Write(data, 0, data.Length);
+                fs.Close();
+
+                return true;
+            }
+
+            return false;
         }
 
         private ImageList _imageList;

@@ -138,6 +138,9 @@
   <data name="CompressionNone" xml:space="preserve">
     <value>None</value>
   </data>
+  <data name="CouldntFindSheepError" xml:space="preserve">
+    <value>Sorry, this is a compiled Sheep script. To preview it the Browser needs a copy of the Sheep library, but it couldn't find it. Please make sure the Sheep library is in the same folder as the Browser executable and try again.</value>
+  </data>
   <data name="ListBarn" xml:space="preserve">
     <value>Barn</value>
   </data>

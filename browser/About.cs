@@ -24,6 +24,7 @@ namespace GK3BB
             lblVersion.Text = string.Format("{0} {1}", Strings.AboutVersion, Info.Version);
             
             lblBarnLibInfo.Text = BarnLib.Barn.GetLibBarnInfo();
+            lblSheepInfo.Text = Sheep.GetSheepInfo();
         }
 
         #region Assembly Attribute Accessors

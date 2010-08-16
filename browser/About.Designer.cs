@@ -40,6 +40,7 @@ namespace GK3BB
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.lblBarnLibInfo = new System.Windows.Forms.Label();
+            this.lblSheepInfo = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -109,7 +110,7 @@ namespace GK3BB
             // btnOK
             // 
             this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnOK.Location = new System.Drawing.Point(201, 313);
+            this.btnOK.Location = new System.Drawing.Point(201, 340);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 9;
@@ -123,9 +124,9 @@ namespace GK3BB
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.richTextBox1);
-            this.groupBox1.Location = new System.Drawing.Point(12, 175);
+            this.groupBox1.Location = new System.Drawing.Point(12, 192);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(264, 132);
+            this.groupBox1.Size = new System.Drawing.Size(264, 142);
             this.groupBox1.TabIndex = 10;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Credits";
@@ -135,7 +136,7 @@ namespace GK3BB
             this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.richTextBox1.Location = new System.Drawing.Point(3, 16);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(258, 113);
+            this.richTextBox1.Size = new System.Drawing.Size(258, 123);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
             // 
@@ -157,12 +158,22 @@ namespace GK3BB
             this.lblBarnLibInfo.TabIndex = 12;
             this.lblBarnLibInfo.Text = "{0}";
             // 
+            // lblSheepInfo
+            // 
+            this.lblSheepInfo.AutoSize = true;
+            this.lblSheepInfo.Location = new System.Drawing.Point(12, 158);
+            this.lblSheepInfo.Name = "lblSheepInfo";
+            this.lblSheepInfo.Size = new System.Drawing.Size(21, 13);
+            this.lblSheepInfo.TabIndex = 13;
+            this.lblSheepInfo.Text = "{0}";
+            // 
             // About
             // 
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(288, 348);
+            this.ClientSize = new System.Drawing.Size(288, 375);
+            this.Controls.Add(this.lblSheepInfo);
             this.Controls.Add(this.lblBarnLibInfo);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.groupBox1);
@@ -203,6 +214,7 @@ namespace GK3BB
         private System.Windows.Forms.RichTextBox richTextBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblBarnLibInfo;
+        private System.Windows.Forms.Label lblSheepInfo;
 
     }
 }
