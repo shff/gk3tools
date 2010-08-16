@@ -33,10 +33,16 @@ namespace SheepCompiler
 		unsigned int Offset;
 	};
 
+    struct Disassembly : SheepDisassembly
+    {
+        std::string Text;
+    };
+
 	class Disassembler
 	{
 	public:
 		static std::string GetDisassembly(const std::string& inputFile);
+        static std::string GetDisassembly(const byte* code, int length);
 	
 	private:
 

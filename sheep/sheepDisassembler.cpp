@@ -16,11 +16,8 @@ namespace SheepCompiler
 	#define READ2(p) file.read((char*)p, 2);
 	#define READ1(p) file.read((char*)p, 1);
 
-
-	std::string Disassembler::GetDisassembly(const std::string& inputFile)
-	{
-		std::stringstream output;
-
+    std::string Disassembler::GetDisassembly(const std::string& inputFile)
+    {
 		std::ifstream file(inputFile.c_str(), std::ios_base::binary);
 		if (!file)
 		{
@@ -28,19 +25,26 @@ namespace SheepCompiler
 		}
 
 		unsigned int fileSize = getFileSize(file);
-		std::string disassembly;
 
 		//byte* buffer = new byte[fileSize];
 		byte* buffer = SHEEP_NEW_ARRAY(byte, fileSize);
 		file.read((char*)buffer, fileSize);
 		file.close();
 
-		SheepFileReader* reader = SHEEP_NEW SheepFileReader(buffer, fileSize);
+        std::string disassembly = GetDisassembly(buffer, fileSize);
+
+        SHEEP_DELETE_ARRAY(buffer);
+
+        return disassembly;
+    }
+
+	std::string Disassembler::GetDisassembly(const byte* data, int length)
+	{
+        std::stringstream output;
+
+		SheepFileReader* reader = SHEEP_NEW SheepFileReader(data, length);
 		IntermediateOutput* io = reader->GetIntermediateOutput();
 		
-		delete[] buffer;
-		buffer = NULL;
-
 		// imports
 		output << std::endl << "SysImports: " << std::endl;
 		for (int i = 0; i < io->Imports.size(); i++)

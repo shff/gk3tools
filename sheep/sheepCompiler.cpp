@@ -6,6 +6,7 @@
 #include "sheepCodeBuffer.h"
 #include "sheepMachine.h"
 #include "sheepFileReader.h"
+#include "sheepDisassembler.h"
 
 #define SM(v) static_cast<SheepMachine*>(v)
 
@@ -291,4 +292,34 @@ void SHP_SetVerbosity(SheepVM* vm, int verbosity)
 	assert(vm != NULL);
 
 	return SM(vm)->SetVerbosity((SheepMachine::Verbosity)verbosity);
+}
+
+struct Disassembly : SheepDisassembly
+{
+    std::string Text;
+};
+
+SheepDisassembly* SHP_GetDisassembly(const byte* data, int length)
+{
+    std::string disassembly = SheepCompiler::Disassembler::GetDisassembly(data, length);
+
+    Disassembly* d = SHEEP_NEW(Disassembly);
+    d->Text = disassembly;
+
+    return d;
+}
+
+int SHP_GetDisassemblyLength(const SheepDisassembly* disassembly)
+{
+    return static_cast<const Disassembly*>(disassembly)->Text.length();
+}
+
+void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer)
+{
+    strcpy(buffer, static_cast<const Disassembly*>(disassembly)->Text.c_str());
+}
+
+void SHP_FreeDisassembly(const SheepDisassembly* disassembly)
+{
+    SHEEP_DELETE(disassembly);
 }

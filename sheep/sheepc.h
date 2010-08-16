@@ -38,7 +38,7 @@ extern "C"
 
 #define SHEEP_VERSION_MAJOR 0
 #define SHEEP_VERSION_MINOR 3
-#define SHEEP_VERSION_REVISION 6
+#define SHEEP_VERSION_REVISION 7
 
 #define SHEEP_VERBOSITY_SILENT 0
 #define SHEEP_VERBOSITY_POLITE 1
@@ -194,6 +194,21 @@ DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm, SheepVMContext* context);
 typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);
 DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
 
+
+/* To get the disassembly of a sheep file, do this:
+1) load the sheep file (you have to do that part yourself)
+2) send the entire file contents to SHP_GetDisassembly()
+3) call SHP_GetDisassemblyLength() to get the length of the disassembly text
+4) allocate a string buffer big enough to hold the disassembly
+5) call SHP_GetDisassemblyText() using the allocated string buffer
+6) call SHP_FreeDisassembly() to clean up the disassembly info
+(since you allocated the buffer yourself you can keep using it even after
+the SHP_FreeDisassembly() call) */
+typedef struct {} SheepDisassembly;
+DECLSPEC SheepDisassembly* SHP_GetDisassembly(const byte* data, int length);
+DECLSPEC int SHP_GetDisassemblyLength(const SheepDisassembly* disassembly);
+DECLSPEC void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer);
+DECLSPEC void SHP_FreeDisassembly(const SheepDisassembly* disassembly);
 
 DECLSPEC SHP_Version SHP_GetVersion();
 
