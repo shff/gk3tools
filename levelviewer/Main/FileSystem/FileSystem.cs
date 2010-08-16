@@ -26,12 +26,21 @@ namespace Gk3Main
     {
         public static void AddPathToSearchPath(string path)
         {
+            AddPathToSearchPath(path, false);
+        }
+
+        public static void AddPathToSearchPath(string path, bool addAsFirst)
+        {
             // make sure the path is valid
             if (Directory.Exists(path))
             {
                 PathInfo pathinfo = new PathInfo();
                 pathinfo.Name = Path.GetFullPath(path);
-                _searchPath.Add(pathinfo);
+
+                if (addAsFirst)
+                    _searchPath.Insert(0, pathinfo);
+                else
+                    _searchPath.Add(pathinfo);
             }
             else
             {
@@ -42,10 +51,19 @@ namespace Gk3Main
 
         public static BarnLib.Barn AddBarnToSearchPath(string barn)
         {
+            return AddBarnToSearchPath(barn, false);
+        }
+
+        public static BarnLib.Barn AddBarnToSearchPath(string barn, bool addAsFirst)
+        {
             PathInfo path = new PathInfo();
             path.Name = barn;
             path.Barn = new BarnLib.Barn(barn);
-            _searchPath.Add(path);
+
+            if (addAsFirst)
+                _searchPath.Insert(0, path);
+            else
+                _searchPath.Add(path);
 
             return path.Barn;
         }

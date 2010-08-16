@@ -59,6 +59,7 @@ namespace GK3BB
             _previewExtensionsMap.Add("TXT", "TXT");
             _previewExtensionsMap.Add("ANM", "TXT");
             _previewExtensionsMap.Add("GAS", "TXT");
+            _previewExtensionsMap.Add("MOD", "MOD");
             _previewExtensionsMap.Add("NVC", "TXT");
             _previewExtensionsMap.Add("SCN", "TXT");
             _previewExtensionsMap.Add("SIF", "TXT");
@@ -100,6 +101,7 @@ namespace GK3BB
                 try
                 {
                     Cursor.Current = Cursors.WaitCursor;
+                    _currentBarnName = dialog.FileName;
 
                     BarnManager.OpenBarn(dialog.FileName);
 
@@ -266,6 +268,11 @@ namespace GK3BB
                         {
                             success = writeSheepPreview(filename, data);
                         }
+                        else if (bf.Extension == "MOD")
+                        {
+                            // we're using the viewer, which can look directly inside
+                            // this barn, so no need to extract anything
+                        }
                         else
                         {
                             System.IO.FileStream fs = new System.IO.FileStream(filename, System.IO.FileMode.Create);
@@ -275,10 +282,34 @@ namespace GK3BB
 
                         if (success)
                         {
-                            System.Diagnostics.Process.Start(filename);
+                            if (bf.Extension == "MOD")
+                            {
+                                // MOD is a special case. Windows most likely won't have
+                                // a file type association with the viewer, so we
+                                // have to crank it up manually
+                                try
+                                {
+                                    // TODO: as it is now the viewer must either be in the same
+                                    // directory as the viewer, or the viewer directory
+                                    // must be added to the path. Either way, it's annoying, so
+                                    // we need to store the path to the viewer and let the user
+                                    // edit it somehow.
+                                    System.Diagnostics.Process.Start("GK3Viewer.exe", "-b " + _currentBarnName + " -mod " + bf.Name);
+                                }
+                                catch
+                                {
+                                    MessageBox.Show("Unable to start the Viewer.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
+                            }
+                            else
+                            {
+                                System.Diagnostics.Process.Start(filename);
 
-                            // add the file to the list of files to delete when the browser closes
-                            _temporaryFiles.Add(filename);
+                                // add the file to the list of files to delete when the browser closes
+                                _temporaryFiles.Add(filename);
+                            }
+
+                            
                         }
                     }
                 }
@@ -448,6 +479,7 @@ namespace GK3BB
             return false;
         }
 
+        private string _currentBarnName;
         private ImageList _imageList;
         private ListViewColumnSorter _sorter;
         private Dictionary<string, string> _previewExtensionsMap;

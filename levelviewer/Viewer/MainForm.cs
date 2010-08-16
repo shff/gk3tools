@@ -9,8 +9,18 @@ namespace Viewer
 {
     public partial class MainForm : Form
     {
-        public MainForm()
+        public MainForm(string[] args)
         {
+            ProgramArguments arguments = null;
+            try
+            {
+                 arguments = new ProgramArguments(args);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Unable to parse arguments: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
             InitializeComponent();
             _window = new Direct3D9RenderWindow(pbRenderWindow);
             Gk3Main.Graphics.RendererManager.CurrentRenderer = _window.CreateRenderer();
@@ -57,6 +67,20 @@ namespace Viewer
                 }
             }
 
+            // handle any search paths passed in as arguments
+            if (arguments != null)
+            {
+                foreach (string path in arguments.SearchPaths)
+                {
+                    Gk3Main.FileSystem.AddPathToSearchPath(path, true);
+                }
+
+                foreach (string barn in arguments.SearchBarns)
+                {
+                    Gk3Main.FileSystem.AddBarnToSearchPath(barn, true);
+                }
+            }
+
             _globalContent = new Gk3Main.Resource.ResourceManager();
 
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.NvcResourceLoader(), typeof(Gk3Main.Game.NvcResource));
@@ -92,6 +116,16 @@ namespace Viewer
             Gk3Main.SceneManager.LightmapsEnabled = true;
             Gk3Main.SceneManager.DoubleLightmapValues = true;
             Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
+
+            // check the arguments to see if we need to load anything
+            if (arguments != null)
+            {
+                foreach (string model in arguments.ModelsToLoad)
+                {
+                    loadInitialData();
+                    Gk3Main.SceneManager.AddModel(model, true);
+                }
+            }
         }
 
         private void loadInitialData()
