@@ -10,8 +10,6 @@ namespace Viewer
         private List<string> _searchBarns = new List<string>();
         private List<string> _modelsToLoad = new List<string>();
         private string _bspToLoad;
-        private string _sifToLoad;
-        private string _scnToLoad;
 
         public ProgramArguments(string[] args)
         {
@@ -37,6 +35,11 @@ namespace Viewer
             get { return _modelsToLoad; }
         }
 
+        public string BspToLoad
+        {
+            get { return _bspToLoad; }
+        }
+
         private int parseArg(string[] args, int currentIndex)
         {
             if (args[currentIndex] == "-b")
@@ -59,6 +62,17 @@ namespace Viewer
 
                 _modelsToLoad.Add(args[currentIndex + 1]);
                 currentIndex += 2;
+            }
+            else if (args[currentIndex] == "-bsp")
+            {
+                requireFollowingParameter(args, currentIndex, "-bsp requires a BSP name");
+
+                _bspToLoad = args[currentIndex + 1];
+                currentIndex += 2;
+            }
+            else
+            {
+                currentIndex++;
             }
 
             return currentIndex;

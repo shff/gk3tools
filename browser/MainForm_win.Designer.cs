@@ -64,6 +64,7 @@ namespace GK3BB
             this.mainContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.previewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extractFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuSetViewerPath = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.mainContextMenu.SuspendLayout();
             this.SuspendLayout();
@@ -90,6 +91,7 @@ namespace GK3BB
             this.toolStripMenuItem2,
             this.convertBitmapsToolStripMenuItem,
             this.decompressFilesToolStripMenuItem,
+            this.mnuSetViewerPath,
             this.toolStripSeparator1,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
@@ -280,6 +282,13 @@ namespace GK3BB
             this.extractFilesToolStripMenuItem.Text = "Extract Files";
             this.extractFilesToolStripMenuItem.Click += new System.EventHandler(this.extractFilesToolStripMenuItem_Click);
             // 
+            // mnuSetViewerPath
+            // 
+            this.mnuSetViewerPath.Name = "mnuSetViewerPath";
+            this.mnuSetViewerPath.Size = new System.Drawing.Size(179, 22);
+            this.mnuSetViewerPath.Text = "Set path to viewer...";
+            this.mnuSetViewerPath.Click += new System.EventHandler(this.mnuSetViewerPath_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -325,5 +334,6 @@ namespace GK3BB
         private System.Windows.Forms.ContextMenuStrip mainContextMenu;
         private System.Windows.Forms.ToolStripMenuItem previewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem extractFilesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mnuSetViewerPath;
 	}
 }

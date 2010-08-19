@@ -54,6 +54,7 @@ namespace GK3BB
 
             // build the preview extensions map
             _previewExtensionsMap = new Dictionary<string, string>();
+            _previewExtensionsMap.Add("BSP", "BSP");
             _previewExtensionsMap.Add("CUR", "TXT");
             _previewExtensionsMap.Add("FON", "TXT");
             _previewExtensionsMap.Add("TXT", "TXT");
@@ -235,6 +236,26 @@ namespace GK3BB
                 Settings.Default.Save();
             }
         }
+
+        private void mnuSetViewerPath_Click(object sender, EventArgs e)
+        {
+            SetViewerPath viewerPath = new SetViewerPath();
+
+            if (string.IsNullOrEmpty(Settings.Default.PathToViewer))
+            {
+                viewerPath.ViewerPath = Environment.CurrentDirectory;
+            }
+            else
+            {
+                viewerPath.ViewerPath = Settings.Default.PathToViewer;
+            }
+
+            if (viewerPath.ShowDialog() == DialogResult.OK)
+            {
+                Settings.Default.PathToViewer = viewerPath.ViewerPath;
+                Settings.Default.Save();
+            }
+        }
         
         private void previewFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -247,13 +268,9 @@ namespace GK3BB
                     if (isPreviewSupported(bf.Extension))
                     {
                         // get the name of a temporary file we can use
-                        System.Text.StringBuilder filenameBuilder = new System.Text.StringBuilder();
-                        filenameBuilder.Append(System.IO.Path.GetTempPath());
-                        filenameBuilder.Append(System.IO.Path.DirectorySeparatorChar);
-                        filenameBuilder.Append(bf.Name);
-                        filenameBuilder.Append(".");
-                        filenameBuilder.Append(getPreviewExtension(bf.Extension));
-                        string filename = filenameBuilder.ToString();
+                        string filename = System.IO.Path.GetTempPath() +
+                            System.IO.Path.DirectorySeparatorChar +
+                            bf.Name + "." + getPreviewExtension(bf.Extension);
 
                         byte[] data = BarnManager.ExtractData(bf.Name);
                         bool success = true;
@@ -268,7 +285,8 @@ namespace GK3BB
                         {
                             success = writeSheepPreview(filename, data);
                         }
-                        else if (bf.Extension == "MOD")
+                        else if (bf.Extension == "MOD" ||
+                            bf.Extension == "BSP")
                         {
                             // we're using the viewer, which can look directly inside
                             // this barn, so no need to extract anything
@@ -282,19 +300,29 @@ namespace GK3BB
 
                         if (success)
                         {
-                            if (bf.Extension == "MOD")
+                            if (bf.Extension == "MOD" ||
+                                bf.Extension == "BSP")
                             {
-                                // MOD is a special case. Windows most likely won't have
+                                // BSP and MOD are special cases. Windows most likely won't have
                                 // a file type association with the viewer, so we
                                 // have to crank it up manually
+                                string viewerPath;
+                                if (string.IsNullOrEmpty(Settings.Default.PathToViewer))
+                                    viewerPath = "GK3Viewer.exe";
+                                else if (Settings.Default.PathToViewer.EndsWith(".EXE", StringComparison.OrdinalIgnoreCase))
+                                    viewerPath = Settings.Default.PathToViewer;
+                                else
+                                    viewerPath = Settings.Default.PathToViewer + System.IO.Path.DirectorySeparatorChar + "GK3Viewer.exe";
+
+                                string args = string.Empty;
+                                if (bf.Extension == "MOD")
+                                    args = "-b " + _currentBarnName + " -mod " + bf.Name;
+                                else if (bf.Extension == "BSP")
+                                    args = "-b " + _currentBarnName + " -bsp " + bf.Name;
+
                                 try
                                 {
-                                    // TODO: as it is now the viewer must either be in the same
-                                    // directory as the viewer, or the viewer directory
-                                    // must be added to the path. Either way, it's annoying, so
-                                    // we need to store the path to the viewer and let the user
-                                    // edit it somehow.
-                                    System.Diagnostics.Process.Start("GK3Viewer.exe", "-b " + _currentBarnName + " -mod " + bf.Name);
+                                    System.Diagnostics.Process.Start(viewerPath, args);
                                 }
                                 catch
                                 {
@@ -484,8 +512,6 @@ namespace GK3BB
         private ListViewColumnSorter _sorter;
         private Dictionary<string, string> _previewExtensionsMap;
         private List<string> _temporaryFiles;
-
-       
     }
 
     class ListViewColumnSorter : System.Collections.IComparer

@@ -344,12 +344,22 @@ namespace Gk3Main.Graphics
                     _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
                     _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
 
-                    Rect lightmapRect = lightmap.PackedLightmaps.GetPackedTextureRect(i);
+                    if (lightmap != null)
+                    {
+                        Rect lightmapRect = lightmap.PackedLightmaps.GetPackedTextureRect(i);
 
-                    BspVertex vertex = _bspVertices[_surfaces[i].VertexIndex + j];
-                    vertex.LU = lightmapRect.X + u * lightmapRect.Width;
-                    vertex.LV = lightmapRect.Y + v * lightmapRect.Height;
-                    _bspVertices[_surfaces[i].VertexIndex + j] = vertex;
+                        BspVertex vertex = _bspVertices[_surfaces[i].VertexIndex + j];
+                        vertex.LU = lightmapRect.X + u * lightmapRect.Width;
+                        vertex.LV = lightmapRect.Y + v * lightmapRect.Height;
+                        _bspVertices[_surfaces[i].VertexIndex + j] = vertex;
+                    }
+                    else
+                    {
+                        BspVertex vertex = _bspVertices[_surfaces[i].VertexIndex + j];
+                        vertex.LU = u;
+                        vertex.LV = v;
+                        _bspVertices[_surfaces[i].VertexIndex + j] = vertex;
+                    }
                 }
             }
 

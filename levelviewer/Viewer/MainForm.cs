@@ -125,6 +125,12 @@ namespace Viewer
                     loadInitialData();
                     Gk3Main.SceneManager.AddModel(model, true);
                 }
+
+                if (string.IsNullOrEmpty(arguments.BspToLoad) == false)
+                {
+                    loadInitialData();
+                    Gk3Main.SceneManager.LoadBsp(arguments.BspToLoad);
+                }
             }
         }
 

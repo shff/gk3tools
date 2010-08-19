@@ -205,6 +205,28 @@ namespace Gk3Main
             }
         }
 
+        /// <summary>
+        /// Loads the specified BSP. This should only be used by the viewer!
+        /// Otherwise you should be loading via LoadSif() or LoadScene().
+        /// </summary>
+        public static void LoadBsp(string bsp)
+        {
+            _currentRoom = _sceneContentManager.Load<Graphics.BspResource>(bsp);
+
+            // load the lightmaps
+            string bspWithoutExtension = Utils.GetFilenameWithoutExtension(bsp);
+            try
+            {
+                _currentLightmaps = _sceneContentManager.Load<Graphics.LightmapResource>(bspWithoutExtension);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                _currentLightmaps = null;
+            }
+
+            _currentRoom.FinalizeVertices(_currentLightmaps);
+        }
+
         public static void AddModel(string modelname, bool visible)
         {
             SceneModel sceneModel;
