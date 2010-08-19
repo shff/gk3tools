@@ -167,6 +167,13 @@ namespace Gk3Main.Gui
                 string modeStr = mode.Width.ToString() + " x " + mode.Height.ToString();
                 _resolutionDropdown.Items.Add(new KeyValuePair<string, string>(keyStr, modeStr));
             }
+
+            // select stuff based on the current settings
+            _3dDriverDropdown.SelectedValue = Settings.Renderer;
+
+            string key = Settings.ScreenWidth.ToString() + "," + Settings.ScreenHeight.ToString();
+            string value = Settings.ScreenWidth.ToString() + " x " + Settings.ScreenHeight.ToString();
+            _resolutionDropdown.InsertAndSelect(key, value, true);
         }
 
         private void positionButton(Button button, Dictionary<string, string> layoutInfo, string positionKey)

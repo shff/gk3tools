@@ -21,6 +21,7 @@ namespace Gk3Main.Gui
         private int _screenX, _screenY;
         private Graphics.Rect _boxRect;
         private EventHandler _onSelectedItemChanged;
+        private const int _itemVerticalPadding = 4;
 
         public Dropdown(IButtonContainer container, Resource.ResourceManager globalContent, int width, 
             string arrowDownSprite, string arrowHoverSprite, string arrowUpSprite)
@@ -43,8 +44,9 @@ namespace Gk3Main.Gui
 
         public void Render(Graphics.SpriteBatch sb, int tickCount)
         {
-            int left = _screenX - _width + _downArrow.Width;
-            int top = _screenY;
+            const int padding = 4;
+            int left = _screenX - _width + _downArrow.Width + padding;
+            int top = _screenY + padding;
 
             _downArrow.Render(sb, tickCount);
 
@@ -72,9 +74,9 @@ namespace Gk3Main.Gui
                 int texty = _screenY + _downArrow.Height;
                 foreach (KeyValuePair<string, string> item in _items)
                 {
-                    _font.Print(sb, (int)_boxRect.X + 1, texty, item.Value);
+                    _font.Print(sb, (int)_boxRect.X + 1, texty + _itemVerticalPadding, item.Value);
 
-                    texty += _font.LineHeight;
+                    texty += _font.LineHeight + _itemVerticalPadding;
                 }
             }
         }
@@ -95,8 +97,57 @@ namespace Gk3Main.Gui
 
         public int SelectedIndex { get { return _selectedIndex; } }
 
+        public string SelectedValue
+        {
+            get
+            {
+                if (_selectedIndex < 0) return null;
+
+                return _items[_selectedIndex].Value;
+            }
+            set
+            {
+                for (int i = 0; i < _items.Count; i++)
+                {
+                    if (_items[i].Key.Equals(value, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _selectedIndex = i;
+                        return;
+                    }
+                }
+
+                // doh, that value doesn't exist!
+                _selectedIndex = -1;
+            }
+        }
+
         public int ScreenX { get { return _screenX; } }
         public int ScreenY { get { return _screenY; } }
+
+        public void InsertAndSelect(string key, string value, bool sorted)
+        {
+            SelectedValue = key;
+            if (_selectedIndex == -1)
+            {
+                if (sorted)
+                {
+                    for (int i = 0; i < _items.Count; i++)
+                    {
+                        if (string.Compare(_items[i].Value, value) > 0)
+                        {
+                            _items.Insert(i, new KeyValuePair<string, string>(key, value));
+                            _selectedIndex = i;
+                            return;
+                        }
+                    }
+                }
+
+                // still here? either they don't care if this is sorted, or
+                // the best sorted way to insert is at the end.
+                _items.Add(new KeyValuePair<string, string>(key, value));
+                _selectedIndex = Items.Count - 1;
+            }
+        }
 
         internal void CalculateScreenCoordinates()
         {
@@ -161,13 +212,13 @@ namespace Gk3Main.Gui
             float width = _width;
             foreach (KeyValuePair<string, string> item in _items)
             {
-                float itemWidth = _font.GetPrintedRect(item.Value).Width;
+                float itemWidth = _font.MeasureString(item.Value).X;
                 if (itemWidth > width)
                     width = itemWidth;
             }
 
             float boxLeft = _screenX - width + _downArrow.Width;
-            int height = _items.Count * _font.LineHeight;
+            int height = _items.Count * (_font.LineHeight + _itemVerticalPadding);
 
             _boxRect = new Gk3Main.Graphics.Rect(boxLeft + 1, _screenY + _downArrow.Height + 1, width - 2, height - 2);
         }
@@ -181,7 +232,7 @@ namespace Gk3Main.Gui
             if (rmx >= 0 && rmx < _boxRect.Width &&
                 rmy >= 0 && rmy < _boxRect.Height)
             {
-                return rmy / _font.LineHeight;
+                return rmy / (_font.LineHeight + _itemVerticalPadding);
             }
 
             return -1;
