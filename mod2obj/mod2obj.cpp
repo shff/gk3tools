@@ -312,10 +312,13 @@ void writeOBJFile(modfile mod, const std::string& outputFilename)
 	// this stores the vertex offset for each section
 	std::vector<unsigned int> vertexOffsets;
 	
-	std::string materialFilename = outputFilename.substr(0, outputFilename.find_last_of(".")) + ".mtl";
-	
+    std::string outputFilenameWithoutExtension = outputFilename.substr(0, outputFilename.find_last_of("."));
+	std::string materialFilename = outputFilenameWithoutExtension + ".mtl";
+    std::string metaFilename = outputFilenameWithoutExtension + ".txt";
+
 	FILE* fp = fopen(outputFilename.c_str(), "w");
 	FILE* mtlfp = fopen(materialFilename.c_str(), "w");
+    FILE* metafp = fopen(metaFilename.c_str(), "w");
 	
 	fprintf(fp, "# This is a converted version of a GK3 .MOD file!\n\n");
 	fprintf(fp, "mtllib %s\n\n", materialFilename.c_str());
@@ -379,9 +382,25 @@ void writeOBJFile(modfile mod, const std::string& outputFilename)
 	unsigned int counter = 0;
 	for (int i = 0; i < mod.h.numMeshes; i++)
 	{
+        // write the mesh transformation matrix
+        fprintf(metafp, "transform %d %f %f %f %f %f %f %f %f %f %f %f %f\n",
+            i, mod.meshes[i].transform[0],
+            mod.meshes[i].transform[1],
+            mod.meshes[i].transform[2],
+            mod.meshes[i].transform[3],
+            mod.meshes[i].transform[4],
+            mod.meshes[i].transform[5],
+            mod.meshes[i].transform[6],
+            mod.meshes[i].transform[7],
+            mod.meshes[i].transform[8],
+            mod.meshes[i].transform[9],
+            mod.meshes[i].transform[10],
+            mod.meshes[i].transform[11]);
+
 		for (int j = 0; j < mod.meshes[i].numSections; j++)
 		{
 			fprintf(fp, "g group%d\n", counter);
+            fprintf(metafp, "group%d %d %d\n", counter, i, j);
 			
 			if (strlen(mod.meshes[i].sections[j].texturefile) > 0)
 			{
@@ -420,6 +439,7 @@ void writeOBJFile(modfile mod, const std::string& outputFilename)
 	
 	fclose(fp);
 	fclose(mtlfp);
+    fclose(metafp);
 }
 
 

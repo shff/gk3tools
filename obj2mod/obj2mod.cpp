@@ -15,11 +15,17 @@ int main(int argc, char** argv)
 	if (parseArguments(argc, argv) != 0)
 		return 1;
 	
-	Model* m = new Model();
-	m->Load(inputFile);
-	m->Save(outputFile);
-	
-	delete m;
+    try
+    {
+	    Model* m = new Model();
+	    m->Load(inputFile);
+	    m->Save(outputFile);
+        delete m;
+    }
+    catch(ModelException& e)
+    {
+        std::cout << "Error: " << e.message << std::endl;
+    }
 }
 
 int parseArguments(int argc, char** argv)

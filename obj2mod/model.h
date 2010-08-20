@@ -3,11 +3,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "matrix.h"
 
-struct vertex
-{	
-	float x, y, z;
-};
+typedef Vector3 vertex;
 
 struct normal
 {
@@ -32,11 +30,20 @@ struct group
 	std::vector<normal> normals;
 	std::vector<texcoord> texcoords;
 	std::vector<unsigned short> indices;
+
+    int meshIndex;
+    int sectionIndex;
 	
 	// these are temporary, during the load process
 	std::vector<unsigned short> vertexindices;
 	std::vector<unsigned short> normalindices;
 	std::vector<unsigned short> textureindices;
+};
+
+struct ModelMesh
+{
+    Matrix OriginalMatrix;
+    std::vector<group> Groups;
 };
 
 class Model
@@ -48,6 +55,9 @@ public:
 
 private:
 
+    void loadMeta(const std::string& filename, const std::map<std::string, group>& groups);
+    void saveMesh(FILE* fp, const ModelMesh& mesh);
+
 	float getFloat(const std::string& str);
 	unsigned int getUInt(const std::string& str);
 
@@ -57,20 +67,16 @@ private:
 	int getTexcoordIndex(const std::string& str);
 	int getIndex(const std::string& str, int whichone);
 
+    BBox calculateBBox(const ModelMesh& mesh);
 	BBox calculateBBox(std::vector<vertex> vertices);
 
-	unsigned int getDataSectionSize();
+	unsigned int getDataSectionSize(const std::map<std::string, group>& groups);
 
 	void loadMaterials(const std::string& file);
 	
 	// global lists
-	std::vector<vertex> vertices;
-	std::vector<normal> normals;
-	std::vector<texcoord> texcoords;
-	std::map<std::string, std::string> materials;
-	
-	typedef std::map<std::string, group> groupmap;
-	groupmap groups;
+	std::map<std::string, std::string> m_materials;
+    std::vector<ModelMesh> m_meshes;
 };
 
 class ModelException
