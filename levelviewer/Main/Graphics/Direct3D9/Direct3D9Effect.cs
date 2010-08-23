@@ -79,6 +79,15 @@ namespace Gk3Main.Graphics.Direct3D9
             _effect.SetValue(param, m);
         }
 
+        public override void SetParameter(string name, Color parameter)
+        {
+            Math.Vector4 color = new Math.Vector4(parameter.R / 255.0f, 
+                parameter.G / 255.0f, parameter.B / 255.0f, parameter.A / 255.0f);
+
+            EffectHandle param = getParameter(name);
+            _effect.SetValue(param, color);
+        }
+
         public override void SetParameter(string name, TextureResource parameter, int index)
         {
             if (parameter == null)

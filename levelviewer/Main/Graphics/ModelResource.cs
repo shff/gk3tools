@@ -51,7 +51,7 @@ namespace Gk3Main.Graphics
         public string texture;
         public TextureResource textureResource;
 
-        public uint color;
+        public Color color;
         public bool smooth;
         public uint numVerts;
         public uint numTriangles;
@@ -232,7 +232,7 @@ namespace Gk3Main.Graphics
 
                     meshSection.texture = Gk3Main.Utils.ConvertAsciiToString(reader.ReadBytes(32));
                     meshSection.textureResource = _content.Load<TextureResource>(meshSection.texture);
-                    meshSection.color = reader.ReadUInt32();
+                    meshSection.color = Utils.ConvertFromWin32COLORREF(reader.ReadUInt32());
                     meshSection.smooth = reader.ReadUInt32() != 0;
                     meshSection.numVerts = reader.ReadUInt32();
                     meshSection.numTriangles = reader.ReadUInt32();
@@ -324,6 +324,10 @@ namespace Gk3Main.Graphics
                 _meshes[i] = mesh;
             }
 
+            // we might be at the end of the file now
+            if (reader.BaseStream.Position + 4 >= reader.BaseStream.Length)
+                return;
+
             // read the MODX stuff
             uint modxMagic = reader.ReadUInt32();
             if (modxMagic == 0x4d4f4458)
@@ -412,6 +416,7 @@ namespace Gk3Main.Graphics
                     foreach (ModMeshSection section in mesh.sections)
                     {
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
+                        _effect.SetParameter("Color", section.color);
                         _effect.CommitParams();
 
                         RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,

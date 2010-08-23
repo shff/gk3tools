@@ -46,5 +46,16 @@ namespace Gk3Main.Graphics
 
             writer.Close();
         }
+
+        public static Color ConvertFromWin32COLORREF(uint colorref)
+        {
+            Color result;
+            result.R = (byte)(colorref & 0x000000ff);
+            result.G = (byte)((colorref & 0x0000ff00) >> 8);
+            result.B = (byte)((colorref & 0x00ff0000) >> 16);
+            result.A = 255;
+
+            return result;
+        }
     }
 }

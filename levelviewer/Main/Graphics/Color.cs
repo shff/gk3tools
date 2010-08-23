@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Gk3Main.Graphics
 {
-    struct Color
+    public struct Color
     {
         public byte R, G, B, A;
 

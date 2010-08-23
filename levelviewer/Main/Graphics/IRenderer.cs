@@ -124,6 +124,7 @@ namespace Gk3Main.Graphics
         public abstract void SetParameter(string name, float parameter);
         public abstract void SetParameter(string name, Math.Vector4 parameter);
         public abstract void SetParameter(string name, Math.Matrix parameter);
+        public abstract void SetParameter(string name, Color parameter);
         public abstract void SetParameter(string name, TextureResource parameter, int index);
         public abstract void SetParameter(string name, CubeMapResource parameter, int index);
     }

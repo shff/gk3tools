@@ -28,30 +28,20 @@ struct PS_INPUT
     float2 texCoords : TEXCOORD0;
 };
 
+float4 Color;
 texture Diffuse;
 sampler2D DiffuseSampler = sampler_state {
     Texture = <Diffuse>;
 };
 
+
 float4 ps_main(PS_INPUT input) : COLOR0
 {
-    float4 color = tex2D(DiffuseSampler, input.texCoords);
+    float4 color = tex2D(DiffuseSampler, input.texCoords) * Color;
     clip(color.a - 0.5);
 
     return color;
 }
-
-#ifdef OPENGL
-technique GL
-{
-    pass P0
-    {
-        VertexProgram = compile arbvp1 vs_main();
-        FragmentProgram = compile arbfp1 ps_main();
-    }
-}
-#endif
-
 
 technique D3D
 {

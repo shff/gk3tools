@@ -19,6 +19,7 @@ void main()
 #version 130
 
 uniform sampler2D Diffuse;
+uniform float4 Color;
 in vec2 o_diffuseCoords;
 out vec4 output;
 void main()

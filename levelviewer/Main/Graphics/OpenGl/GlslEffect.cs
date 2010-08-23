@@ -90,12 +90,27 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
+        public override void SetParameter(string name, Color parameter)
+        {
+            Gl.glGetError();
+
+            int uniform = Gl.glGetUniformLocation(_program, name);
+            if (uniform == -1)
+                throw new Exception("Unable to find uniform: " + name);
+
+            Gl.glUniform4f(uniform, parameter.R / 255.0f, parameter.G / 255.0f, parameter.B / 255.0f, parameter.A / 255.0f);
+
+            int r = Gl.glGetError();
+            if (r != Gl.GL_NO_ERROR)
+                throw new Exception("Unable to set shader parameter: " + name);
+        }
+
         public override void SetParameter(string name, TextureResource parameter, int index)
         {
             Gl.glGetError();
 
             Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
-            parameter.Bind();
+            ((GlTexture)parameter).Bind();
 
             int uniform = Gl.glGetUniformLocation(_program, name);
             if (uniform == -1)
