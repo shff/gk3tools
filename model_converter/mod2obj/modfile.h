@@ -24,8 +24,8 @@ struct meshsection
 	unsigned int heading;
 	char texturefile[32];
 	
-	unsigned int unknown1;
-	unsigned int numFaces;
+	unsigned int color;
+	unsigned int smooth;
 	unsigned int numVerts;
 	unsigned int numTriangles;
 	unsigned int numLODs;
@@ -56,5 +56,9 @@ struct modfile
 	
 	std::vector<mesh> meshes;
 };
+
+#define COLORREF_R(c) (c & 0x000000ff)
+#define COLORREF_G(c) ((c & 0x0000ff00) >> 8)
+#define COLORREF_B(c) ((c & 0x00ff0000) >> 16)
 
 #endif // MODFILE_H

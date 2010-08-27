@@ -231,8 +231,8 @@ modfile extractInfo(FILE* fp)
 			}
 			
 			fread(m.texturefile, 32, 1, fp);
-			READ4(fp, &m.unknown1);
-			READ4(fp, &m.numFaces);
+			READ4(fp, &m.color);
+			READ4(fp, &m.smooth);
 			READ4(fp, &m.numVerts);
 			READ4(fp, &m.numTriangles);
 			READ4(fp, &m.numLODs);
@@ -240,7 +240,6 @@ modfile extractInfo(FILE* fp)
 			
 			if (verbose)
 			{
-				std::cout << "Num faces: " << m.numFaces << std::endl;
 				std::cout << "Num verts:" << m.numVerts << std::endl;
 				std::cout << "Num triangles: " << m.numTriangles << std::endl;
 				std::cout << "Num LODs: " << m.numLODs << std::endl;
@@ -321,7 +320,7 @@ void writeOBJFile(modfile mod, const std::string& outputFilename)
     FILE* metafp = fopen(metaFilename.c_str(), "w");
 	
 	fprintf(fp, "# This is a converted version of a GK3 .MOD file!\n\n");
-	fprintf(fp, "mtllib %s\n\n", materialFilename.c_str());
+	fprintf(fp, "mtllib %s\n", materialFilename.c_str());
 	
 	std::vector<std::string> materials;
 	
@@ -401,19 +400,30 @@ void writeOBJFile(modfile mod, const std::string& outputFilename)
 		{
 			fprintf(fp, "g group%d\n", counter);
             fprintf(metafp, "group%d %d %d\n", counter, i, j);
-			
+			fprintf(fp, "usemtl group%d\n", counter);
+
 			if (strlen(mod.meshes[i].sections[j].texturefile) > 0)
 			{
-				fprintf(fp, "usemtl %s\n", mod.meshes[i].sections[j].texturefile);
-				
 				if (std::find(materials.begin(), materials.end(), mod.meshes[i].sections[j].texturefile)
 					== materials.end())
 				{
 					// write the material to the material file
-					fprintf(mtlfp, "newmtl %s\n", mod.meshes[i].sections[j].texturefile);
-					fprintf(mtlfp, "map_Kd .\\%s.BMP\n\n", mod.meshes[i].sections[j].texturefile);
+					fprintf(mtlfp, "newmtl group%d\n", counter);
+					fprintf(mtlfp, "map_Kd .\\%s.BMP\n", mod.meshes[i].sections[j].texturefile);
+                    fprintf(mtlfp, "Kd %f %f %f\n\n", 
+                        COLORREF_R(mod.meshes[i].sections[j].color) / 255.0f,
+                        COLORREF_G(mod.meshes[i].sections[j].color) / 255.0f,
+                        COLORREF_B(mod.meshes[i].sections[j].color) / 255.0f);
 				}
 			}
+            else
+            {
+                fprintf(mtlfp, "newmtl group%d\n", counter);
+                fprintf(mtlfp, "Kd %f %f %f\n\n", 
+                COLORREF_R(mod.meshes[i].sections[j].color) / 255.0f,
+                COLORREF_G(mod.meshes[i].sections[j].color) / 255.0f,
+                COLORREF_B(mod.meshes[i].sections[j].color) / 255.0f);
+            }
 			
 			unsigned int offset = vertexOffsets[counter];
 			

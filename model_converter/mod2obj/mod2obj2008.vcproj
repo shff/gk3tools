@@ -166,11 +166,11 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\..\mod2obj.cpp"
+			RelativePath=".\mod2obj.cpp"
 			>
 		</File>
 		<File
-			RelativePath="..\..\modfile.h"
+			RelativePath=".\modfile.h"
 			>
 		</File>
 	</Files>

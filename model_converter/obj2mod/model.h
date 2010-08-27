@@ -22,10 +22,16 @@ struct BBox
 	vertex vertex1, vertex2;
 };
 
+struct Material
+{
+    std::string Texture;
+    float R, G, B;
+};
+
 struct group
 {
 	std::string name;
-	std::string texture;
+	Material material;
 	std::vector<vertex> vertices;
 	std::vector<normal> normals;
 	std::vector<texcoord> texcoords;
@@ -75,7 +81,7 @@ private:
 	void loadMaterials(const std::string& file);
 	
 	// global lists
-	std::map<std::string, std::string> m_materials;
+	std::map<std::string, Material> m_materials;
     std::vector<ModelMesh> m_meshes;
 };
 

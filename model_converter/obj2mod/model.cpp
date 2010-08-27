@@ -8,6 +8,8 @@
 #define WRITE2(f,p) fwrite(p, 2, 1, fp)
 #define WRITE1(f,p) fwrite(p, 1, 1, fp)
 
+#define TO_COLORREF(c, r,g,b) (c = (int)(b * 255) << 16 | (int)(g * 255) << 8 | (int)(r * 255))
+
 void getPathFromFilename(const std::string& filenameAndPath, std::string& path, std::string& filename)
 {
     std::string::size_type slashIndex = filenameAndPath.find_last_of("\\/");
@@ -130,11 +132,11 @@ void Model::Load(const std::string& filename)
 		}
 		else if (command == "usemtl" && currentGroup != NULL)
 		{
-			std::map<std::string, std::string>::iterator itr = m_materials.find(param1);
+			std::map<std::string, Material>::iterator itr = m_materials.find(param1);
 			
 			if (itr != m_materials.end())
 			{
-				currentGroup->texture = (*itr).second;
+				currentGroup->material = (*itr).second;
 			}
 		}
 	}
@@ -207,8 +209,6 @@ void Model::Save(const std::string& filename)
 
 void Model::saveMesh(FILE* fp, const ModelMesh& mesh)
 {
-    unsigned int unknownInt = 0;
-
     unsigned int meshHeader = 0x4D455348;
 	float transform[12];
 	transform[0] = 1.0f;
@@ -271,7 +271,7 @@ void Model::saveMesh(FILE* fp, const ModelMesh& mesh)
 		
 		unsigned int groupHeader = 0x4D475250;
 		char textureFile[32] = {0};
-		strncpy(textureFile, currentgroup.texture.c_str(), currentgroup.texture.length());
+		strncpy(textureFile, currentgroup.material.Texture.c_str(), currentgroup.material.Texture.length());
 		unsigned int numFaces = 1;
 		unsigned int numVerts = currentgroup.vertices.size();
 		unsigned int numTris = currentgroup.indices.size() / 3;
@@ -280,14 +280,17 @@ void Model::saveMesh(FILE* fp, const ModelMesh& mesh)
 		std::cout << "Num verts: " << numVerts << std::endl;
 		std::cout << "Num triangles: " << numTris << std::endl;
 		
+        unsigned int color;
+        TO_COLORREF(color, currentgroup.material.R, currentgroup.material.G, currentgroup.material.B);
 		WRITE4(fp, &groupHeader);
 		fwrite(textureFile, 32, 1, fp);
-		WRITE4(fp, &unknownInt);
+		WRITE4(fp, &color);
 		WRITE4(fp, &numFaces);
 		WRITE4(fp, &numVerts);
 		WRITE4(fp, &numTris);
 		WRITE4(fp, &lodLevels);
-		WRITE4(fp, &unknownInt);
+        int zero = 0;
+		WRITE4(fp, &zero);
 		
 		for (unsigned int i = 0; i < currentgroup.vertices.size(); i++)
 		{
@@ -562,7 +565,7 @@ void Model::loadMaterials(const std::string& filename)
 		throw ModelException("Unable to open material file");
 	
 	char line[256];
-	std::map<std::string, std::string>::iterator currentMaterial;
+	std::map<std::string, Material>::iterator currentMaterial;
 	while(file.good())
 	{		
 		file.getline(line, 255);
@@ -576,7 +579,7 @@ void Model::loadMaterials(const std::string& filename)
 		{
 			str >> name;
 			
-			currentMaterial = m_materials.insert(std::pair<std::string, std::string>(name, "")).first;
+			currentMaterial = m_materials.insert(std::pair<std::string, Material>(name, Material())).first;
 		}
 		else if (param == "map_Kd")
 		{
@@ -596,8 +599,18 @@ void Model::loadMaterials(const std::string& filename)
 			if (dot != std::string::npos)
 				file = file.substr(0, dot);
 			
-			(*currentMaterial).second = file;
+			(*currentMaterial).second.Texture = file;
 		}
+        else if (param == "Kd")
+        {
+            float r, g, b;
+
+            str >> r >> g >> b;
+
+            (*currentMaterial).second.R = r;
+            (*currentMaterial).second.G = g;
+            (*currentMaterial).second.B = b;
+        }
 	}
 	
 	
