@@ -9,7 +9,7 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            if (args.Length > 0)
+            /*if (args.Length > 0)
             {
                 SheepVMDotNet.SheepFileReader reader = new SheepVMDotNet.SheepFileReader(args[0]);
                 SheepVMDotNet.SheepMachine vm = new SheepVMDotNet.SheepMachine();
@@ -19,7 +19,24 @@ namespace Test
                 vm.Run(reader.Output, "blah$");
 
 
+                SheepVMDotNet.SheepCompiler.Compile("func(\"hi\") $ * 3 + 3 ");
+
+            }*/
+
+            SheepVMDotNet.SheepScanner scanner = new SheepVMDotNet.SheepScanner();
+            scanner.Begin("x$ = d + 3 * -0.7880 + \"wo\\\"o!\";");
+
+            SheepVMDotNet.ScannedToken t = scanner.GetNextToken();
+            while (t.Type != SheepVMDotNet.SheepTokenType.None)
+            {
+                Console.WriteLine("Token: " + t.Type.ToString() + " (" + t.Text.ToString() + ")");
+                t = scanner.GetNextToken();
             }
+
+
+            SheepVMDotNet.SheepCompiler c = new SheepVMDotNet.SheepCompiler("symbols { int x$ = 4; float y$; string foo$ = \"woooo!\"; } code { blah$() { y$ = 45.0; } blah_2$() { } }");
+            c.Print();
+
         }
 
         static void printString(SheepVMDotNet.SheepMachine vm)

@@ -47,11 +47,15 @@
   <ItemGroup>
     <Compile Include="IntermediateOutput.cs" />
     <Compile Include="SheepCodeBuffer.cs" />
+    <Compile Include="SheepCodeTree.cs" />
+    <Compile Include="SheepCompiler.cs" />
     <Compile Include="SheepContext.cs" />
     <Compile Include="SheepFileReader.cs" />
     <Compile Include="SheepInstructions.cs" />
     <Compile Include="SheepMachine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SheepParser.cs" />
+    <Compile Include="SheepScanner.cs" />
     <Compile Include="SheepTypes.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
