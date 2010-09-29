@@ -34,7 +34,7 @@ namespace Test
             }
 
 
-            SheepVMDotNet.SheepCompiler c = new SheepVMDotNet.SheepCompiler("symbols { int x$ = 4; float y$; string foo$ = \"woooo!\"; } code { blah$() { y$ = 45.0; } blah_2$() { } }");
+            SheepVMDotNet.SheepCompiler c = new SheepVMDotNet.SheepCompiler("symbols { int r$ = 67; } code { snippet$() { r$ = 45; } }");
             c.Print();
 
         }

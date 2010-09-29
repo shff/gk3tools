@@ -19,6 +19,8 @@ namespace SheepVMDotNet
 
         Comma,
         Period,
+        Bang,
+        Colon,
         Semicolon,
         LBracket,
         RBracket,
@@ -85,6 +87,32 @@ namespace SheepVMDotNet
             Position = text.Position;
             Line = line;
             Text = text;
+        }
+
+        public int LiteralIntValue
+        {
+            get
+            {
+                if (Type != SheepTokenType.LiteralInteger)
+                    throw new InvalidOperationException();
+
+                int value;
+                Text.TryParseInt(out value);
+                return value;
+            }
+        }
+
+        public float LiteralFloatValue
+        {
+            get
+            {
+                if (Type != SheepTokenType.LiteralFloat)
+                    throw new InvalidOperationException();
+
+                float value;
+                Text.TryParseFloat(out value);
+                return value;
+            }
         }
     }
 
@@ -386,6 +414,8 @@ namespace SheepVMDotNet
         {
             addToTokens(SheepTokenType.Comma, false, ",");
             addToTokens(SheepTokenType.Period, false, ".");
+            addToTokens(SheepTokenType.Bang, false, "!");
+            addToTokens(SheepTokenType.Colon, false, ":");
             addToTokens(SheepTokenType.Semicolon, false, ";");
             addToTokens(SheepTokenType.LBracket, false, "[");
             addToTokens(SheepTokenType.RBracket, false, "]");

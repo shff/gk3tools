@@ -7,6 +7,7 @@ namespace SheepVMDotNet
 {
     enum SheepTreeNodeType
     {
+        Root,
         SymbolsSection,
         CodeSection,
 
@@ -24,108 +25,135 @@ namespace SheepVMDotNet
         StringLiteral
     }
 
-    struct SheepTreeNode
-    {
-        public int ParentIndex;
-        public SheepTreeNodeType Type;
-        
-        public int FirstChildIndex;
-        public int NumChildren;
-
-        public int ExtrasIndex;
-    }
-
-    struct SheepTreeNodeExtras
-    {
-        public int IntegerData;
-        public float FloatData;
-        public BetterString Name;
-        public SheepScannerPosition FunctionStart;
-    }
-
     class SheepCompilerException : Exception
     {
     }
 
-    class BetterList<T>
+    class SheepCodeTreeNode2
     {
-        private const int INITIAL_SIZE = 8;
-        private T[] _ts;
-        private int _nextFree = 0;
+        public SheepCodeTree2 Tree;
+        public SheepTreeNodeType Type;
 
-        public void Add(T t)
+        public int IntegerData;
+        public float FloatData;
+        public BetterString Name;
+        public SheepScannerPosition FunctionStart;
+
+        public SheepCodeTreeNode2 Parent;
+        public SheepCodeTreeNode2 Sibling;
+        public SheepCodeTreeNode2 FirstChild;
+    }
+
+    class SheepCodeTree2
+    {
+        private SheepCodeTreeNode2 _root;
+        private SheepCodeTreeNode2 _codeSection;
+        private Stack<SheepCodeTreeNode2> _pool;
+
+        public SheepCodeTree2()
         {
-            if (_ts == null)
-                _ts = new T[INITIAL_SIZE];
-            else if (_nextFree >= _ts.Length)
-                resize();
-
-            _ts[_nextFree++] = t;
+            _pool = new Stack<SheepCodeTreeNode2>();
+            _root = new SheepCodeTreeNode2();
+            _root.Type = SheepTreeNodeType.Root;
         }
 
-        public T[] InternalArray
+        public SheepCodeTreeNode2 CreateNode()
         {
-            get { return _ts; }
+            return getNewNodeFromPool();
         }
 
-        public int Count
+        public SheepCodeTreeNode2 AddAsChild(SheepCodeTreeNode2 parent)
         {
-            get { return _nextFree; }
+            SheepCodeTreeNode2 node = getNewNodeFromPool();
+
+            AddAsChild(parent, node);
+
+            return node;
         }
 
-        private void resize()
+        public void AddAsChild(SheepCodeTreeNode2 parent, SheepCodeTreeNode2 child)
         {
-            T[] newArray = new T[_ts.Length * 2];
-            for (int i = 0; i < _ts.Length; i++)
-                newArray[i] = _ts[i];
+            child.Parent = parent;
+            child.Tree = this;
 
-            _ts = newArray;
+            if (parent.FirstChild == null)
+                parent.FirstChild = child;
+            else
+            {
+                SheepCodeTreeNode2 c = parent.FirstChild;
+                while (c.Sibling != null)
+                {
+                    c = c.Sibling;
+                }
+
+                c.Sibling = child;
+            }
+        }
+
+        public SheepCodeTreeNode2 Root
+        {
+            get { return _root; }
+        }
+
+        public SheepCodeTreeNode2 FirstFunction
+        {
+            get { return _codeSection.FirstChild; }
+        }
+
+        internal void SetCodeSectionNode(SheepCodeTreeNode2 code)
+        {
+            _codeSection = code;
+        }
+
+        private SheepCodeTreeNode2 getNewNodeFromPool()
+        {
+            if (_pool.Count > 0)
+                return _pool.Pop();
+
+            // guess the pool was empty
+            return new SheepCodeTreeNode2();
         }
     }
 
     class SheepCodeTree
     {
         private SheepScanner _scanner = new SheepScanner();
-        private BetterList<SheepTreeNode> _codeTree;
-        private BetterList<SheepTreeNodeExtras> _extras;
+        //private BetterList<SheepTreeNode> _codeTree;
+        //private BetterList<SheepTreeNodeExtras> _extras;
+        private SheepCodeTree2 _tree;
         private Dictionary<string, int> _stringConstants;
+
 
         public SheepCodeTree(string code)
         {
             _stringConstants = new Dictionary<string, int>();
-            _codeTree = new BetterList<SheepTreeNode>();
-            _extras = new BetterList<SheepTreeNodeExtras>();
+            //_codeTree = new BetterList<SheepTreeNode>();
+            //_extras = new BetterList<SheepTreeNodeExtras>();
             _scanner = new SheepScanner();
             _scanner.Begin(code);
 
-            parseRoot(_codeTree);
+            _tree = new SheepCodeTree2();
+            parseRoot();
 
             // now go back and parse the function contents
-            for (int i = 0; i < _codeTree.Count; i++)
+            SheepCodeTreeNode2 func = _tree.FirstFunction;
+            while(func != null)
             {
-                if (_codeTree.InternalArray[i].Type == SheepTreeNodeType.FunctionDeclaration)
-                {
-                    SheepTreeNodeExtras extras = _extras.InternalArray[_codeTree.InternalArray[i].ExtrasIndex];
-                    _scanner.Seek(extras.FunctionStart);
+                _scanner.Seek(func.FunctionStart);
 
-                    parseFunctionContents(i);
-                }
+                parseFunctionContents(func);
+
+                func = func.Sibling;
             }
         }
 
         public void Print()
         {
-            for (int i = 0; i < _codeTree.InternalArray.Length; i++)
-            {
-                if (_codeTree.InternalArray[i].ParentIndex == -1)
-                    printNodes(0, i);
-            }
+            printNodes(0, _tree.Root);
         }
 
-        private void printNodes(int indention, int index)
+        private void printNodes(int indention, SheepCodeTreeNode2 node)
         {
-            SheepTreeNode node = _codeTree.InternalArray[index];
-
             for (int i = 0; i < indention; i++)
                 Console.Write('\t');
 
@@ -133,46 +161,55 @@ namespace SheepVMDotNet
                 node.Type == SheepTreeNodeType.FloatDeclaration ||
                 node.Type == SheepTreeNodeType.StringDeclaration)
             {
-                SheepTreeNodeExtras extras = _extras.InternalArray[node.ExtrasIndex];
-
                 Console.Write(node.Type);
                 Console.Write(": ");
-                Console.Write(extras.Name.ToString());
+                Console.Write(node.Name.ToString());
                 Console.Write(" = ");
 
                 if (node.Type == SheepTreeNodeType.FloatDeclaration)
-                    Console.WriteLine(extras.FloatData);
+                    Console.WriteLine(node.FloatData);
                 else
-                    Console.WriteLine(extras.IntegerData);
+                    Console.WriteLine(node.IntegerData);
             }
             else if (node.Type == SheepTreeNodeType.FunctionDeclaration)
             {
-                SheepTreeNodeExtras extras = _extras.InternalArray[node.ExtrasIndex];
-
                 Console.Write(node.Type);
                 Console.Write(": ");
-                Console.WriteLine(extras.Name.ToString());
+                Console.WriteLine(node.Name.ToString());
+            }
+            else if (node.Type == SheepTreeNodeType.Assignment)
+            {
+                Console.Write(node.Type);
+                Console.WriteLine(" (" + node.Name.ToString() + ")");
+            }
+            else if (node.Type == SheepTreeNodeType.IntegerLiteral)
+            {
+                Console.Write(node.Type);
+                Console.WriteLine(" (" + node.IntegerData + ")");
             }
             else
             {
                 Console.WriteLine(node.Type);
             }
 
-            for (int i = node.FirstChildIndex; i < node.FirstChildIndex + node.NumChildren; i++)
-                printNodes(indention + 1, i);
+            SheepCodeTreeNode2 child = node.FirstChild;
+            while (child != null)
+            {
+                printNodes(indention + 1, child);
+
+                child = child.Sibling;
+            }
         }
 
-        private void parseRoot(BetterList<SheepTreeNode> tree)
+        private void parseRoot()
         {
-            int currentIndex = -1;
-
             ScannedToken token = _scanner.GetNextToken();
             while (token.Type != SheepTokenType.None)
             {
                 if (token.Type == SheepTokenType.Symbols)
-                    parseSymbolsSection(currentIndex, tree);
+                    parseSymbolsSection(_tree.Root);
                 else if (token.Type == SheepTokenType.Code)
-                    parseCodeSection(currentIndex, tree);
+                    parseCodeSection(_tree.Root);
                 else
                     throw new SheepCompilerException();
 
@@ -180,11 +217,10 @@ namespace SheepVMDotNet
             }
         }
 
-        private void parseSymbolsSection(int parentIndex, BetterList<SheepTreeNode> tree)
+        private void parseSymbolsSection(SheepCodeTreeNode2 node)
         {
-            int currentIndex = getNewNodeIndex(tree);
-            tree.InternalArray[currentIndex].ParentIndex = parentIndex;
-            tree.InternalArray[currentIndex].FirstChildIndex = currentIndex + 1;
+            SheepCodeTreeNode2 symbols = _tree.AddAsChild(node);
+            symbols.Type = SheepTreeNodeType.SymbolsSection;
 
             if (_scanner.GetNextToken().Type != SheepTokenType.LBrace)
                 throw new SheepCompilerException();
@@ -193,50 +229,44 @@ namespace SheepVMDotNet
             while (t.Type != SheepTokenType.RBrace)
             {
                 if (t.Type == SheepTokenType.Int)
-                    parseSymbolDeclaration(SymbolType.Int, currentIndex, tree);
+                    parseSymbolDeclaration(SymbolType.Int, symbols);
                 else if (t.Type == SheepTokenType.Float)
-                    parseSymbolDeclaration(SymbolType.Float, currentIndex, tree);
+                    parseSymbolDeclaration(SymbolType.Float, symbols);
                 else if (t.Type == SheepTokenType.String)
-                    parseSymbolDeclaration(SymbolType.String, currentIndex, tree);
+                    parseSymbolDeclaration(SymbolType.String, symbols);
                 else
                     throw new SheepCompilerException();
-
-                tree.InternalArray[currentIndex].NumChildren++;
 
                 t = _scanner.GetNextToken();
             }
         }
 
         private enum SymbolType { Int, Float, String };
-        private void parseSymbolDeclaration(SymbolType type, int parentIndex, BetterList<SheepTreeNode> tree)
+        private void parseSymbolDeclaration(SymbolType type, SheepCodeTreeNode2 node)
         {
             ScannedToken t = _scanner.GetNextToken();
             if (t.Type != SheepTokenType.LocalIdentifier)
                 throw new SheepCompilerException();
 
-            int idNode = getNewNodeIndex(tree);
-            int extras = getNewNodeIndex(_extras);
-            tree.InternalArray[idNode].ParentIndex = parentIndex;
-            tree.InternalArray[idNode].ExtrasIndex = extras;
-            _extras.InternalArray[extras].Name = t.Text;
+            SheepCodeTreeNode2 symbol = _tree.AddAsChild(node);
+            symbol.Name = t.Text;
             if (type == SymbolType.Int)
-                tree.InternalArray[idNode].Type = SheepTreeNodeType.IntDeclaration;
+                symbol.Type = SheepTreeNodeType.IntDeclaration;
             else if (type == SymbolType.Float)
-                tree.InternalArray[idNode].Type = SheepTreeNodeType.FloatDeclaration;
+                symbol.Type = SheepTreeNodeType.FloatDeclaration;
             else if (type == SymbolType.String)
-                tree.InternalArray[idNode].Type = SheepTreeNodeType.StringDeclaration;
+                symbol.Type = SheepTreeNodeType.StringDeclaration;
 
             ScannedToken next = _scanner.GetNextToken();
             if (next.Type == SheepTokenType.Equal)
             {
                 next = _scanner.GetNextToken();
                 if (type == SymbolType.Int)
-                    _extras.InternalArray[extras].IntegerData = getIntegerFromLiteralToken(next.Type, next.Text);
+                    symbol.IntegerData = getIntegerFromLiteralToken(next.Type, next.Text);
                 else if (type == SymbolType.Float)
-                    _extras.InternalArray[extras].FloatData = getFloatFromLiteralToken(next.Type, next.Text);
+                    symbol.FloatData = getFloatFromLiteralToken(next.Type, next.Text);
                 else if (type == SymbolType.String)
-                    _extras.InternalArray[extras].IntegerData = lookupStringConstant(next.Text, true);
-
+                    symbol.IntegerData = lookupStringConstant(next.Text, true);
 
                 if (_scanner.GetNextToken().Type != SheepTokenType.Semicolon)
                     throw new SheepCompilerException();
@@ -245,12 +275,11 @@ namespace SheepVMDotNet
                 throw new SheepCompilerException();
         }
 
-        private void parseCodeSection(int parentIndex, BetterList<SheepTreeNode> tree)
+        private void parseCodeSection(SheepCodeTreeNode2 node)
         {
-            int currentIndex = getNewNodeIndex(tree);
-            tree.InternalArray[currentIndex].Type = SheepTreeNodeType.CodeSection;
-            tree.InternalArray[currentIndex].ParentIndex = parentIndex;
-            tree.InternalArray[currentIndex].FirstChildIndex = currentIndex + 1;
+            SheepCodeTreeNode2 code = _tree.AddAsChild(node);
+            code.Type = SheepTreeNodeType.CodeSection;
+            _tree.SetCodeSectionNode(code);
 
             if (_scanner.GetNextToken().Type != SheepTokenType.LBrace)
                 throw new SheepCompilerException();
@@ -266,15 +295,10 @@ namespace SheepVMDotNet
                     if (_scanner.GetNextToken().Type != SheepTokenType.LBrace)
                         throw new SheepCompilerException();
 
-                    int functionIndex = getNewNodeIndex(tree);
-                    int extrasIndex = getNewNodeIndex(_extras);
-                    tree.InternalArray[functionIndex].ParentIndex = currentIndex;
-                    tree.InternalArray[functionIndex].Type = SheepTreeNodeType.FunctionDeclaration;
-                    tree.InternalArray[functionIndex].ExtrasIndex = extrasIndex;
-                    _extras.InternalArray[extrasIndex].Name = t.Text;
-                    _extras.InternalArray[extrasIndex].FunctionStart = _scanner.CurrentPosition;
-
-                    tree.InternalArray[currentIndex].NumChildren++;
+                    SheepCodeTreeNode2 function = _tree.AddAsChild(code);
+                    function.Type = SheepTreeNodeType.FunctionDeclaration;
+                    function.Name = t.Text;
+                    function.FunctionStart = _scanner.CurrentPosition;
 
                     // skip to the end of the function
                     int lbraceCount = 0;
@@ -298,7 +322,12 @@ namespace SheepVMDotNet
             }
         }
 
-        private void parseFunctionContents(int parentIndex)
+        private void parseFunctionContents(SheepCodeTreeNode2 node)
+        {
+            parseStatementList(node);
+        }
+
+        private void parseStatementList(SheepCodeTreeNode2 node)
         {
             ScannedToken token = _scanner.GetNextToken();
             while (token.Type != SheepTokenType.None)
@@ -306,10 +335,115 @@ namespace SheepVMDotNet
                 if (token.Type == SheepTokenType.RBrace)
                     break; // done with this function
 
-                // TODO
+                SheepScannerPosition currentPos = _scanner.CurrentPosition;
+                parseClosedStatement(token, node);
 
                 token = _scanner.GetNextToken();
             }
+        }
+
+        private void parseClosedStatement(ScannedToken token, SheepCodeTreeNode2 node)
+        {
+            if (token.Type == SheepTokenType.Semicolon)
+            {
+                // empty statement, do nothing
+            }
+            else if (token.Type == SheepTokenType.LocalIdentifier)
+            {
+                BetterString id = token.Text;
+                token = _scanner.GetNextToken();
+                if (token.Type == SheepTokenType.Equal)
+                {
+                    SheepCodeTreeNode2 assignment = _tree.AddAsChild(node);
+                    assignment.Type = SheepTreeNodeType.Assignment;
+                    assignment.Name = id;
+
+                    SheepCodeTreeNode2 expr = parseExpression();
+                    _tree.AddAsChild(assignment, expr);
+                }
+                else
+                {
+                    throw new SheepCompilerException();
+                }
+            }
+            else if (token.Type == SheepTokenType.Return)
+            {
+                // return statement
+                if (_scanner.GetNextToken().Type != SheepTokenType.Semicolon)
+                    throw new SheepCompilerException();
+            }
+
+            // the only thing left to try is an expression
+            parseExpression();
+        }
+
+        private SheepCodeTreeNode2 parseExpression()
+        {
+            ScannedToken token = _scanner.GetNextToken();
+
+            if (token.Type == SheepTokenType.LiteralInteger ||
+                token.Type == SheepTokenType.LiteralFloat ||
+                token.Type == SheepTokenType.LiteralString)
+            {
+                return parseConstantExpression(token);
+            }
+            else if (token.Type == SheepTokenType.Identifier)
+            {
+                if (_scanner.GetNextToken().Type != SheepTokenType.LParen)
+                    throw new SheepCompilerException();
+
+                //parseParameterList();
+            }
+            else if (token.Type == SheepTokenType.LocalIdentifier)
+            {
+                // TODO
+            }
+            else if (token.Type == SheepTokenType.LParen)
+            {
+                // TODO
+            }
+            else if (token.Type == SheepTokenType.Bang)
+            {
+                // TODO
+            }
+            else
+            {
+                //tryParseExpression(0);
+
+                token = _scanner.GetNextToken();
+
+                if (token.Type == SheepTokenType.Plus)
+                {
+                }
+                else if (token.Type == SheepTokenType.Minus)
+                {
+                }
+            }
+
+            return null;
+        }
+
+        private SheepCodeTreeNode2 parseConstantExpression(ScannedToken token)
+        {
+            SheepCodeTreeNode2 constant = _tree.CreateNode();
+
+            if (token.Type == SheepTokenType.LiteralInteger)
+            {
+                constant.Type = SheepTreeNodeType.IntegerLiteral;
+                constant.IntegerData = token.LiteralIntValue;
+            }
+            else if (token.Type == SheepTokenType.LiteralFloat)
+            {
+                constant.Type = SheepTreeNodeType.FloatLiteral;
+                constant.FloatData = token.LiteralFloatValue;
+            }
+            else if (token.Type == SheepTokenType.LiteralString)
+            {
+                constant.Type = SheepTreeNodeType.StringLiteral;
+                constant.IntegerData = lookupStringConstant(token.Text, true);
+            }
+
+            return constant;
         }
 
         private int getIntegerFromLiteralToken(SheepTokenType type, BetterString text)
@@ -366,24 +500,6 @@ namespace SheepVMDotNet
             {
                 return -1;
             }
-        }
-
-        private int getNewNodeIndex(BetterList<SheepTreeNode> tree)
-        {
-            SheepTreeNode node = new SheepTreeNode();
-            node.FirstChildIndex = -1;
-            node.NumChildren = 0;
-
-            tree.Add(node);
-            return tree.Count - 1;
-        }
-
-        private int getNewNodeIndex(BetterList<SheepTreeNodeExtras> extras)
-        {
-            SheepTreeNodeExtras extra = new SheepTreeNodeExtras();
-
-            extras.Add(extra);
-            return extras.Count - 1;
         }
     }
 }
