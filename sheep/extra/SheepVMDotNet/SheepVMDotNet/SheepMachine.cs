@@ -85,6 +85,26 @@ namespace SheepVMDotNet
             throw new Exception("Invalid string offset found on stack");
         }
 
+        public int PopIntFromStack()
+        {
+            StackItem item = _context.Peek().Stack.Pop();
+
+            if (item.Type != SheepSymbolType.Int)
+                throw new Exception("Expected int on stack");
+
+            return item.IValue;
+        }
+
+        public float PopFloatFromStack()
+        {
+            StackItem item = _context.Peek().Stack.Pop();
+
+            if (item.Type != SheepSymbolType.Float)
+                throw new Exception("Expected float on stack");
+
+            return item.FValue;
+        }
+
         public void PushIntOntoStack(int i)
         {
             throw new NotImplementedException();
