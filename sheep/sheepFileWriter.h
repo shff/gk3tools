@@ -14,6 +14,7 @@ public:
 	SheepFileWriter(IntermediateOutput* output);
 
 	void Write(const std::string& filename);
+    ResizableBuffer* GetBuffer() { return m_buffer; }
 	
 private:
 

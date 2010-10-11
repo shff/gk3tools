@@ -6,6 +6,7 @@
 #include "sheepCodeBuffer.h"
 #include "sheepMachine.h"
 #include "sheepFileReader.h"
+#include "sheepFileWriter.h"
 #include "sheepDisassembler.h"
 
 #define SM(v) static_cast<SheepMachine*>(v)
@@ -322,4 +323,49 @@ void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer)
 void SHP_FreeDisassembly(const SheepDisassembly* disassembly)
 {
     SHEEP_DELETE(disassembly);
+}
+
+struct InternalCompiledScript : public CompiledScript
+{
+    int Size;
+    byte* Buffer;
+};
+
+CompiledScript* SHP_CompileSheepScript(SheepVM* vm, const char* script)
+{
+    InternalCompiledScript* result = NULL;
+    IntermediateOutput* output = SM(vm)->Compile(script);
+	if (output->Errors.empty())
+	{
+        SheepFileWriter writer(output);
+        ResizableBuffer* buffer = writer.GetBuffer();
+
+        result = SHEEP_NEW(InternalCompiledScript);
+        result->Size = buffer->GetSize();
+        result->Buffer = SHEEP_NEW_ARRAY(byte, result->Size);
+        memcpy(result->Buffer, buffer->GetData(), result->Size);
+    }
+
+    SHEEP_DELETE(output);
+
+    return result;
+}
+
+void SHP_FreeCompiledScript(CompiledScript* script)
+{
+    InternalCompiledScript* is = static_cast<InternalCompiledScript*>(script);
+    SHEEP_DELETE_ARRAY(is->Buffer);
+    SHEEP_DELETE(is);
+}
+
+int SHP_GetCompiledScriptSize(CompiledScript* script)
+{
+    InternalCompiledScript* is = static_cast<InternalCompiledScript*>(script);
+    return is->Size;
+}
+
+void SHP_GetCompiledScript(CompiledScript* script, byte* buffer)
+{
+    InternalCompiledScript* is = static_cast<InternalCompiledScript*>(script);
+    memcpy(buffer, is->Buffer, is->Size);
 }

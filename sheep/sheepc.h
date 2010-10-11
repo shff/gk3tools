@@ -144,7 +144,6 @@ DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
 
 DECLSPEC SheepVMContext* LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
 
-
 /* these next few functions are just for debugging the Compiler and VM. They shouldn't
 be used for anything else. */
 DECLSPEC int LIB_CALL SHP_GetNumContexts(SheepVM* vm);
@@ -209,6 +208,13 @@ DECLSPEC SheepDisassembly* SHP_GetDisassembly(const byte* data, int length);
 DECLSPEC int SHP_GetDisassemblyLength(const SheepDisassembly* disassembly);
 DECLSPEC void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer);
 DECLSPEC void SHP_FreeDisassembly(const SheepDisassembly* disassembly);
+
+typedef struct {} CompiledScript;
+DECLSPEC CompiledScript* LIB_CALL SHP_CompileSheepScript(SheepVM* vm, const char* script);
+DECLSPEC void LIB_CALL SHP_FreeCompiledScript(CompiledScript* script);
+DECLSPEC int LIB_CALL SHP_GetCompiledScriptSize(CompiledScript* script);
+DECLSPEC void LIB_CALL SHP_GetCompiledScript(CompiledScript* script, byte* buffer);
+
 
 DECLSPEC SHP_Version SHP_GetVersion();
 
