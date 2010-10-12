@@ -12,11 +12,14 @@ class SheepFileWriter
 public:
 
 	SheepFileWriter(IntermediateOutput* output);
+	~SheepFileWriter();
 
 	void Write(const std::string& filename);
     ResizableBuffer* GetBuffer() { return m_buffer; }
 	
 private:
+
+	void writeToBuffer();
 
 	void writeSectionHeader(const std::string& label, int dataOffset, int dataCount);
 	void writeVariablesSection();

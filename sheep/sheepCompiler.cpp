@@ -333,22 +333,32 @@ struct InternalCompiledScript : public CompiledScript
 
 CompiledScript* SHP_CompileSheepScript(SheepVM* vm, const char* script)
 {
-    InternalCompiledScript* result = NULL;
-    IntermediateOutput* output = SM(vm)->Compile(script);
-	if (output->Errors.empty())
+	try
 	{
-        SheepFileWriter writer(output);
-        ResizableBuffer* buffer = writer.GetBuffer();
+		InternalCompiledScript* result = NULL;
+		IntermediateOutput* output = SM(vm)->Compile(script);
+		if (output->Errors.empty())
+		{
+			SheepFileWriter writer(output);
+			ResizableBuffer* buffer = writer.GetBuffer();
 
-        result = SHEEP_NEW(InternalCompiledScript);
-        result->Size = buffer->GetSize();
-        result->Buffer = SHEEP_NEW_ARRAY(byte, result->Size);
-        memcpy(result->Buffer, buffer->GetData(), result->Size);
-    }
+			result = SHEEP_NEW(InternalCompiledScript);
+			result->Size = buffer->GetSize();
+			result->Buffer = SHEEP_NEW_ARRAY(byte, result->Size);
+			memcpy(result->Buffer, buffer->GetData(), result->Size);
+		}
 
-    SHEEP_DELETE(output);
+		SHEEP_DELETE(output);
 
-    return result;
+		return result;
+	}
+	catch(SheepException& ex)
+	{
+		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
+			printf("%s\n", ex.GetMessage().c_str());
+
+		return NULL;
+	}
 }
 
 void SHP_FreeCompiledScript(CompiledScript* script)

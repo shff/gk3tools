@@ -13,12 +13,24 @@ SheepFileWriter::SheepFileWriter(IntermediateOutput* output)
 	assert(output != NULL);
 
 	m_intermediateOutput = output;
+	m_buffer = SHEEP_NEW ResizableBuffer();
+
+	writeToBuffer();
+}
+
+SheepFileWriter::~SheepFileWriter()
+{
+	SHEEP_DELETE(m_buffer);
 }
 
 void SheepFileWriter::Write(const std::string &filename)
 {
-	m_buffer = SHEEP_NEW ResizableBuffer();
+	// save!
+	m_buffer->SaveToFile(filename);
+}
 
+void SheepFileWriter::writeToBuffer()
+{
 	// how many sections are we writing?
 	int dataCount = 3;
 	if (m_intermediateOutput->Symbols.empty() == false) dataCount++;
@@ -64,12 +76,6 @@ void SheepFileWriter::Write(const std::string &filename)
 
 	// write the total size
 	m_buffer->WriteUIntAt((int)m_buffer->GetSize() - offsetAfterHeader, 20); 
-
-	// save!
-	m_buffer->SaveToFile(filename);
-
-	SHEEP_DELETE(m_buffer);
-	m_buffer = NULL;
 }
 
 void SheepFileWriter::writeSectionHeader(const std::string& label, int dataOffset, int dataCount)
