@@ -583,6 +583,7 @@ namespace Gk3Main
                 {
                     actor.Position = position;
                     actor.FacingAngle = heading;
+                    actor.Model.ClearAnimatedTransforms();
                     break;
                 }
             }

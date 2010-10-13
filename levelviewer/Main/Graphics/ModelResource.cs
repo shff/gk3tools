@@ -541,6 +541,16 @@ namespace Gk3Main.Graphics
             _meshes[meshIndex].sections[groupIndex].textureResource = texture;
         }
 
+        public void ClearAnimatedTransforms()
+        {
+            for (int i = 0; i < _meshes.Length; i++)
+            {
+                _meshes[i].AnimatedTransformMatrix = null;
+                _meshes[i].AnimatedTransformIsAbsolute = false;
+                _meshes[i].UpdatedBoundingBox = _meshes[i].OriginalBoundingBox.Transform(_meshes[i].TransformMatrix);
+            }
+        }
+
         public override void Dispose()
         {
             // nothing
