@@ -33,6 +33,7 @@ namespace Gk3Main.Sound
             _engine = new ISoundEngine();
             _engine.AddFileFactory(new BarnFileFactory());
             _engine.LoadPlugins(".");
+            _engine.SoundVolume = Settings.SoundVolume / 100.0f;
 
             _channelSounds.Add(SoundTrackChannel.Ambient, new List<ISound>());
             _channelSounds.Add(SoundTrackChannel.Dialog, new List<ISound>());

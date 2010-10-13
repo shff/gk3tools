@@ -11,6 +11,7 @@ namespace Gk3Main
         private static int _screenWidth, _screenHeight;
         private static int _colorDepth;
         private static bool _fullscreen;
+        private static int _soundVolume;
         private static bool _showBoundingBoxes;
 
         private struct LineInfo
@@ -33,6 +34,7 @@ namespace Gk3Main
             updateLine(lines, "renderer", _renderer);
             updateLine(lines, "screenWidth", _screenWidth.ToString());
             updateLine(lines, "screenHeight", _screenHeight.ToString());
+            updateLine(lines, "soundVolume", _soundVolume.ToString(), false);
             updateLine(lines, "showBoundingBoxes", _showBoundingBoxes, false);
 
             using (StreamWriter writer = File.CreateText(filename))
@@ -61,6 +63,7 @@ namespace Gk3Main
             _renderer = getStringSetting(lines, "renderer");
             _screenWidth = getIntSetting(lines, "screenWidth", 640);
             _screenHeight = getIntSetting(lines, "screenHeight", 480);
+            _soundVolume = getIntSetting(lines, "soundVolume", 100);
             _showBoundingBoxes = getBoolSetting(lines, "showBoundingBoxes", false);
         }
 
@@ -92,6 +95,12 @@ namespace Gk3Main
         {
             get { return _fullscreen; }
             set { _fullscreen = value; }
+        }
+
+        public static int SoundVolume
+        {
+            get { return _soundVolume; }
+            set { _soundVolume = value; }
         }
 
         public static bool ShowBoundingBoxes
@@ -133,6 +142,11 @@ namespace Gk3Main
 
         private static void updateLine(List<LineInfo> lines, string variable, string value)
         {
+            updateLine(lines, variable, value, true);
+        }
+
+        private static void updateLine(List<LineInfo> lines, string variable, string value, bool addIfNotExists)
+        {
             for (int i = 0; i < lines.Count; i++)
             {
                 if (string.IsNullOrEmpty(lines[i].Variable) == false &&
@@ -147,12 +161,15 @@ namespace Gk3Main
             }
 
             // guess we couldn't find an existing line with that variable, so add it
-            LineInfo line;
-            line.Variable = variable;
-            line.Value = value;
-            line.RawString = variable + "=" + value;
+            if (addIfNotExists)
+            {
+                LineInfo line;
+                line.Variable = variable;
+                line.Value = value;
+                line.RawString = variable + "=" + value;
 
-            lines.Add(line);
+                lines.Add(line);
+            }
         }
 
         private static void updateLine(List<LineInfo> lines, string variable, bool value, bool addIfNotExistAndFalse)
