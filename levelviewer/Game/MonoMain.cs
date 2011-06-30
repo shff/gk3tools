@@ -232,12 +232,20 @@ class MonoMain
 
         _state = GameState.MainMenu;
 
-        Gk3Main.Game.GameManager.Load();
-        Gk3Main.Game.HelperIcons.Load(_globalContent);
-        Gk3Main.Gui.CursorResource waitCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_WAIT.CUR");
-        _pointCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_POINT.CUR");
-        _zoom1Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM.CUR");
-        Gk3Main.Gui.CursorResource zoom2Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM_2.CUR");
+        try
+        {
+            Gk3Main.Game.GameManager.Load();
+            Gk3Main.Game.HelperIcons.Load(_globalContent);
+            Gk3Main.Gui.CursorResource waitCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_WAIT.CUR");
+            _pointCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_POINT.CUR");
+            _zoom1Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM.CUR");
+            Gk3Main.Gui.CursorResource zoom2Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM_2.CUR");
+        }
+        catch(System.IO.FileNotFoundException ex)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError("Unable to find a required resource file. " + ex.Message);
+            return null;
+        }
 
         //Gk3Main.Graphics.Camera camera = new Gk3Main.Graphics.Camera(1.04719755f, _screenWidth / _screenHeight, 1.0f, 10000.0f);
         // Gk3Main.SceneManager.CurrentCamera = camera;
