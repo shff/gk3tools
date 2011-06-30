@@ -29,6 +29,7 @@
 #include <lzo1x.h>
 #endif
 #ifndef DISABLE_ZLIB
+#define ZLIB_WINAPI 
 #include <zlib.h>
 #endif
 
