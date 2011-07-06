@@ -82,7 +82,7 @@ namespace Gk3Main.Gui
             }
             else
             {
-                _optionsMenu.Show(x, y);
+               _optionsMenu.Show(x, y, Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport);
                 _layers.Add(_optionsMenu);
             }
         }

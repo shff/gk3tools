@@ -22,6 +22,11 @@ namespace Gk3Main.Gui
 
             foreach (Game.NounVerbCase nvc in nvcs)
             {
+                // TODO: apparently the inventory verb is a special case.
+                // for now just ignore it.
+                if (nvc.Verb == Game.Verbs.V_ANY_INV_ITEM)
+                    continue;
+
                 Game.VerbInfo info = Game.GameManager.Verbs[nvc.Verb];
 
                 VerbButton b = new VerbButton(this, content, nvc.Noun, nvc.Verb, nvc.Script,
@@ -66,9 +71,12 @@ namespace Gk3Main.Gui
                 int totalWidth = _buttons.Count * ButtonWidth;
 
                 int overflowX = (_screenX + totalWidth) - viewport.Width;
+                int overflowY = (_screenY + ButtonWidth) - viewport.Height; 
 
                 if (overflowX > 0)
                     _screenX -= overflowX;
+                if (overflowY > 0)
+                    _screenY -= overflowY;
 
                 foreach (Button button in _buttons)
                     button.CalculateScreenCoordinates();

@@ -26,16 +26,21 @@ namespace Gk3Main.Gui
         private Dropdown _resolutionDropdown;
         private MsgBox _restartNotice;
         private bool _active;
+        private Graphics.Viewport _viewport;
 
+        [Flags]
         enum OptionsMenuState
         {
-            Initial,
-            Options,
-            AdvancedOption,
-            GameOptions,
-            GraphicsOptions,
-            SoundOptions,
-            AdvancedGraphicsOptions
+            Initial =                  0x01,
+            Options =                  0x02,
+            AdvancedOption =           0x04,
+            GameOptions =              0x08,
+            GraphicsOptions =          0x10,
+            SoundOptions =             0x20,
+            AdvancedGraphicsOptions =  0x40,
+
+            AdvancedOptionOrSub =      AdvancedOption | GameOptions | GraphicsOptions | SoundOptions,
+            OptionsOrSub =             Options | AdvancedOptionOrSub
         }
         private OptionsMenuState _state;
 
@@ -199,35 +204,16 @@ namespace Gk3Main.Gui
                 float.TryParse(str.Substring(comma + 1), out f2);
         }
 
-        public void KeepInsideViewport(Graphics.Viewport viewport)
+        public void Show(int screenX, int screenY, Graphics.Viewport viewport)
         {
-        }
-
-        public void Show(int screenX, int screenY)
-        {
+            _viewport = viewport;
             _active = true;
             _screenX = screenX - _upperBackground.Width / 2;
             _screenY = screenY - _upperBackground.Height / 2;
 
-            foreach (Button btn in _upperButtons)
-            {
-                btn.CalculateScreenCoordinates();
-            }
-
-            foreach (Button btn in _optionsButtons)
-            {
-                btn.CalculateScreenCoordinates();
-            }
-
-            foreach (Button btn in _advancedOptionsButtons)
-            {
-                btn.CalculateScreenCoordinates();
-            }
-
-            _3dDriverDropdown.CalculateScreenCoordinates();
-            _resolutionDropdown.CalculateScreenCoordinates();
-
             _state = OptionsMenuState.Initial;
+
+            keepInsideViewport(viewport);
         }
 
         public void Dismiss()
@@ -401,12 +387,63 @@ namespace Gk3Main.Gui
         public int ScreenX { get { return _screenX; } }
         public int ScreenY { get { return _screenY; } }
 
+        private void keepInsideViewport(Graphics.Viewport viewport)
+        {
+            int height = _upperBackground.Height;
+            if ((_state & OptionsMenuState.OptionsOrSub) == _state)
+            {
+                height += _optionsBackground.Height;
+
+                if ((_state & OptionsMenuState.AdvancedOptionOrSub) == _state)
+                {
+                   height += _advancedBackground.Height;
+
+                   if (_state == OptionsMenuState.GraphicsOptions)
+                      height += _graphicsBackground.Height;
+                }
+            }
+
+            int width = _upperBackground.Width;
+
+            int overflowX = (_screenX + width) - viewport.Width;
+            int overflowY = (_screenY + height) - viewport.Height;
+
+            if (overflowX > 0)
+                _screenX -= overflowX;
+            else if (_screenX < 0)
+                _screenX = 0;
+            if (overflowY > 0)
+                _screenY -= overflowY;
+            else if (_screenY < 0)
+                _screenY = 0;
+
+            foreach (Button btn in _upperButtons)
+            {
+                btn.CalculateScreenCoordinates();
+            }
+
+            foreach (Button btn in _optionsButtons)
+            {
+                btn.CalculateScreenCoordinates();
+            }
+
+            foreach (Button btn in _advancedOptionsButtons)
+            {
+                btn.CalculateScreenCoordinates();
+            }
+
+            _3dDriverDropdown.CalculateScreenCoordinates();
+            _resolutionDropdown.CalculateScreenCoordinates();
+        }
+
         private void onOptionsClicked(object sender, EventArgs e)
         {
             if (_state == OptionsMenuState.Initial)
                 _state = OptionsMenuState.Options;
             else
                 _state = OptionsMenuState.Initial;
+
+            keepInsideViewport(_viewport);
         }
 
         private void onCancelClicked(object sender, EventArgs e)
@@ -420,6 +457,8 @@ namespace Gk3Main.Gui
                 _state = OptionsMenuState.AdvancedOption;
             else
                 _state = OptionsMenuState.Options;
+
+            keepInsideViewport(_viewport);
         }
 
         private void onGraphicsOptionsClicked(object sender, EventArgs e)
@@ -428,6 +467,8 @@ namespace Gk3Main.Gui
                 _state = OptionsMenuState.GraphicsOptions;
             else
                 _state = OptionsMenuState.AdvancedOption;
+
+            keepInsideViewport(_viewport);
         }
 
         private void onGraphicsDriverChanged(object sender, EventArgs e)
