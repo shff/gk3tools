@@ -462,6 +462,8 @@ namespace Gk3Main.Graphics
         /// </summary>
         public void RenderAtBatch(Math.Vector3 position, float angle, Camera camera)
         {
+            if (!_loaded) return;
+
             Math.Matrix world = Math.Matrix.RotateY(angle)
                     * Math.Matrix.Translate(position);
 

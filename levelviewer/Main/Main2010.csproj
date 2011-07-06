@@ -73,16 +73,17 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="irrKlang.NET2.0, Version=1.1.3.0, Culture=neutral, PublicKeyToken=a854741bd80517c7, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Users\bfarris\Documents\code\irrklang\irrKlang-1.1.3\bin\dotnet-2.0\irrKlang.NET2.0.dll</HintPath>
+    <Reference Include="irrKlang.NET2.0">
+      <HintPath>..\..\..\..\..\code\irrKlang-1.3.0\bin\dotnet-2.0\irrKlang.NET2.0.dll</HintPath>
     </Reference>
-    <Reference Include="SlimDX, Version=2.0.10.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=x86" />
+    <Reference Include="SlimDX, Version=2.0.11.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tao.OpenGl, Version=2.1.0.12, Culture=neutral, PublicKeyToken=1ca010269a4501ef, processorArchitecture=MSIL" />
+    <Reference Include="Tao.OpenGl">
+      <HintPath>..\..\..\..\..\code\taoframework-2.1.0\bin\Tao.OpenGl.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Console.cs" />

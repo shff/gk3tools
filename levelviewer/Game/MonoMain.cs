@@ -47,8 +47,6 @@ class MonoMain
     }
 
     const string DefaultRenderer = "d3d9";
-    const int DefaultScreenWidth = 640;
-    const int DefaultScreenHeight = 480;
 
     private static Gk3Main.Gui.CursorResource _pointCursor;
     private static Gk3Main.Gui.CursorResource _zoom1Cursor;
@@ -62,8 +60,6 @@ class MonoMain
 
 	public static void Main(string[] args)
 	{
-        Gk3Main.Settings.ScreenWidth = DefaultScreenWidth;
-        Gk3Main.Settings.ScreenHeight = DefaultScreenHeight;
         Gk3Main.Settings.Renderer = DefaultRenderer;
         Gk3Main.Settings.Load("settings.txt");
 

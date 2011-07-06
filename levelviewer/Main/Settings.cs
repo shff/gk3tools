@@ -6,6 +6,9 @@ namespace Gk3Main
 {
     public static class Settings
     {
+        const int DefaultScreenWidth = 320;
+        const int DefaultScreenHeight = 240;
+
         private static string _settingsFilename;
         private static string _renderer;
         private static int _screenWidth, _screenHeight;
@@ -61,8 +64,8 @@ namespace Gk3Main
             List<LineInfo> lines = readLines(filename);
 
             _renderer = getStringSetting(lines, "renderer");
-            _screenWidth = getIntSetting(lines, "screenWidth", 640);
-            _screenHeight = getIntSetting(lines, "screenHeight", 480);
+            _screenWidth = getIntSetting(lines, "screenWidth", DefaultScreenWidth);
+            _screenHeight = getIntSetting(lines, "screenHeight", DefaultScreenHeight);
             _soundVolume = getIntSetting(lines, "soundVolume", 100);
             _showBoundingBoxes = getBoolSetting(lines, "showBoundingBoxes", false);
         }

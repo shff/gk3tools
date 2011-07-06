@@ -652,7 +652,16 @@ namespace Gk3Main
                 // play the first frame of the init animation (if it exists)
                 if (actor.InitAnim != null)
                 {
-                    _sceneContentManager.Load<MomResource>(actor.InitAnim + ".ANM").Play(true);
+                   try
+                   {
+                      _sceneContentManager.Load<MomResource>(actor.InitAnim + ".ANM").Play(true);
+                   }
+                   catch (System.IO.FileNotFoundException)
+                   {
+                      // apparently, especially when playing the GK3 demo,
+                      // some SIF files can refer to actors that don't actually
+                      // exist in the demo, so we need to ignore these errors
+                   }
                 }
             }
         }
