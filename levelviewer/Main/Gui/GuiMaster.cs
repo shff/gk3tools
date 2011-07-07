@@ -10,8 +10,15 @@ namespace Gk3Main.Gui
         private static MainMenu _mainMenu;
         private static OptionsMenu _optionsMenu;
 
-        public static void Render(Graphics.SpriteBatch sb, int tickCount)
+        public static void AddLayer(IGuiLayer layer)
         {
+            _layers.Add(layer);
+        }
+
+        public static bool Render(Graphics.SpriteBatch sb, int tickCount)
+        {
+            bool mouseIntercepted = false;
+
             // remove inactive layers
             for (int i = _layers.Count - 1; i >= 0; i--)
             {
@@ -34,7 +41,12 @@ namespace Gk3Main.Gui
             for (int i = firstNonPopupLayer; i < _layers.Count; i++)
             {
                 _layers[i].Render(sb, tickCount);
+
+                if (_layers[i].InterceptMouse)
+                    mouseIntercepted = true;
             }
+
+            return mouseIntercepted;
         }
 
         public static MainMenu ShowMainMenu(Resource.ResourceManager globalContent)
@@ -118,5 +130,6 @@ namespace Gk3Main.Gui
 
         bool IsPopup { get; }
         bool IsActive { get; }
+        bool InterceptMouse { get; }
     }
 }

@@ -191,6 +191,8 @@ namespace Gk3Main.Gui
 
         public bool IsActive { get { return _isActive; } }
 
+        public bool InterceptMouse { get { return true; } }
+
         #endregion
 
         #region IButtonContainer stuff

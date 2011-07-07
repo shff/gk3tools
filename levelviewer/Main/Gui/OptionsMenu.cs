@@ -373,6 +373,7 @@ namespace Gk3Main.Gui
         }
 
         public bool IsPopup { get { return true; } }
+        public bool InterceptMouse { get { return true; } }
 
         public Unit X
         {

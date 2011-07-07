@@ -5,8 +5,9 @@ using System.Text;
 
 namespace Game
 {
-    static class VerbPickerManager
+    class VerbPickerManager : Gk3Main.Gui.IGuiLayer
     {
+        private bool _isActive;
         private static Gk3Main.Gui.VerbButtonSet _vbs;
         private static int _mouseDownX, _mouseDownY;
         private static Gk3Main.Game.Nouns _lastNoun;
@@ -18,20 +19,6 @@ namespace Game
             get { return _vbs; }
         }
 
-        public static void Render(Gk3Main.Graphics.SpriteBatch sb, int tickCount)
-        {
-            if (_vbs != null)
-                _vbs.Render(sb, tickCount);
-        }
-
-        public static void Process()
-        {
-            if (_vbs != null && _vbs.Active == false)
-            {
-                _vbs = null;
-            }
-        }
-
         public static void Dismiss()
         {
             if (_vbs != null && _vbs.Active == true)
@@ -41,15 +28,20 @@ namespace Game
             }
         }
 
-        public static void Show(string noun)
-        {
-            if (_vbs == null)
-            {
+        #region IGuiLayer
 
-            }
+        public void Render(Gk3Main.Graphics.SpriteBatch sb, int tickCount)
+        {
+           if (_vbs != null)
+           {
+              if (_vbs.Active)
+                 _vbs.Render(sb, tickCount);
+              else
+                 _vbs = null;
+           }
         }
 
-        public static void MouseDown(int button, int x, int y)
+        public void OnMouseDown(int button, int x, int y)
         {
             if (_vbs != null)
                 _vbs.OnMouseDown(x, y);
@@ -58,27 +50,39 @@ namespace Game
             _mouseDownY = y;
         }
 
-        public static void MouseUp(Gk3Main.Graphics.Camera camera, int button, int x, int y)
+        public void OnMouseUp(int button, int x, int y)
         {
-            if (_vbs != null)
-                _vbs.OnMouseUp(x, y);
-            else if (x == _mouseDownX && y == _mouseDownY)
+            Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
+            if (camera != null && button == 0)
             {
-                List<Gk3Main.Game.NounVerbCase> nvcs = getNounVerbCasesUnderCursor(camera, x, y);
-
-                if (nvcs != null)
+                if (_vbs != null)
+                    _vbs.OnMouseUp(x, y);
+                else if (x == _mouseDownX && y == _mouseDownY && camera != null)
                 {
-                    _vbs = new Gk3Main.Gui.VerbButtonSet(_content, x, y, nvcs, true);
-                    _vbs.KeepInsideViewport(Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport);
+                    List<Gk3Main.Game.NounVerbCase> nvcs = getNounVerbCasesUnderCursor(camera, x, y);
+
+                    if (nvcs != null)
+                    {
+                        _vbs = new Gk3Main.Gui.VerbButtonSet(_content, x, y, nvcs, true);
+                        _vbs.KeepInsideViewport(Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport);
+                    }
                 }
             }
         }
 
-        public static void MouseMove(int x, int y)
+        public void OnMouseMove(int tickCount, int x, int y)
         {
             if (_vbs != null)
                 _vbs.OnMouseMove(x, y);
         }
+
+        public bool IsActive { get { return true; } }
+        public bool IsPopup { get { return false; } }
+        public bool InterceptMouse { get { return false; } }
+
+        #endregion
+
+        
 
         public static void RenderProperCursor(Gk3Main.Graphics.SpriteBatch sb, Gk3Main.Graphics.Camera camera, int mx, int my, Gk3Main.Gui.CursorResource point, Gk3Main.Gui.CursorResource zoom)
         {

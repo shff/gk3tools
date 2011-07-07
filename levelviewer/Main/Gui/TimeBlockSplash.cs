@@ -94,6 +94,7 @@ namespace Gk3Main.Gui
         }
 
         public bool IsPopup { get { return false; } }
+        public bool InterceptMouse { get { return true; } }
 
         public event EventHandler OnFinished
         {
