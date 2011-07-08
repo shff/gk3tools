@@ -192,6 +192,7 @@ namespace Gk3Main.Game
                 for (int i = startIndex; i < startIndex + count; i++)
                 {
                     string actName = _actionSection.Lines[i].Params[0].StringValue;
+                    if (actName.Length > 31) actName = actName.Substring(0, 31); // we can get FileNotFound without this
                     if (actName.EndsWith(".ACT", StringComparison.OrdinalIgnoreCase) == false)
                         actName += ".ACT";
 

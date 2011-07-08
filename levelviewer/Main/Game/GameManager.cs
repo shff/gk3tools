@@ -221,6 +221,22 @@ namespace Gk3Main.Game
             Logger.WriteInfo("Set game variable '{0}' to {1}", LoggerStream.Debug, variable, value);
         }
 
+        public static string GetStringGameVariable(string variable)
+        {
+            string value;
+            if (_stringGameVariables.TryGetValue(variable, out value))
+                return value;
+
+            return null;
+        }
+
+        public static void SetStringGameVariable(string variable, string value)
+        {
+            _stringGameVariables[variable] = value;
+
+            Logger.WriteInfo("Set game variable '{0}' to {1}", LoggerStream.Debug, variable, value);
+        }
+
         public static int GetChatCount(Nouns noun)
         {
             if (_chatCounts.ContainsKey(noun) == false)
@@ -408,6 +424,7 @@ namespace Gk3Main.Game
         private static LocalizedStrings _strings;
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, string> _stringGameVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<Nouns, int> _chatCounts = new Dictionary<Nouns, int>();
         private static Dictionary<int, int> _topicCounts = new Dictionary<int, int>();
         private static Dictionary<string, bool> _flags = new Dictionary<string, bool>();

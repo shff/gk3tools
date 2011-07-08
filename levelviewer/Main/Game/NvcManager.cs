@@ -89,7 +89,7 @@ namespace Gk3Main.Game
                 foreach (NounVerbCase nvc in nounNvcs)
                 {
                     if (!evaluate || evaluateNvcLogic(noun, nvc.Verb, nvc.Case))
-                        addUnique(nvc, results);
+                        addUnique(nvc, results, nvc.Case.Equals("ALL", StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -104,7 +104,7 @@ namespace Gk3Main.Game
                         foreach (NounVerbCase nvc in nounNvcs)
                         {
                             if (!evaluate || evaluateNvcLogic(n, nvc.Verb, nvc.Case))
-                                addUnique(nvc, results);
+                                addUnique(nvc, results, nvc.Case.Equals("ALL", StringComparison.OrdinalIgnoreCase));
                         }
                     }
                 }
@@ -124,7 +124,7 @@ namespace Gk3Main.Game
                 {
                     if (nvc.Verb == verb && 
                         (!evaluate || evaluateNvcLogic(noun, nvc.Verb, nvc.Case)))
-                        addUnique(nvc, results);
+                        addUnique(nvc, results, nvc.Case.Equals("ALL", StringComparison.OrdinalIgnoreCase));
                 }
             }
 
@@ -140,7 +140,7 @@ namespace Gk3Main.Game
                         {
                             if (nvc.Verb == verb &&
                                 (!evaluate || evaluateNvcLogic(n, nvc.Verb, nvc.Case)))
-                                addUnique(nvc, results);
+                                addUnique(nvc, results, nvc.Case.Equals("ALL", StringComparison.OrdinalIgnoreCase));
                         }
                     }
                 }
@@ -200,15 +200,24 @@ namespace Gk3Main.Game
             return Sheep.SheepMachine.RunSnippet(condition, noun, verb) > 0;
         }
 
-        private static void addUnique(NounVerbCase nvc, List<NounVerbCase> nvcs)
+        private static void addUnique(NounVerbCase nvc, List<NounVerbCase> nvcs, bool isAll)
         {
-            foreach (NounVerbCase n in nvcs)
+            for (int i = 0; i < nvcs.Count; i++)
             {
-                if (n.Noun == nvc.Noun &&
-                    n.Verb == nvc.Verb)
+                if (nvcs[i].Noun == nvc.Noun &&
+                    nvcs[i].Verb == nvc.Verb)
+                {
+                    // the "ALL" case seems to be like an "else", where
+                    // it is overridden if there are other valid cases.
+                    // So since we already have a valid case, ignore this one if it's "ALL".
+                    if (isAll) return;
+
+                    nvcs[i] = nvc;
                     return;
+                }
             }
 
+            // still here? must be a new case.
             nvcs.Add(nvc);
         }
     }

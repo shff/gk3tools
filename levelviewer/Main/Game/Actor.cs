@@ -315,6 +315,8 @@ namespace Gk3Main.Game
                 return "MOS";
             else if (noun.Equals("WILKES", StringComparison.OrdinalIgnoreCase))
                 return "WIL";
+            else if (noun.Equals("MONTREAUX", StringComparison.OrdinalIgnoreCase))
+                return "MON";
             else
                 throw new NotImplementedException("Unknown actor noun: " + noun);
         }
