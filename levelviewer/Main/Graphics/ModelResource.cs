@@ -111,6 +111,8 @@ namespace Gk3Main.Graphics
 
     public class ModelResource : Resource.Resource
     {
+        public Math.Matrix TempTransform = Math.Matrix.Identity;
+
         static ModelResource()
         {
             _elements = new VertexElementSet(new VertexElement[] {
@@ -365,7 +367,7 @@ namespace Gk3Main.Graphics
                 _effect.Bind();
                 _effect.Begin();
 
-                RenderBatch(camera);
+                RenderBatch(camera, null);
 
                 _effect.End();
 
@@ -399,17 +401,20 @@ namespace Gk3Main.Graphics
         /// "Batched" version of Render(). This version is much faster, but
         /// it must be called between BeginBatchRender() and EndBatchRender().
         /// </summary>
-        public void RenderBatch(Camera camera)
+        public void RenderBatch(Camera camera, Math.Matrix? transform)
         {
             if (!_isBillboard)
             {
+                Math.Matrix worldViewProjection = (transform.HasValue ? transform.Value * camera.ViewProjection : camera.ViewProjection);
+               //Math.Matrix worldViewProjection = camera.ViewProjection;
+
                 foreach (ModMesh mesh in _meshes)
                 {
                     Math.Matrix worldview;
                     if (mesh.AnimatedTransformMatrix.HasValue)
-                        worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
+                        worldview = mesh.AnimatedTransformMatrix.Value * worldViewProjection;
                     else
-                        worldview = mesh.TransformMatrix * camera.ViewProjection;
+                        worldview = mesh.TransformMatrix * worldViewProjection;
 
 
                     _effect.SetParameter("ModelViewProjection", worldview);

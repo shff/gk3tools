@@ -50,6 +50,7 @@ namespace Gk3Main
         public string Name;
         public Graphics.ModelResource Model;
         public bool Visible;
+        public Math.Matrix Transform;
     }
 
     public static class SceneManager
@@ -127,7 +128,7 @@ namespace Gk3Main
                 _currentPathMap = new ActorPathfinder(parentSif.Boundary, parentSif.BoundarySize, parentSif.BoundaryOffset);
 
             // temp
-            Math.Vector2 start = new Math.Vector2(17,41);
+           /* Math.Vector2 start = new Math.Vector2(17,41);
             Math.Vector2 end = new Math.Vector2(35, 45);
             Math.Vector2[] path = _currentPathMap.CalculatePath(start, end);
             Logger.WriteInfo("path from " + start.ToString() + " to " + end.ToString());
@@ -135,7 +136,7 @@ namespace Gk3Main
                 Logger.WriteInfo("NO PATH FOUND!");
             else
                _currentPathMap.PrintPathToLogger(path);
-
+           */
             // load the models
             _modelNounMap.Clear();
             loadSifModels(sifResource);
@@ -233,6 +234,7 @@ namespace Gk3Main
             sceneModel.Name = modelname;
             sceneModel.Model = _sceneContentManager.Load<Graphics.ModelResource>(modelname);
             sceneModel.Visible = visible;
+            sceneModel.Transform = Math.Matrix.Identity;
 
             _models.Add(sceneModel);
         }
@@ -327,7 +329,7 @@ namespace Gk3Main
                 foreach (SceneModel model in _models)
                 {
                     if (model.Visible)
-                        model.Model.RenderBatch(camera);
+                        model.Model.RenderBatch(camera, model.Model.TempTransform);
                 }
 
                 // render the actors

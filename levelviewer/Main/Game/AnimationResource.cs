@@ -8,6 +8,7 @@ namespace Gk3Main.Game
     {
         public string StringValue;
         public int IntValue;
+        public float FloatValue;
     }
 
     internal class AnimationResourceSectionLine
@@ -127,9 +128,14 @@ namespace Gk3Main.Game
                                 svalue = line.Substring(prevComma + 1, nextComma - prevComma - 1);
 
                             int ivalue;
+                            float fvalue;
                             if (int.TryParse(svalue, out ivalue))
                             {
                                 param.IntValue = ivalue;
+                            }
+                            else if (float.TryParse(svalue, out fvalue))
+                            {
+                                param.FloatValue = fvalue;
                             }
                             else
                             {

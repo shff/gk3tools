@@ -11,6 +11,7 @@ namespace Gk3Main.Game
             public Graphics.ActResource Act;
             public Graphics.ModelResource Model;
             public bool IsAbsolute;
+            public Math.Matrix Transformation;
         }
 
         private Resource.ResourceManager _content;
@@ -196,12 +197,30 @@ namespace Gk3Main.Game
                     if (actName.EndsWith(".ACT", StringComparison.OrdinalIgnoreCase) == false)
                         actName += ".ACT";
 
-                    MomAct act;
+                    MomAct act = new MomAct();
                     act.Act = _content.Load<Graphics.ActResource>(actName);
                     act.Model = SceneManager.GetSceneModel(act.Act.ModelName);
 
                     // check if this is an absolute animation or contains a transformation
-                    act.IsAbsolute = _actionSection.Lines[i].Params.Count > 1;
+                    if (_actionSection.Lines[i].Params.Count > 1)
+                    {
+                       act.IsAbsolute = true;
+
+                       Math.Matrix transform = Math.Matrix.Translate(-_actionSection.Lines[i].Params[1].FloatValue,
+                          -_actionSection.Lines[i].Params[3].FloatValue,
+                          -_actionSection.Lines[i].Params[2].FloatValue);
+                       transform = transform * Math.Matrix.RotateY(Utils.DegreesToRadians(-_actionSection.Lines[i].Params[4].FloatValue + _actionSection.Lines[i].Params[8].FloatValue));
+                       transform = transform * Math.Matrix.Translate(_actionSection.Lines[i].Params[5].FloatValue,
+                          _actionSection.Lines[i].Params[7].FloatValue,
+                          _actionSection.Lines[i].Params[6].FloatValue);
+
+                       act.Transformation = transform;
+                    }
+                    else
+                    {
+                       act.Transformation = Math.Matrix.Identity;
+                    }
+                    
 
                     if (act.Model == null)
                     {
@@ -229,6 +248,8 @@ namespace Gk3Main.Game
             {
                 if (_acts[i].HasValue)
                 {
+                    _acts[i].Value.Model.TempTransform = _acts[i].Value.Transformation;
+
                     if (_acts[i].Value.Act.Animate(_acts[i].Value.Model, timeSinceStart, duration, true, _acts[i].Value.IsAbsolute) == false)
                         _acts[i] = null;
                 }
