@@ -568,10 +568,18 @@ namespace Gk3Main
 
         public static void PlaySoundTrack(string name)
         {
-            Sound.SoundTrackResource stk = _sceneContentManager.Load<Sound.SoundTrackResource>(name);
-            stk.Start(GameManager.TickCount);
+            try
+            {
+                Sound.SoundTrackResource stk = _sceneContentManager.Load<Sound.SoundTrackResource>(name);
+                stk.Start(GameManager.TickCount);
 
-            _playingSoundTracks.AddFirst(stk);
+                _playingSoundTracks.AddFirst(stk);
+            }
+            catch(System.IO.FileNotFoundException)
+            {
+                // apparently this can happen sometimes, but let's at least warn
+                Logger.WriteError("Unable to play {0} because it couldn't be found.", name);
+            }
         }
 
         public static void StopSoundTrack(string name)
