@@ -137,11 +137,11 @@ namespace Gk3Main.Game
 
         public static void SetLocation(string location)
         {
-            SceneManager.LoadSif(location, GetTimeBlockString(_currentTime));
-            List<NounVerbCase> nvcs = NvcManager.GetNounVerbCases(Nouns.N_SCENE, true);
-
             _lastLocation = _location;
             _location = location;
+
+            SceneManager.LoadSif(location, GetTimeBlockString(_currentTime));
+            List<NounVerbCase> nvcs = NvcManager.GetNounVerbCases(Nouns.N_SCENE, true);
 
             foreach (NounVerbCase nvc in nvcs)
             {

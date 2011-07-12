@@ -11,6 +11,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("PrintString", _printStringDelegate,
                 SymbolType.Void, SymbolType.String);
 
+            SheepMachine.AddImport("CallSceneFunction", _callSceneFunction,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("CallSheep", _callSheep,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
@@ -261,6 +264,13 @@ namespace Gk3Main.Sheep
         private static void sheep_PrintString(IntPtr vm)
         {
             Console.CurrentConsole.WriteLine(SheepMachine.PopStringOffStack(vm));
+        }
+
+        private static void sheep_CallSceneFunction(IntPtr vm)
+        {
+            string function = SheepMachine.PopStringOffStack(vm);
+
+            SceneManager.CallSceneFunction(function);
         }
 
         private static void sheep_CallSheep(IntPtr vm)
@@ -893,6 +903,7 @@ namespace Gk3Main.Sheep
         }
 
         private static SheepFunctionDelegate _printStringDelegate = new SheepFunctionDelegate(sheep_PrintString);
+        private static SheepFunctionDelegate _callSceneFunction = new SheepFunctionDelegate(sheep_CallSceneFunction);
         private static SheepFunctionDelegate _callSheep = new SheepFunctionDelegate(sheep_CallSheep);
         private static SheepFunctionDelegate _clearFlag = new SheepFunctionDelegate(sheep_clearFlag);
         private static SheepFunctionDelegate _continueDialogue = new SheepFunctionDelegate(sheep_ContinueDialogue);

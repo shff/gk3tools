@@ -55,6 +55,11 @@ namespace Gk3Main
 
     public static class SceneManager
     {
+        public static ISceneCustomizer SceneCustomizer
+        {
+            get { return _sceneCustomizer; }
+        }
+
         public static void Initialize(Resource.ResourceManager globalContent)
         {
             ///_verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
@@ -66,6 +71,7 @@ namespace Gk3Main
         public static void Reset()
         {
             _sceneContentManager.UnloadAll();
+            _sceneCustomizer = null;
         }
 
         public static void LoadSif(string location, string timeblock)
@@ -79,6 +85,8 @@ namespace Gk3Main
                 // try something else...
                 LoadSif(location);
             }
+
+            setupCustomScenes(location);
         }
 
         public static void LoadSif(string sif)
@@ -178,6 +186,8 @@ namespace Gk3Main
             if (parentSif != null) loadSifActorModels(parentSif);
 
             Sound.SoundManager.StopChannel(Gk3Main.Sound.SoundTrackChannel.Ambient);
+
+            setupCustomScenes(GameManager.CurrentLocation);
         }
 
         public static void LoadScene(string scn)
@@ -600,6 +610,23 @@ namespace Gk3Main
             }
         }
 
+        public static void CallSceneFunction(string function)
+        {
+            if (_sceneCustomizer != null)
+               _sceneCustomizer.OnCustomFunction(function);
+        }
+
+        private static void setupCustomScenes(string location)
+        {
+           // not sure if hardcoding is the best way to do this...
+           if (location.Equals(Game.LocationCodes.ChateauDeSerrasLibrary, StringComparison.OrdinalIgnoreCase))
+              _sceneCustomizer = new LaserSceneCustomizer();
+           else
+              _sceneCustomizer = null;
+
+           if (_sceneCustomizer != null) _sceneCustomizer.OnLoad();
+        }
+
         private static void loadSifModels(Game.SifResource sif)
         {
             foreach (Game.SifModel model in sif.Models)
@@ -750,6 +777,7 @@ namespace Gk3Main
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
         private static LinkedList<Sound.SoundTrackResource> _playingSoundTracks = new LinkedList<Sound.SoundTrackResource>();
         private static Resource.ResourceManager _sceneContentManager;
+        private static ISceneCustomizer _sceneCustomizer;
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
         private static bool _lightmapsEnabled = false;

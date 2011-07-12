@@ -509,7 +509,7 @@ namespace Gk3Main.Graphics
         {
             foreach (ModMesh mesh in _meshes)
             {
-                mesh.UpdatedBoundingBox.Render(camera, Math.Matrix.Identity);
+                mesh.UpdatedBoundingBox.Render(camera, TempTransform);
             }
         }
 
@@ -530,9 +530,9 @@ namespace Gk3Main.Graphics
             {
                 Math.Vector3 position;
                 if (mesh.AnimatedTransformIsAbsolute)
-                    position = Math.Vector3.Zero;
+                    position = new Math.Vector3(TempTransform.M41, TempTransform.M42, TempTransform.M43);
                 else
-                    position = modelPosition;
+                    position = TempTransform * modelPosition;
 
                 if (mesh.UpdatedBoundingBox.TestRayAABBCollision(position, origin, direction, out distance))
                     return true;

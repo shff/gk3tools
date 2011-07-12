@@ -101,10 +101,12 @@
     <Compile Include="Game\GameTimer.cs" />
     <Compile Include="Game\GasResource.cs" />
     <Compile Include="Game\HelperIcons.cs" />
+    <Compile Include="Game\LaserSceneCustomizer.cs" />
     <Compile Include="Game\MomResource.cs" />
     <Compile Include="Game\Nouns.cs" />
     <Compile Include="Game\NvcManager.cs" />
     <Compile Include="Game\NvcResource.cs" />
+    <Compile Include="Game\ISceneCustomizer.cs" />
     <Compile Include="Game\SceneManager.cs" />
     <Compile Include="Game\ScnResource.cs" />
     <Compile Include="Game\SifResource.cs" />
