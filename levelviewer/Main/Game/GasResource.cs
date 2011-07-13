@@ -81,6 +81,10 @@ namespace Gk3Main.Game
                 case GasCommand.Anim:
                     execAnim(cparams);
                     break;
+                case GasCommand.Wait:
+                    _currentWait = new TimedWaitHandle(cparams[0].IntegerValue * 1000);
+                    _suspended = true;
+                    break;
                 case GasCommand.Loop:
                     _currentInstructionIndex = 0;
                     break;
@@ -106,7 +110,11 @@ namespace Gk3Main.Game
                 {
                     // figure out which command this is
                     if (command.Equals("Anim", StringComparison.OrdinalIgnoreCase))
-                        parseAnim(parser);
+                        parseAnim(parser, true);
+                    else if (command.Equals("OneOf", StringComparison.OrdinalIgnoreCase))
+                        parseAnim(parser, false);
+                    else if (command.Equals("Wait", StringComparison.OrdinalIgnoreCase))
+                        parseWait(parser);
                     else if (command.Equals("Loop", StringComparison.OrdinalIgnoreCase))
                     {
                         GasScriptLine line;
@@ -122,7 +130,7 @@ namespace Gk3Main.Game
             }
         }
 
-        private bool parseAnim(GasParser parser)
+        private bool parseAnim(GasParser parser, bool isAnim)
         {
             GasParam filename = new GasParam();
             GasParam moving = new GasParam();
@@ -136,8 +144,30 @@ namespace Gk3Main.Game
                 percent.IntegerValue = 100;
 
             GasScriptLine line;
-            line.Command = GasCommand.Anim;
+            line.Command = (isAnim ? GasCommand.Anim : GasCommand.OneOf);
             line.Params = new GasParam[] { filename, moving, percent };
+
+            _lines.Add(line);
+
+            return true;
+        }
+
+        private bool parseWait(GasParser parser)
+        {
+            GasParam min = new GasParam();
+            GasParam max = new GasParam();
+            GasParam percent = new GasParam();
+
+            if (parser.ReadInteger(out min.IntegerValue) == false)
+                return false;
+            if (parser.ReadInteger(out max.IntegerValue) == false)
+                max.IntegerValue = 0;
+            if (parser.ReadInteger(out percent.IntegerValue) == false)
+                percent.IntegerValue = 100;
+
+            GasScriptLine line;
+            line.Command = GasCommand.Wait;
+            line.Params = new GasParam[] { min, max, percent };
 
             _lines.Add(line);
 
@@ -321,8 +351,7 @@ namespace Gk3Main.Game
             string s;
             if (ReadString(out s))
             {
-                b = bool.Parse(s);
-                return true;
+                return bool.TryParse(s, out b);
             }
 
             b = false;
