@@ -24,8 +24,8 @@ void main()
 
 uniform sampler2D Diffuse;
 in vec2 o_diffuseCoords;
-out vec4 output;
+out vec4 outputColor;
 void main()
 {
-	output = texture2D(Diffuse, o_diffuseCoords);
+	outputColor = texture2D(Diffuse, o_diffuseCoords);
 }

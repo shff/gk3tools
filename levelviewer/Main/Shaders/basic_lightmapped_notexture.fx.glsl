@@ -25,8 +25,8 @@ uniform sampler2D Lightmap;
 in vec2 o_diffuseCoords;
 in vec2 o_lightmapCoords;
 
-out vec4 output;
+out vec4 outputColor;
 void main()
 {
-	output = texture2D(Lightmap, o_lightmapCoords);
+	outputColor = texture2D(Lightmap, o_lightmapCoords);
 }

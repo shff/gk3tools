@@ -11,9 +11,9 @@ void main()
 #fragment
 #version 130
 
-out vec4 output;
+out vec4 outputColor;
 
 void main()
 {
-	output = vec4(1.0, 1.0, 1.0, 1.0);
+	outputColor = vec4(1.0, 1.0, 1.0, 1.0);
 }

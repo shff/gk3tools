@@ -28,7 +28,7 @@ uniform float LightmapMultiplier;
 in vec2 o_diffuseCoords;
 in vec2 o_lightmapCoords; 
 
-out vec4 output;
+out vec4 outputColor;
 
 void main()
 {
@@ -39,5 +39,5 @@ void main()
 	
     vec4 lightmap = texture2D(Lightmap, o_lightmapCoords);
     
-    output = vec4(diffuse.rgb * lightmap.rgb * LightmapMultiplier, diffuse.a);
+    outputColor = vec4(diffuse.rgb * lightmap.rgb * LightmapMultiplier, diffuse.a);
 }

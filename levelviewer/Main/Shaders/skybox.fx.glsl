@@ -16,8 +16,8 @@ void main()
 
 uniform samplerCube Diffuse;
 in vec3 o_texCoords;
-out vec4 output;
+out vec4 outputColor;
 void main()
 {
-	output = texture(Diffuse, o_texCoords * 0.001) + vec4(0, 0, 0, 1.0);
+	outputColor = texture(Diffuse, o_texCoords * 0.001) + vec4(0, 0, 0, 1.0);
 }
