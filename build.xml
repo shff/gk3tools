@@ -1,0 +1,106 @@
+<Project DefaultTargets="LzoAndZLib" ToolsVersion="4.0"
+    xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<LzoFile>lzo-2.05</LzoFile>
+		<LzoUrl>http://www.oberhumer.com/opensource/lzo/download/$(LzoFile).tar.gz</LzoUrl>
+		<ZLibFile>zlib-1.2.5</ZLibFile>
+		<ZLibUrl>http://zlib.net/$(ZLibFile).tar.gz</ZLibUrl>
+	</PropertyGroup>
+	<ItemGroup>
+		<CSFile 
+			Include="Builder\Builder\*.cs; Builder\Builder\Tar\*.cs" />
+	</ItemGroup>
+	<Target Name="LzoAndZLib">
+	
+		<MakeDir
+			Directories="Lib"
+		/>
+	
+		<Message Text="Building the Magic Tool..." />
+		<Csc 
+			Sources="@(CSFile)"
+			OutputAssembly="Builder.exe"
+		/>
+		
+		<!-- downloading LZO -->
+		<Message Text="Downloading LZO..." />
+		<Exec
+			Command="Builder.exe -d $(LzoUrl)"
+		/>
+		
+		<!-- downloading ZLib -->
+		<Message Text="Downloading ZLib..." />
+		<Exec
+			Command="Builder.exe -d $(ZLibUrl)"
+		/>
+		
+		<Move
+			SourceFiles="$(LzoFile).tar.gz;$(ZLibFile).tar.gz"
+			DestinationFolder="Lib"
+		/>
+		
+		<!-- Extract LZO -->
+		<Message Text="Extracting LZO..." />
+		<Exec
+			Command="..\Builder.exe -x $(LzoFile).tar.gz"
+			WorkingDirectory="Lib"
+		/>
+		
+		<!-- Extract ZLib -->
+		<Message Text="Extracting ZLib..." />
+		<Exec
+			Command="..\Builder.exe -x $(ZLibFile).tar.gz"
+			WorkingDirectory="Lib"
+		/>
+		
+		<!-- Building LZO -->
+		<Message Text="Building LZO..." />
+		<Exec
+			Command="b\win32\vc_dll.bat"
+			WorkingDirectory="Lib\$(LzoFile)"
+		/>
+		
+		<!-- Building ZLib -->
+		<Message Text="Building ZLib..." />
+		<Exec
+			Command="bld_ml32.bat"
+			WorkingDirectory="Lib\$(ZLibFile)/contrib/masmx86"
+		/>
+		<Exec
+			Command="msbuild zlibstat.vcxproj /p:Configuration=Release"
+			WorkingDirectory="Lib\$(ZLibFile)/contrib/vstudio/vc10"
+		/>
+		
+		<!-- Copy the output -->
+		<Message Text="Copying output..." />
+		<Copy
+			SourceFiles="Lib\$(LzoFile)\lzo2.lib;Lib\$(LzoFile)\lzo2.dll;Lib\$(ZLibFile)\contrib\vstudio\vc10\x86\ZlibStatRelease\zlibstat.lib"
+			DestinationFolder="Lib"
+		/>
+		
+		<Message Text="All done!" />
+	</Target>
+	<Target Name="LibBarn">
+		<MSBuild
+			Projects="libbarn/libbarn2010.vcxproj"
+			Properties="Configuration=Release"
+		/>
+	</Target>
+	<Target Name="Sheep">
+		<MSBuild
+			Projects="sheep/sheep2010.vcxproj"
+			Properties="Configuration=Release"
+		/>
+	</Target>
+	<Target Name="Browser"
+		DependsOnTargets="LibBarn;Sheep">
+		<MSBuild
+			Projects="browser/browser2010.csproj"
+			Properties="Configuration=Release;Platform=x86"
+		/>
+		<Copy
+			SourceFiles="Lib/lzo2.dll;Lib/zlibwapi.dll;libbarn/Release/barn.dll;sheep/Release/sheep.dll"
+			DestinationFolder="browser/bin/x86/Release"
+		/>
+	</Target>
+</Project>
