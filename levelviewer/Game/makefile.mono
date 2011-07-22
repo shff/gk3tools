@@ -1,8 +1,8 @@
 COMPILER = gmcs
-COMPILER_FLAGS = -r:Tao.OpenGl -r:Tao.Sdl -r:main.dll
+COMPILER_FLAGS = -d:D3D_DISABLED -r:Tao.OpenGl -r:Tao.Sdl -r:main.dll
 EXECUTABLE = viewer.exe
 
-SOURCES = MonoMain.cs MainMenu.cs
+SOURCES = MonoMain.cs OpenGLRenderWindow.cs Input.cs VerbPickerManager.cs
 
 $(EXECUTABLE):
 	cp ../Main/main.dll .

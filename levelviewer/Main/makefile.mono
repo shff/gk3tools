@@ -1,16 +1,17 @@
 COMPILER = gmcs
-COMPILER_FLAGS = -unsafe -d:SOUND_DISABLED -d:D3D_DISABLED -r:Tao.OpenGl -r:Tao.Cg -target:library
+COMPILER_FLAGS = -unsafe -d:SOUND_DISABLED -d:D3D_DISABLED -r:Tao.OpenGl -target:library
 EXECUTABLE = main.dll
 
 FILESYSTEM_SOURCES = FileSystem/barn.cs FileSystem/FileSystem.cs
 RESOURCE_SOURCES = Resource/InfoResource.cs Resource/TextResource.cs Resource/ResourceManager.cs
-MATH_SOURCES = Math/Quaternion.cs Math/Vector.cs Math/Matrix.cs
-GAME_SOURCES = Game/SceneManager.cs Game/ScnResource.cs Game/SifResource.cs Game/NvcResource.cs Game/GameTimer.cs Game/DialogManager.cs Game/YakResource.cs Game/Actor.cs Game/MomResource.cs Game/GasResource.cs Game/AnimationResource.cs Game/FaceDefinitions.cs
-GRAPHICS_SOURCES = Graphics/BspResource.cs Graphics/Camera.cs Graphics/LightmapResource.cs Graphics/TextureResource.cs Graphics/CubeMapResource.cs Graphics/ModelResource.cs Graphics/ActResource.cs Graphics/SkyBox.cs Graphics/Utils.cs Graphics/IRenderer.cs Graphics/OpenGLRenderer.cs Graphics/Frustum.cs Graphics/SpriteBatch.cs
-GUI_SOURCES = Gui/Button.cs Gui/CursorResource.cs Gui/Font.cs Gui/Unit.cs
+MATH_SOURCES = Math/Quaternion.cs Math/Vector.cs Math/Matrix.cs Math/Constants.cs
+GAME_SOURCES = Game/SceneManager.cs Game/ScnResource.cs Game/SifResource.cs Game/NvcResource.cs Game/GameTimer.cs Game/DialogManager.cs Game/YakResource.cs Game/Actor.cs Game/MomResource.cs Game/AnmResource.cs Game/GasResource.cs Game/AnimationResource.cs Game/FaceDefinitions.cs Game/Nouns.cs Game/Verbs.cs Game/ActorPathfinder.cs Game/ISceneCustomizer.cs Game/LaserSceneCustomizer.cs Game/NvcManager.cs Game/Animator.cs Game/HelperIcons.cs
+OPENGL_SOURCES = Graphics/OpenGl/GlCubeMap.cs Graphics/OpenGl/GlIndexBuffer.cs Graphics/OpenGl/GlVertexBuffer.cs Graphics/OpenGl/GlRenderTarget.cs Graphics/OpenGl/GlslEffect.cs Graphics/OpenGl/GlTexture.cs Graphics/OpenGl/OpenGLRenderer.cs
+GRAPHICS_SOURCES = $(OPENGL_SOURCES) Graphics/BspResource.cs Graphics/Camera.cs Graphics/LightmapResource.cs Graphics/TextureResource.cs Graphics/CubeMapResource.cs Graphics/ModelResource.cs Graphics/ActResource.cs Graphics/SkyBox.cs Graphics/Utils.cs Graphics/IRenderer.cs Graphics/Frustum.cs Graphics/SpriteBatch.cs Graphics/Color.cs Graphics/TextureAtlas.cs Graphics/RenderWindow.cs Graphics/BoundingBoxRenderer.cs Graphics/BitmapSurface.cs Graphics/BillboardManager.cs
+GUI_SOURCES = Gui/Button.cs Gui/CursorResource.cs Gui/Font.cs Gui/Unit.cs Gui/GuiMaster.cs Gui/VerbButtonSet.cs Gui/VerbButton.cs Gui/MainMenu.cs Gui/OptionsMenu.cs Gui/TimeBlockSplash.cs Gui/MsgBox.cs Gui/Dropdown.cs
 SOUND_SOURCES = Sound/Sound.cs Sound/SoundManager.cs Sound/SoundTrackResource.cs
 SHEEP_SOURCES = Sheep/Sheep.cs Sheep/BasicSheepFunctions.cs
-SOURCES = Utils.cs Logger.cs Console.cs Game/GameManager.cs Game/CommonStrings.cs WaitHandle.cs $(SHEEP_SOURCES) $(FILESYSTEM_SOURCES) $(RESOURCE_SOURCES) $(MATH_SOURCES) $(GAME_SOURCES) $(SOUND_SOURCES) $(GRAPHICS_SOURCES) $(GUI_SOURCES)
+SOURCES = Utils.cs Logger.cs Console.cs Game/GameManager.cs Game/CommonStrings.cs WaitHandle.cs Settings.cs $(SHEEP_SOURCES) $(FILESYSTEM_SOURCES) $(RESOURCE_SOURCES) $(MATH_SOURCES) $(GAME_SOURCES) $(SOUND_SOURCES) $(GRAPHICS_SOURCES) $(GUI_SOURCES)
 
 $(EXECUTABLE):
 	$(COMPILER) $(COMPILER_FLAGS) $(SOURCES) -out:$(EXECUTABLE)
