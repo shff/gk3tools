@@ -1,7 +1,7 @@
 COMPILER = g++
 LINKER = g++
-COMPILER_FLAGS = -g -fPIC -Iinclude -Wall
-LINKER_FLAGS = -shared -llzo
+COMPILER_FLAGS = -g -fPIC -Iinclude -I/usr/include/lzo -Wall
+LINKER_FLAGS = -shared -llzo2 -lz
 EXECUTABLE = libbarn.so
 
 SOURCES = src/barn.cpp src/extractbuffer.cpp
