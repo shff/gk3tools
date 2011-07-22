@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Tao.OpenGl;
 
+
 namespace Gk3Main.Graphics.OpenGl
 {
     public class GlUpdatableTexture : UpdatableTexture
@@ -66,6 +67,14 @@ namespace Gk3Main.Graphics.OpenGl
             _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
             SamplerStates[0] = SamplerState.LinearWrap;
             SamplerStates[1] = SamplerState.LinearClamp;
+
+            // according to the GL3 spec we need a VAO bound... for some reason...
+            glGenVertexArrays = (glGenVertexArraysDelegate)Gl.GetDelegate("glGenVertexArrays", typeof(glGenVertexArraysDelegate));
+            glBindVertexArray = (glBindVertexArrayDelegate)Gl.GetDelegate("glBindVertexArray", typeof(glBindVertexArrayDelegate));
+
+            uint vao;
+            glGenVertexArrays(1, out vao);
+            glBindVertexArray(vao);
 
             _parentWindow = parentWindow;
         }
@@ -212,9 +221,9 @@ namespace Gk3Main.Graphics.OpenGl
             //return new CgEffect(name, stream, _cgContext);
         }
 
-        public VertexBuffer CreateVertexBuffer<T>(T[] data, int numVertices, VertexElementSet declaration) where T : struct
+        public VertexBuffer CreateVertexBuffer<T>(VertexBufferUsage usage, T[] data, int numVertices, VertexElementSet declaration) where T : struct
         {
-            return GlVertexBuffer.CreateBuffer(data, numVertices, declaration);
+            return GlVertexBuffer.CreateBuffer(usage, data, numVertices, declaration);
         }
 
         public IndexBuffer CreateIndexBuffer(uint[] data)
@@ -259,17 +268,24 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void SetVertexBuffer(VertexBuffer buffer)
         {
+            Gl.glGetError();
+
             _vertexDeclaration = buffer.VertexElements;
             
             GlVertexBuffer glVertices = (GlVertexBuffer)buffer;
 
             glVertices.Bind();
+            GlException.ThrowExceptionIfErrorExists();
+
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
                 Gl.glEnableVertexAttribArray(i);
+                GlException.ThrowExceptionIfErrorExists();
                 Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
                     Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
+                GlException.ThrowExceptionIfErrorExists();
             }
+            GlException.ThrowExceptionIfErrorExists();
 
             // disable the rest
             // TODO: we need to figure out what the maximum number of vertex elements is and use that!
@@ -279,6 +295,8 @@ namespace Gk3Main.Graphics.OpenGl
             }
 
             _currentVertexBuffer = glVertices;
+
+            GlException.ThrowExceptionIfErrorExists();
         }
 
         public void RenderPrimitives(int firstVertex, int vertexCount)
@@ -288,8 +306,11 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void RenderIndexedPrimitives(int firstIndex, int primitiveCount)
         {
+            Gl.glGetError();
             Gl.glDrawElements(Gl.GL_TRIANGLES, primitiveCount * 3, Gl.GL_UNSIGNED_INT, 
                  Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, firstIndex * sizeof(int)));
+
+            GlException.ThrowExceptionIfErrorExists();
         }
 
         public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct
@@ -359,13 +380,35 @@ namespace Gk3Main.Graphics.OpenGl
                 _currentIndexBuffer = null;
             }
 
+            int glType;
+            if (type == PrimitiveType.Triangles)
+            {
+                glType = Gl.GL_TRIANGLES;
+            }
+            else if (type == PrimitiveType.Lines)
+            {
+                glType = Gl.GL_LINES;
+            }
+            else
+            {
+                glType = Gl.GL_POINT;
+            }
+
+            System.Runtime.InteropServices.GCHandle verticesHandle, indicesHandle;
+            IntPtr verticesptr, indicesptr;
             unsafe
             {
-                System.Runtime.InteropServices.GCHandle ptrptr=
+                verticesHandle=
                     System.Runtime.InteropServices.GCHandle.Alloc(vertices,
                     System.Runtime.InteropServices.GCHandleType.Pinned);
 
-                IntPtr verticesptr = ptrptr.AddrOfPinnedObject();
+                verticesptr = verticesHandle.AddrOfPinnedObject();
+
+                indicesHandle =
+                    System.Runtime.InteropServices.GCHandle.Alloc(indices,
+                    System.Runtime.InteropServices.GCHandleType.Pinned);
+
+                indicesptr = indicesHandle.AddrOfPinnedObject();
 
                 try
                 {
@@ -375,13 +418,25 @@ namespace Gk3Main.Graphics.OpenGl
                         Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
                             Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
                     }
+
+                    Gl.glDrawElements(glType, indices.Length - startIndex, Gl.GL_UNSIGNED_INT, 
+                        Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
                 }
                 finally
                 {
-                    ptrptr.Free();
+                    verticesHandle.Free();
+                    indicesHandle.Free();
                 }
             }
 
+            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
+            {
+                Gl.glDisableVertexAttribArray(i);
+            }
+        }
+
+        public void RenderIndices(PrimitiveType type, int startIndex, int vertexCount, int[] indices)
+        {
             int glType;
             if (type == PrimitiveType.Triangles)
             {
@@ -398,26 +453,21 @@ namespace Gk3Main.Graphics.OpenGl
 
             unsafe
             {
-                System.Runtime.InteropServices.GCHandle ptrptr =
-                   System.Runtime.InteropServices.GCHandle.Alloc(indices,
-                   System.Runtime.InteropServices.GCHandleType.Pinned);
+                System.Runtime.InteropServices.GCHandle indicesHandle =
+                    System.Runtime.InteropServices.GCHandle.Alloc(indices,
+                    System.Runtime.InteropServices.GCHandleType.Pinned);
 
-                IntPtr indicesptr = ptrptr.AddrOfPinnedObject();
+                IntPtr indicesptr = indicesHandle.AddrOfPinnedObject();
 
                 try
                 {
-                    Gl.glDrawElements(glType, indices.Length - startIndex, Gl.GL_UNSIGNED_INT, 
+                    Gl.glDrawElements(glType, indices.Length - startIndex, Gl.GL_UNSIGNED_INT,
                         Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
                 }
                 finally
                 {
-                    ptrptr.Free();
+                    indicesHandle.Free();
                 }
-            }
-
-            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
-            {
-                Gl.glDisableVertexAttribArray(i);
             }
         }
 
@@ -521,5 +571,15 @@ namespace Gk3Main.Graphics.OpenGl
             else
                 return Gl.GL_REPEAT;
         }
+
+        #region Extensions
+
+        private delegate void glGenVertexArraysDelegate(int count, out uint arrays);
+        private delegate void glBindVertexArrayDelegate(uint array);
+
+        private static glGenVertexArraysDelegate glGenVertexArrays;
+        private static glBindVertexArrayDelegate glBindVertexArray;
+
+        #endregion
     }
 }

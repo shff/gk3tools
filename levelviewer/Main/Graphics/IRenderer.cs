@@ -157,14 +157,25 @@ namespace Gk3Main.Graphics
         #endregion
     }
 
+    public enum VertexBufferUsage
+    {
+        Static,
+        Stream,
+        Dynamic
+    }
+
     public abstract class VertexBuffer : IDisposable
     {
+        protected VertexBufferUsage _usage;
         protected VertexElementSet _declaration;
 
         public abstract void Dispose();
 
         public VertexElementSet VertexElements { get { return _declaration; } }
         public abstract int NumVertices { get; }
+
+        public VertexBufferUsage Usage { get { return _usage; } }
+        public abstract void UpdateData<T>(T[] data, int numVertices) where T : struct;
     }
 
     public abstract class IndexBuffer : IDisposable
@@ -475,7 +486,7 @@ namespace Gk3Main.Graphics
         TextureResource DefaultTexture { get; }
         TextureResource ErrorTexture { get; }
 
-        VertexBuffer CreateVertexBuffer<T>(T[] data, int numVertices, VertexElementSet declaration) where T: struct;
+        VertexBuffer CreateVertexBuffer<T>(VertexBufferUsage usage, T[] data, int numVertices, VertexElementSet declaration) where T: struct;
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         BlendState BlendState { get; set; }
@@ -488,6 +499,7 @@ namespace Gk3Main.Graphics
         void RenderIndexedPrimitives(int startIndex, int numPrimitives);
         void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct;
         void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices, VertexElementSet declaration) where T: struct;
+        void RenderIndices(PrimitiveType type, int startIndex, int vertexCount, int[] indices);
 
         void BeginScene();
         void EndScene();

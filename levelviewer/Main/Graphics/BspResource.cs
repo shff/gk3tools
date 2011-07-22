@@ -363,7 +363,7 @@ namespace Gk3Main.Graphics
                 }
             }
 
-            _allVertices = RendererManager.CurrentRenderer.CreateVertexBuffer(_bspVertices.ToArray(), _bspVertices.Count, _vertexDeclaration);
+            _allVertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, _bspVertices.ToArray(), _bspVertices.Count, _vertexDeclaration);
         }
 
         public void Render(Camera camera, LightmapResource lightmaps)

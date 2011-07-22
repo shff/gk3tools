@@ -129,6 +129,7 @@
     <Compile Include="Graphics\LightmapResource.cs" />
     <Compile Include="Graphics\ModelResource.cs" />
     <Compile Include="Graphics\OpenGl\GlCubeMap.cs" />
+    <Compile Include="Graphics\OpenGl\GlException.cs" />
     <Compile Include="Graphics\OpenGl\GlIndexBuffer.cs" />
     <Compile Include="Graphics\OpenGl\GlRenderTarget.cs" />
     <Compile Include="Graphics\OpenGl\GlslEffect.cs" />

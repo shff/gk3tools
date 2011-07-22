@@ -17,8 +17,10 @@ namespace Gk3Main.Graphics
         private List<Sprite> _sprites = new List<Sprite>();
         private static VertexElementSet _vertexDeclaration;
         private static Effect _2dEffect;
-        private static int[] _indices = new int[] {0, 1, 2, 0, 2, 3};
+        private static uint[] _indices = new uint[] {0, 1, 2, 0, 2, 3};
         private static float[] _workingVertices = new float[4 * (2 + 2)];
+        private static VertexBuffer _vertexBuffer;
+        private static IndexBuffer _indexBuffer;
 
         public static void Init(Resource.ResourceManager content)
         {
@@ -33,6 +35,16 @@ namespace Gk3Main.Graphics
             if (_2dEffect == null)
             {
                 _2dEffect = content.Load<Effect>("2d.fx");
+            }
+
+            if (_vertexBuffer == null)
+            {
+                _vertexBuffer = RendererManager.CurrentRenderer.CreateVertexBuffer<float>(VertexBufferUsage.Stream, null, 4 * 100, _vertexDeclaration);
+            }
+
+            if (_indexBuffer == null)
+            {
+                _indexBuffer = RendererManager.CurrentRenderer.CreateIndexBuffer(_indices);
             }
         }
 
@@ -141,6 +153,8 @@ namespace Gk3Main.Graphics
                 _workingVertices[3 * stride + 2] = u;
                 _workingVertices[3 * stride + 3] = v + th;
 
+                _vertexBuffer.UpdateData(_workingVertices, 4);
+
                 Math.Vector4 color = new Gk3Main.Math.Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
 
@@ -150,7 +164,11 @@ namespace Gk3Main.Graphics
 
                 //s.Texture.Bind();
 
-                renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices, _vertexDeclaration);
+                RendererManager.CurrentRenderer.SetVertexBuffer(_vertexBuffer);
+                RendererManager.CurrentRenderer.Indices = _indexBuffer;
+                renderer.RenderIndexedPrimitives(0, 2);
+                //renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices);
+                //renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices, _vertexDeclaration);
             }
 
             _2dEffect.End();

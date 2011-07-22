@@ -58,9 +58,15 @@ namespace Game
                 0
             };
 
+            IntPtr oldContext = wglGetCurrentContext();
             IntPtr context = wglCreateContextAttribsARB(hdc, IntPtr.Zero, attribsList);
-            wglMakeCurrent(hdc, context);
-            wglDeleteContext(info.hglrc);
+
+            if (wglMakeCurrent(hdc, IntPtr.Zero) == 0)
+                throw new InvalidOperationException("Unable to switch to the OpenGL 3.x context");
+            if (wglDeleteContext(oldContext) == 0)
+                throw new InvalidOperationException("Unable to delete the original OpenGL context");
+            if (wglMakeCurrent(hdc, context) == 0)
+                throw new InvalidOperationException("Unable to switch to the OpenGL 3.x context");
 
             _renderer = new Gk3Main.Graphics.OpenGl.OpenGLRenderer(this);
 
@@ -106,6 +112,9 @@ namespace Game
 
         [System.Runtime.InteropServices.DllImport("user32")]
         private static extern IntPtr GetDC(IntPtr hwnd);
+
+        [System.Runtime.InteropServices.DllImport("OpenGL32")]
+        private static extern IntPtr wglGetCurrentContext();
 
         [System.Runtime.InteropServices.DllImport("OpenGL32")]
         private static extern int wglMakeCurrent(IntPtr hdc, IntPtr hglrc);
