@@ -49,11 +49,25 @@ namespace Gk3Main.Graphics.OpenGl
         private VertexElementSet _vertexDeclaration;
         private GlVertexBuffer _currentVertexBuffer;
         private GlIndexBuffer _currentIndexBuffer;
+        private GlslEffect _currentEffect;
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
+        private bool _vertexPointersNeedSetup = true;
+
+        internal bool VertexPointersNeedSetup
+        {
+            get { return _vertexPointersNeedSetup; }
+            set { _vertexPointersNeedSetup = value; }
+        }
+
+        internal GlslEffect CurrentEffect
+        {
+            get { return _currentEffect; }
+            set { _currentEffect = value; }
+        }
 
         public OpenGLRenderer(RenderWindow parentWindow)
         {
@@ -270,6 +284,7 @@ namespace Gk3Main.Graphics.OpenGl
         {
             Gl.glGetError();
 
+            _vertexPointersNeedSetup = true;
             _vertexDeclaration = buffer.VertexElements;
             
             GlVertexBuffer glVertices = (GlVertexBuffer)buffer;
@@ -277,36 +292,27 @@ namespace Gk3Main.Graphics.OpenGl
             glVertices.Bind();
             GlException.ThrowExceptionIfErrorExists();
 
-            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
-            {
-                Gl.glEnableVertexAttribArray(i);
-                GlException.ThrowExceptionIfErrorExists();
-                Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
-                    Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
-                GlException.ThrowExceptionIfErrorExists();
-            }
-            GlException.ThrowExceptionIfErrorExists();
-
-            // disable the rest
-            // TODO: we need to figure out what the maximum number of vertex elements is and use that!
-            for (int i = _vertexDeclaration.Elements.Length; i < 12; i++)
-            {
-                Gl.glDisableVertexAttribArray(i);
-            }
-
             _currentVertexBuffer = glVertices;
-
-            GlException.ThrowExceptionIfErrorExists();
         }
 
         public void RenderPrimitives(int firstVertex, int vertexCount)
         {
+            Gl.glGetError();
+
+            if (_vertexPointersNeedSetup)
+                setupVertexBufferPointers();
+
             Gl.glDrawArrays(Gl.GL_TRIANGLES, firstVertex, vertexCount);
+            GlException.ThrowExceptionIfErrorExists();
         }
 
         public void RenderIndexedPrimitives(int firstIndex, int primitiveCount)
         {
             Gl.glGetError();
+
+            if (_vertexPointersNeedSetup)
+                setupVertexBufferPointers();
+
             Gl.glDrawElements(Gl.GL_TRIANGLES, primitiveCount * 3, Gl.GL_UNSIGNED_INT, 
                  Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, firstIndex * sizeof(int)));
 
@@ -528,6 +534,30 @@ namespace Gk3Main.Graphics.OpenGl
         public RenderWindow ParentWindow
         {
             get { return _parentWindow; }
+        }
+
+        private void setupVertexBufferPointers()
+        {
+            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
+            {
+                GlslEffect.Attribute attrib = _currentEffect.GetAttribute(_vertexDeclaration.Elements[i].Usage, _vertexDeclaration.Elements[i].UsageIndex);
+
+                Gl.glEnableVertexAttribArray(attrib.GlHandle);
+                GlException.ThrowExceptionIfErrorExists();
+                Gl.glVertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                    Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
+                GlException.ThrowExceptionIfErrorExists();
+            }
+            GlException.ThrowExceptionIfErrorExists();
+
+            // disable the rest
+            // TODO: we need to figure out what the maximum number of vertex elements is and use that!
+            for (int i = _vertexDeclaration.Elements.Length; i < 12; i++)
+            {
+           //     Gl.glDisableVertexAttribArray(i);
+            }
+
+            _vertexPointersNeedSetup = false;
         }
 
         private static int convertBlendMode(BlendMode mode)

@@ -1,11 +1,21 @@
 using System;
+using System.Collections.Generic;
 using Tao.OpenGl;
+using System.Text;
 
 namespace Gk3Main.Graphics.OpenGl
 {
     class GlslEffect : Effect
     {
         private int _program;
+        internal struct Attribute
+        {
+            public string Name;
+            public VertexElementUsage Usage;
+            public int Index;
+            public int GlHandle;
+        }
+        private List<Attribute> _attributes = new List<Attribute>();
 
         public GlslEffect(string name, System.IO.Stream stream)
             : base(name, stream)
@@ -28,6 +38,9 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glUseProgram(_program);
             if (Gl.glGetError() != Gl.GL_NO_ERROR)
                 throw new Exception("Unable to bind GLSL shader");
+
+            ((OpenGLRenderer)RendererManager.CurrentRenderer).VertexPointersNeedSetup = true;
+            ((OpenGLRenderer)RendererManager.CurrentRenderer).CurrentEffect = this;
         }
 
         public override void Begin()
@@ -110,7 +123,11 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glGetError();
 
             Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
-            ((GlTexture)parameter).Bind();
+
+            if (parameter is GlUpdatableTexture)
+                ((GlUpdatableTexture)parameter).Bind();
+            else
+                ((GlTexture)parameter).Bind();
 
             int uniform = Gl.glGetUniformLocation(_program, name);
             if (uniform == -1)
@@ -142,6 +159,18 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
+        internal Attribute GetAttribute(VertexElementUsage usage, int index)
+        {
+            foreach (Attribute a in _attributes)
+            {
+                if (a.Index == index &&
+                    a.Usage == usage)
+                    return a;
+            }
+
+            throw new Exception("Unable to find the requested GLSL attribute");
+        }
+
         private void load(string vertexSource, string fragSource)
         {
             int vertexShader = compileShader(vertexSource, true);
@@ -158,13 +187,48 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glGetProgramiv(_program, Gl.GL_LINK_STATUS, out result);
             if (result != Gl.GL_TRUE)
                 throw new Exception("Unable to link GLSL program");
+
+            // now load the attribute info
+            int numAttribs;
+            Gl.glGetProgramiv(_program, Gl.GL_ACTIVE_ATTRIBUTES, out numAttribs);
+
+            int attribMaxLength;
+            Gl.glGetProgramiv(_program, Gl.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, out attribMaxLength);
+
+            System.Text.StringBuilder buffer = new System.Text.StringBuilder(attribMaxLength);
+
+            for (int i = 0; i < numAttribs; i++)
+            {
+                int length, size, type;
+                Gl.glGetActiveAttrib(_program, i, attribMaxLength, out length, out size, out type, buffer);
+                string name = buffer.ToString();
+
+                for (int j = 0; j < _attributes.Count; j++)
+                {
+                    if (_attributes[j].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        Attribute a = _attributes[j];
+                        a.GlHandle = i;
+                        _attributes[j] = a;
+
+                        break;
+                    }
+                }
+
+                buffer.Length = 0;
+            }
         }
 
         private int compileShader(string source, bool vertex)
         {
             int shader;
             if (vertex)
+            {
                 shader = Gl.glCreateShader(Gl.GL_VERTEX_SHADER);
+                
+                if (vertex)
+                    source = extractAttribInfo(source);
+            }
             else
                 shader = Gl.glCreateShader(Gl.GL_FRAGMENT_SHADER);
 
@@ -186,6 +250,84 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new Exception("Unable to compile shader");
 
             return shader;
+        }
+
+        private string extractAttribInfo(string vertexShaderSource)
+        {
+            StringBuilder sb = new StringBuilder();
+            char[] number = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+            int currentIndex = 0;
+            while (true)
+            {
+                int colon = vertexShaderSource.IndexOf(':', currentIndex);
+                if (colon == -1)
+                {
+                    sb.Append(vertexShaderSource, currentIndex, vertexShaderSource.Length - currentIndex);
+                    break;
+                }
+
+                int nameEnd = lastIndexNotSpace(vertexShaderSource, colon - 1);
+                int nameStart = vertexShaderSource.LastIndexOf(' ', nameEnd) + 1;
+
+                Attribute attrib;
+                attrib.Name = vertexShaderSource.Substring(nameStart, nameEnd - nameStart + 1);
+                attrib.Usage = VertexElementUsage.Position;
+                attrib.Index = 0;
+
+                int semicolon = vertexShaderSource.IndexOf(';', colon);
+                int usageStart = firstIndexNotSpace(vertexShaderSource, colon + 1);
+                string usage = vertexShaderSource.Substring(usageStart, semicolon - usageStart);
+
+                int firstNumber = usage.IndexOfAny(number);
+                if (firstNumber > 0)
+                {
+                    attrib.Index = int.Parse(usage.Substring(firstNumber));
+                    usage = usage.Substring(0, firstNumber);
+                }
+
+                if (usage.Equals("position", StringComparison.OrdinalIgnoreCase))
+                    attrib.Usage = VertexElementUsage.Position;
+                else if (usage.Equals("texcoord", StringComparison.OrdinalIgnoreCase))
+                    attrib.Usage = VertexElementUsage.TexCoord;
+                else if (usage.Equals("color", StringComparison.OrdinalIgnoreCase))
+                    attrib.Usage = VertexElementUsage.Color;
+                else if (usage.Equals("normal", StringComparison.OrdinalIgnoreCase))
+                    attrib.Usage = VertexElementUsage.Normal;
+
+                sb.Append(vertexShaderSource, currentIndex, colon - currentIndex);
+                
+                currentIndex = semicolon;
+
+                attrib.GlHandle = 0; // will be set later
+                _attributes.Add(attrib);
+            }
+
+            return sb.ToString();
+        }
+
+        private static int lastIndexNotSpace(string str, int startIndex)
+        {
+            for (int i = startIndex; i >= 0; i--)
+            {
+                if (str[i] != ' ')
+                    return i;
+            }
+
+            // not found :(
+            return -1;
+        }
+
+        private static int firstIndexNotSpace(string str, int startIndex)
+        {
+            for (int i = startIndex; i < str.Length; i++)
+            {
+                if (str[i] != ' ')
+                    return i;
+            }
+
+            // not found :(
+            return -1;
         }
     }
 }

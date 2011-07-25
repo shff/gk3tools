@@ -4,9 +4,9 @@
 uniform mat4 ModelView;
 uniform mat4 Projection;
 
-in vec4 position;
-in vec2 texCoords;
-in vec2 texCoords2;
+in vec4 position : POSITION0;
+in vec2 texCoords : TEXCOORD0;
+in vec2 texCoords2 : TEXCOORD1;
 out vec2 o_diffuseCoords;
 
 void main()

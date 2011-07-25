@@ -2,7 +2,7 @@
 #version 130
 
 uniform mat4 ModelViewProjection;
-in vec4 position;
+in vec4 position : POSITION0;
 out vec3 o_texCoords;
 void main()
 {

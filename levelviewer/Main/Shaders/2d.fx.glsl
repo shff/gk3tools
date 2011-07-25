@@ -1,8 +1,8 @@
 #vertex
 #version 130
 uniform vec4 Viewport;
-in vec2 position;
-in vec2 texCoords;
+in vec2 position : POSITION0;
+in vec2 texCoords : TEXCOORD0;
 out vec4 o_texCoords;
 
 void main()

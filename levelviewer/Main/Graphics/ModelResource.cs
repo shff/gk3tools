@@ -61,11 +61,14 @@ namespace Gk3Main.Graphics
         public float[] vertices;
         public float[] normals;
         public float[] texCoords;
-        public int[] indices;
+        public uint[] indices;
 
         // these are used when a model is animated.
         public float[] AnimatedVertices;
         public float[] AnimatedNormals;
+
+        public VertexBuffer vertexBuffer;
+        public IndexBuffer indexBuffer;
     }
 
     struct ModMeshLod
@@ -274,7 +277,7 @@ namespace Gk3Main.Graphics
                     }
 
                     // read the indices
-                    meshSection.indices = new int[meshSection.numTriangles * 3];
+                    meshSection.indices = new uint[meshSection.numTriangles * 3];
                     for (uint k = 0; k < meshSection.numTriangles; k++)
                     {
                         meshSection.indices[k * 3 + 0] = reader.ReadUInt16();
@@ -282,6 +285,9 @@ namespace Gk3Main.Graphics
                         meshSection.indices[k * 3 + 2] = reader.ReadUInt16();
                         reader.ReadUInt16();
                     }
+
+                    meshSection.vertexBuffer = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, meshSection.vertices, (int)meshSection.numVerts, _elements);
+                    meshSection.indexBuffer = RendererManager.CurrentRenderer.CreateIndexBuffer(meshSection.indices);
 
                     mesh.sections[j] = meshSection;
 
@@ -424,8 +430,9 @@ namespace Gk3Main.Graphics
                         _effect.SetParameter("Color", section.color);
                         _effect.CommitParams();
 
-                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
-                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices, _elements);
+                        RendererManager.CurrentRenderer.SetVertexBuffer(section.vertexBuffer);
+                        RendererManager.CurrentRenderer.Indices = section.indexBuffer;
+                        RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
                     }
 
                 }
@@ -454,8 +461,9 @@ namespace Gk3Main.Graphics
                         _effect.SetParameter("Diffuse", section.textureResource, 0);
                         _effect.CommitParams();
 
-                        RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
-                            section.vertices.Length / (_elements.Stride / sizeof(float)), section.indices, section.vertices ,_elements);
+                        RendererManager.CurrentRenderer.SetVertexBuffer(section.vertexBuffer);
+                        RendererManager.CurrentRenderer.Indices = section.indexBuffer;
+                        RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
                     }
                 }
             }
@@ -499,8 +507,9 @@ namespace Gk3Main.Graphics
                     else
                         vertices = section.vertices;
 
-                    RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, 0,
-                        vertices.Length / (_elements.Stride / sizeof(float)), section.indices, vertices, _elements);
+                    RendererManager.CurrentRenderer.SetVertexBuffer(section.vertexBuffer);
+                    RendererManager.CurrentRenderer.Indices = section.indexBuffer;
+                    RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
                 }
             }
         }
