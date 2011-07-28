@@ -4,7 +4,7 @@ using System.IO;
 
 namespace Gk3Main.Graphics
 {
-    class BitmapSurface
+    public class BitmapSurface
     {
         private byte[] _pixels;
         private bool _is8bit;

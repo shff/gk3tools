@@ -479,8 +479,12 @@ namespace Gk3Main.Graphics
         TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp);
         TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream);
         UpdatableTexture CreateUpdatableTexture(string name, int width, int height);
+
+        [Obsolete]
         CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
             string up, string down);
+        CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
+            BitmapSurface up, BitmapSurface down);
         Effect CreateEffect(string name, System.IO.Stream stream);
 
         TextureResource DefaultTexture { get; }

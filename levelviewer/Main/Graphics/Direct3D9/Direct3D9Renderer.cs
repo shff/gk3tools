@@ -57,77 +57,25 @@ namespace Gk3Main.Graphics.Direct3D9
     {
         private SlimDX.Direct3D9.CubeTexture _cubeMap;
 
-        internal Direct3D9CubeMap(Device device, string name, string front, string back, string left, string right,
-            string up, string down)
+        public Direct3D9CubeMap(Device device, string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
+            BitmapSurface up, BitmapSurface down)
             : base(name)
         {
-            System.IO.Stream frontStream = null;
-            System.IO.Stream backStream = null;
-            System.IO.Stream leftStream = null;
-            System.IO.Stream rightStream = null;
-            System.IO.Stream upStream = null;
-            System.IO.Stream downStream = null;
+            _cubeMap = new CubeTexture(device, front.Width, 0, Usage.AutoGenerateMipMap, Format.X8R8G8B8, Pool.Managed);
+            writeFacePixels(CubeMapFace.PositiveX, front.Pixels, front.Width, front.Height);
+            writeFacePixels(CubeMapFace.NegativeX, back.Pixels, back.Width, back.Height);
+            writeFacePixels(CubeMapFace.PositiveZ, right.Pixels, right.Width, right.Height);
+            writeFacePixels(CubeMapFace.NegativeZ, left.Pixels, left.Width, left.Height);
+            writeFacePixels(CubeMapFace.PositiveY, up.Pixels, up.Width, up.Height);
 
-            frontStream = FileSystem.Open(front);
-            backStream = FileSystem.Open(back);
-            leftStream = FileSystem.Open(left);
-            rightStream = FileSystem.Open(right);
-            upStream = FileSystem.Open(up);
-
-            try
+            if (down != null)
             {
-                downStream = FileSystem.Open(down);
+                writeFacePixels(CubeMapFace.NegativeY, down.Pixels, down.Width, down.Height);
             }
-            catch (System.IO.FileNotFoundException)
+            else
             {
-                // oh well, we tried.
-            }
-
-            try
-            {
-                byte[] pixels;
-                int width, height;
-
-                // load the first face so we can see the cube map dimensions
-                loadFace(frontStream, out pixels, out width, out height);
-
-                _cubeMap = new CubeTexture(device, width, 0, Usage.AutoGenerateMipMap, Format.X8R8G8B8, Pool.Managed);
-                writeFacePixels(CubeMapFace.PositiveX, pixels, width, height);
-
-                // load the rest of the faces
-                loadFace(backStream, out pixels, out width, out height);
-                writeFacePixels(CubeMapFace.NegativeX, pixels, width, height);
-
-                loadFace(rightStream, out pixels, out width, out height);
-                writeFacePixels(CubeMapFace.PositiveZ, pixels, width, height);
-
-                loadFace(leftStream, out pixels, out width, out height);
-                writeFacePixels(CubeMapFace.NegativeZ, pixels, width, height);
-
-                loadFace(upStream, out pixels, out width, out height);
-                writeFacePixels(CubeMapFace.PositiveY, pixels, width, height);
-
-                if (downStream != null)
-                {
-                    loadFace(downStream, out pixels, out width, out height);
-                    writeFacePixels(CubeMapFace.NegativeY, pixels, width, height);
-                }
-                else
-                {
-                    // apparently the "down" face isn't needed. we'll just reuse the top.
-                    writeFacePixels(CubeMapFace.NegativeY, pixels, width, height);
-                }
-            }
-            finally
-            {
-                frontStream.Close();
-                backStream.Close();
-                leftStream.Close();
-                rightStream.Close();
-                upStream.Close();
-
-                if (downStream != null)
-                    downStream.Close();
+                // apparently the "down" face isn't needed. we'll just reuse the top.
+                writeFacePixels(CubeMapFace.NegativeY, up.Pixels, up.Width, up.Height);
             }
         }
 
@@ -427,6 +375,58 @@ namespace Gk3Main.Graphics.Direct3D9
 
         public CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
             string up, string down)
+        {
+            System.IO.Stream frontStream = null;
+            System.IO.Stream backStream = null;
+            System.IO.Stream leftStream = null;
+            System.IO.Stream rightStream = null;
+            System.IO.Stream upStream = null;
+            System.IO.Stream downStream = null;
+
+            frontStream = FileSystem.Open(front);
+            backStream = FileSystem.Open(back);
+            leftStream = FileSystem.Open(left);
+            rightStream = FileSystem.Open(right);
+            upStream = FileSystem.Open(up);
+
+            try
+            {
+                try
+                {
+                    downStream = FileSystem.Open(down);
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // oh well, we tried.
+                }
+
+                BitmapSurface fronts = new BitmapSurface(frontStream);
+                BitmapSurface backs = new BitmapSurface(backStream);
+                BitmapSurface lefts = new BitmapSurface(leftStream);
+                BitmapSurface rights = new BitmapSurface(rightStream);
+                BitmapSurface ups = new BitmapSurface(upStream);
+                BitmapSurface downs = null;
+
+                if (downStream != null)
+                    downs = new BitmapSurface(downStream);
+
+                return new Direct3D9CubeMap(_device, name, fronts, backs, lefts, rights, ups, downs);
+            }
+            finally
+            {
+                frontStream.Close();
+                backStream.Close();
+                leftStream.Close();
+                rightStream.Close();
+                upStream.Close();
+
+                if (downStream != null)
+                    downStream.Close();
+            }
+        }
+
+        public CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
+            BitmapSurface up, BitmapSurface down)
         {
             return new Direct3D9CubeMap(_device, name, front, back, left, right, up, down);
         }

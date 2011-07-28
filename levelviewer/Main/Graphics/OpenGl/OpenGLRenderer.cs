@@ -33,6 +33,8 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
             Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, _width, _height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+            _pixels = pixels;
         }
 
         public override void Bind()
@@ -225,6 +227,58 @@ namespace Gk3Main.Graphics.OpenGl
 
         public CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
             string up, string down)
+        {
+            System.IO.Stream frontStream = null;
+            System.IO.Stream backStream = null;
+            System.IO.Stream leftStream = null;
+            System.IO.Stream rightStream = null;
+            System.IO.Stream upStream = null;
+            System.IO.Stream downStream = null;
+
+            frontStream = FileSystem.Open(front);
+            backStream = FileSystem.Open(back);
+            leftStream = FileSystem.Open(left);
+            rightStream = FileSystem.Open(right);
+            upStream = FileSystem.Open(up);
+
+            try
+            {
+                try
+                {
+                    downStream = FileSystem.Open(down);
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    // oh well, we tried.
+                }
+
+                BitmapSurface fronts = new BitmapSurface(frontStream);
+                BitmapSurface backs = new BitmapSurface(backStream);
+                BitmapSurface lefts = new BitmapSurface(leftStream);
+                BitmapSurface rights = new BitmapSurface(rightStream);
+                BitmapSurface ups = new BitmapSurface(upStream);
+                BitmapSurface downs = null;
+
+                if (downStream != null)
+                    downs = new BitmapSurface(downStream);
+
+                return new GlCubeMap(name, fronts, backs, lefts, rights, ups, downs);
+            }
+            finally
+            {
+                frontStream.Close();
+                backStream.Close();
+                leftStream.Close();
+                rightStream.Close();
+                upStream.Close();
+
+                if (downStream != null)
+                    downStream.Close();
+            }
+        }
+
+        public CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
+            BitmapSurface up, BitmapSurface down)
         {
             return new GlCubeMap(name, front, back, left, right, up, down);
         }
@@ -541,6 +595,8 @@ namespace Gk3Main.Graphics.OpenGl
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
                 GlslEffect.Attribute attrib = _currentEffect.GetAttribute(_vertexDeclaration.Elements[i].Usage, _vertexDeclaration.Elements[i].UsageIndex);
+                if (GlslEffect.Attribute.IsValidAttribute(attrib) == false)
+                    continue;
 
                 Gl.glEnableVertexAttribArray(attrib.GlHandle);
                 GlException.ThrowExceptionIfErrorExists();
