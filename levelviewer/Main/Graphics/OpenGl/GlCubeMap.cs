@@ -11,6 +11,9 @@ namespace Gk3Main.Graphics.OpenGl
             BitmapSurface up, BitmapSurface down)
             : base(name)
         {
+            Gl.glGenTextures(1, out _glTexture);
+            Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
+
             Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, Gl.GL_RGBA, front.Width, front.Height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, front.Pixels);
             Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, Gl.GL_RGBA, back.Width, back.Height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, back.Pixels);
             Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, Gl.GL_RGBA, right.Width, right.Height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, right.Pixels);
