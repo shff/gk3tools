@@ -14,6 +14,11 @@ namespace Gk3Main.Graphics.OpenGl
             public VertexElementUsage Usage;
             public int Index;
             public int GlHandle;
+
+            public static bool IsValidAttribute(Attribute a)
+            {
+                return a.Index >= 0 && a.GlHandle >= 0;
+            }
         }
         private List<Attribute> _attributes = new List<Attribute>();
 
@@ -168,7 +173,10 @@ namespace Gk3Main.Graphics.OpenGl
                     return a;
             }
 
-            throw new Exception("Unable to find the requested GLSL attribute");
+            Attribute invalid = new Attribute();
+            invalid.Index = -1;
+            invalid.GlHandle = -1;
+            return invalid;
         }
 
         private void load(string vertexSource, string fragSource)
