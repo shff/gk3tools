@@ -494,7 +494,7 @@ namespace Gk3Main.Graphics
         IndexBuffer CreateIndexBuffer(uint[] data);
 
         BlendState BlendState { get; set; }
-        //SamplerStateCollection SamplerStates { get; }
+        SamplerStateCollection SamplerStates { get; }
 
         IndexBuffer Indices { get; set; }
         void SetVertexBuffer(VertexBuffer buffer);

@@ -42,11 +42,6 @@ namespace Gk3Main.Graphics.Direct3D9
             s.UnlockRectangle();
         }
 
-        public override void Bind()
-        {
-            // TODO
-        }
-
         internal Texture InternalTexture
         {
             get { return _texture; }
@@ -77,11 +72,6 @@ namespace Gk3Main.Graphics.Direct3D9
                 // apparently the "down" face isn't needed. we'll just reuse the top.
                 writeFacePixels(CubeMapFace.NegativeY, up.Pixels, up.Width, up.Height);
             }
-        }
-
-        public override void Bind()
-        {
-            throw new NotImplementedException();
         }
 
         public override void Unbind()

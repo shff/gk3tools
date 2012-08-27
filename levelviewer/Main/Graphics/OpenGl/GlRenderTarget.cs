@@ -5,12 +5,13 @@ namespace Gk3Main.Graphics.OpenGl
 {
     public class GlRenderTarget : RenderTarget
     {
+        private OpenGLRenderer _renderer;
         private int _fbo;
         private int _depthBuffer;
         private int _colorBuffer;
         private GlTexture _texture;
 
-        public GlRenderTarget(int width, int height)
+        public GlRenderTarget(OpenGLRenderer renderer, int width, int height)
         {
             // generate the FBO
             Gl.glGenFramebuffersEXT(1, out _fbo);
@@ -48,7 +49,7 @@ namespace Gk3Main.Graphics.OpenGl
             get
             {
                 if (_texture == null)
-                    _texture = new GlTexture("RenderTarget texture", _colorBuffer, true);
+                    _texture = new GlTexture(_renderer, "RenderTarget texture", _colorBuffer, true);
 
                 return _texture;
             }

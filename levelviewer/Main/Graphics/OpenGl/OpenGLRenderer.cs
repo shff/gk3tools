@@ -6,45 +6,6 @@ using Tao.OpenGl;
 
 namespace Gk3Main.Graphics.OpenGl
 {
-    public class GlUpdatableTexture : UpdatableTexture
-    {
-        private int _glTexture;
-
-        public GlUpdatableTexture(string name, int width, int height)
-            : base(name, width, height)
-        {
-            if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
-                Gk3Main.Utils.IsPowerOfTwo(height) == false)
-                throw new ArgumentException("Width and height must be power-of-two");
-
-            Gl.glEnable(Gl.GL_TEXTURE_2D);
-            Gl.glGenTextures(1, out _glTexture);
-
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
-            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
-            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
-        }
-
-        public override void Update(byte[] pixels)
-        {
-            if (pixels.Length != _width * _height * 4)
-                throw new ArgumentException("Pixel array is not the expected length");
-
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
-
-            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, _width, _height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
-
-            _pixels = pixels;
-        }
-
-        public override void Bind()
-        {
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
-        }
-
-        public int OpenGlTexture { get { return _glTexture; } }
-    }
-
     public class OpenGLRenderer : IRenderer
     {
         private RenderWindow _parentWindow;
@@ -206,22 +167,22 @@ namespace Gk3Main.Graphics.OpenGl
         #region Texture creation
         public TextureResource CreateTexture(string name, System.IO.Stream stream)
         {
-            return new GlTexture(name, stream);
+            return new GlTexture(this, name, stream);
         }
 
         public TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp)
         {
-            return new GlTexture(name, stream, clamp);
+            return new GlTexture(this, name, stream, clamp);
         }
 
         public TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
         {
-            return new GlTexture(name, colorStream, alphaStream);
+            return new GlTexture(this, name, colorStream, alphaStream);
         }
 
         public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)
         {
-            return new GlUpdatableTexture(name, width, height);
+            return new GlUpdatableTexture(this, name, width, height);
         }
         #endregion Texture creation
 
@@ -304,7 +265,7 @@ namespace Gk3Main.Graphics.OpenGl
             get
             {
                 if (_defaultTexture == null)
-                    _defaultTexture = new GlTexture(true);
+                    _defaultTexture = new GlTexture(this, true);
 
                 return _defaultTexture;
             }
@@ -315,7 +276,7 @@ namespace Gk3Main.Graphics.OpenGl
             get
             {
                 if (_errorTexture == null)
-                    _errorTexture = new GlTexture(false);
+                    _errorTexture = new GlTexture(this, false);
 
                 return _errorTexture;
             }
@@ -556,7 +517,7 @@ namespace Gk3Main.Graphics.OpenGl
             if (_renderToTextureSupported == false)
                 throw new NotSupportedException();
 
-            return new GlRenderTarget(width, height);
+            return new GlRenderTarget(this, width, height);
         }
 
         public void SetRenderTarget(RenderTarget renderTarget)

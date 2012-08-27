@@ -22,7 +22,19 @@ namespace Viewer
             }
 
             InitializeComponent();
-            _window = new Direct3D9RenderWindow(pbRenderWindow);
+
+            if (Settings.Default.Renderer.Equals("Direct3D 9", StringComparison.OrdinalIgnoreCase))
+            {
+                direct3D9ToolStripMenuItem.Checked = true;
+                openGLToolStripMenuItem.Checked = false;
+                _window = new Direct3D9RenderWindow(pbRenderWindow);
+            }
+            else
+            {
+                direct3D9ToolStripMenuItem.Checked = false;
+                openGLToolStripMenuItem.Checked = true;
+                _window = new OpenGLRenderWindow(pbRenderWindow);
+            }
             Gk3Main.Graphics.RendererManager.CurrentRenderer = _window.CreateRenderer();
 
             _pathEditor = new SearchPathEditor();
@@ -376,6 +388,22 @@ namespace Viewer
             _keys[(int)e.KeyCode] = true;
         }
 
+        private void openGLToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Settings.Default.Renderer = "OpenGL";
+            Settings.Default.Save();
+
+            MessageBox.Show("Please restart the Viewer to apply your changes.", "Restart required", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void direct3D9ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Settings.Default.Renderer = "Direct3D 9";
+            Settings.Default.Save();
+
+            MessageBox.Show("Please restart the Viewer to apply your changes.", "Restart required", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         private void simpleOpenGlControl1_KeyUp(object sender, KeyEventArgs e)
         {
             if ((int)e.KeyCode > MaxKeyValue)
@@ -432,6 +460,55 @@ namespace Viewer
             pbRenderWindow.Refresh();
         }
 
+        private void noneToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            noneToolStripMenuItem.Checked = true;
+            linearToolStripMenuItem.Checked = false;
+            anisotropicToolStripMenuItem.Checked = false;
+            anisotropic4XToolStripMenuItem.Checked = false;
+
+            Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.None;
+            pbRenderWindow.Refresh();
+        }
+
+        private void linearToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            noneToolStripMenuItem.Checked = false;
+            linearToolStripMenuItem.Checked = true;
+            anisotropicToolStripMenuItem.Checked = false;
+            anisotropic4XToolStripMenuItem.Checked = false;
+
+            Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Linear;
+            pbRenderWindow.Refresh();
+        }
+
+        private void anisotropicToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            noneToolStripMenuItem.Checked = false;
+            linearToolStripMenuItem.Checked = false;
+            anisotropicToolStripMenuItem.Checked = true;
+            anisotropic4XToolStripMenuItem.Checked = false;
+
+            Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Anisotropic2X;
+            pbRenderWindow.Refresh();
+        }
+
+        private void anisotropic4XToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            noneToolStripMenuItem.Checked = false;
+            linearToolStripMenuItem.Checked = false;
+            anisotropicToolStripMenuItem.Checked = false;
+            anisotropic4XToolStripMenuItem.Checked = true;
+
+            Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Anisotropic4X;
+            pbRenderWindow.Refresh();
+        }
+
+        private void calculateLightmapsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Coming soon!");
+        }
+
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
@@ -442,7 +519,7 @@ namespace Viewer
 
         #endregion
 
-        private Direct3D9RenderWindow _window;
+        private Gk3Main.Graphics.RenderWindow _window;
         private Gk3Main.Resource.ResourceManager _globalContent;
         private Gk3Main.Graphics.Camera _camera;
         private SearchPathEditor _pathEditor;
@@ -455,7 +532,5 @@ namespace Viewer
         private int _oldMouseX, _oldMouseY;
 
         private const int MaxKeyValue = 163;
-
-        
     }
 }

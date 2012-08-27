@@ -67,8 +67,6 @@ namespace Gk3Main.Graphics
             // nothing
         }
 
-        public abstract void Bind();
-
         public float ActualWidth { get { return _actualWidth; } }
         public float ActualHeight { get { return _actualHeight; } }
 

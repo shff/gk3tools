@@ -22,6 +22,13 @@ namespace Gk3Main.Graphics.OpenGl
         }
         private List<Attribute> _attributes = new List<Attribute>();
 
+        private struct Uniform
+        {
+            public string Name;
+            public int GlHandle;
+        }
+        private Dictionary<string, Uniform> _uniforms = new Dictionary<string, Uniform>();
+
         public GlslEffect(string name, System.IO.Stream stream)
             : base(name, stream)
         {
@@ -67,11 +74,10 @@ namespace Gk3Main.Graphics.OpenGl
         {
             Gl.glGetError();
 
-            int uniform = Gl.glGetUniformLocation(_program, name);
-            if (uniform == -1)
-                throw new Exception("Unable to find uniform: " + name);
+            Uniform u = getUniform(name);
+            if (u.GlHandle == -1) return;
 
-            Gl.glUniform1f(uniform, parameter);
+            Gl.glUniform1f(u.GlHandle, parameter);
 
             int r = Gl.glGetError();
             if (r != Gl.GL_NO_ERROR)
@@ -82,11 +88,10 @@ namespace Gk3Main.Graphics.OpenGl
         {
             Gl.glGetError();
 
-            int uniform = Gl.glGetUniformLocation(_program, name);
-            if (uniform == -1)
-                throw new Exception("Unable to find uniform: " + name);
+            Uniform u = getUniform(name);
+            if (u.GlHandle == -1) return;
 
-            Gl.glUniform4f(uniform, parameter.X, parameter.Y, parameter.Z, parameter.W);
+            Gl.glUniform4f(u.GlHandle, parameter.X, parameter.Y, parameter.Z, parameter.W);
 
             int r = Gl.glGetError();
             if (r != Gl.GL_NO_ERROR)
@@ -97,11 +102,10 @@ namespace Gk3Main.Graphics.OpenGl
         {
             Gl.glGetError();
 
-            int uniform = Gl.glGetUniformLocation(_program, name);
-            if (uniform == -1)
-                throw new Exception("Unable to find uniform: " + name);
+            Uniform u = getUniform(name);
+            if (u.GlHandle == -1) return;
 
-            Gl.glUniformMatrix4fv(uniform, 1, 0, ref parameter.M11);
+            Gl.glUniformMatrix4fv(u.GlHandle, 1, 0, ref parameter.M11);
 
             int r = Gl.glGetError();
             if (r != Gl.GL_NO_ERROR)
@@ -112,11 +116,10 @@ namespace Gk3Main.Graphics.OpenGl
         {
             Gl.glGetError();
 
-            int uniform = Gl.glGetUniformLocation(_program, name);
-            if (uniform == -1)
-                throw new Exception("Unable to find uniform: " + name);
+            Uniform u = getUniform(name);
+            if (u.GlHandle == -1) return;
 
-            Gl.glUniform4f(uniform, parameter.R / 255.0f, parameter.G / 255.0f, parameter.B / 255.0f, parameter.A / 255.0f);
+            Gl.glUniform4f(u.GlHandle, parameter.R / 255.0f, parameter.G / 255.0f, parameter.B / 255.0f, parameter.A / 255.0f);
 
             int r = Gl.glGetError();
             if (r != Gl.GL_NO_ERROR)
@@ -130,15 +133,14 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
 
             if (parameter is GlUpdatableTexture)
-                ((GlUpdatableTexture)parameter).Bind();
+                ((GlUpdatableTexture)parameter).Bind(index);
             else
-                ((GlTexture)parameter).Bind();
+                ((GlTexture)parameter).Bind(index);
 
-            int uniform = Gl.glGetUniformLocation(_program, name);
-            if (uniform == -1)
-                throw new Exception("Unable to find uniform: " + name);
+            Uniform u = getUniform(name);
+            if (u.GlHandle == -1) return;
 
-            Gl.glUniform1i(uniform, index);
+            Gl.glUniform1i(u.GlHandle, index);
 
             int r = Gl.glGetError();
             if (r != Gl.GL_NO_ERROR)
@@ -151,13 +153,12 @@ namespace Gk3Main.Graphics.OpenGl
 
             GlCubeMap texture = (GlCubeMap)parameter;
 
-            int uniform = Gl.glGetUniformLocation(_program, name);
-            if (uniform == -1)
-                throw new Exception("Unable to find uniform: " + name);
+            Uniform u = getUniform(name);
+            if (u.GlHandle == -1) return;
 
             Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
             Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, texture.OpenGlTexture);
-            Gl.glUniform1i(uniform, index);
+            Gl.glUniform1i(u.GlHandle, index);
 
             int r = Gl.glGetError();
             if (r != Gl.GL_NO_ERROR)
@@ -177,6 +178,15 @@ namespace Gk3Main.Graphics.OpenGl
             invalid.Index = -1;
             invalid.GlHandle = -1;
             return invalid;
+        }
+
+        private Uniform getUniform(string name)
+        {
+            Uniform u;
+            if (_uniforms.TryGetValue(name, out u))
+                return u;
+
+            throw new Exception("Unable to find uniform: " + name);
         }
 
         private void load(string vertexSource, string fragSource)
@@ -225,6 +235,10 @@ namespace Gk3Main.Graphics.OpenGl
 
                 buffer.Length = 0;
             }
+
+            extractUniformInfo(vertexSource);
+            if (string.IsNullOrEmpty(fragSource) == false)
+                extractUniformInfo(fragSource);
         }
 
         private int compileShader(string source, bool vertex)
@@ -258,6 +272,31 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new Exception("Unable to compile shader");
 
             return shader;
+        }
+
+        private void extractUniformInfo(string shaderSource)
+        {
+            // read the code and look for uniforms
+            for (int i = 0; i < shaderSource.Length; )
+            {
+                int nextSemicolon = shaderSource.IndexOf(';', i);
+                if (nextSemicolon == -1) break;
+
+                int uniform = shaderSource.IndexOf("uniform ", i);
+                if (uniform > -1 && uniform < nextSemicolon)
+                {
+                    int nameEnd = lastIndexNotSpace(shaderSource, nextSemicolon - 1);
+                    int nameStart = shaderSource.LastIndexOf(' ', nameEnd) + 1;
+
+                    Uniform u;
+                    u.Name = shaderSource.Substring(nameStart, nameEnd - nameStart + 1);
+                    u.GlHandle = Gl.glGetUniformLocation(_program, u.Name);
+
+                    _uniforms.Add(u.Name, u);
+                }
+
+                i = nextSemicolon + 1;
+            }
         }
 
         private string extractAttribInfo(string vertexShaderSource)

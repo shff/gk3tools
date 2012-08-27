@@ -6,13 +6,18 @@ namespace Gk3Main.Graphics.OpenGl
     public class GlTexture : TextureResource
     {
         private int _glTexture;
+        private bool _hasMipmaps;
+        private SamplerState _state;
+        private OpenGLRenderer _renderer;
 
         /// <summary>
         /// Creates a 1x1 white texture
         /// </summary>
-        internal GlTexture(bool loaded)
+        internal GlTexture(OpenGLRenderer renderer, bool loaded)
             : base("default_white", loaded)
         {
+            _renderer = renderer;
+
             // create a 1x1 white pixel
             _pixels = new byte[] { 255, 255, 255, 255 };
             _width = 1;
@@ -21,33 +26,44 @@ namespace Gk3Main.Graphics.OpenGl
             convertToOpenGlTexture(false, true);
         }
 
-        internal GlTexture(string name, int glTexture, bool loaded)
+        internal GlTexture(OpenGLRenderer renderer, string name, int glTexture, bool loaded)
             : base(name, loaded)
         {
+            _renderer = renderer;
+
             _glTexture = glTexture;
         }
 
-        public GlTexture(string name, System.IO.Stream stream)
+        public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream stream)
             : base(name, stream)
         {
+            _renderer = renderer;
+
             convertToOpenGlTexture(true, false);
         }
 
-        public GlTexture(string name, System.IO.Stream stream, bool clamp)
+        public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream stream, bool clamp)
             : base(name, stream)
         {
+            _renderer = renderer;
+
             convertToOpenGlTexture(true, clamp);
         }
 
-        public GlTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
+        public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
             : base(name, colorStream, alphaStream)
         {
+            _renderer = renderer;
+
             convertToOpenGlTexture(true, true);
         }
 
-        public override void Bind()
+        public void Bind(int index)
         {
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+
+            SamplerState current = _renderer.SamplerStates[index];
+            ApplySamplerState(current, _hasMipmaps, false);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }
@@ -89,6 +105,7 @@ namespace Gk3Main.Graphics.OpenGl
             _glTexture = textures[0];
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
+            _hasMipmaps = true;
             Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
                 Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
@@ -101,5 +118,125 @@ namespace Gk3Main.Graphics.OpenGl
                 Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
             }
         }
+
+        internal static void ApplySamplerState(SamplerState current, bool textureHasMipmaps, bool is3DTexture)
+        {
+            int target;
+            if (is3DTexture)
+                target = Gl.GL_TEXTURE_3D;
+            else
+                target = Gl.GL_TEXTURE_2D;
+
+            Gl.glTexParameteri(target, Gl.GL_TEXTURE_WRAP_S, convertTextureAddressMode(current.AddressU));
+            Gl.glTexParameteri(target, Gl.GL_TEXTURE_WRAP_T, convertTextureAddressMode(current.AddressV));
+            Gl.glTexParameteri(target, Gl.GL_TEXTURE_WRAP_R, convertTextureAddressMode(current.AddressW));
+
+            if (textureHasMipmaps)
+            {
+                if (current.Filter == TextureFilter.Point)
+                {
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST_MIPMAP_NEAREST);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
+                }
+                else if (current.Filter == TextureFilter.Linear)
+                {
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+                }
+                else if (current.Filter == TextureFilter.PointMipLinear)
+                {
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST_MIPMAP_LINEAR);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
+                }
+                else if (current.Filter == TextureFilter.LinearMipPoint)
+                {
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_NEAREST);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+                }
+                else
+                {
+                    // TODO: implement the rest!
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+                }
+            }
+            else
+            {
+                if (current.Filter == TextureFilter.Point ||
+                    current.Filter == TextureFilter.PointMipLinear)
+                {
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
+                }
+                else if (current.Filter == TextureFilter.Linear ||
+                    current.Filter == TextureFilter.LinearMipPoint)
+                {
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+                }
+                else
+                {
+                    // TODO: implement the rest!
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+                    Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+                }
+            }
+
+        }
+
+        private static int convertTextureAddressMode(TextureAddressMode mode)
+        {
+            if (mode == TextureAddressMode.Clamp)
+                return Gl.GL_CLAMP_TO_EDGE;
+            else if (mode == TextureAddressMode.Mirror)
+                return Gl.GL_MIRRORED_REPEAT;
+            else
+                return Gl.GL_REPEAT;
+        }
+    }
+
+    public class GlUpdatableTexture : UpdatableTexture
+    {
+        private OpenGLRenderer _renderer;
+        private int _glTexture;
+
+        public GlUpdatableTexture(OpenGLRenderer renderer, string name, int width, int height)
+            : base(name, width, height)
+        {
+            if (Gk3Main.Utils.IsPowerOfTwo(width) == false ||
+                Gk3Main.Utils.IsPowerOfTwo(height) == false)
+                throw new ArgumentException("Width and height must be power-of-two");
+
+            _renderer = renderer;
+
+            Gl.glEnable(Gl.GL_TEXTURE_2D);
+            Gl.glGenTextures(1, out _glTexture);
+
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+            Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+        }
+
+        public override void Update(byte[] pixels)
+        {
+            if (pixels.Length != _width * _height * 4)
+                throw new ArgumentException("Pixel array is not the expected length");
+
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+
+            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, _width, _height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+
+            _pixels = pixels;
+        }
+
+        public void Bind(int index)
+        {
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+
+            SamplerState current = _renderer.SamplerStates[index];
+            GlTexture.ApplySamplerState(current, false, false);
+        }
+
+        public int OpenGlTexture { get { return _glTexture; } }
     }
 }

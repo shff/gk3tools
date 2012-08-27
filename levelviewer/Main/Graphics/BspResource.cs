@@ -391,6 +391,17 @@ namespace Gk3Main.Graphics
                     return; // nothing to render
             }
 
+            if (SceneManager.CurrentFilterMode == TextureFilterMode.None)
+            {
+                RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.PointWrap;
+                RendererManager.CurrentRenderer.SamplerStates[1] = SamplerState.PointWrap;
+            }
+            else
+            {
+                RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.LinearWrap;
+                RendererManager.CurrentRenderer.SamplerStates[1] = SamplerState.LinearWrap;
+            }
+
 
             float lightmapMultiplier;
             if (SceneManager.DoubleLightmapValues)

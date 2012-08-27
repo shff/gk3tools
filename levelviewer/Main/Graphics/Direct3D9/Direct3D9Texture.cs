@@ -41,11 +41,6 @@ namespace Gk3Main.Graphics.Direct3D9
             convertToDirect3D9Texture(true, true);
         }
 
-        public override void Bind()
-        {
-            //throw new NotImplementedException();
-        }
-
         internal Texture InternalTexture
         {
             get { return _texture; }

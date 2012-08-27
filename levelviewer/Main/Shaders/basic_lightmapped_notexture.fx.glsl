@@ -22,11 +22,15 @@ void main()
 
 uniform sampler2D Diffuse;
 uniform sampler2D Lightmap;
+uniform float LightmapMultiplier;
+
 in vec2 o_diffuseCoords;
 in vec2 o_lightmapCoords;
 
 out vec4 outputColor;
 void main()
 {
-	outputColor = texture2D(Lightmap, o_lightmapCoords);
+	vec4 lightmap = texture2D(Lightmap, o_lightmapCoords);
+
+	outputColor = vec4(lightmap.rgb * LightmapMultiplier, 1.0);
 }

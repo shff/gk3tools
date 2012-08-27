@@ -31,6 +31,14 @@ namespace Gk3Main
         Textured
     }
 
+    public enum TextureFilterMode
+    {
+        None,
+        Linear,
+        Anisotropic2X,
+        Anisotropic4X
+    }
+
     public class SceneManagerException : Exception
     {
         public SceneManagerException(string message)
@@ -431,6 +439,12 @@ namespace Gk3Main
             set { _shadeMode = value; }
         }
 
+        public static TextureFilterMode CurrentFilterMode
+        {
+            get { return _currentFilterMode; }
+            set { _currentFilterMode = value; }
+        }
+
         public static bool IsSceneLoaded
         {
             get { return _currentRoom != null; }
@@ -788,6 +802,7 @@ namespace Gk3Main
         private static ISceneCustomizer _sceneCustomizer;
 
         private static ShadeMode _shadeMode = ShadeMode.Textured;
+        private static TextureFilterMode _currentFilterMode = TextureFilterMode.Linear;
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;
         private static bool _renderHelperIcons = false;

@@ -73,9 +73,19 @@ namespace Game
             return _renderer;
         }
 
+        public override Gk3Main.Graphics.IRenderer Renderer
+        {
+            get { return _renderer; }
+        }
+
         public override void Present()
         {
             Sdl.SDL_GL_SwapBuffers();
+        }
+
+        public override void Resize(int width, int height)
+        {
+            throw new NotImplementedException();
         }
 
         public void RequestScreenshot()

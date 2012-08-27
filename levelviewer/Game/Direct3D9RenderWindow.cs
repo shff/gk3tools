@@ -36,9 +36,19 @@ namespace Game
             return _renderer;
         }
 
+        public override Gk3Main.Graphics.IRenderer Renderer
+        {
+            get { return _renderer; }
+        }
+
         public override void Present()
         {
             _renderer.Present();
+        }
+
+        public override void Resize(int width, int height)
+        {
+            throw new NotImplementedException();
         }
 
         public override List<Gk3Main.Graphics.DisplayMode> GetSupportedDisplayModes()

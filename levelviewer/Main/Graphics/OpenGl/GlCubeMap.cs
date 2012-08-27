@@ -40,7 +40,7 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new InvalidOperationException();
         }
 
-        public override void Bind()
+        public void Bind()
         {
             Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP);
             Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);

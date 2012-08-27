@@ -20,8 +20,10 @@ namespace Gk3Main.Graphics
     {
         public abstract IRenderer CreateRenderer();
         public abstract void Present();
+        public abstract void Resize(int width, int height);
 
         public abstract List<DisplayMode> GetSupportedDisplayModes();
+        public abstract IRenderer Renderer { get; }
     }
 
     public abstract class Direct3D9RenderWindow : RenderWindow
