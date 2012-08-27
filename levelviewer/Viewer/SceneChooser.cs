@@ -21,7 +21,13 @@ namespace Viewer
 
         public string SelectedScene
         {
-            get { return listBox1.SelectedItem.ToString(); }
+            get 
+            {
+                if (listBox1.SelectedItem != null)
+                    return listBox1.SelectedItem.ToString();
+
+                return null;
+            }
         }
 
         private void btnOK_Click(object sender, EventArgs e)

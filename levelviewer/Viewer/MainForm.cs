@@ -190,8 +190,11 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
-                loadInitialData();
-                Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
+                if (string.IsNullOrEmpty(dialog.SelectedScene) == false)
+                {
+                    loadInitialData();
+                    Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
+                }
 
                 // TODO: fix this!
                 //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
@@ -212,9 +215,15 @@ namespace Viewer
             if (result == DialogResult.OK)
             {
                 //Gk3Main.Game.SifResource sif = null; // TODO: (Gk3Main.Game.SifResource)Gk3Main.Resource.ResourceManager.Load(dialog.SelectedScene);
-                
-                loadInitialData();
-                Gk3Main.SceneManager.LoadSif(dialog.SelectedScene);
+
+                if (string.IsNullOrEmpty(dialog.SelectedScene) == false)
+                {
+                    loadInitialData();
+                    Gk3Main.SceneManager.LoadSif(dialog.SelectedScene);
+
+                    IList<string> resources = Gk3Main.SceneManager.SceneContentManager.GetLoadedResourceNames();
+                    _resourceViewerForm.UpdateResources(resources);
+                }
 
                 //Gk3Main.SceneManager.LoadScene(sif.Scene);
 
@@ -227,8 +236,7 @@ namespace Viewer
                     }
                 }*/
 
-                IList<string> resources = Gk3Main.SceneManager.SceneContentManager.GetLoadedResourceNames();
-                _resourceViewerForm.UpdateResources(resources);
+                
             }
         }
 
@@ -244,8 +252,11 @@ namespace Viewer
             DialogResult result = dialog.ShowDialog();
             if (result == DialogResult.OK)
             {
-                loadInitialData();
-                Gk3Main.SceneManager.AddModel(dialog.SelectedScene, true);
+                if (string.IsNullOrEmpty(dialog.SelectedScene) == false)
+                {
+                    loadInitialData();
+                    Gk3Main.SceneManager.AddModel(dialog.SelectedScene, true);
+                }
 
                 // TODO: fix this!
                 //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
