@@ -4,9 +4,9 @@
 uniform vec4 Viewport;
 uniform mat4 ModelViewProjection;
 
-in vec4 position;
-in vec2 texCoords;
-in vec2 lightmapCoords;
+in vec4 position : POSITION0;
+in vec2 texCoords : TEXCOORD0;
+in vec2 lightmapCoords : TEXCOORD1;
 out vec2 o_diffuseCoords;
 out vec2 o_lightmapCoords;
 
