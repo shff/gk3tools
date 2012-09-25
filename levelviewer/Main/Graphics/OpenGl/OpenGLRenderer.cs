@@ -16,6 +16,7 @@ namespace Gk3Main.Graphics.OpenGl
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
+        private bool _samplerObjectsSupported;
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
         private bool _vertexPointersNeedSetup = true;
@@ -37,17 +38,23 @@ namespace Gk3Main.Graphics.OpenGl
             // load extensions
             //_renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
             _renderToTextureSupported = false;
+            _samplerObjectsSupported = Gl.IsExtensionSupported("GL_ARB_sampler_objects");
 
             // set default render states
             BlendState = BlendState.Opaque;
 
-            _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
-            SamplerStates[0] = SamplerState.LinearWrap;
-            SamplerStates[1] = SamplerState.LinearClamp;
-
             // according to the GL3 spec we need a VAO bound... for some reason...
             glGenVertexArrays = (glGenVertexArraysDelegate)Gl.GetDelegate("glGenVertexArrays", typeof(glGenVertexArraysDelegate));
             glBindVertexArray = (glBindVertexArrayDelegate)Gl.GetDelegate("glBindVertexArray", typeof(glBindVertexArrayDelegate));
+
+            glGenSamplers = (glGenSamplersDelegate)Gl.GetDelegate("glGenSamplers", typeof(glGenSamplersDelegate));
+            glSamplerParameteri = (glSamplerParameteriDelegate)Gl.GetDelegate("glSamplerParameteri", typeof(glSamplerParameteriDelegate));
+            glBindSampler = (glBindSamplerDelegate)Gl.GetDelegate("glBindSampler", typeof(glBindSamplerDelegate));
+            glDeleteSamplers = (glDeleteSamplersDelegate)Gl.GetDelegate("glDeleteSamplers", typeof(glDeleteSamplersDelegate));
+
+            _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
+            SamplerStates[0] = SamplerState.LinearWrap;
+            SamplerStates[1] = SamplerState.LinearClamp;
 
             uint vao;
             glGenVertexArrays(1, out vao);
@@ -134,7 +141,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         private void samplerStateChanged(SamplerState newSampler, SamplerState oldSampler, int index)
         {
-            // TODO: only modify the changed states
+           // TODO: only modify the changed states
             Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
             Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, convertTextureAddressMode(newSampler.AddressU));
             Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, convertTextureAddressMode(newSampler.AddressV));
@@ -223,7 +230,7 @@ namespace Gk3Main.Graphics.OpenGl
                 if (downStream != null)
                     downs = new BitmapSurface(downStream);
 
-                return new GlCubeMap(name, fronts, backs, lefts, rights, ups, downs);
+                return new GlCubeMap(this, name, fronts, backs, lefts, rights, ups, downs);
             }
             finally
             {
@@ -241,7 +248,7 @@ namespace Gk3Main.Graphics.OpenGl
         public CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
             BitmapSurface up, BitmapSurface down)
         {
-            return new GlCubeMap(name, front, back, left, right, up, down);
+            return new GlCubeMap(this, name, front, back, left, right, up, down);
         }
 
         public Effect CreateEffect(string name, System.IO.Stream stream)
@@ -621,11 +628,19 @@ namespace Gk3Main.Graphics.OpenGl
 
         #region Extensions
 
-        private delegate void glGenVertexArraysDelegate(int count, out uint arrays);
-        private delegate void glBindVertexArrayDelegate(uint array);
+        internal delegate void glGenVertexArraysDelegate(int count, out uint arrays);
+        internal delegate void glBindVertexArrayDelegate(uint array);
+        internal delegate void glGenSamplersDelegate(int count, out uint samplers);
+        internal delegate void glSamplerParameteriDelegate(uint sampler, int pname, int param);
+        internal delegate void glBindSamplerDelegate(uint textureUnit, uint sampler);
+        internal delegate void glDeleteSamplersDelegate(int count, out uint samplers);
 
-        private static glGenVertexArraysDelegate glGenVertexArrays;
-        private static glBindVertexArrayDelegate glBindVertexArray;
+        internal static glGenVertexArraysDelegate glGenVertexArrays;
+        internal static glBindVertexArrayDelegate glBindVertexArray;
+        internal static glGenSamplersDelegate glGenSamplers;
+        internal static glSamplerParameteriDelegate glSamplerParameteri;
+        internal static glBindSamplerDelegate glBindSampler;
+        internal static glDeleteSamplersDelegate glDeleteSamplers;
 
         #endregion
     }

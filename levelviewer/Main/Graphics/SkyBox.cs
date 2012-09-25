@@ -101,6 +101,17 @@ namespace Gk3Main.Graphics
 
         public void Render(Camera camera)
         {
+            if (SceneManager.CurrentFilterMode == TextureFilterMode.None)
+            {
+                RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.PointClamp;
+                RendererManager.CurrentRenderer.SamplerStates[1] = SamplerState.PointClamp;
+            }
+            else
+            {
+                RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.LinearClamp;
+                RendererManager.CurrentRenderer.SamplerStates[1] = SamplerState.LinearClamp;
+            }
+
             RendererManager.CurrentRenderer.DepthTestEnabled = false;
             RendererManager.CurrentRenderer.SetVertexBuffer(_vertices);
             RendererManager.CurrentRenderer.Indices = _indices;

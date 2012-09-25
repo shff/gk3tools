@@ -458,6 +458,8 @@ namespace Gk3Main.Graphics
 
         public static SamplerState PointWrap =
             new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Point);
+        public static SamplerState PointClamp =
+            new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Point);
         public static SamplerState LinearWrap =
             new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Linear);
         public static SamplerState LinearClamp =

@@ -157,7 +157,7 @@ namespace Gk3Main.Graphics.OpenGl
             if (u.GlHandle == -1) return;
 
             Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
-            Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, texture.OpenGlTexture);
+            texture.Bind(index);
             Gl.glUniform1i(u.GlHandle, index);
 
             int r = Gl.glGetError();

@@ -63,7 +63,7 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
             SamplerState current = _renderer.SamplerStates[index];
-            ApplySamplerState(current, _hasMipmaps, false);
+            ApplySamplerState(current, _hasMipmaps, TextureType.TwoD);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }
@@ -119,13 +119,24 @@ namespace Gk3Main.Graphics.OpenGl
             }
         }
 
-        internal static void ApplySamplerState(SamplerState current, bool textureHasMipmaps, bool is3DTexture)
+        internal enum TextureType
+        {
+            TwoD,
+            ThreeD,
+            CubeMap
+        }
+
+        internal static void ApplySamplerState(SamplerState current, bool textureHasMipmaps, TextureType type)
         {
             int target;
-            if (is3DTexture)
-                target = Gl.GL_TEXTURE_3D;
-            else
+            if (type == TextureType.TwoD)
                 target = Gl.GL_TEXTURE_2D;
+            else if (type == TextureType.ThreeD)
+                target = Gl.GL_TEXTURE_3D;
+            else if (type == TextureType.CubeMap)
+                target = Gl.GL_TEXTURE_CUBE_MAP;
+            else
+                throw new ArgumentException("type");
 
             Gl.glTexParameteri(target, Gl.GL_TEXTURE_WRAP_S, convertTextureAddressMode(current.AddressU));
             Gl.glTexParameteri(target, Gl.GL_TEXTURE_WRAP_T, convertTextureAddressMode(current.AddressV));
@@ -234,7 +245,7 @@ namespace Gk3Main.Graphics.OpenGl
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
             SamplerState current = _renderer.SamplerStates[index];
-            GlTexture.ApplySamplerState(current, false, false);
+            GlTexture.ApplySamplerState(current, false, GlTexture.TextureType.TwoD);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }

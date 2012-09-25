@@ -5,12 +5,15 @@ namespace Gk3Main.Graphics.OpenGl
 {
     public class GlCubeMap : CubeMapResource
     {
+        private OpenGLRenderer _renderer;
         private int _glTexture;
 
-        public GlCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
+        public GlCubeMap(OpenGLRenderer renderer, string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
             BitmapSurface up, BitmapSurface down)
             : base(name)
         {
+            _renderer = renderer;
+
             Gl.glGenTextures(1, out _glTexture);
             Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
 
@@ -40,11 +43,14 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new InvalidOperationException();
         }
 
-        public void Bind()
+        public void Bind(int index)
         {
             Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP);
             Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
             //Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, 0);
+
+            SamplerState current = _renderer.SamplerStates[index];
+            GlTexture.ApplySamplerState(current, false, GlTexture.TextureType.CubeMap);
         }
 
         public override void Unbind()
