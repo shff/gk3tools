@@ -421,6 +421,11 @@ namespace Gk3Main
             set { _currentCamera = value; }
         }
 
+        public static Graphics.BspResource CurrentRoom
+        {
+            get { return _currentRoom; }
+        }
+
         public static bool LightmapsEnabled
         {
             get { return _lightmapsEnabled; }

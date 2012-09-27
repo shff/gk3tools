@@ -355,6 +355,27 @@ namespace Viewer
 
                 pbRenderWindow.Refresh();
             }
+            else
+            {
+                if (Gk3Main.SceneManager.CurrentRoom != null)
+                {
+                    Gk3Main.Graphics.BspSurface surface;
+                    Gk3Main.Math.Vector3 unprojected = _camera.Unproject(new Gk3Main.Math.Vector3(e.X, e.Y, 0));
+                    Gk3Main.SceneManager.CurrentRoom.CollideRayWithSurfaces(_camera.Position, (unprojected - _camera.Position).Normalize(), 10000.0f, out surface);
+
+                    if (surface != null)
+                    {
+                        lblStatusSurface.Visible = true;
+                        lblSurfaceIndexValue.Visible = true;
+                        lblSurfaceIndexValue.Text = surface.index.ToString();
+                    }
+                    else
+                    {
+                        lblStatusSurface.Visible = false;
+                        lblSurfaceIndexValue.Visible = false;
+                    }
+                }
+            }
             
             _oldMouseX = e.X;
             _oldMouseY = e.Y;
