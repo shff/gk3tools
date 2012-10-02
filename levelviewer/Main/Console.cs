@@ -42,6 +42,13 @@ namespace Gk3Main
         {
             string[] args = command.Split();
 
+            if (args[0].Equals("dumpCommands", StringComparison.OrdinalIgnoreCase) ||
+                args[0].Equals("help", StringComparison.OrdinalIgnoreCase))
+            {
+                dumpCommands();
+                return;
+            }
+
             ConsoleCommand callback;
             if (_commands.TryGetValue(args[0], out callback) == false)
                 WriteLine("No such command: {0}", args[0]);
@@ -56,6 +63,16 @@ namespace Gk3Main
         {
             get { return _verbosity; }
             set { _verbosity = value; }
+        }
+
+        private void dumpCommands()
+        {
+            WriteLine("Known commands:");
+            foreach (KeyValuePair<string, ConsoleCommand> command in _commands)
+            {
+                WriteLine("\t{0}", command.Key);
+            }
+            WriteLine("\tDumpCommands");
         }
 
         protected Dictionary<string, ConsoleCommand> _commands = new Dictionary<string, ConsoleCommand>();

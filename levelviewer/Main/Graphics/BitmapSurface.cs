@@ -95,7 +95,7 @@ namespace Gk3Main.Graphics
             for (int y = 0; y < sourceHeight; y++)
             {
                 int destinationIndex = ((destY + y) * destSurface.Width + destX) * 4;
-                Array.Copy(srcSurface.Pixels, y * sourceWidth * 4, destSurface.Pixels,
+                Array.Copy(srcSurface.Pixels, ((sourceY + y) * srcSurface.Width + sourceX) * 4, destSurface.Pixels,
                     destinationIndex, sourceWidth * 4);
             }
         }

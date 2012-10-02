@@ -515,6 +515,19 @@ namespace Gk3Main.Graphics
             }
         }
 
+        public void SetSurfaceVisibility(int index, bool visible)
+        {
+            _surfaces[index].Hidden = !visible;
+        }
+
+        public void SetAllSurfacesVisibility(bool visible)
+        {
+            foreach (BspSurface surface in _surfaces)
+            {
+                surface.Hidden = !visible;
+            }
+        }
+
         public Game.RadiosityMaps GenerateMemoryTextures(LightmapResource lightmaps)
         {
             if (IntPtr.Size != 4)
@@ -553,7 +566,7 @@ namespace Gk3Main.Graphics
             foreach (BspSurface surface in _surfaces)
             {
 
-                if (surface.index == 976)
+                if (surface.index == 50)
                     count++;
 
                 count++;
@@ -646,8 +659,8 @@ namespace Gk3Main.Graphics
                     // map the triangle to the texture
                     int minTX = System.Math.Max((int)(memTex.Width * minUV.X) - 1, 0);
                     int minTY = System.Math.Max((int)(memTex.Height * minUV.Y) - 1, 0);
-                    int maxTX = System.Math.Min((int)(memTex.Width * maxUV.X) + 1, memTex.Width);
-                    int maxTY = System.Math.Min((int)(memTex.Height * maxUV.Y) + 1, memTex.Height);
+                    int maxTX = System.Math.Min((int)(System.Math.Ceiling(memTex.Width * maxUV.X + 1)) , memTex.Width);
+                    int maxTY = System.Math.Min((int)(System.Math.Ceiling(memTex.Height * maxUV.Y + 1)) , memTex.Height);
 
                     float halfPixelU = 1.0f / memTex.Width * 0.5f;
                     float halfPixelV = 1.0f / memTex.Height * 0.5f;
