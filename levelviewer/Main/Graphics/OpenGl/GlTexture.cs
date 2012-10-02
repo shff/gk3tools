@@ -23,15 +23,29 @@ namespace Gk3Main.Graphics.OpenGl
             _width = 1;
             _height = 1;
 
-            convertToOpenGlTexture(false, true);
+            convertToOpenGlTexture(false, true, true);
         }
 
-        internal GlTexture(OpenGLRenderer renderer, string name, int glTexture, bool loaded)
+        internal GlTexture(OpenGLRenderer renderer, string name, int glTexture, int width, int height, bool loaded)
             : base(name, loaded)
         {
             _renderer = renderer;
 
             _glTexture = glTexture;
+
+            _width = width;
+            _height = height;
+            _actualPixelWidth = width;
+            _actualPixelHeight = height;
+            _actualWidth = 1.0f;
+            _actualHeight = 1.0f;
+
+            _pixels = new byte[_width * _height * 4];
+
+            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
+            Gl.glGetTexImage(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, _pixels);
+
+            //Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, _pixels); 
         }
 
         public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream stream)
@@ -39,7 +53,7 @@ namespace Gk3Main.Graphics.OpenGl
         {
             _renderer = renderer;
 
-            convertToOpenGlTexture(true, false);
+            convertToOpenGlTexture(true, false, true);
         }
 
         public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream stream, bool clamp)
@@ -47,7 +61,7 @@ namespace Gk3Main.Graphics.OpenGl
         {
             _renderer = renderer;
 
-            convertToOpenGlTexture(true, clamp);
+            convertToOpenGlTexture(true, clamp, true);
         }
 
         public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
@@ -55,7 +69,15 @@ namespace Gk3Main.Graphics.OpenGl
         {
             _renderer = renderer;
 
-            convertToOpenGlTexture(true, true);
+            convertToOpenGlTexture(true, true, true);
+        }
+
+        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface surface, bool mipmapped)
+            : base(name, surface)
+        {
+            _renderer = renderer;
+
+            convertToOpenGlTexture(true, false, mipmapped);
         }
 
         public void Bind(int index)
@@ -68,7 +90,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public int OpenGlTexture { get { return _glTexture; } }
 
-        private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp)
+        private void convertToOpenGlTexture(bool resizeToPowerOfTwo, bool clamp, bool mipmapped)
         {
             byte[] pixels = _pixels;
             _actualPixelWidth = _width;
@@ -105,9 +127,13 @@ namespace Gk3Main.Graphics.OpenGl
             _glTexture = textures[0];
             Gl.glBindTexture(Gl.GL_TEXTURE_2D, _glTexture);
 
-            _hasMipmaps = true;
-            Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
-                Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+            _hasMipmaps = mipmapped;
+            if (mipmapped)
+                Glu.gluBuild2DMipmaps(Gl.GL_TEXTURE_2D, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
+                    Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
+            else
+                Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, _actualPixelWidth, _actualPixelHeight,
+                    0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, pixels);
 
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
             Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);

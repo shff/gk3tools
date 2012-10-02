@@ -56,6 +56,18 @@ namespace Gk3Main.Graphics
         public float LU, LV;
     }
 
+    [Flags]
+    public enum BspSurfaceFlags
+    {
+        HighQuality = 0x0001,
+        LowQuality =  0x0002,
+        DontCastShadows = 0x0004,
+        DontReceiveShadows = 0x0008,
+        Translucent = 0x0010,
+        Unknown = 0x0020,
+        ShadowTexture = 0x0040
+    }
+
     public class BspSurface
     {
         public int VertexIndex;
@@ -67,7 +79,7 @@ namespace Gk3Main.Graphics
         public float uScale, vScale;
         public ushort size1;
         public ushort size2;
-        public uint flags;
+        public BspSurfaceFlags flags;
 
         public List<BspPolygon> polygons;
 
@@ -157,6 +169,9 @@ namespace Gk3Main.Graphics
             _surfaces = new BspSurface[header.numSurfaces];
             for (uint i = 0; i < header.numSurfaces; i++)
             {
+                if (i == 134)
+                    i = i;
+
                 _surfaces[i] = new BspSurface();
 
                 _surfaces[i].modelIndex = reader.ReadUInt32();
@@ -167,7 +182,7 @@ namespace Gk3Main.Graphics
                 _surfaces[i].vScale = reader.ReadSingle();
                 _surfaces[i].size1 = reader.ReadUInt16();
                 _surfaces[i].size2 = reader.ReadUInt16();
-                _surfaces[i].flags = reader.ReadUInt32();
+                _surfaces[i].flags = (BspSurfaceFlags)reader.ReadUInt32();
 
                 _surfaces[i].r = (float)randomGenerator.NextDouble();
                 _surfaces[i].g = (float)randomGenerator.NextDouble();
@@ -212,6 +227,9 @@ namespace Gk3Main.Graphics
                 _polygons[i].flags = reader.ReadUInt16();
                 _polygons[i].numVertices = reader.ReadUInt16();
                 _polygons[i].surfaceIndex = reader.ReadUInt16();
+
+                if (_polygons[i].surfaceIndex == 134)
+                    i = i;
             }
 
             // read all the planes (thow them away)
@@ -330,27 +348,41 @@ namespace Gk3Main.Graphics
             loadTextures(content);
         }
 
-        public void FinalizeVertices(LightmapResource lightmap)
+        public void FinalizeVertices(LightmapResource lightmap, bool regen)
         {
-            _lightmapcoords = new float[_texcoords.Length];
+            _lightmapcoords = new float[_bspVertices.Count * 2];
 
             for (int i = 0; i < _surfaces.Length; i++)
             {
+                if (i == 45)
+                    i = i;
+
                 for (int j = 0; j < _surfaces[i].indices.Length; j++)
                 {
                     float u = (_surfaces[i].uCoord + _texcoords[_surfaces[i].indices[j] * 2 + 0]) * _surfaces[i].uScale;
                     float v = (_surfaces[i].vCoord + _texcoords[_surfaces[i].indices[j] * 2 + 1]) * _surfaces[i].vScale;
 
-                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
-                    _lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
+                    //_lightmapcoords[_surfaces[i].indices[j] * 2 + 0] = u;
+                    //_lightmapcoords[_surfaces[i].indices[j] * 2 + 1] = v;
+
+                    _lightmapcoords[(_surfaces[i].VertexIndex + j) * 2 + 0] = u;
+                    _lightmapcoords[(_surfaces[i].VertexIndex + j) * 2 + 1] = v;
 
                     if (lightmap != null)
                     {
                         Rect lightmapRect = lightmap.PackedLightmaps.GetPackedTextureRect(i);
 
+                        //_lightmapcoords[_surfaces[i].indices[j] * 2 + 0] += 1.0f / lightmapRect.Width * 0.5f;
+                        //_lightmapcoords[_surfaces[i].indices[j] * 2 + 1] += 1.0f / lightmapRect.Height * 0.5f;
+                     
+                        float lu = (lightmapRect.X + 0.5f) / lightmap.PackedLightmapTexture.Width;
+                        float lv = (lightmapRect.Y + 0.5f) / lightmap.PackedLightmapTexture.Height;
+                        float lw = (lightmapRect.Width - 1.0f) / lightmap.PackedLightmapTexture.Width;
+                        float lh = (lightmapRect.Height - 1.0f) / lightmap.PackedLightmapTexture.Height;
+
                         BspVertex vertex = _bspVertices[_surfaces[i].VertexIndex + j];
-                        vertex.LU = lightmapRect.X + u * lightmapRect.Width;
-                        vertex.LV = lightmapRect.Y + v * lightmapRect.Height;
+                        vertex.LU = lu + u * lw;
+                        vertex.LV = lv + v * lh;
                         _bspVertices[_surfaces[i].VertexIndex + j] = vertex;
                     }
                     else
@@ -366,7 +398,7 @@ namespace Gk3Main.Graphics
             _allVertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, _bspVertices.ToArray(), _bspVertices.Count, _vertexDeclaration);
         }
 
-        public void Render(Camera camera, LightmapResource lightmaps)
+        public void Render(Camera camera, LightmapResource lightmaps, bool calculatingRadiosity)
         {
             Effect currentEffect;
             bool lightmappingEnabled = false;
@@ -415,7 +447,7 @@ namespace Gk3Main.Graphics
             if (lightmappingEnabled)
             {
                 currentEffect.SetParameter("LightmapMultiplier", lightmapMultiplier);
-                TextureResource lightmap = lightmaps.PackedLightmaps.PackedTexture;
+                TextureResource lightmap = lightmaps.PackedLightmapTexture;
                 if (lightmap != null)
                     currentEffect.SetParameter("Lightmap", lightmap, 1);
             }
@@ -426,7 +458,8 @@ namespace Gk3Main.Graphics
             {
                 if (_surfaces[i].Hidden == false)
                 {
-                    drawSurface(_surfaces[i], currentEffect, camera);
+                    if (!calculatingRadiosity || (_surfaces[i].flags & BspSurfaceFlags.DontCastShadows) == 0)
+                        drawSurface(_surfaces[i], currentEffect, camera);
                 }
             }
             currentEffect.End();
@@ -479,6 +512,290 @@ namespace Gk3Main.Graphics
             {
                 if (_modelsNames[surface.modelIndex].Equals(name, StringComparison.OrdinalIgnoreCase))
                     surface.Hidden = !visible;
+            }
+        }
+
+        public Game.RadiosityMaps GenerateMemoryTextures(LightmapResource lightmaps)
+        {
+            if (IntPtr.Size != 4)
+                throw new InvalidOperationException("Cannot generate memory textures unless running in 32-bit mode");
+
+            const int minSize = 4;
+            Game.RadiosityMaps maps = new Game.RadiosityMaps(lightmaps, minSize);
+
+            foreach (BspSurface surface in _surfaces)
+            {
+                BitmapSurface originalLightmap = lightmaps.Maps[surface.index];
+
+                int width = System.Math.Max(originalLightmap.Width, minSize);
+                int height = System.Math.Max(originalLightmap.Height, minSize);
+
+                //int width = originalLightmap.Width;
+                //int height = originalLightmap.Height;
+
+                maps.Maps[surface.index].MemoryTexture = Game.Radiosity.GenerateMemoryTexture(width, height, 0, 0, 0);
+            }
+
+            return maps;
+        }
+
+        public void CalcRadiosityPass(Graphics.LightmapResource original, Game.RadiosityMaps radiosity)
+        {
+            const int batchSize = 256;
+            Game.Radiosity.LightmapTexel[] texels = new Game.Radiosity.LightmapTexel[batchSize];
+
+            System.Runtime.InteropServices.GCHandle[] h = new System.Runtime.InteropServices.GCHandle[_surfaces.Length];
+
+            int count = 0;
+
+
+            int currentBatchIndex = 0;
+            foreach (BspSurface surface in _surfaces)
+            {
+
+                if (surface.index == 976)
+                    count++;
+
+                count++;
+               //if (count >950)break;
+
+               h[surface.index] = System.Runtime.InteropServices.GCHandle.Alloc(radiosity.Maps[surface.index].Map, System.Runtime.InteropServices.GCHandleType.Pinned);
+
+                //TextureResource memTex = surface.textureResource;
+               TextureResource memTex = radiosity.Maps[surface.index].MemoryTexture;
+                Rect lightmapRect = original.PackedLightmaps.GetPackedTextureRect((int)surface.index);
+
+                // iterate over each triangle
+                for (int tri = 0; tri < surface.VertexCount / 3; tri++)
+                {
+                    Math.Vector2 a, b, c;
+
+                    /*a.X = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 0];
+                    a.Y = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 1];
+
+                    b.X = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 0];
+                    b.Y = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 1];
+
+                    c.X = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 0];
+                    c.Y = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 1];*/
+
+                   // (_surfaces[i].VertexIndex + j) * 2 + 0
+
+                    a.X = _lightmapcoords[(surface.VertexIndex + tri * 3 + 0) * 2 + 0];
+                    a.Y = _lightmapcoords[(surface.VertexIndex + tri * 3 + 0) * 2 + 1];
+
+                    b.X = _lightmapcoords[(surface.VertexIndex + tri * 3 + 1) * 2 + 0];
+                    b.Y = _lightmapcoords[(surface.VertexIndex + tri * 3 + 1) * 2 + 1];
+
+                    c.X = _lightmapcoords[(surface.VertexIndex + tri * 3 + 2) * 2 + 0];
+                    c.Y = _lightmapcoords[(surface.VertexIndex + tri * 3 + 2) * 2 + 1];
+                    
+                    /*BspVertex vertex = _bspVertices[surface.VertexIndex + tri * 3 + 0];
+                    a.X = (vertex.LU - lightmapRect.X) / (lightmapRect.Width + 1.0f);
+                    a.Y = (vertex.LV - lightmapRect.Y) / (lightmapRect.Height + 1.0f);
+
+                    vertex = _bspVertices[surface.VertexIndex + tri * 3 + 1];
+                    b.X = (vertex.LU - lightmapRect.X) / (lightmapRect.Width + 1.0f);
+                    b.Y = (vertex.LV - lightmapRect.Y) / (lightmapRect.Height + 1.0f);
+
+                    vertex = _bspVertices[surface.VertexIndex + tri * 3 + 2];
+                    c.X = (vertex.LU - lightmapRect.X) / (lightmapRect.Width + 1.0f);
+                    c.Y = (vertex.LV - lightmapRect.Y) / (lightmapRect.Height + 1.0f);*/
+                    
+                    /*a.X = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 0];
+                    a.Y = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 1];
+
+                    b.X = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 0];
+                    b.Y = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 1];
+
+                    c.X = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 0];
+                    c.Y = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 1];*/
+
+                    
+                    /*a.X = _bspVertices[surface.VertexIndex + tri + 0].LU;
+                    a.Y = _bspVertices[surface.VertexIndex + tri + 0].LV;
+
+                    b.X = _bspVertices[surface.VertexIndex + tri + 1].LU;
+                    b.Y = _bspVertices[surface.VertexIndex + tri + 1].LV;
+
+                    c.X = _bspVertices[surface.VertexIndex + tri + 2].LU;
+                    c.Y = _bspVertices[surface.VertexIndex + tri + 2].LV;*/
+
+                    Math.Vector3 pa, pb, pc;
+                    pa.X = _bspVertices[surface.VertexIndex + tri * 3 + 0].X;
+                    pa.Y = _bspVertices[surface.VertexIndex + tri * 3 + 0].Y;
+                    pa.Z = _bspVertices[surface.VertexIndex + tri * 3 + 0].Z;
+
+                    pb.X = _bspVertices[surface.VertexIndex + tri * 3 + 1].X;
+                    pb.Y = _bspVertices[surface.VertexIndex + tri * 3 + 1].Y;
+                    pb.Z = _bspVertices[surface.VertexIndex + tri * 3 + 1].Z;
+
+                    pc.X = _bspVertices[surface.VertexIndex + tri * 3 + 2].X;
+                    pc.Y = _bspVertices[surface.VertexIndex + tri * 3 + 2].Y;
+                    pc.Z = _bspVertices[surface.VertexIndex + tri * 3 + 2].Z;
+
+                    Math.Vector3 up = (pa - pb).Normalize();
+                    Math.Vector3 n = (pa - pc).Normalize().Cross(up).Normalize();
+
+                    Math.Vector2 minUV, maxUV;
+                    minUV.X = System.Math.Min(System.Math.Min(a.X, b.X), c.X);
+                    minUV.Y = System.Math.Min(System.Math.Min(a.Y, b.Y), c.Y);
+                    maxUV.X = System.Math.Max(System.Math.Max(a.X, b.X), c.X);
+                    maxUV.Y = System.Math.Max(System.Math.Max(a.Y, b.Y), c.Y);
+
+                    // map the triangle to the texture
+                    int minTX = System.Math.Max((int)(memTex.Width * minUV.X) - 1, 0);
+                    int minTY = System.Math.Max((int)(memTex.Height * minUV.Y) - 1, 0);
+                    int maxTX = System.Math.Min((int)(memTex.Width * maxUV.X) + 1, memTex.Width);
+                    int maxTY = System.Math.Min((int)(memTex.Height * maxUV.Y) + 1, memTex.Height);
+
+                    float halfPixelU = 1.0f / memTex.Width * 0.5f;
+                    float halfPixelV = 1.0f / memTex.Height * 0.5f;
+
+                    // go through each texel and do the radiosity stuff
+                    for (int y = minTY; y < maxTY; y++)
+                    {
+                        for (int x = minTX; x < maxTX; x++)
+                        {
+                           /* if (x < 0 || y < 0 ||
+                                   x >= radiosity.Maps[surface.index].Width ||
+                                   y >= radiosity.Maps[surface.index].Height)
+                                continue;*/
+
+                            Math.Vector2 texelUV;
+
+                            texelUV.X = (float)x / memTex.Width + halfPixelU;
+                            texelUV.Y = (float)y / memTex.Height + halfPixelV;
+
+                            /*if (memTex.Width > 1)
+                                texelUV.X = (float)x / memTex.Width + halfPixelU;
+                            else
+                                texelUV.X = (float)x / memTex.Width;
+
+                            if (memTex.Height > 1)
+                                texelUV.Y = (float)y / memTex.Height + halfPixelV;
+                            else
+                                texelUV.Y = (float)y / memTex.Height;
+                            */
+
+                           // radiosity.Maps[surface.index].Map[(y * radiosity.Maps[surface.index].Width + x) * 3 + 0] = 1000.0f;
+                            //radiosity.Maps[surface.index].Map[(y * radiosity.Maps[surface.index].Width + x) * 3 + 1] = 0;
+                           // radiosity.Maps[surface.index].Map[(y * radiosity.Maps[surface.index].Width + x) * 3 + 2] = 0;
+                            //radiosity.Maps[surface.index].SetColor(x, y, 1000.0f, 0, 0);
+
+                            // are we on the triangle?
+                            Math.Vector2 projectedUV;
+                            Math.Vector2 texelMin, texelMax;
+                            texelMin.X = (float)x / memTex.Width;
+                            texelMin.Y = (float)y / memTex.Height;
+                            texelMax.X = (float)(x + 1) / memTex.Width;
+                            texelMax.Y = (float)(y + 1) / memTex.Height;
+                            if (Gk3Main.Utils.TestTriangleBox(a, b, c, texelMin, texelMax))
+                            {
+
+                                Gk3Main.Utils.IsPointInTriangle(texelUV, a, b, c, out projectedUV);
+
+                                // calc the world coordinates
+                                Math.Vector3 p3 = pa + (pb - pa) * projectedUV.Y + (pc - pa) * projectedUV.X;
+                                //Math.Vector3 p3(p.X, p.Y, p.Z);
+
+                                //Math.Vector4 p4 = worldView * p3;
+
+
+
+                               
+
+                                texels[currentBatchIndex].Tag = Gk3Main.Utils.IncrementIntPtr(h[surface.index].AddrOfPinnedObject(), (y * radiosity.Maps[surface.index].Width + x) * 3 * 4);
+
+                                //texels[currentBatchIndex].Tag = (IntPtr)(h[surface.index].AddrOfPinnedObject() + (IntPtr)((y * radiosity.Maps[surface.index].Width + x) * 3 * 4);
+                                texels[currentBatchIndex].PosX = p3.X;
+                                texels[currentBatchIndex].PosY = p3.Y;
+                                texels[currentBatchIndex].PosZ = p3.Z;
+                                texels[currentBatchIndex].NormalX = n.X;
+                                texels[currentBatchIndex].NormalY = n.Y;
+                                texels[currentBatchIndex].NormalZ = n.Z;
+                                texels[currentBatchIndex].UpX = up.X;
+                                texels[currentBatchIndex].UpY = up.Y;
+                                texels[currentBatchIndex].UpZ = up.Z;
+                                texels[currentBatchIndex].Red = 0;
+                                texels[currentBatchIndex].Green = 0;
+                                texels[currentBatchIndex].Blue = 0;
+
+                                //rad_CalcPass(p4.getX(), p4.getY(), p4.getZ(),
+                                //    n.X, n.Y, n.Z, 
+                                //    &results[(y * texture->GetWidth() + x) * 3 + 0],
+                                //    &results[(y * texture->GetWidth() + x) * 3 + 1],
+                                //    &results[(y * texture->GetWidth() + x) * 3 + 2]);
+
+                                //results[(y * texture->GetWidth() + x) * 3 + 0] *= 0.1f;
+                                //results[(y * texture->GetWidth() + x) * 3 + 1] *= 0.1f;
+                                //results[(y * texture->GetWidth() + x) * 3 + 2] *= 0.1f;
+
+                                currentBatchIndex++;
+
+                                if (currentBatchIndex >= batchSize)
+                                {
+                                    Game.Radiosity.CalcPass(texels, currentBatchIndex);
+
+                                    for (int i = 0; i < currentBatchIndex; i++)
+                                    {
+                                        //int index = texels[i].Tag.ToInt32() * 3;
+
+                                        unsafe
+                                        {
+                                            float* f = (float*)texels[i].Tag.ToPointer();
+                                            /*radiosity.Maps[surface.index].Map[index + 0] = texels[i].Red;
+                                            radiosity.Maps[surface.index].Map[index + 1] = texels[i].Green;
+                                            radiosity.Maps[surface.index].Map[index + 2] = texels[i].Blue;*/
+
+
+                                            f[0] = System.Math.Max(texels[i].Red, f[0]);
+                                            f[1] = System.Math.Max(texels[i].Green, f[1]);
+                                            f[2] = System.Math.Max(texels[i].Blue, f[2]);
+                                        }
+
+                                        //texels[i].r
+                                    }
+
+                                    currentBatchIndex = 0;
+                                }
+                            }
+                            else
+                            {
+                                currentBatchIndex = currentBatchIndex;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (currentBatchIndex > 0)
+            {
+                Game.Radiosity.CalcPass(texels, currentBatchIndex);
+
+                for (int i = 0; i < currentBatchIndex; i++)
+                {
+                    unsafe
+                    {
+                        float* f = (float*)texels[i].Tag.ToPointer();
+                        /*radiosity.Maps[surface.index].Map[index + 0] = texels[i].Red;
+                        radiosity.Maps[surface.index].Map[index + 1] = texels[i].Green;
+                        radiosity.Maps[surface.index].Map[index + 2] = texels[i].Blue;*/
+
+                        f[0] = System.Math.Max(texels[i].Red, f[0]);
+                        f[1] = System.Math.Max(texels[i].Green, f[1]);
+                        f[2] = System.Math.Max(texels[i].Blue, f[2]);
+                        
+                    }
+
+                    /*int index = texels[i].Tag.ToInt32() * 3;
+                    radiosity.Maps[surface.index].Map[index + 0] = texels[i].Red;
+                    radiosity.Maps[surface.index].Map[index + 1] = texels[i].Green;
+                    radiosity.Maps[surface.index].Map[index + 2] = texels[i].Blue;
+
+                    */
+                    //texels[i].r
+                }
             }
         }
 

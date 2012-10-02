@@ -357,6 +357,11 @@ namespace Gk3Main.Graphics.Direct3D9
             return new Direct3D9Texture(name, colorStream, alphaStream);
         }
 
+        public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped)
+        {
+            throw new NotImplementedException();
+        }
+
         public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)
         {
             return new Direct3D9UpdatableTexture(name, width, height);

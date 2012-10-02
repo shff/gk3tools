@@ -34,7 +34,7 @@ void main()
 	vec4 diffuse = texture2D(Diffuse, o_diffuseCoords);
 	
 	// do alpha testing
-	if (diffuse.a < 0.9) discard;
+	//if (diffuse.a < 0.9) discard;
 	
     vec4 lightmap = texture2D(Lightmap, o_lightmapCoords);
     

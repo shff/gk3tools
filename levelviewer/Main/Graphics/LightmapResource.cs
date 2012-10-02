@@ -31,12 +31,25 @@ namespace Gk3Main.Graphics
             uint header = reader.ReadUInt32();
             uint numMaps = reader.ReadUInt32();
 
-            _maps = new TextureResource[numMaps];
+            _maps = new BitmapSurface[numMaps];
 
             for (int i = 0; i < numMaps; i++)
-                _maps[i] = RendererManager.CurrentRenderer.CreateTexture(name + "_map_" + i.ToString(), stream, true);
+                _maps[i] = new BitmapSurface(stream, false);
 
+            GenTextureAtlas();
+        }
+
+        internal LightmapResource(string name, int numMaps)
+            : base(name, true)
+        {
+            _maps = new BitmapSurface[numMaps];
+        }
+
+        internal void GenTextureAtlas()
+        {
             _packedMaps = new TextureAtlas(_maps);
+
+            _packedMapsTexture = RendererManager.CurrentRenderer.CreateTexture("blah", _packedMaps.Surface, false);
         }
 
         public override void Dispose()
@@ -45,14 +58,19 @@ namespace Gk3Main.Graphics
         }
 
         [Obsolete("Use the Maps property instead")]
-        public TextureResource this[int index]
+        public BitmapSurface this[int index]
         {
             get { return _maps[index]; }
         }
 
-        public TextureResource[] Maps
+        public BitmapSurface[] Maps
         {
             get { return _maps; }
+        }
+
+        public TextureResource PackedLightmapTexture
+        {
+            get { return _packedMapsTexture; }
         }
 
         public TextureAtlas PackedLightmaps
@@ -61,7 +79,8 @@ namespace Gk3Main.Graphics
         }
 
         private TextureAtlas _packedMaps;
-        private TextureResource[] _maps;
+        private TextureResource _packedMapsTexture;
+        private BitmapSurface[] _maps;
     }
 
     public class LightmapResourceLoader : Resource.IResourceLoader

@@ -41,6 +41,14 @@ namespace Gk3Main.Graphics
             _pixels = color.Pixels;
         }
 
+        protected TextureResource(string name, BitmapSurface surface)
+            : base(name, true)
+        {
+            _width = surface.Width;
+            _height = surface.Height;
+            _pixels = surface.Pixels;
+        }
+
         public TextureResource(string name, System.IO.Stream colorMapStream, System.IO.Stream alphaMapStream)
             : base(name, true)
         {

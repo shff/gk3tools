@@ -108,6 +108,27 @@ namespace Gk3Main.Graphics
 
     }
 
+    public enum EffectParameterType
+    {
+        Bool,
+        Int32,
+        Single,
+        String,
+        Texture,
+        Texture1D,
+        Texture2D,
+        Texture3D,
+        TextureCube,
+        Void
+    };
+
+    public class EffectParameter
+    {
+        private Effect _parent;
+        private EffectParameterType _type;
+        private IntPtr _handle;
+    }
+
     public abstract class Effect : Resource.TextResource
     {
         public Effect(string name, System.IO.Stream stream)
@@ -120,6 +141,8 @@ namespace Gk3Main.Graphics
         public abstract void Begin();
         public abstract void CommitParams();
         public abstract void End();
+
+       // public abstract EffectParameter GetParameter(string name);
 
         public abstract void SetParameter(string name, float parameter);
         public abstract void SetParameter(string name, Math.Vector4 parameter);
@@ -480,6 +503,7 @@ namespace Gk3Main.Graphics
         TextureResource CreateTexture(string name, System.IO.Stream stream);
         TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp);
         TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream);
+        TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped);
         UpdatableTexture CreateUpdatableTexture(string name, int width, int height);
 
         [Obsolete]

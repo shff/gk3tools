@@ -171,6 +171,102 @@ namespace Gk3Main
             return true;
         }
 
+        public static bool TestTriangleBox(Math.Vector2 a, Math.Vector2 b, Math.Vector2 c, Math.Vector2 boxMin, Math.Vector2 boxMax)
+        {
+            Math.Vector2 ab = (b - a).Normalize();
+            Math.Vector2 ac = (c - a).Normalize();
+            Math.Vector2 bc = (c - b).Normalize();
+
+            // calc the normals
+            Utils.Swap(ref ab.X, ref ab.Y);
+            Utils.Swap(ref ac.X, ref ac.Y);
+            Utils.Swap(ref bc.X, ref bc.Y);
+            ab.X = -ab.X;
+            ac.X = -ac.X;
+            bc.X = -bc.X;
+
+            // project the triangle onto the 1st axis of the triangle
+            float dotA = a.Dot(ab);
+            float dotB = b.Dot(ab);
+            float dotC = c.Dot(ab);
+
+            float dotMax = System.Math.Max(dotA, System.Math.Max(dotB, dotC));
+            float dotMin = System.Math.Min(dotA, System.Math.Min(dotB, dotC));
+
+            // project the box onto 1st axis of triangle
+            float boxA = boxMin.X * ab.X + boxMin.Y * ab.Y;
+            float boxB = boxMax.X * ab.X + boxMin.Y * ab.Y;
+            float boxC = boxMax.X * ab.X + boxMax.Y * ab.Y;
+            float boxD = boxMin.X * ab.X + boxMax.Y * ab.Y;
+
+            float boxDotMax = System.Math.Max(boxA, System.Math.Max(boxB, System.Math.Max(boxC, boxD)));
+            float boxDotMin = System.Math.Min(boxA, System.Math.Min(boxB, System.Math.Min(boxC, boxD)));
+
+            if (boxDotMax < dotMin || dotMax < boxDotMin)
+                return false;
+            
+            // project the triangle onto 2nd axis of triangle
+            dotA = a.Dot(ac);
+            dotB = b.Dot(ac);
+            dotC = c.Dot(ac);
+
+            dotMax = System.Math.Max(dotA, System.Math.Max(dotB, dotC));
+            dotMin = System.Math.Min(dotA, System.Math.Min(dotB, dotC));
+
+            // project the box onto 1st axis of triangle
+            boxA = boxMin.X * ac.X + boxMin.Y * ac.Y;
+            boxB = boxMax.X * ac.X + boxMin.Y * ac.Y;
+            boxC = boxMax.X * ac.X + boxMax.Y * ac.Y;
+            boxD = boxMin.X * ac.X + boxMax.Y * ac.Y;
+
+            boxDotMax = System.Math.Max(boxA, System.Math.Max(boxB, System.Math.Max(boxC, boxD)));
+            boxDotMin = System.Math.Min(boxA, System.Math.Min(boxB, System.Math.Min(boxC, boxD)));
+
+            if (boxDotMax < dotMin || dotMax < boxDotMin)
+                return false;
+
+            // project the triangle onto 3rd axis of triangle
+            dotA = a.Dot(bc);
+            dotB = b.Dot(bc);
+            dotC = c.Dot(bc);
+
+            dotMax = System.Math.Max(dotA, System.Math.Max(dotB, dotC));
+            dotMin = System.Math.Min(dotA, System.Math.Min(dotB, dotC));
+
+            // project the box onto 1st axis of triangle
+            boxA = boxMin.X * bc.X + boxMin.Y * bc.Y;
+            boxB = boxMax.X * bc.X + boxMin.Y * bc.Y;
+            boxC = boxMax.X * bc.X + boxMax.Y * bc.Y;
+            boxD = boxMin.X * bc.X + boxMax.Y * bc.Y;
+
+            boxDotMax = System.Math.Max(boxA, System.Math.Max(boxB, System.Math.Max(boxC, boxD)));
+            boxDotMin = System.Math.Min(boxA, System.Math.Min(boxB, System.Math.Min(boxC, boxD)));
+
+            if (boxDotMax < dotMin || dotMax < boxDotMin)
+                return false;
+
+            return true;
+        }
+
+        public static bool IsPointInTriangle(Math.Vector2 point, Math.Vector2 a, Math.Vector2 b, Math.Vector2 c, out Math.Vector2 uv)
+        {
+            Math.Vector2 v0 = c - a;
+            Math.Vector2 v1 = b - a;
+            Math.Vector2 v2 = point - a;
+
+            float dot00 = v0.Dot(v0);
+            float dot01 = v0.Dot(v1);
+            float dot02 = v0.Dot(v2);
+            float dot11 = v1.Dot(v1);
+            float dot12 = v1.Dot(v2);
+
+            float invDenom = 1.0f / (dot00 * dot11 - dot01 * dot01);
+            uv.X = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            uv.Y = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+            return uv.X >= 0 && uv.Y >= 0 && uv.X + uv.Y < 1.0f;
+        }
+
         public static float RollFloatingDie()
         {
             return (float)_random.NextDouble();

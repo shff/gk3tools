@@ -213,7 +213,7 @@ namespace Gk3Main
                 // load the lightmaps
                 _currentLightmaps = _sceneContentManager.Load<Graphics.LightmapResource>(scnWithoutExtension);
 
-                _currentRoom.FinalizeVertices(_currentLightmaps);
+                _currentRoom.FinalizeVertices(_currentLightmaps, false);
 
                 _models.Clear();
                 unloadActors();
@@ -243,7 +243,7 @@ namespace Gk3Main
                 _currentLightmaps = null;
             }
 
-            _currentRoom.FinalizeVertices(_currentLightmaps);
+            _currentRoom.FinalizeVertices(_currentLightmaps, false);
         }
 
         public static void AddModel(string modelname, bool visible)
@@ -340,7 +340,7 @@ namespace Gk3Main
 
                 // render the room
                 if (camera != null && _currentRoom != null)
-                    _currentRoom.Render(camera, _currentLightmaps);
+                    _currentRoom.Render(camera, _currentLightmaps, false);
 
                 // render the models
                 Graphics.ModelResource.BeginBatchRender();
@@ -641,6 +641,73 @@ namespace Gk3Main
         {
             if (_sceneCustomizer != null)
                _sceneCustomizer.OnCustomFunction(function);
+        }
+
+        public static void CalculateLightmaps()
+        {
+            if (_currentRoom != null && _currentLightmaps != null)
+            {
+                Radiosity.Init(new Radiosity.RenderDelegate(renderRadiosityCallback));
+
+                CurrentFilterMode = TextureFilterMode.None;
+                LightmapsEnabled = true;
+                CurrentShadeMode = ShadeMode.Flat;
+                DoubleLightmapValues = false;
+                Graphics.Camera originalCamera = CurrentCamera;
+                Graphics.Viewport originalViewport = Graphics.RendererManager.CurrentRenderer.Viewport;
+
+                RadiosityMaps radiosityMaps = _currentRoom.GenerateMemoryTextures(_currentLightmaps);
+
+                Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.None;
+
+                Graphics.TextureResource skyboxTop = Radiosity.GenerateMemoryTexture(1, 1, 100.0f, 100.0f, 100.0f);
+                Graphics.TextureResource skyboxElse = skyboxTop;// Radiosity.GenerateMemoryTexture(1, 1, 0, 0, 0);
+                Graphics.BitmapSurface skyboxTopPixels = new Graphics.BitmapSurface(skyboxTop);
+                Graphics.BitmapSurface skyboxElsePixels = new Graphics.BitmapSurface(skyboxElse);
+
+                Graphics.SkyBox originalSkybox = _currentSkybox;
+                _currentSkybox = new Graphics.SkyBox("box", skyboxElsePixels, skyboxTopPixels, skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, 0);
+
+                Graphics.LightmapResource oldLightmaps = _currentLightmaps;
+                _currentLightmaps = radiosityMaps.CreateBigMemoryTexture();
+                _currentRoom.CalcRadiosityPass(_currentLightmaps, radiosityMaps);
+
+                Radiosity.Shutdown();
+
+                _currentRoom.FinalizeVertices(_currentLightmaps, true);
+                _currentLightmaps = radiosityMaps.ConvertToLightmap(0.02f);
+
+                Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.CounterClockwise;
+                Graphics.RendererManager.CurrentRenderer.Viewport = originalViewport;
+                CurrentCamera = originalCamera;
+                _currentSkybox = originalSkybox;
+            }
+        }
+
+        public static void renderRadiosityCallback(int viewportX, int viewportY, int viewportWidth, int viewportHeight,
+            int targetWidth, int targetHeight,
+            float eyeX, float eyeY, float eyeZ,
+            float directionX, float directionY, float directionZ,
+            float upX, float upY, float upZ)
+        {
+            Graphics.RendererManager.CurrentRenderer.Viewport = new Graphics.Viewport(viewportX, viewportY, viewportWidth, viewportHeight);
+
+            Graphics.Camera c;
+           bool zNegOne = (Graphics.RendererManager.CurrentRenderer.ZClipMode == Gk3Main.Graphics.ZClipMode.NegativeOne);
+
+           const float near = 2.0f;
+
+            if (targetWidth == targetHeight)
+                c = new Graphics.Camera(90.0f * 0.0174532925f, 1.0f, near, 1000.0f, zNegOne);
+            else if (targetWidth > targetHeight)
+                c = new Graphics.Camera(45.0f * 0.0174532925f, (float)targetWidth / targetHeight, near, 1000.0f, zNegOne);
+            else
+                c = new Graphics.Camera(90.0f * 0.0174532925f, (float)targetWidth / targetHeight, near, 1000.0f, zNegOne);
+
+            c.LookAt(new Math.Vector3(eyeX, eyeY, eyeZ), new Math.Vector3(directionX, directionY, directionZ), new Math.Vector3(upX, upY, upZ));
+
+            _currentSkybox.Render(c);
+            _currentRoom.Render(c, _currentLightmaps, true);
         }
 
         private static void setupCustomScenes(string location)

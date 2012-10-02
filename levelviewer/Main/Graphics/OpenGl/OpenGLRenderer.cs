@@ -187,6 +187,11 @@ namespace Gk3Main.Graphics.OpenGl
             return new GlTexture(this, name, colorStream, alphaStream);
         }
 
+        public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped)
+        {
+            return new GlTexture(this, name, surface, mipmapped);
+        }
+
         public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)
         {
             return new GlUpdatableTexture(this, name, width, height);

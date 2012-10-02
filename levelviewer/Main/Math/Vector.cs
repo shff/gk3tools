@@ -31,6 +31,21 @@ namespace Gk3Main.Math
             Y = y;
         }
 
+        public float Dot(Vector2 v)
+        {
+            return X * v.X + Y * v.Y;
+        }
+
+        public Vector2 Normalize()
+        {
+            return this / Length;
+        }
+
+        public float Length
+        {
+            get { return (float)System.Math.Sqrt(X * X + Y * Y); }
+        }
+
         public override string ToString()
         {
             return "(" + X.ToString() + "," + Y.ToString() + ")";
@@ -41,6 +56,24 @@ namespace Gk3Main.Math
             Vector2 result;
             result.X = v1.X + v2.X;
             result.Y = v1.Y + v2.Y;
+
+            return result;
+        }
+
+        public static Vector2 operator -(Vector2 v1, Vector2 v2)
+        {
+            Vector2 result;
+            result.X = v1.X - v2.X;
+            result.Y = v1.Y - v2.Y;
+
+            return result;
+        }
+
+        public static Vector2 operator /(Vector2 v, float s)
+        {
+            Vector2 result;
+            result.X = v.X / s;
+            result.Y = v.Y / s;
 
             return result;
         }

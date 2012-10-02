@@ -527,7 +527,21 @@ namespace Viewer
 
         private void calculateLightmapsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MessageBox.Show("Coming soon!");
+            try
+            {
+                DialogResult r = MessageBox.Show("Are you sure you want to generate lightmaps for this scene? It might take a while...", "Really?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (r == System.Windows.Forms.DialogResult.Yes)
+                {
+                    Gk3Main.SceneManager.CalculateLightmaps();
+
+                    MessageBox.Show("All done!");
+                }
+            }
+            catch(DllNotFoundException)
+            {
+                MessageBox.Show("Unable to find the radiosity calculator library.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)

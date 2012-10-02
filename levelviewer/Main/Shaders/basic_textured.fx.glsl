@@ -29,10 +29,13 @@ in vec3 o_normals;
 out vec4 outputColor;
 void main()
 {
-	outputColor = texture2D(Diffuse, o_diffuseCoords) * Color;
-	
-	if (outputColor.a < 0.5)
-		discard;
+	if (gl_FrontFacing)
+		outputColor = texture2D(Diffuse, o_diffuseCoords);// * Color;
+	else
+		outputColor = vec4(0, 0, 0, 0);
+
+	//if (outputColor.a < 0.5)
+	//	discard;
 }
 
 

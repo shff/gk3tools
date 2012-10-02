@@ -10,6 +10,7 @@ namespace Gk3Main.Graphics.OpenGl
         private int _depthBuffer;
         private int _colorBuffer;
         private GlTexture _texture;
+        private int _width, _height;
 
         public GlRenderTarget(OpenGLRenderer renderer, int width, int height)
         {
@@ -37,6 +38,9 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new Exception("Unable to create RenderTarget: " + status.ToString());
 
             Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, 0);
+
+            _width = width;
+            _height = height;
         }
 
         public void Bind()
@@ -49,7 +53,7 @@ namespace Gk3Main.Graphics.OpenGl
             get
             {
                 if (_texture == null)
-                    _texture = new GlTexture(_renderer, "RenderTarget texture", _colorBuffer, true);
+                    _texture = new GlTexture(_renderer, "RenderTarget texture", _colorBuffer, _width, _height, true);
 
                 return _texture;
             }

@@ -35,6 +35,33 @@ namespace Gk3Main.Graphics
                 loadWindowsBitmap(reader, convertFromIndexed, out _pixels, out _width, out _height, out _is8bit);
         }
 
+        public BitmapSurface(int width, int height, byte[] pixels)
+        {
+            _width = width;
+            _height = height;
+
+            if (pixels == null)
+                _pixels = new byte[_width * _height * 4];
+            else
+            {
+                if (pixels.Length != _width * _height * 4)
+                    throw new ArgumentException();
+
+                _pixels = pixels;
+            }
+
+            _containsAlpha = true;
+        }
+
+        internal BitmapSurface(TextureResource texture)
+        {
+            _pixels = texture.Pixels;
+            _width = texture.Width;
+            _height = texture.Height;
+            _is8bit = false;
+            _containsAlpha = texture.ContainsAlpha;
+        }
+
         public byte[] Pixels { get { return _pixels; } }
         public int Width { get { return _width; } }
         public int Height { get { return _height; } }
@@ -59,6 +86,17 @@ namespace Gk3Main.Graphics
             {
                 byte c = _pixels[(y * _width + x) + 0];
                 return new Color(c, c, c, 255);
+            }
+        }
+
+        public static void Copy(int destX, int destY, BitmapSurface destSurface, 
+            int sourceX, int sourceY, int sourceWidth, int sourceHeight, BitmapSurface srcSurface)
+        {
+            for (int y = 0; y < sourceHeight; y++)
+            {
+                int destinationIndex = ((destY + y) * destSurface.Width + destX) * 4;
+                Array.Copy(srcSurface.Pixels, y * sourceWidth * 4, destSurface.Pixels,
+                    destinationIndex, sourceWidth * 4);
             }
         }
 

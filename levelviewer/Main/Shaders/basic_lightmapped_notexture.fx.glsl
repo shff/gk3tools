@@ -32,5 +32,9 @@ void main()
 {
 	vec4 lightmap = texture2D(Lightmap, o_lightmapCoords);
 
-	outputColor = vec4(lightmap.rgb * LightmapMultiplier, 1.0);
+	//outputColor = vec4(lightmap.rgb * LightmapMultiplier, 1.0);
+	if (gl_FrontFacing)
+		outputColor = lightmap;// * Color;
+	else
+		outputColor = vec4(0, 0, 0, 0);
 }

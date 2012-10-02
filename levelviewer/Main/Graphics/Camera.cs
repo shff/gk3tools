@@ -98,6 +98,18 @@ namespace Gk3Main.Graphics
             _orientation = yawq * pitchq;
         }
 
+        // TODO: get this to save the orientation! Right now has the same effect as Update(),
+        // but the orientation quaternion is out of date!
+        internal void LookAt(Math.Vector3 position, Math.Vector3 direction, Math.Vector3 up)
+        {
+            _position = position;
+            _modelView = Math.Matrix.LookAt(position, direction, up);
+
+            Math.Matrix.Multiply(ref _modelView, ref _projection, out _modelViewProjection);
+
+            _frustum = new Frustum(_modelViewProjection);
+        }
+
         public void Update()
         {
             Math.Vector3 forward = Math.Vector3.Forward;
