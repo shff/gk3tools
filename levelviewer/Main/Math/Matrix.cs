@@ -136,10 +136,41 @@ namespace Gk3Main.Math
             result.M44 = (matrix.M31 * det4 - matrix.M32 * det2 + matrix.M33 * det1) * invDetMatrix;
         }
 
-        public static Matrix LookAt(Vector3 position, Vector3 direction, Vector3 up)
+        public static Matrix LookAtLH(Vector3 position, Vector3 direction, Vector3 up)
+        {
+            direction = direction.Normalize();
+            Vector3 right = up.Cross(direction);
+            Vector3 trueUp = direction.Cross(right);
+
+            Matrix m;
+
+            m.M11 = right.X;
+            m.M12 = trueUp.X;
+            m.M13 = direction.X;
+            m.M14 = 0;
+
+            m.M21 = right.Y;
+            m.M22 = trueUp.Y;
+            m.M23 = direction.Y;
+            m.M24 = 0;
+
+            m.M31 = right.Z;
+            m.M32 = trueUp.Z;
+            m.M33 = direction.Z;
+            m.M34 = 0;
+
+            m.M41 = -(right.X * position.X + right.Y * position.Y + right.Z * position.Z);
+            m.M42 = -(trueUp.X * position.X + trueUp.Y * position.Y + trueUp.Z * position.Z);
+            m.M43 = -(direction.X * position.X + direction.Y * position.Y + direction.Z * position.Z);
+            m.M44 = 1.0f;
+
+            return m;
+        }
+
+        public static Matrix LookAtRH(Vector3 position, Vector3 direction, Vector3 up)
         {
             Vector3 inverseDirection = new Vector3(-direction.X, -direction.Y, -direction.Z);
-            direction = inverseDirection.Normalize();
+            inverseDirection = inverseDirection.Normalize();
             Vector3 right = up.Cross(inverseDirection);
             Vector3 trueUp = inverseDirection.Cross(right);
 

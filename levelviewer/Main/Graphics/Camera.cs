@@ -111,7 +111,7 @@ namespace Gk3Main.Graphics
         internal void LookAt(Math.Vector3 position, Math.Vector3 direction, Math.Vector3 up)
         {
             _position = position;
-            _modelView = Math.Matrix.LookAt(position, direction, up);
+            _modelView = Math.Matrix.LookAtLH(position, direction, up);
 
             Math.Matrix.Multiply(ref _modelView, ref _projection, out _modelViewProjection);
 
@@ -127,7 +127,7 @@ namespace Gk3Main.Graphics
             up = _orientation * up;
 
             // calculate the ModelViewProjection matrix
-            _modelView = Math.Matrix.LookAt(_position, forward, up);
+            _modelView = Math.Matrix.LookAtLH(_position, forward, up);
             //_modelViewProjection = _modelView * _projection;
             Math.Matrix.Multiply(ref _modelView, ref _projection, out _modelViewProjection);
 

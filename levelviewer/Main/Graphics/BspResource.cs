@@ -648,7 +648,7 @@ namespace Gk3Main.Graphics
                     pc.Z = _bspVertices[surface.VertexIndex + tri * 3 + 2].Z;
 
                     Math.Vector3 up = (pa - pb).Normalize();
-                    Math.Vector3 n = (pa - pc).Normalize().Cross(up).Normalize();
+                    Math.Vector3 n = up.Cross((pa - pc).Normalize()).Normalize();
 
                     Math.Vector2 minUV, maxUV;
                     minUV.X = System.Math.Min(System.Math.Min(a.X, b.X), c.X);
