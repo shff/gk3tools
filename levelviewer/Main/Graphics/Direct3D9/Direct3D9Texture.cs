@@ -41,6 +41,12 @@ namespace Gk3Main.Graphics.Direct3D9
             convertToDirect3D9Texture(true, true);
         }
 
+        public Direct3D9Texture(string name, BitmapSurface surface)
+            : base(name, surface)
+        {
+            convertToDirect3D9Texture(true, false);
+        }
+
         internal Texture InternalTexture
         {
             get { return _texture; }
