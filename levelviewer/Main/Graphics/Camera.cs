@@ -23,6 +23,14 @@ namespace Gk3Main.Graphics
 {
     public class Camera
     {
+        public Camera(Math.Matrix projection)
+        {
+            _orientation = new Gk3Main.Math.Quaternion();
+            _position = new Gk3Main.Math.Vector3();
+
+            _projection = projection;
+        }
+
         public Camera(float fov, float aspect, float near, float far, bool zNegOne)
         {
             _orientation = new Gk3Main.Math.Quaternion();

@@ -113,8 +113,17 @@ namespace Gk3Main.Game
 
     public class Radiosity
     {
-        public delegate void RenderDelegate(int viewportX, int viewportY, int viewportWidth, int viewportHeight,
-            int targetWidth, int targetHeight,
+        public enum HemicubeRenderType
+        {
+            Front = 0,
+            Left,
+            Right,
+            Top,
+            Bottom
+        }
+
+        public delegate void RenderDelegate(HemicubeRenderType type,
+            int viewportX, int viewportY, int viewportWidth, int viewportHeight,
             float eyeX, float eyeY, float eyeZ,
             float directionX, float directionY, float directionZ,
             float upX, float upY, float upZ);

@@ -229,6 +229,16 @@ namespace Gk3Main.Math
             return perspectiveLH(height * aspect, height, near, far, zNegOne);
         }
 
+        public static Matrix PerspectiveOffCenter(float left, float right, float bottom, float top, float near, float far, bool zNegOne)
+        {
+            if (near < 0 || far < 0)
+                throw new ArgumentException();
+            if (near > far)
+                throw new ArgumentException();
+
+            return perspectiveLH(left, right, bottom, top, near, far, zNegOne);
+        }
+
         private static Matrix perspectiveLH(float width, float height, float near, float far, bool zNegOne)
         {
             float halfWidth = width * 0.5f;

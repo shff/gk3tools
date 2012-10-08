@@ -684,25 +684,46 @@ namespace Gk3Main
             }
         }
 
-        public static void renderRadiosityCallback(int viewportX, int viewportY, int viewportWidth, int viewportHeight,
-            int targetWidth, int targetHeight,
+        public static void renderRadiosityCallback(Radiosity.HemicubeRenderType type,
+           int viewportX, int viewportY, int viewportWidth, int viewportHeight,
             float eyeX, float eyeY, float eyeZ,
             float directionX, float directionY, float directionZ,
             float upX, float upY, float upZ)
         {
             Graphics.RendererManager.CurrentRenderer.Viewport = new Graphics.Viewport(viewportX, viewportY, viewportWidth, viewportHeight);
 
-            Graphics.Camera c;
+            Graphics.Camera c = null;
            bool zNegOne = (Graphics.RendererManager.CurrentRenderer.ZClipMode == Gk3Main.Graphics.ZClipMode.NegativeOne);
 
            const float near = 2.0f;
 
-            if (targetWidth == targetHeight)
+            Math.Vector3 position = new Math.Vector3(eyeX, eyeY, eyeZ);
+            Math.Vector3 direction = new Math.Vector3(directionX, directionY, directionZ);
+
+            if (type == Radiosity.HemicubeRenderType.Front)
+            {
                 c = new Graphics.Camera(90.0f * 0.0174532925f, 1.0f, near, 1000.0f, zNegOne);
-            else if (targetWidth > targetHeight)
-                c = new Graphics.Camera(45.0f * 0.0174532925f, (float)targetWidth / targetHeight, near, 1000.0f, zNegOne);
-            else
-                c = new Graphics.Camera(90.0f * 0.0174532925f, (float)targetWidth / targetHeight, near, 1000.0f, zNegOne);
+            }
+            else if (type == Radiosity.HemicubeRenderType.Top)
+            {
+                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(-near, near, -near, 0, near, 1000.0f, zNegOne);
+                c = new Graphics.Camera(projection);
+            }
+            else if (type == Radiosity.HemicubeRenderType.Bottom)
+            {
+                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(-near, near, 0, near, near, 1000.0f, zNegOne);
+                c = new Graphics.Camera(projection);
+            }
+            else if (type == Radiosity.HemicubeRenderType.Left)
+            {
+                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(-near, 0, -near, near, near, 1000.0f, zNegOne);
+                c = new Graphics.Camera(projection);
+            }
+            else if (type == Radiosity.HemicubeRenderType.Right)
+            {
+                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(0, near, -near, near, near, 1000.0f, zNegOne);
+                c = new Graphics.Camera(projection);
+            }
 
             c.LookAt(new Math.Vector3(eyeX, eyeY, eyeZ), new Math.Vector3(directionX, directionY, directionZ), new Math.Vector3(upX, upY, upZ));
 
