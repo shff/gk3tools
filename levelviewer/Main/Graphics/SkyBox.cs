@@ -96,13 +96,6 @@ namespace Gk3Main.Graphics
             _skyboxEffect = globalContent.Load<Effect>("skybox.fx");
         }
 
-        public SkyBox(string name, string front, string back, string left, string right,
-            string up, string down, float azimuth)
-        {
-            _cubeMap = Graphics.RendererManager.CurrentRenderer.CreateCubeMap(name, front, back, left, right, up, down);
-            _azimuth = azimuth;
-        }
-
         public SkyBox(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
             BitmapSurface up, BitmapSurface down, float azimuth)
         {

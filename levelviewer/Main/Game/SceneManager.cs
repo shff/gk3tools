@@ -660,13 +660,13 @@ namespace Gk3Main
 
                 Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.None;
 
-                Graphics.TextureResource skyboxTop = Radiosity.GenerateMemoryTexture(1, 1, 100.0f, 100.0f, 100.0f);
-                Graphics.TextureResource skyboxElse = skyboxTop;// Radiosity.GenerateMemoryTexture(1, 1, 0, 0, 0);
+                Graphics.TextureResource skyboxTop = Radiosity.GenerateMemoryTexture(1, 1, 200.0f, 200.0f, 200.0f);
+                Graphics.TextureResource skyboxElse =  Radiosity.GenerateMemoryTexture(1, 1, 0, 0, 0);
                 Graphics.BitmapSurface skyboxTopPixels = new Graphics.BitmapSurface(skyboxTop);
                 Graphics.BitmapSurface skyboxElsePixels = new Graphics.BitmapSurface(skyboxElse);
 
                 Graphics.SkyBox originalSkybox = _currentSkybox;
-                _currentSkybox = new Graphics.SkyBox("box", skyboxElsePixels, skyboxTopPixels, skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, 0);
+                _currentSkybox = new Graphics.SkyBox("box", skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, skyboxTopPixels, skyboxElsePixels, 0);
 
                 Graphics.LightmapResource oldLightmaps = _currentLightmaps;
                 _currentLightmaps = radiosityMaps.CreateBigMemoryTexture();
@@ -871,8 +871,38 @@ namespace Gk3Main
                 string.IsNullOrEmpty(scn.SkyboxUp) == false &&
                 string.IsNullOrEmpty(scn.SkyboxDown) == false)
             {
-                return new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", scn.SkyboxFront + ".BMP", scn.SkyboxBack + ".BMP",
-                    scn.SkyboxLeft + ".BMP", scn.SkyboxRight + ".BMP", scn.SkyboxUp + ".BMP", scn.SkyboxDown + ".BMP", scn.SkyboxAzimuth);
+                System.IO.Stream frontStream = FileSystem.Open(scn.SkyboxFront + ".BMP");
+                System.IO.Stream backStream = FileSystem.Open(scn.SkyboxBack + ".BMP");
+                System.IO.Stream leftStream = FileSystem.Open(scn.SkyboxLeft + ".BMP");
+                System.IO.Stream rightStream = FileSystem.Open(scn.SkyboxRight + ".BMP");
+                System.IO.Stream upStream = FileSystem.Open(scn.SkyboxUp + ".BMP");
+
+                Graphics.BitmapSurface fronts = new Graphics.BitmapSurface(frontStream);
+                Graphics.BitmapSurface backs = new Graphics.BitmapSurface(backStream);
+                Graphics.BitmapSurface lefts = new Graphics.BitmapSurface(leftStream);
+                Graphics.BitmapSurface rights = new Graphics.BitmapSurface(rightStream);
+                Graphics.BitmapSurface ups = new Graphics.BitmapSurface(upStream);
+                Graphics.BitmapSurface downs = null;
+
+                try
+                {
+                    System.IO.Stream downStream = FileSystem.Open(scn.SkyboxDown + ".BMP");
+                    downs = new Graphics.BitmapSurface(downStream);
+                    downStream.Close();
+                }
+                catch (System.IO.FileNotFoundException)
+                {
+                    downs = lefts;
+                }
+
+                frontStream.Close();
+                backStream.Close();
+                leftStream.Close();
+                rightStream.Close();
+                upStream.Close();
+
+                return new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", fronts, backs,
+                    lefts, rights, ups, downs, scn.SkyboxAzimuth);
             }
 
             return null;

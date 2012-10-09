@@ -198,58 +198,6 @@ namespace Gk3Main.Graphics.OpenGl
         }
         #endregion Texture creation
 
-        public CubeMapResource CreateCubeMap(string name, string front, string back, string left, string right,
-            string up, string down)
-        {
-            System.IO.Stream frontStream = null;
-            System.IO.Stream backStream = null;
-            System.IO.Stream leftStream = null;
-            System.IO.Stream rightStream = null;
-            System.IO.Stream upStream = null;
-            System.IO.Stream downStream = null;
-
-            frontStream = FileSystem.Open(front);
-            backStream = FileSystem.Open(back);
-            leftStream = FileSystem.Open(left);
-            rightStream = FileSystem.Open(right);
-            upStream = FileSystem.Open(up);
-
-            try
-            {
-                try
-                {
-                    downStream = FileSystem.Open(down);
-                }
-                catch (System.IO.FileNotFoundException)
-                {
-                    // oh well, we tried.
-                }
-
-                BitmapSurface fronts = new BitmapSurface(frontStream);
-                BitmapSurface backs = new BitmapSurface(backStream);
-                BitmapSurface lefts = new BitmapSurface(leftStream);
-                BitmapSurface rights = new BitmapSurface(rightStream);
-                BitmapSurface ups = new BitmapSurface(upStream);
-                BitmapSurface downs = null;
-
-                if (downStream != null)
-                    downs = new BitmapSurface(downStream);
-
-                return new GlCubeMap(this, name, fronts, backs, lefts, rights, ups, downs);
-            }
-            finally
-            {
-                frontStream.Close();
-                backStream.Close();
-                leftStream.Close();
-                rightStream.Close();
-                upStream.Close();
-
-                if (downStream != null)
-                    downStream.Close();
-            }
-        }
-
         public CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
             BitmapSurface up, BitmapSurface down)
         {
