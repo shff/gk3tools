@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml.Serialization;
 using System.IO;
+using System.ComponentModel;
 
 namespace Viewer
 {
@@ -78,6 +79,7 @@ namespace Viewer
         private int _index;
         private int _width;
         private int _height;
+        private bool _visible = true;
 
         public SurfaceXml()
         {
@@ -109,6 +111,14 @@ namespace Viewer
         {
             get { return _height; }
             set { _height = value; }
+        }
+
+        [XmlAttribute("visible")]
+        [DefaultValue(true)]
+        public bool Visible
+        {
+            get { return _visible; }
+            set { _visible = value; }
         }
     }
 
@@ -205,6 +215,12 @@ namespace Viewer
             skyColor.Z = lighting.Skylight.AmbientColor.Blue;
 
             specs.SkyColor = skyColor;
+
+            Gk3Main.Math.Vector3 sunColor;
+            sunColor.X = lighting.Skylight.SunColor.Red;
+            sunColor.Y = lighting.Skylight.SunColor.Green;
+            sunColor.Z = lighting.Skylight.SunColor.Blue;
+            specs.SunColor = sunColor;
             specs.SunDirection = new Gk3Main.Math.Vector3(lighting.Skylight.SunDirection.X, lighting.Skylight.SunDirection.Y, lighting.Skylight.SunDirection.Z);
 
             return specs;

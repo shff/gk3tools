@@ -679,7 +679,7 @@ namespace Gk3Main
                 Graphics.BitmapSurface skyboxRightPixels = new Graphics.BitmapSurface(skyboxRight);
                 Graphics.BitmapSurface skyboxBottomPixels = new Graphics.BitmapSurface(skyboxBottom);
 
-                Graphics.SkyBox.AddSun(specs.SunDirection, new Math.Vector3(11500.0f, 11500.0f, 11500.0f), 0.125f, skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, true);
+                Graphics.SkyBox.AddSun(specs.SunDirection, specs.SunColor, 0.125f, skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, true);
 
                 Graphics.SkyBox originalSkybox = _currentSkybox;
                 _currentSkybox = new Graphics.SkyBox("box", skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, skyboxBottomPixels, 0);

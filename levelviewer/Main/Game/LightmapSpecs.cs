@@ -8,6 +8,7 @@ namespace Gk3Main.Game
     {
         private Math.Vector3 _skyColor;
         private Math.Vector3 _sunDirection;
+        private Math.Vector3 _sunColor;
 
         public Math.Vector3 SkyColor
         {
@@ -19,6 +20,12 @@ namespace Gk3Main.Game
         {
             get { return _sunDirection; }
             set { _sunDirection = value; }
+        }
+
+        public Math.Vector3 SunColor
+        {
+            get { return _sunColor; }
+            set { _sunColor = value; }
         }
     }
 }

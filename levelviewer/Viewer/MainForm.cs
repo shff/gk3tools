@@ -582,7 +582,16 @@ namespace Viewer
                     {
                         LightingXml lighting = LightingXml.Load(lightingInfo);
                         specs = LightingXml.GenerateSpecs(lighting);
+
+                        // hide all hidden surfaces
+                        foreach (SurfaceXml surface in lighting.Surfaces)
+                        {
+                            if (surface.Visible == false)
+                                Gk3Main.SceneManager.CurrentRoom.SetSurfaceVisibility(surface.Index, false);
+                        }
                     }
+
+                    
 
                     Gk3Main.SceneManager.CalculateLightmaps(specs);
 
