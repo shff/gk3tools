@@ -159,6 +159,22 @@ namespace Gk3Main.Math
             result.Z = v1.Z * amountInv + v2.Z * amount;
         }
 
+        public static float Distance(Vector3 v1, Vector3 v2)
+        {
+            return (float)System.Math.Sqrt(
+                (v1.X - v2.X) * (v1.X - v2.X) +
+                (v1.Y - v2.Y) * (v1.Y - v2.Y) +
+                (v1.Z - v2.Z) * (v1.Z - v2.Z));
+        }
+
+        public static float DistanceSquared(Vector3 v1, Vector3 v2)
+        {
+            return
+                (v1.X - v2.X) * (v1.X - v2.X) +
+                (v1.Y - v2.Y) * (v1.Y - v2.Y) +
+                (v1.Z - v2.Z) * (v1.Z - v2.Z);
+        }
+
         public static Vector3 Forward
         {
             get { return new Vector3(0, 0, -1.0f); }

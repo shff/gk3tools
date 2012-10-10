@@ -426,6 +426,11 @@ namespace Gk3Main
             get { return _currentRoom; }
         }
 
+        public static Graphics.LightmapResource CurrentLightmaps
+        {
+            get { return _currentLightmaps; }
+        }
+
         public static bool LightmapsEnabled
         {
             get { return _lightmapsEnabled; }
@@ -643,7 +648,7 @@ namespace Gk3Main
                _sceneCustomizer.OnCustomFunction(function);
         }
 
-        public static void CalculateLightmaps()
+        public static void CalculateLightmaps(LightmapSpecs specs)
         {
             if (_currentRoom != null && _currentLightmaps != null)
             {
@@ -660,13 +665,24 @@ namespace Gk3Main
 
                 Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.None;
 
-                Graphics.TextureResource skyboxTop = Radiosity.GenerateMemoryTexture(1, 1, 200.0f, 200.0f, 200.0f);
-                Graphics.TextureResource skyboxElse =  Radiosity.GenerateMemoryTexture(1, 1, 0, 0, 0);
+
+                Graphics.TextureResource skyboxTop = Radiosity.GenerateMemoryTexture(16, 16, specs.SkyColor.X, specs.SkyColor.Y, specs.SkyColor.Z);
+                Graphics.TextureResource skyboxFront = Radiosity.GenerateMemoryTexture(16, 16, specs.SkyColor.X, specs.SkyColor.Y, specs.SkyColor.Z);
+                Graphics.TextureResource skyboxBack = Radiosity.GenerateMemoryTexture(16, 16, specs.SkyColor.X, specs.SkyColor.Y, specs.SkyColor.Z);
+                Graphics.TextureResource skyboxLeft = Radiosity.GenerateMemoryTexture(16, 16, specs.SkyColor.X, specs.SkyColor.Y, specs.SkyColor.Z);
+                Graphics.TextureResource skyboxRight = Radiosity.GenerateMemoryTexture(16, 16, specs.SkyColor.X, specs.SkyColor.Y, specs.SkyColor.Z);
+                Graphics.TextureResource skyboxBottom =  Radiosity.GenerateMemoryTexture(16, 16, 0, 0, 0);
                 Graphics.BitmapSurface skyboxTopPixels = new Graphics.BitmapSurface(skyboxTop);
-                Graphics.BitmapSurface skyboxElsePixels = new Graphics.BitmapSurface(skyboxElse);
+                Graphics.BitmapSurface skyboxFrontPixels = new Graphics.BitmapSurface(skyboxFront);
+                Graphics.BitmapSurface skyboxBackPixels = new Graphics.BitmapSurface(skyboxBack);
+                Graphics.BitmapSurface skyboxLeftPixels = new Graphics.BitmapSurface(skyboxLeft);
+                Graphics.BitmapSurface skyboxRightPixels = new Graphics.BitmapSurface(skyboxRight);
+                Graphics.BitmapSurface skyboxBottomPixels = new Graphics.BitmapSurface(skyboxBottom);
+
+                Graphics.SkyBox.AddSun(specs.SunDirection, new Math.Vector3(11500.0f, 11500.0f, 11500.0f), 0.125f, skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, true);
 
                 Graphics.SkyBox originalSkybox = _currentSkybox;
-                _currentSkybox = new Graphics.SkyBox("box", skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, skyboxElsePixels, skyboxTopPixels, skyboxElsePixels, 0);
+                _currentSkybox = new Graphics.SkyBox("box", skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, skyboxBottomPixels, 0);
 
                 Graphics.LightmapResource oldLightmaps = _currentLightmaps;
                 _currentLightmaps = radiosityMaps.CreateBigMemoryTexture();
@@ -716,12 +732,12 @@ namespace Gk3Main
             }
             else if (type == Radiosity.HemicubeRenderType.Left)
             {
-                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(-near, 0, -near, near, near, 1000.0f, zNegOne);
+                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(0, near, -near, near, near, 1000.0f, zNegOne);
                 c = new Graphics.Camera(projection);
             }
             else if (type == Radiosity.HemicubeRenderType.Right)
             {
-                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(0, near, -near, near, near, 1000.0f, zNegOne);
+                Math.Matrix projection = Math.Matrix.PerspectiveOffCenter(-near, 0, -near, near, near, 1000.0f, zNegOne);
                 c = new Graphics.Camera(projection);
             }
 
@@ -900,6 +916,9 @@ namespace Gk3Main
                 leftStream.Close();
                 rightStream.Close();
                 upStream.Close();
+
+                Math.Vector3 dir = new Math.Vector3(0.4873306f, -0.8727542f, 0.02844055f);
+                Gk3Main.Graphics.SkyBox.AddSun(dir, new Math.Vector3(1.0f, 0, 0), 0.025f, fronts, backs, lefts, rights, ups, false);
 
                 return new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", fronts, backs,
                     lefts, rights, ups, downs, scn.SkyboxAzimuth);

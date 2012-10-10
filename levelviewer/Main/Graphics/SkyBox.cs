@@ -137,6 +137,67 @@ namespace Gk3Main.Graphics
             RendererManager.CurrentRenderer.DepthTestEnabled = true;
         }
 
+        internal static void AddSun(Math.Vector3 direction, Math.Vector3 color, float radius,
+            BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right, BitmapSurface up, bool memory)
+        {
+            // process each surface of the skybox and figure out how much "sun" is in that texel
+            addSunToSurface(direction, color, radius, new Math.Vector3(1.0f, 0, 0), Math.Vector3.Up, front, memory);
+            addSunToSurface(direction, color, radius, new Math.Vector3(-1.0f, 0, 0), Math.Vector3.Up, back, memory);
+            addSunToSurface(direction, color, radius, new Math.Vector3(0, 0, 1.0f), Math.Vector3.Up, right, memory);
+            addSunToSurface(direction, color, radius, new Math.Vector3(0, 0, -1.0f), Math.Vector3.Up, left, memory);
+            addSunToSurface(direction, color, radius, new Math.Vector3(0, 1.0f, 0), Math.Vector3.Forward, up, memory);
+        }
+
+        private static void addSunToSurface(Math.Vector3 direction, Math.Vector3 color, float radius,
+            Math.Vector3 faceNormal, Math.Vector3 faceUp, BitmapSurface faceSurface, bool memory)
+        {
+            Math.Vector3 faceRight = faceNormal.Cross(faceUp);
+            float t = -0.5f / faceNormal.Dot(-direction);
+
+            if (t > 0) return; // the sun never hits this plane
+
+            Math.Vector3 sunP = -direction * t;
+            for (int y = 0; y < faceSurface.Height; y++)
+            {
+                for (int x = 0; x < faceSurface.Width; x++)
+                {
+                    // calc the distance from this pixel to the sun
+                    float u = (float)x / faceSurface.Width - 0.5f;
+                    float v = (float)y / faceSurface.Height - 0.5f;
+
+                    Math.Vector3 texelP = faceUp * v + faceRight * u + -faceNormal * 0.5f;
+
+                    float distance = Math.Vector3.Distance(texelP, sunP);
+
+                    if (distance < radius)
+                    {
+                        if (!memory)
+                        {
+                            faceSurface.Pixels[(y * faceSurface.Width + x) * 4 + 0] = 255;
+                            faceSurface.Pixels[(y * faceSurface.Width + x) * 4 + 1] = 0;
+                            faceSurface.Pixels[(y * faceSurface.Width + x) * 4 + 2] = 0;
+                        }
+                        else
+                        {
+                            Color c = faceSurface.ReadColorAt(x, y);
+
+                            uint ptr = (uint)c.R | ((uint)c.G << 8) | ((uint)c.B << 16) | ((uint)c.A << 24);
+
+                            UIntPtr ptr2 = (UIntPtr)ptr;
+
+                            unsafe
+                            {
+                                float* f = (float*)ptr2.ToPointer();
+                                f[0] = color.X;
+                                f[1] = color.Y;
+                                f[2] = color.Z;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private static void vectorAdd(Math.Vector3 one, Math.Vector3 two, Math.Vector3 three, float scale,
             out float r1, out float r2, out float r3)
         {

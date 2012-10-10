@@ -211,6 +211,14 @@ namespace Gk3Main.Game
             }
         }
 
+        /// <summary>
+        /// Renders a hemicube (this is used for debugging)
+        /// </summary>
+        public static void RenderHemicube(Math.Vector3 position, Math.Vector3 normal, Math.Vector3 up)
+        {
+            rad_RenderHemicube(position.X, position.Y, position.Z, normal.X, normal.Y, normal.Z, up.X, up.Y, up.Z);
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct LightmapSurface
         {
@@ -224,6 +232,9 @@ namespace Gk3Main.Game
 
         [DllImport("radiosity", CallingConvention = CallingConvention.Cdecl)]
         static extern LightmapSurface rad_GenerateMemoryTexture(int width, int height, float red, float green, float blue);
+
+        [DllImport("radiosity", CallingConvention = CallingConvention.Cdecl)]
+        static extern void rad_RenderHemicube(float posX, float posY, float posZ, float normalX, float normalY, float normalZ, float upX, float upY, float upZ);
 
         [DllImport("radiosity", CallingConvention=CallingConvention.Cdecl)]
         unsafe static extern void rad_CalcPassBatched(IntPtr texels, int numTexels);

@@ -48,6 +48,7 @@ namespace Viewer
 
             Gk3Main.Console.CurrentConsole = new FormConsole(_consoleForm);
             Gk3Main.Console.CurrentConsole.AddCommand("run", new Gk3Main.ConsoleCommand(run));
+            Gk3Main.Console.CurrentConsole.AddCommand("look", new Gk3Main.ConsoleCommand(look));
 
             if (Settings.Default.SearchPath == String.Empty)
             {
@@ -177,6 +178,16 @@ namespace Viewer
             return true;
         }
 
+        bool look(string[] args, Gk3Main.Console console)
+        {
+            Gk3Main.Math.Vector3 forward = Gk3Main.Math.Vector3.Forward;
+            forward = _camera.Orientation * forward;
+
+            console.WriteLine("Looking at {0}", forward);
+
+            return true;
+        }
+
         #region Event handlers
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -288,7 +299,18 @@ namespace Viewer
                 if (_initialDataLoaded)
                 {
                     _window.Renderer.BeginScene();
-                    Gk3Main.SceneManager.Render(_camera);
+                    if (_renderHemicube)
+                    {
+                        Gk3Main.Math.Vector3 forward = Gk3Main.Math.Vector3.Forward;
+                        forward = _camera.Orientation * forward;
+
+                        Gk3Main.Game.Radiosity.RenderHemicube(_camera.Position, forward, Gk3Main.Math.Vector3.Up);
+                    }
+                    else
+                        Gk3Main.SceneManager.Render(_camera);
+
+                    
+
                     _window.Renderer.EndScene();
                 }
 
@@ -300,6 +322,8 @@ namespace Viewer
             _window.Resize(pbRenderWindow.Width, pbRenderWindow.Height);
             _camera.Projection = Gk3Main.Math.Matrix.Perspective(1.04719755f,
                 (float)pbRenderWindow.Width / pbRenderWindow.Height, 1.0f, 5000.0f);
+
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, pbRenderWindow.Width, pbRenderWindow.Height);
         }
 
         private void simpleOpenGlControl1_MouseDown(object sender, MouseEventArgs e)
@@ -525,6 +549,7 @@ namespace Viewer
             pbRenderWindow.Refresh();
         }
 
+        private bool _renderHemicube;
         private void calculateLightmapsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
@@ -533,9 +558,38 @@ namespace Viewer
 
                 if (r == System.Windows.Forms.DialogResult.Yes)
                 {
-                    Gk3Main.SceneManager.CalculateLightmaps();
+                    string lightingInfo = Gk3Main.SceneManager.CurrentRoom.NameWithoutExtension + "_lighting.xml";
+                    Gk3Main.Game.LightmapSpecs specs = null;
+
+                    if (System.IO.File.Exists(lightingInfo) == false)
+                    {
+                        LightingXml lighting = new LightingXml();
+
+                        foreach (Gk3Main.Graphics.BspSurface surface in Gk3Main.SceneManager.CurrentRoom.Surfaces)
+                        {
+                            lighting.Surfaces.Add(new SurfaceXml((int)surface.index,
+                                Gk3Main.SceneManager.CurrentLightmaps.Maps[surface.index].Width,
+                                Gk3Main.SceneManager.CurrentLightmaps.Maps[surface.index].Height));
+                        }
+
+                        lighting.Skylight = new SkylightXml(new ColorXml(100.0f, 100.0f, 100.0f));
+
+                        lighting.Write(lightingInfo);
+
+                        specs = LightingXml.GenerateSpecs(lighting);
+                    }
+                    else
+                    {
+                        LightingXml lighting = LightingXml.Load(lightingInfo);
+                        specs = LightingXml.GenerateSpecs(lighting);
+                    }
+
+                    Gk3Main.SceneManager.CalculateLightmaps(specs);
 
                     MessageBox.Show("All done!");
+
+                    /*Gk3Main.Game.Radiosity.Init(Gk3Main.SceneManager.renderRadiosityCallback);
+                    _renderHemicube = true;*/
                 }
             }
             catch(DllNotFoundException)

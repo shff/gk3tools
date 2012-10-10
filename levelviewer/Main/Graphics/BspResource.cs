@@ -506,6 +506,11 @@ namespace Gk3Main.Graphics
             return new List<string>(_modelsNames);
         }
 
+        public BspSurface[] Surfaces
+        {
+            get { return _surfaces; }
+        }
+
         public void SetSurfaceVisibility(string name, bool visible)
         {
             foreach (BspSurface surface in _surfaces)
