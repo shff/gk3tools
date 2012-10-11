@@ -223,6 +223,15 @@ namespace Viewer
             specs.SunColor = sunColor;
             specs.SunDirection = new Gk3Main.Math.Vector3(lighting.Skylight.SunDirection.X, lighting.Skylight.SunDirection.Y, lighting.Skylight.SunDirection.Z);
 
+            // TODO: this ignores the index and assumes they'll be ordered in the spec file!
+            foreach (SurfaceXml surface in lighting.Surfaces)
+            {
+                Gk3Main.Game.LightmapSpecs.SurfaceLightmap lm = new Gk3Main.Game.LightmapSpecs.SurfaceLightmap();
+                lm.Width = surface.Width;
+                lm.Height = surface.Height;
+                specs.Surfaces.Add(lm);
+            }
+
             return specs;
         }
     }

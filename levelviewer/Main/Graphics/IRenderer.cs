@@ -528,10 +528,6 @@ namespace Gk3Main.Graphics
         [Obsolete]
         void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct;
 
-        [Obsolete]
-        void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices, VertexElementSet declaration) where T: struct;
-        
-
         void BeginScene();
         void EndScene();
         void Clear();

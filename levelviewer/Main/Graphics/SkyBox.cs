@@ -6,24 +6,22 @@ namespace Gk3Main.Graphics
     {
         private static VertexBuffer _vertices;
         private static IndexBuffer _indices;
-        private static VertexElementSet _declaration;
         private static Effect _skyboxEffect;
 
         private CubeMapResource _cubeMap;
+        private TextureResource _sun;
 
         private float _azimuth;
+        private Math.Vector3 _sunDirection;
         private const int _stride = 3;
         private const float _size = 500.0f;
 
         public static void Init(Resource.ResourceManager globalContent)
         {
-            if (_declaration == null)
+            VertexElementSet declaration = new VertexElementSet(new VertexElement[]
             {
-                _declaration = new VertexElementSet(new VertexElement[]
-                {
-                    new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
-                });
-            }
+                new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
+            });
 
             float[] vertices = new float[8 * _stride];
 
@@ -90,7 +88,7 @@ namespace Gk3Main.Graphics
                 2, 4, 6
             };
 
-            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, vertices, 8, _declaration);
+            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, vertices, 8, declaration);
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
             _skyboxEffect = globalContent.Load<Effect>("skybox.fx");
@@ -101,6 +99,67 @@ namespace Gk3Main.Graphics
         {
             _cubeMap = Graphics.RendererManager.CurrentRenderer.CreateCubeMap(name, front, back, left, right, up, down);
             _azimuth = azimuth;
+        }
+
+        public void AddSun(Math.Vector3 direction, Math.Vector3 color, bool memory)
+        {
+            const int sunSize = 64;
+
+            BitmapSurface sunSurface = null;
+            if (memory)
+            {
+                // gen the memory texture
+                _sun = Game.Radiosity.GenerateMemoryTexture(sunSize, sunSize, 0, 0, 0);
+                sunSurface = new BitmapSurface(_sun);
+            }
+            else
+            {
+                sunSurface = new BitmapSurface(sunSize, sunSize, null);
+            }
+
+            Math.Vector2 center = new Math.Vector2(sunSize * 0.5f, sunSize * 0.5f);
+            for (int y = 0; y < sunSize; y++)
+            {
+                for (int x = 0; x < sunSize; x++)
+                {
+                    Math.Vector2 texel = new Math.Vector2(x, y);
+                    float distance = Math.Vector2.Distance(texel, center);
+
+                    if (distance < sunSize / 2)
+                    {
+                        if (memory)
+                        {
+                            Color c = sunSurface.ReadColorAt(x, y);
+
+                            uint ptr = (uint)c.R | ((uint)c.G << 8) | ((uint)c.B << 16) | ((uint)c.A << 24);
+
+                            UIntPtr ptr2 = (UIntPtr)ptr;
+
+                            unsafe
+                            {
+                                float* f = (float*)ptr2.ToPointer();
+                                f[0] = color.X;
+                                f[1] = color.Y;
+                                f[2] = color.Z;
+                            }
+                        }
+                        else
+                        {
+                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 0] = (byte)(color.X * 255);
+                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 1] = (byte)(color.Y * 255);
+                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 2] = (byte)(color.Z * 255);
+                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 3] = 255;
+                        }
+                    }
+                }
+            }
+
+            if (!memory)
+            {
+                _sun = RendererManager.CurrentRenderer.CreateTexture("sun", sunSurface, true);
+            }
+
+            _sunDirection = direction;
         }
 
         public void Render(Camera camera)
@@ -124,7 +183,7 @@ namespace Gk3Main.Graphics
 
             _skyboxEffect.SetParameter("Diffuse", _cubeMap, 0);
 
-            Math.Matrix modelViewProjection = Math.Matrix.Translate(camera.Position.X, camera.Position.Y, camera.Position.Z) * camera.View * camera.Projection;
+            Math.Matrix modelViewProjection = Math.Matrix.RotateY(_azimuth) * Math.Matrix.Translate(camera.Position.X, camera.Position.Y, camera.Position.Z) * camera.View * camera.Projection;
             _skyboxEffect.SetParameter("ModelViewProjection", modelViewProjection);
 
             
@@ -134,9 +193,16 @@ namespace Gk3Main.Graphics
 
             _skyboxEffect.End();
 
+            if (_sun != null)
+            {
+                BillboardManager.AddBillboard(camera.Position + -_sunDirection * 500.0f, 100.0f, 100.0f, _sun);
+                BillboardManager.RenderBillboards(camera);
+            }
+
             RendererManager.CurrentRenderer.DepthTestEnabled = true;
         }
 
+        [Obsolete]
         internal static void AddSun(Math.Vector3 direction, Math.Vector3 color, float radius,
             BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right, BitmapSurface up, bool memory)
         {

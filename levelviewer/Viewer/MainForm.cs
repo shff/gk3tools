@@ -302,9 +302,10 @@ namespace Viewer
                     if (_renderHemicube)
                     {
                         Gk3Main.Math.Vector3 forward = Gk3Main.Math.Vector3.Forward;
+                        Gk3Main.Math.Vector3 up = _camera.Orientation * Gk3Main.Math.Vector3.Up;
                         forward = _camera.Orientation * forward;
 
-                        Gk3Main.Game.Radiosity.RenderHemicube(_camera.Position, forward, Gk3Main.Math.Vector3.Up);
+                        Gk3Main.Game.Radiosity.RenderHemicube(_camera.Position, forward, up);
                     }
                     else
                         Gk3Main.SceneManager.Render(_camera);
@@ -568,8 +569,8 @@ namespace Viewer
                         foreach (Gk3Main.Graphics.BspSurface surface in Gk3Main.SceneManager.CurrentRoom.Surfaces)
                         {
                             lighting.Surfaces.Add(new SurfaceXml((int)surface.index,
-                                Gk3Main.SceneManager.CurrentLightmaps.Maps[surface.index].Width,
-                                Gk3Main.SceneManager.CurrentLightmaps.Maps[surface.index].Height));
+                                System.Math.Max(Gk3Main.SceneManager.CurrentLightmaps.Maps[surface.index].Width, 4),
+                                System.Math.Max(Gk3Main.SceneManager.CurrentLightmaps.Maps[surface.index].Height, 4)));
                         }
 
                         lighting.Skylight = new SkylightXml(new ColorXml(100.0f, 100.0f, 100.0f));
@@ -597,8 +598,8 @@ namespace Viewer
 
                     MessageBox.Show("All done!");
 
-                    /*Gk3Main.Game.Radiosity.Init(Gk3Main.SceneManager.renderRadiosityCallback);
-                    _renderHemicube = true;*/
+                   // Gk3Main.Game.Radiosity.Init(Gk3Main.SceneManager.renderRadiosityCallback);
+                   // _renderHemicube = true;
                 }
             }
             catch(DllNotFoundException)

@@ -305,7 +305,7 @@ namespace Viewer
             this.pbRenderWindow.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pbRenderWindow.Location = new System.Drawing.Point(0, 24);
             this.pbRenderWindow.Name = "pbRenderWindow";
-            this.pbRenderWindow.Size = new System.Drawing.Size(547, 402);
+            this.pbRenderWindow.Size = new System.Drawing.Size(547, 380);
             this.pbRenderWindow.TabIndex = 2;
             this.pbRenderWindow.Text = "direct3D9RenderControl1";
             this.pbRenderWindow.Paint += new System.Windows.Forms.PaintEventHandler(this.simpleOpenGlControl1_Paint);
@@ -321,9 +321,9 @@ namespace Viewer
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(547, 426);
-            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.pbRenderWindow);
             this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.statusStrip1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "GK3 Viewer";

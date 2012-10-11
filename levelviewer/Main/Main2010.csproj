@@ -102,6 +102,7 @@
     <Compile Include="Game\GasResource.cs" />
     <Compile Include="Game\HelperIcons.cs" />
     <Compile Include="Game\LaserSceneCustomizer.cs" />
+    <Compile Include="Game\LightmapSpecs.cs" />
     <Compile Include="Game\MomResource.cs" />
     <Compile Include="Game\Nouns.cs" />
     <Compile Include="Game\NvcManager.cs" />

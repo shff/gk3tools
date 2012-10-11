@@ -378,8 +378,8 @@ namespace Gk3Main
 
                 foreach (KeyValuePair<string, SifRoomCamera> rcamera in _cameras)
                 {
-                    //Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
-                    //    50.0f, 50.0f, HelperIcons.Camera);
+                   // Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
+                   //     50.0f, 50.0f, HelperIcons.Camera);
                 }
 
                 // render any billboards
@@ -661,7 +661,7 @@ namespace Gk3Main
                 Graphics.Camera originalCamera = CurrentCamera;
                 Graphics.Viewport originalViewport = Graphics.RendererManager.CurrentRenderer.Viewport;
 
-                RadiosityMaps radiosityMaps = _currentRoom.GenerateMemoryTextures(_currentLightmaps);
+                RadiosityMaps radiosityMaps = _currentRoom.GenerateMemoryTextures(specs);
 
                 Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.None;
 
@@ -679,19 +679,21 @@ namespace Gk3Main
                 Graphics.BitmapSurface skyboxRightPixels = new Graphics.BitmapSurface(skyboxRight);
                 Graphics.BitmapSurface skyboxBottomPixels = new Graphics.BitmapSurface(skyboxBottom);
 
-                Graphics.SkyBox.AddSun(specs.SunDirection, specs.SunColor, 0.125f, skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, true);
+               // Graphics.SkyBox.AddSun(specs.SunDirection, specs.SunColor, 0.125f, skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, true);
 
                 Graphics.SkyBox originalSkybox = _currentSkybox;
                 _currentSkybox = new Graphics.SkyBox("box", skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, skyboxBottomPixels, 0);
 
+                _currentSkybox.AddSun(specs.SunDirection, specs.SunColor, true);
+
                 Graphics.LightmapResource oldLightmaps = _currentLightmaps;
-                _currentLightmaps = radiosityMaps.CreateBigMemoryTexture();
+                _currentLightmaps = radiosityMaps.CreateBigMemoryTexture(_currentLightmaps.Name);
                 _currentRoom.CalcRadiosityPass(_currentLightmaps, radiosityMaps);
 
                 Radiosity.Shutdown();
 
                 _currentRoom.FinalizeVertices(_currentLightmaps, true);
-                _currentLightmaps = radiosityMaps.ConvertToLightmap(0.02f);
+                _currentLightmaps = radiosityMaps.ConvertToLightmap(_currentLightmaps.Name, 0.02f);
 
                 Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.CounterClockwise;
                 Graphics.RendererManager.CurrentRenderer.Viewport = originalViewport;
@@ -745,6 +747,9 @@ namespace Gk3Main
 
             _currentSkybox.Render(c);
             _currentRoom.Render(c, _currentLightmaps, true);
+
+            // render any billboards
+            Graphics.BillboardManager.RenderBillboards(c);
         }
 
         private static void setupCustomScenes(string location)
@@ -918,10 +923,14 @@ namespace Gk3Main
                 upStream.Close();
 
                 Math.Vector3 dir = new Math.Vector3(0.4873306f, -0.8727542f, 0.02844055f);
-                Gk3Main.Graphics.SkyBox.AddSun(dir, new Math.Vector3(1.0f, 0, 0), 0.025f, fronts, backs, lefts, rights, ups, false);
+                //Gk3Main.Graphics.SkyBox.AddSun(dir, new Math.Vector3(1.0f, 0, 0), 0.025f, fronts, backs, lefts, rights, ups, false);
 
-                return new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", fronts, backs,
-                    lefts, rights, ups, downs, scn.SkyboxAzimuth);
+                Gk3Main.Graphics.SkyBox sb = new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", fronts, backs,
+                    lefts, rights, ups, downs, Utils.DegreesToRadians(scn.SkyboxAzimuth));
+
+                sb.AddSun(dir, new Math.Vector3(1.0f, 0, 0), false);
+
+                return sb;
             }
 
             return null;

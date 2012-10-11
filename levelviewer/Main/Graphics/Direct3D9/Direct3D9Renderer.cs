@@ -557,36 +557,6 @@ namespace Gk3Main.Graphics.Direct3D9
             _device.DrawUserPrimitives(d3dType, primitiveCount, vertices);
         }
 
-        public void RenderIndices<T>(PrimitiveType type, int startIndex, int vertexCount, int[] indices, T[] vertices, VertexElementSet declaration) where T: struct
-        {
-            if (declaration != _currentDeclaration)
-            {
-                VertexDeclaration = declaration;
-            }
-
-            SlimDX.Direct3D9.PrimitiveType d3dType;
-
-            int primitiveCount;
-            if (type == PrimitiveType.LineStrip)
-            {
-                d3dType = SlimDX.Direct3D9.PrimitiveType.LineStrip;
-                primitiveCount = indices.Length - 1;
-            }
-            else if (type == PrimitiveType.Lines)
-            {
-                d3dType = SlimDX.Direct3D9.PrimitiveType.LineList;
-                primitiveCount = indices.Length / 2;
-            }
-            else
-            {
-                d3dType = SlimDX.Direct3D9.PrimitiveType.TriangleList;
-                primitiveCount = indices.Length / 3;
-            }
-
-            _device.DrawIndexedUserPrimitives(d3dType, 0, vertexCount,
-                primitiveCount, indices, Format.Index32, vertices, _currentDeclaration.Stride);
-        }
-
         public void RenderIndices(PrimitiveType type, int startIndex, int vertexCount, int[] indices)
         {
 

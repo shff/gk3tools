@@ -533,25 +533,21 @@ namespace Gk3Main.Graphics
             }
         }
 
-        public Game.RadiosityMaps GenerateMemoryTextures(LightmapResource lightmaps)
+        public Game.RadiosityMaps GenerateMemoryTextures(Game.LightmapSpecs specs)
         {
             if (IntPtr.Size != 4)
                 throw new InvalidOperationException("Cannot generate memory textures unless running in 32-bit mode");
+            if (specs.Surfaces.Count != _surfaces.Length)
+                throw new ArgumentException("The number of surfaces in the lightmap spec doesn't match the number of surfaces in the BSP", "specs");
 
             const int minSize = 4;
-            Game.RadiosityMaps maps = new Game.RadiosityMaps(lightmaps, minSize);
+            Game.RadiosityMaps maps = new Game.RadiosityMaps(specs);
 
             foreach (BspSurface surface in _surfaces)
             {
-                BitmapSurface originalLightmap = lightmaps.Maps[surface.index];
+                Game.LightmapSpecs.SurfaceLightmap lm = specs.Surfaces[(int)surface.index];
 
-                int width = System.Math.Max(originalLightmap.Width, minSize);
-                int height = System.Math.Max(originalLightmap.Height, minSize);
-
-                //int width = originalLightmap.Width;
-                //int height = originalLightmap.Height;
-
-                maps.Maps[surface.index].MemoryTexture = Game.Radiosity.GenerateMemoryTexture(width, height, 0, 0, 0);
+                maps.Maps[surface.index].MemoryTexture = Game.Radiosity.GenerateMemoryTexture(lm.Width, lm.Height, 0, 0, 0);
             }
 
             return maps;

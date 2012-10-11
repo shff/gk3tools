@@ -27,21 +27,23 @@ namespace Gk3Main.Graphics
         private static Effect _shader;
         private const int _billboardVertexStride = 4 * 7;
         private static VertexElementSet _elements;
-        private static float[] _vertices = new float[_maxBillboards * _billboardVertexStride];
-        private static int[] _indices = new int[_maxBillboards * 6];
+        private static VertexBuffer _vertices;
+        private static IndexBuffer _indices;
+        private static float[] _workingVertices = new float[_maxBillboards * _billboardVertexStride];
 
         public static void Init(Resource.ResourceManager globalContent)
         {
             // create the indices
-            for (int i = 0; i < _maxBillboards; i++)
+            uint[] indices = new uint[_maxBillboards * 6];
+            for (uint i = 0; i < _maxBillboards; i++)
             {
-                _indices[i * 6 + 0] = i * 4 + 0;
-                _indices[i * 6 + 1] = i * 4 + 1;
-                _indices[i * 6 + 2] = i * 4 + 2;
-
-                _indices[i * 6 + 3] = i * 4 + 2;
-                _indices[i * 6 + 4] = i * 4 + 1;
-                _indices[i * 6 + 5] = i * 4 + 3;
+                indices[i * 6 + 0] = i * 4 + 0;
+                indices[i * 6 + 1] = i * 4 + 1;
+                indices[i * 6 + 2] = i * 4 + 2;
+                
+                indices[i * 6 + 3] = i * 4 + 2;
+                indices[i * 6 + 4] = i * 4 + 1;
+                indices[i * 6 + 5] = i * 4 + 3;
             }
 
             // create the elements
@@ -50,6 +52,9 @@ namespace Gk3Main.Graphics
                 new VertexElement(3 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 0),
                 new VertexElement(5 * sizeof(float), VertexElementFormat.Float2, VertexElementUsage.TexCoord, 1)
             });
+
+            _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Dynamic, (float[])null, _maxBillboards * _billboardVertexStride, _elements);
+            _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
             _shader = globalContent.Load<Effect>("texturedBillboard.fx");
         }
@@ -82,40 +87,46 @@ namespace Gk3Main.Graphics
             // position x,y,z | corner offset x,y
             for (int i = 0; i < _numBillboards; i++)
             {
-                _vertices[i * _billboardVertexStride + 0] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 1] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 2] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 3] = -_billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 4] = _billboards[i].Height * 0.5f;
-                _vertices[i * _billboardVertexStride + 5] = 0;
-                _vertices[i * _billboardVertexStride + 6] = 0;
+                _workingVertices[i * _billboardVertexStride + 0] = _billboards[i].Position.X;
+                _workingVertices[i * _billboardVertexStride + 1] = _billboards[i].Position.Y;
+                _workingVertices[i * _billboardVertexStride + 2] = _billboards[i].Position.Z;
+                _workingVertices[i * _billboardVertexStride + 3] = -_billboards[i].Width * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 4] = _billboards[i].Height * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 5] = 0;
+                _workingVertices[i * _billboardVertexStride + 6] = 0;
 
-                _vertices[i * _billboardVertexStride + 7] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 8] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 9] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 10] = -_billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 11] = -_billboards[i].Height * 0.5f;
-                _vertices[i * _billboardVertexStride + 12] = 0;
-                _vertices[i * _billboardVertexStride + 13] = 1.0f;
+                _workingVertices[i * _billboardVertexStride + 7] = _billboards[i].Position.X;
+                _workingVertices[i * _billboardVertexStride + 8] = _billboards[i].Position.Y;
+                _workingVertices[i * _billboardVertexStride + 9] = _billboards[i].Position.Z;
+                _workingVertices[i * _billboardVertexStride + 10] = -_billboards[i].Width * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 11] = -_billboards[i].Height * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 12] = 0;
+                _workingVertices[i * _billboardVertexStride + 13] = 1.0f;
 
-                _vertices[i * _billboardVertexStride + 14] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 15] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 16] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 17] = _billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 18] = _billboards[i].Height * 0.5f;
-                _vertices[i * _billboardVertexStride + 19] = 1.0f;
-                _vertices[i * _billboardVertexStride + 20] = 0;
+                _workingVertices[i * _billboardVertexStride + 14] = _billboards[i].Position.X;
+                _workingVertices[i * _billboardVertexStride + 15] = _billboards[i].Position.Y;
+                _workingVertices[i * _billboardVertexStride + 16] = _billboards[i].Position.Z;
+                _workingVertices[i * _billboardVertexStride + 17] = _billboards[i].Width * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 18] = _billboards[i].Height * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 19] = 1.0f;
+                _workingVertices[i * _billboardVertexStride + 20] = 0;
 
-                _vertices[i * _billboardVertexStride + 21] = _billboards[i].Position.X;
-                _vertices[i * _billboardVertexStride + 22] = _billboards[i].Position.Y; 
-                _vertices[i * _billboardVertexStride + 23] = _billboards[i].Position.Z;
-                _vertices[i * _billboardVertexStride + 24] = _billboards[i].Width * 0.5f;
-                _vertices[i * _billboardVertexStride + 25] = -_billboards[i].Height * 0.5f;
-                _vertices[i * _billboardVertexStride + 26] = 1.0f;
-                _vertices[i * _billboardVertexStride + 27] = 1.0f;
+                _workingVertices[i * _billboardVertexStride + 21] = _billboards[i].Position.X;
+                _workingVertices[i * _billboardVertexStride + 22] = _billboards[i].Position.Y;
+                _workingVertices[i * _billboardVertexStride + 23] = _billboards[i].Position.Z;
+                _workingVertices[i * _billboardVertexStride + 24] = _billboards[i].Width * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 25] = -_billboards[i].Height * 0.5f;
+                _workingVertices[i * _billboardVertexStride + 26] = 1.0f;
+                _workingVertices[i * _billboardVertexStride + 27] = 1.0f;
             }
 
+            CullMode originalCullMode = RendererManager.CurrentRenderer.CullMode;
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
+
+            _vertices.UpdateData(_workingVertices, _numBillboards * 4);
+
+            RendererManager.CurrentRenderer.Indices = _indices;
+            RendererManager.CurrentRenderer.SetVertexBuffer(_vertices);
 
             for (int i = 0; i < _numBillboards; i++)
             {
@@ -126,15 +137,12 @@ namespace Gk3Main.Graphics
             
                 _shader.Begin();
 
-                RendererManager.CurrentRenderer.RenderIndices(PrimitiveType.Triangles, i * 6, 2, _indices, _vertices, _elements);
-            
+                RendererManager.CurrentRenderer.RenderIndexedPrimitives(i * 6, 2);
             
                 _shader.End();
             }
 
-            
-
-            RendererManager.CurrentRenderer.CullMode = CullMode.CounterClockwise;
+            RendererManager.CurrentRenderer.CullMode = originalCullMode;
 
             // reset the billboard list
             _numBillboards = 0;

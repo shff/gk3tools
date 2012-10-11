@@ -49,19 +49,15 @@ namespace Gk3Main.Game
 
     public class RadiosityMaps
     {
-        private Graphics.LightmapResource _original;
         private RadiosityMap[] _maps;
 
-        public RadiosityMaps(Graphics.LightmapResource originalLightmaps, int minSize)
+        public RadiosityMaps(LightmapSpecs specs)
         {
-            _original = originalLightmaps;
-            _maps = new RadiosityMap[originalLightmaps.Maps.Length];
+            _maps = new RadiosityMap[specs.Surfaces.Count];
 
-            for (int i = 0; i < originalLightmaps.Maps.Length; i++)
+            for (int i = 0; i < _maps.Length; i++)
             {
-                int width = System.Math.Max(originalLightmaps.Maps[i].Width, minSize);
-                int height = System.Math.Max(originalLightmaps.Maps[i].Height, minSize);
-                _maps[i] = new RadiosityMap(width, height);
+                _maps[i] = new RadiosityMap(specs.Surfaces[i].Width, specs.Surfaces[i].Height);
             }
         }
 
@@ -70,10 +66,10 @@ namespace Gk3Main.Game
             get { return _maps; }
         }
 
-        public Graphics.LightmapResource ConvertToLightmap(float exposure)
+        public Graphics.LightmapResource ConvertToLightmap(string name, float exposure)
         {
             Graphics.OpenGl.OpenGLRenderer renderer = (Graphics.OpenGl.OpenGLRenderer)Graphics.RendererManager.CurrentRenderer;
-            Graphics.LightmapResource lightmap = new Graphics.LightmapResource(_original.Name, _maps.Length);
+            Graphics.LightmapResource lightmap = new Graphics.LightmapResource(name, _maps.Length);
 
             for (int i = 0; i < _maps.Length; i++)
             {
@@ -98,9 +94,9 @@ namespace Gk3Main.Game
             return lightmap;
         }
 
-        public Graphics.LightmapResource CreateBigMemoryTexture()
+        public Graphics.LightmapResource CreateBigMemoryTexture(string name)
         {
-            Graphics.LightmapResource lightmap = new Graphics.LightmapResource(_original.Name, _maps.Length);
+            Graphics.LightmapResource lightmap = new Graphics.LightmapResource(name, _maps.Length);
 
             for (int i = 0; i < _maps.Length; i++)
                 lightmap.Maps[i] = new Graphics.BitmapSurface(_maps[i].MemoryTexture.Width, _maps[i].MemoryTexture.Height, _maps[i].MemoryTexture.Pixels);
