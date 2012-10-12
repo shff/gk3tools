@@ -49,6 +49,7 @@ namespace Viewer
             Gk3Main.Console.CurrentConsole = new FormConsole(_consoleForm);
             Gk3Main.Console.CurrentConsole.AddCommand("run", new Gk3Main.ConsoleCommand(run));
             Gk3Main.Console.CurrentConsole.AddCommand("look", new Gk3Main.ConsoleCommand(look));
+            Gk3Main.Console.CurrentConsole.AddCommand("viewSurfaceLightmap", new Gk3Main.ConsoleCommand(viewSurfaceLightmap));
 
             if (Settings.Default.SearchPath == String.Empty)
             {
@@ -188,6 +189,22 @@ namespace Viewer
             return true;
         }
 
+        bool viewSurfaceLightmap(string[] args, Gk3Main.Console console)
+        {
+            if (args.Length != 2)
+                return false;
+
+            int surface;
+            if (int.TryParse(args[1], out surface) == false)
+                return false;
+
+            TextureViewer viewer = new TextureViewer();
+            viewer.DisplaySurfaceLightmap(Gk3Main.SceneManager.CurrentRoom, Gk3Main.SceneManager.CurrentLightmaps, surface);
+            viewer.Show();
+
+            return true;
+        }
+
         #region Event handlers
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -219,9 +236,8 @@ namespace Viewer
                     Gk3Main.SceneManager.LoadScene(dialog.SelectedScene);
                 }
 
-                // TODO: fix this!
-                //IList<string> resources = Gk3Main.Resource.ResourceManager.GetLoadedResourceNames();
-                //_resourceViewerForm.UpdateResources(resources);
+                IList<string> resources = Gk3Main.SceneManager.SceneContentManager.GetLoadedResourceNames();
+                _resourceViewerForm.UpdateResources(resources);
             }
         }
 

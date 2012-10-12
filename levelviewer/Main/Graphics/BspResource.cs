@@ -511,6 +511,11 @@ namespace Gk3Main.Graphics
             get { return _surfaces; }
         }
 
+        public float[] LightmapCoords
+        {
+            get { return _lightmapcoords; }
+        }
+
         public void SetSurfaceVisibility(string name, bool visible)
         {
             foreach (BspSurface surface in _surfaces)
@@ -567,7 +572,7 @@ namespace Gk3Main.Graphics
             foreach (BspSurface surface in _surfaces)
             {
 
-                if (surface.index == 50)
+                if (surface.index == 90)
                     count++;
 
                 count++;
@@ -584,17 +589,6 @@ namespace Gk3Main.Graphics
                 {
                     Math.Vector2 a, b, c;
 
-                    /*a.X = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 0];
-                    a.Y = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 1];
-
-                    b.X = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 0];
-                    b.Y = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 1];
-
-                    c.X = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 0];
-                    c.Y = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 1];*/
-
-                   // (_surfaces[i].VertexIndex + j) * 2 + 0
-
                     a.X = _lightmapcoords[(surface.VertexIndex + tri * 3 + 0) * 2 + 0];
                     a.Y = _lightmapcoords[(surface.VertexIndex + tri * 3 + 0) * 2 + 1];
 
@@ -604,37 +598,6 @@ namespace Gk3Main.Graphics
                     c.X = _lightmapcoords[(surface.VertexIndex + tri * 3 + 2) * 2 + 0];
                     c.Y = _lightmapcoords[(surface.VertexIndex + tri * 3 + 2) * 2 + 1];
                     
-                    /*BspVertex vertex = _bspVertices[surface.VertexIndex + tri * 3 + 0];
-                    a.X = (vertex.LU - lightmapRect.X) / (lightmapRect.Width + 1.0f);
-                    a.Y = (vertex.LV - lightmapRect.Y) / (lightmapRect.Height + 1.0f);
-
-                    vertex = _bspVertices[surface.VertexIndex + tri * 3 + 1];
-                    b.X = (vertex.LU - lightmapRect.X) / (lightmapRect.Width + 1.0f);
-                    b.Y = (vertex.LV - lightmapRect.Y) / (lightmapRect.Height + 1.0f);
-
-                    vertex = _bspVertices[surface.VertexIndex + tri * 3 + 2];
-                    c.X = (vertex.LU - lightmapRect.X) / (lightmapRect.Width + 1.0f);
-                    c.Y = (vertex.LV - lightmapRect.Y) / (lightmapRect.Height + 1.0f);*/
-                    
-                    /*a.X = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 0];
-                    a.Y = _lightmapcoords[surface.indices[tri * 3 + 0] * 2 + 1];
-
-                    b.X = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 0];
-                    b.Y = _lightmapcoords[surface.indices[tri * 3 + 1] * 2 + 1];
-
-                    c.X = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 0];
-                    c.Y = _lightmapcoords[surface.indices[tri * 3 + 2] * 2 + 1];*/
-
-                    
-                    /*a.X = _bspVertices[surface.VertexIndex + tri + 0].LU;
-                    a.Y = _bspVertices[surface.VertexIndex + tri + 0].LV;
-
-                    b.X = _bspVertices[surface.VertexIndex + tri + 1].LU;
-                    b.Y = _bspVertices[surface.VertexIndex + tri + 1].LV;
-
-                    c.X = _bspVertices[surface.VertexIndex + tri + 2].LU;
-                    c.Y = _bspVertices[surface.VertexIndex + tri + 2].LV;*/
-
                     Math.Vector3 pa, pb, pc;
                     pa.X = _bspVertices[surface.VertexIndex + tri * 3 + 0].X;
                     pa.Y = _bspVertices[surface.VertexIndex + tri * 3 + 0].Y;
@@ -704,10 +667,11 @@ namespace Gk3Main.Graphics
                             texelMin.Y = (float)y / memTex.Height;
                             texelMax.X = (float)(x + 1) / memTex.Width;
                             texelMax.Y = (float)(y + 1) / memTex.Height;
-                            if (Gk3Main.Utils.TestTriangleBox(a, b, c, texelMin, texelMax))
+                           // if (Gk3Main.Utils.TestTriangleBox(a, b, c, texelMin, texelMax))
+                            if (Gk3Main.Utils.TestTriangleBoxAndGetCenterOfMassUV(a, b, c, texelMin, texelMax, out projectedUV))
                             {
 
-                                Gk3Main.Utils.IsPointInTriangle(texelUV, a, b, c, out projectedUV);
+                               // Gk3Main.Utils.IsPointInTriangle(texelUV, a, b, c, out projectedUV);
 
                                 // calc the world coordinates
                                 Math.Vector3 p3 = pa + (pb - pa) * projectedUV.Y + (pc - pa) * projectedUV.X;

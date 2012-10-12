@@ -34,13 +34,14 @@ namespace Viewer
             // 
             // resourceTree
             // 
-            this.resourceTree.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.resourceTree.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.resourceTree.Location = new System.Drawing.Point(12, 25);
             this.resourceTree.Name = "resourceTree";
             this.resourceTree.Size = new System.Drawing.Size(262, 244);
             this.resourceTree.TabIndex = 0;
+            this.resourceTree.NodeMouseDoubleClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.resourceTree_NodeMouseDoubleClick);
             // 
             // label1
             // 

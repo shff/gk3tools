@@ -39,6 +39,7 @@ namespace Viewer
             this.txtCommand.Name = "txtCommand";
             this.txtCommand.Size = new System.Drawing.Size(452, 20);
             this.txtCommand.TabIndex = 0;
+            this.txtCommand.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtCommand_KeyDown);
             this.txtCommand.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtCommand_KeyPress);
             // 
             // txtConsole
@@ -47,6 +48,7 @@ namespace Viewer
             this.txtConsole.Location = new System.Drawing.Point(0, 0);
             this.txtConsole.Multiline = true;
             this.txtConsole.Name = "txtConsole";
+            this.txtConsole.ReadOnly = true;
             this.txtConsole.ScrollBars = System.Windows.Forms.ScrollBars.Both;
             this.txtConsole.Size = new System.Drawing.Size(452, 297);
             this.txtConsole.TabIndex = 1;

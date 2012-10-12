@@ -40,6 +40,8 @@ namespace Gk3Main
 
         public void RunCommand(string command)
         {
+            _previousCommand = command;
+
             string[] args = command.Split();
 
             if (args[0].Equals("dumpCommands", StringComparison.OrdinalIgnoreCase) ||
@@ -65,6 +67,11 @@ namespace Gk3Main
             set { _verbosity = value; }
         }
 
+        public string PreviousCommand
+        {
+            get { return _previousCommand; }
+        }
+
         private void dumpCommands()
         {
             WriteLine("Known commands:");
@@ -75,8 +82,9 @@ namespace Gk3Main
             WriteLine("\tDumpCommands");
         }
 
-        protected Dictionary<string, ConsoleCommand> _commands = new Dictionary<string, ConsoleCommand>();
+        protected Dictionary<string, ConsoleCommand> _commands = new Dictionary<string, ConsoleCommand>(StringComparer.OrdinalIgnoreCase);
         private ConsoleVerbosity _verbosity;
+        private string _previousCommand;
 
         public static Console CurrentConsole
         {

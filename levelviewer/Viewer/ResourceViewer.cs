@@ -37,5 +37,15 @@ namespace Viewer
             resourceTree.Nodes.Add("textures", "Textures");
             resourceTree.Nodes.Add("other", "Other");
         }
+
+        private void resourceTree_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Node.Text.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase))
+            {
+                TextureViewer t = new TextureViewer();
+                t.DisplayGk3Bitmap(e.Node.Text);
+                t.Show();
+            }
+        }
     }
 }

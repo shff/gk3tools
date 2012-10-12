@@ -34,6 +34,14 @@ namespace Viewer
             this.Hide();
             e.Cancel = true;
         }
+
+        private void txtCommand_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up)
+            {
+                txtCommand.Text = Gk3Main.Console.CurrentConsole.PreviousCommand;
+            }
+        }
     }
 
     class FormConsole : Gk3Main.Console

@@ -174,16 +174,16 @@ namespace Gk3Main
         public static bool TestTriangleBox(Math.Vector2 a, Math.Vector2 b, Math.Vector2 c, Math.Vector2 boxMin, Math.Vector2 boxMax)
         {
             Math.Vector2 ab = (b - a).Normalize();
-            Math.Vector2 ac = (c - a).Normalize();
+            Math.Vector2 ac = (a - c).Normalize();
             Math.Vector2 bc = (c - b).Normalize();
 
             // calc the normals
-            Utils.Swap(ref ab.X, ref ab.Y);
+            /*Utils.Swap(ref ab.X, ref ab.Y);
             Utils.Swap(ref ac.X, ref ac.Y);
             Utils.Swap(ref bc.X, ref bc.Y);
             ab.X = -ab.X;
             ac.X = -ac.X;
-            bc.X = -bc.X;
+            bc.X = -bc.X;*/
 
             // project the triangle onto the 1st axis of the triangle
             float dotA = a.Dot(ab);
@@ -248,6 +248,166 @@ namespace Gk3Main
             return true;
         }
 
+        public static bool TestTriangleBoxAndGetCenterOfMassUV(Math.Vector2 a, Math.Vector2 b, Math.Vector2 c, Math.Vector2 boxMin, Math.Vector2 boxMax, out Math.Vector2 centerUV)
+        {
+            if (TestTriangleBox(a, b, c, boxMin, boxMax) == false)
+            {
+                centerUV = Math.Vector2.Zero;
+                return false;
+            }
+
+            // we know the box and the triangle intersect, but do we need to find the cetroid?
+            centerUV.X = (boxMin.X + boxMax.X) * 0.5f;
+            centerUV.Y = (boxMin.Y + boxMax.Y) * 0.5f;
+            if (IsPointInTriangle(centerUV, a, b, c, out centerUV))
+                return true;
+
+            if (float.IsNaN(centerUV.X) || float.IsNaN(centerUV.Y))
+            {
+                // ugh... whatever... just keep going
+                return true;
+            }
+
+            // apparently the texel intersects 1 or more triangle edges, which means we need
+            // to clip the triangle and square.
+            List<Math.Vector2> subject = new List<Math.Vector2>();
+            subject.Add(boxMin);
+            subject.Add(new Math.Vector2(boxMin.X, boxMax.Y));
+            subject.Add(boxMax);
+            subject.Add(new Math.Vector2(boxMax.X, boxMin.Y));
+
+            List<Math.Vector2> outputList = subject;
+
+            // UV coords may be mirrored, which means winding order is backwards, will screw up everything below.
+            // So check to see if they are, and if they are, rearrange them so they aren't.
+            Math.Vector2 center = (a + b + c) / 3.0f;
+            Math.Plane2D ab = Math.Plane2D.CreateFromEdge(a, b);
+            Math.Plane2D bc = Math.Plane2D.CreateFromEdge(b, c);
+            Math.Plane2D ca = Math.Plane2D.CreateFromEdge(c, a);
+            bool reversed = false;
+            if (Math.Plane2D.IsPointInFrontOfPlane(ab, center) == false ||
+                Math.Plane2D.IsPointInFrontOfPlane(bc, center) == false ||
+                Math.Plane2D.IsPointInFrontOfPlane(ca, center) == false)
+            {
+                // doh, winding order seems to be reversed. Swap c and a.
+                Math.Vector2 d = a;
+                a = c;
+                c = d;
+
+                ab = Math.Plane2D.CreateFromEdge(a, b);
+                bc = Math.Plane2D.CreateFromEdge(b, c);
+                ca = Math.Plane2D.CreateFromEdge(c, a);
+
+                reversed = true;
+            }
+
+            // side A
+            List<Math.Vector2> inputList = new List<Math.Vector2>(outputList);
+            outputList.Clear();
+            Math.Vector2 S = inputList[inputList.Count - 1];
+            foreach (Math.Vector2 E in inputList)
+            {
+                if (Math.Plane2D.IsPointInFrontOfPlane(ab, E))
+                {
+                    if (Math.Plane2D.IsPointInFrontOfPlane(ab, S) == false)
+                    {
+                        Math.Vector2 i;
+                        TestLineLineIntersection(S, E, a, b, out i);
+                        outputList.Add(i);
+                    }
+                    outputList.Add(E);
+                }
+                else if (Math.Plane2D.IsPointInFrontOfPlane(ab, S))
+                {
+                     Math.Vector2 i;
+                     TestLineLineIntersection(S, E, a, b, out i);
+                    outputList.Add(i);
+                }
+                S = E;
+            }
+            if (outputList.Count == 0) return true;
+
+            // side B
+            inputList = new List<Math.Vector2>(outputList);
+            outputList.Clear();
+            S = inputList[inputList.Count - 1];
+            foreach (Math.Vector2 E in inputList)
+            {
+                if (Math.Plane2D.IsPointInFrontOfPlane(bc, E))
+                {
+                    if (Math.Plane2D.IsPointInFrontOfPlane(bc, S) == false)
+                    {
+                        Math.Vector2 i;
+                        TestLineLineIntersection(S, E, b, c, out i);
+                        outputList.Add(i);
+                    }
+                    outputList.Add(E);
+                }
+                else if (Math.Plane2D.IsPointInFrontOfPlane(bc, S))
+                {
+                     Math.Vector2 i;
+                     TestLineLineIntersection(S, E, b, c, out i);
+                    outputList.Add(i);
+                }
+                S = E;
+            }
+            if (outputList.Count == 0) return true;
+
+            // side C
+            inputList = new List<Math.Vector2>(outputList);
+            outputList.Clear();
+            S = inputList[inputList.Count - 1];
+            foreach (Math.Vector2 E in inputList)
+            {
+                if (Math.Plane2D.IsPointInFrontOfPlane(ca, E))
+                {
+                    if (Math.Plane2D.IsPointInFrontOfPlane(ca, S) == false)
+                    {
+                        Math.Vector2 i;
+                        TestLineLineIntersection(S, E, c, a, out i);
+                        outputList.Add(i);
+                    }
+                    outputList.Add(E);
+                }
+                else if (Math.Plane2D.IsPointInFrontOfPlane(ca, S))
+                {
+                     Math.Vector2 i;
+                     TestLineLineIntersection(S, E, c, a, out i);
+                    outputList.Add(i);
+                }
+                S = E;
+            }
+            if (outputList.Count == 0) return true;
+
+            // at this point we've got a clipped list of points, so now we need to find the "center of mass"
+            centerUV = Math.Vector2.Zero;
+            float area = 0;
+            outputList.Add(outputList[0]);
+            for (int i = 0; i < outputList.Count - 1; i++)
+            {
+                float second = outputList[i].X * outputList[i + 1].Y - outputList[i + 1].X * outputList[i].Y;
+                centerUV += (outputList[i] + outputList[i + 1]) * second;
+                area += second;
+            }
+
+            centerUV /= 6 * area * 0.5f;
+
+            // if we reversed the windings, undo it, so that the output UV coords are correct
+            if (reversed)
+            {
+                Math.Vector2 d = a;
+                a = c;
+                c = d;
+            }
+
+            if (float.IsNaN(centerUV.X) || float.IsNaN(centerUV.Y))
+                centerUV = boxMax;
+
+            IsPointInTriangle(centerUV, a, b, c, out centerUV);
+
+            return true;
+        }
+
         public static bool IsPointInTriangle(Math.Vector2 point, Math.Vector2 a, Math.Vector2 b, Math.Vector2 c, out Math.Vector2 uv)
         {
             Math.Vector2 v0 = c - a;
@@ -265,6 +425,25 @@ namespace Gk3Main
             uv.Y = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
             return uv.X >= 0 && uv.Y >= 0 && uv.X + uv.Y < 1.0f;
+        }
+
+        public static bool TestLineLineIntersection(Math.Vector2 a1, Math.Vector2 a2, Math.Vector2 b1, Math.Vector2 b2, out Math.Vector2 intersection)
+        {
+            float denom = (b2.Y - b1.Y) * (a2.X - a1.X) - (b2.X - b1.X) * (a2.Y - a1.Y);
+            if (denom == 0)
+            {
+                intersection = Math.Vector2.Zero;
+                return false; // lines are parallel
+            }
+
+            Math.Vector2 u;
+            u.X = ((b2.X - b1.X) * (a1.Y - b1.Y) - (b2.Y - b1.Y) * (a1.X - b1.X)) / denom;
+            //u.Y = ((a2.X - a1.X) * (a1.Y - b1.Y) - (a2.Y - a1.Y) * (a1.X - b1.X)) / denom;
+
+            intersection.X = a1.X + u.X * (a2.X - a1.X);
+            intersection.Y = a1.Y + u.X * (a2.Y - a1.Y);
+
+            return true;
         }
 
         public static float RollFloatingDie()
