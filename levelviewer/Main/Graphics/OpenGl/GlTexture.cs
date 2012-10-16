@@ -48,34 +48,23 @@ namespace Gk3Main.Graphics.OpenGl
             //Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, _pixels); 
         }
 
-        public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream stream)
-            : base(name, stream)
-        {
-            _renderer = renderer;
-
-            convertToOpenGlTexture(true, false, true);
-        }
-
-        public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream stream, bool clamp)
-            : base(name, stream)
-        {
-            _renderer = renderer;
-
-            convertToOpenGlTexture(true, clamp, true);
-        }
-
-        public GlTexture(OpenGLRenderer renderer, string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
-            : base(name, colorStream, alphaStream)
+        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface colorSurface, BitmapSurface alphaSurface)
+            : base(name, colorSurface, alphaSurface)
         {
             _renderer = renderer;
 
             convertToOpenGlTexture(true, true, true);
         }
 
-        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface surface, bool mipmapped)
+        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha)
             : base(name, surface)
         {
             _renderer = renderer;
+
+            // TODO: we aren't generating 
+
+            if (premultiplyAlpha)
+                this.premultiplyAlpha();
 
             convertToOpenGlTexture(true, false, mipmapped);
         }

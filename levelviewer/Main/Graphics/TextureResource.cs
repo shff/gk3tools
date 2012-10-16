@@ -31,16 +31,6 @@ namespace Gk3Main.Graphics
             // nothing... hopefully the child class is handling things
         }
 
-        public TextureResource(string name, System.IO.Stream stream)
-            : base(name, true)
-        {
-            BitmapSurface color = new BitmapSurface(stream);
-
-            _width = color.Width;
-            _height = color.Height;
-            _pixels = color.Pixels;
-        }
-
         protected TextureResource(string name, BitmapSurface surface)
             : base(name, true)
         {
@@ -49,12 +39,9 @@ namespace Gk3Main.Graphics
             _pixels = surface.Pixels;
         }
 
-        public TextureResource(string name, System.IO.Stream colorMapStream, System.IO.Stream alphaMapStream)
+        protected TextureResource(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface)
             : base(name, true)
         {
-            BitmapSurface colorSurface = new BitmapSurface(colorMapStream);
-            BitmapSurface alphaSurface = new BitmapSurface(alphaMapStream);
-
             if (alphaSurface.Width != colorSurface.Width || alphaSurface.Height != colorSurface.Height)
                 throw new Resource.InvalidResourceFileFormat("Color and alpha map dimensions do not match");
 
@@ -85,6 +72,7 @@ namespace Gk3Main.Graphics
         public int ActualPixelHeight { get { return _actualPixelHeight; } }
 
         public bool ContainsAlpha { get { return _containsAlpha; } }
+        public bool PremultipliedAlhpa { get { return _premultipliedAlpha; } }
 
         /// <summary>
         /// Gets the ORIGINAL pixels as loaded from the bitmap, without any processing
@@ -196,6 +184,21 @@ namespace Gk3Main.Graphics
             return result;
         }
 
+        protected void premultiplyAlpha()
+        {
+            if (_premultipliedAlpha) return;
+
+            for (int i = 0; i < _width * _height; i++)
+            {
+                float alpha = 255.0f / _pixels[i * 4 + 3];
+                _pixels[i * 4 + 0] = (byte)(_pixels[i * 4 + 0] * alpha);
+                _pixels[i * 4 + 1] = (byte)(_pixels[i * 4 + 1] * alpha);
+                _pixels[i * 4 + 2] = (byte)(_pixels[i * 4 + 2] * alpha);
+            }
+
+            _premultipliedAlpha = true;
+        }
+
         protected byte[] _pixels;
         protected int _width;
         protected int _height;
@@ -203,6 +206,7 @@ namespace Gk3Main.Graphics
         protected float _actualWidth, _actualHeight;
         protected int _actualPixelWidth, _actualPixelHeight;
         protected bool _containsAlpha;
+        protected bool _premultipliedAlpha;
 
         private static TextureResource _defaultTexture;
 
@@ -233,7 +237,8 @@ namespace Gk3Main.Graphics
 
                 System.IO.Stream stream = FileSystem.Open(name);
 
-                Resource.Resource resource = RendererManager.CurrentRenderer.CreateTexture(name, stream);
+                BitmapSurface surface = new BitmapSurface(stream);
+                Resource.Resource resource = RendererManager.CurrentRenderer.CreateTexture(name, surface, true, true);
 
                 stream.Close();
 

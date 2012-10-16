@@ -159,12 +159,41 @@ namespace Viewer
         }
     }
 
+    public class OmniXml
+    {
+        private ColorXml _color;
+        private VectorXml _position;
+        private float _radius;
+
+        [XmlAttribute("radius")]
+        public float Radius
+        {
+            get { return _radius; }
+            set { _radius = value; }
+        }
+
+        [XmlElement("color")]
+        public ColorXml Color
+        {
+            get { return _color; }
+            set { _color = value; }
+        }
+
+        [XmlElement("position")]
+        public VectorXml Position
+        {
+            get { return _position; }
+            set { _position = value; }
+        }
+    }
+
     [XmlRoot("lighting")]
     public class LightingXml
     {
         private float _exposure;
         private List<SurfaceXml> _surfaces = new List<SurfaceXml>();
         private SkylightXml _skylight;
+        private List<OmniXml> _omnis = new List<OmniXml>();
 
         [XmlAttribute("exposure")]
         public float Exposure
@@ -185,6 +214,13 @@ namespace Viewer
         {
             get { return _skylight; }
             set { _skylight = value; }
+        }
+
+        [XmlArray("omnis")]
+        [XmlArrayItem("omni")]
+        public List<OmniXml> Omnis
+        {
+            get { return _omnis; }
         }
 
         public void Write(string filename)
@@ -222,6 +258,15 @@ namespace Viewer
             sunColor.Z = lighting.Skylight.SunColor.Blue;
             specs.SunColor = sunColor;
             specs.SunDirection = new Gk3Main.Math.Vector3(lighting.Skylight.SunDirection.X, lighting.Skylight.SunDirection.Y, lighting.Skylight.SunDirection.Z);
+
+            foreach (OmniXml omni in lighting.Omnis)
+            {
+                Gk3Main.Game.LightmapSpecs.OmniLight o = new Gk3Main.Game.LightmapSpecs.OmniLight();
+                o.Radius = omni.Radius;
+                o.Position = new Gk3Main.Math.Vector3(omni.Position.X, omni.Position.Y, omni.Position.Z);
+                o.Color = new Gk3Main.Math.Vector3(omni.Color.Red, omni.Color.Green, omni.Color.Blue);
+                specs.OmniLights.Add(o);
+            }
 
             // TODO: this ignores the index and assumes they'll be ordered in the spec file!
             foreach (SurfaceXml surface in lighting.Surfaces)

@@ -121,6 +121,15 @@ namespace Gk3Main.Graphics
             _lightmapEffect = content.Load<Effect>("basic_lightmapped.fx");
             _lightmapNoTextureEffect = content.Load<Effect>("basic_lightmapped_notexture.fx");
 
+            try
+            {
+                _radiosityEffect = content.Load<Effect>("radiosity.fx");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // most likely this means the renderer is Direct3D
+            }
+
             if (_vertexDeclaration == null)
                 _vertexDeclaration = new VertexElementSet(new VertexElement[] {
                     new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0),
@@ -402,7 +411,12 @@ namespace Gk3Main.Graphics
         {
             Effect currentEffect;
             bool lightmappingEnabled = false;
-            if (SceneManager.LightmapsEnabled && lightmaps != null)
+            if (SceneManager.CalculatingRadiosity)
+            {
+                currentEffect = _radiosityEffect;
+                lightmappingEnabled = true;
+            }
+            else if (SceneManager.LightmapsEnabled && lightmaps != null)
             {
                 if (SceneManager.CurrentShadeMode == ShadeMode.Flat)
                 {
@@ -899,6 +913,7 @@ namespace Gk3Main.Graphics
         private static Effect _basicTexturedEffect;
         private static Effect _lightmapEffect;
         private static Effect _lightmapNoTextureEffect;
+        private static Effect _radiosityEffect;
         private static VertexElementSet _vertexDeclaration;
     }
 

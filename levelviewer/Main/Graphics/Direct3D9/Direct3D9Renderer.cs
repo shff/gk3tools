@@ -342,24 +342,14 @@ namespace Gk3Main.Graphics.Direct3D9
         #endregion Render states
 
         #region Texture creation
-        public TextureResource CreateTexture(string name, System.IO.Stream stream)
+        public TextureResource CreateTexture(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface, bool mipmapped)
         {
-            return new Direct3D9Texture(name, stream);
+            return new Direct3D9Texture(name, colorSurface, alphaSurface);
         }
 
-        public TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp)
+        public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha)
         {
-            return new Direct3D9Texture(name, stream, clamp);
-        }
-
-        public TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
-        {
-            return new Direct3D9Texture(name, colorStream, alphaStream);
-        }
-
-        public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped)
-        {
-            return new Direct3D9Texture(name, surface);
+            return new Direct3D9Texture(name, surface, premultiplyAlpha);
         }
 
         public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)

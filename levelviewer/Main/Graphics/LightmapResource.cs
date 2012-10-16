@@ -49,7 +49,7 @@ namespace Gk3Main.Graphics
         {
             _packedMaps = new TextureAtlas(_maps);
 
-            _packedMapsTexture = RendererManager.CurrentRenderer.CreateTexture("blah", _packedMaps.Surface, false);
+            _packedMapsTexture = RendererManager.CurrentRenderer.CreateTexture("blah", _packedMaps.Surface, false, false);
         }
 
         public override void Dispose()

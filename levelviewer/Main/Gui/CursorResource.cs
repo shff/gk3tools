@@ -49,10 +49,21 @@ namespace Gk3Main.Gui
 
             reader.Close();
 
-            if (alphaTexture == null)
-                _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"));
-            else
-                _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"), FileSystem.Open(alphaTexture + ".BMP"));
+            using (Stream color = FileSystem.Open(Utils.GetFilenameWithoutExtension(name) + ".BMP"))
+            {
+                Graphics.BitmapSurface cursor = new Graphics.BitmapSurface(color);
+                if (alphaTexture == null)
+                    _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, cursor, false, true);
+                else
+                {
+                    using (Stream alpha = FileSystem.Open(alphaTexture + ".BMP"))
+                    {
+                        Graphics.BitmapSurface alphaSurface = new Graphics.BitmapSurface(alpha);
+                        _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, cursor, alphaSurface, false);
+                    }
+                }
+            }
+
 
             if (_hotX == -1) _hotX = _cursor.Height / 2;
             if (_hotY == -1) _hotY = _cursor.Height / 2;

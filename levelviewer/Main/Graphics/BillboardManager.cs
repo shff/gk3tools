@@ -12,6 +12,7 @@ namespace Gk3Main.Graphics
             public float Width, Height;
             public float U, V, USize, VSize;
             public TextureResource Texture;
+            public TextureResource Texture2;
         }
 
         private struct BillboardVertex
@@ -25,6 +26,7 @@ namespace Gk3Main.Graphics
         private static int _numBillboards;
 
         private static Effect _shader;
+        private static Effect _alphaShader;
         private const int _billboardVertexStride = 4 * 7;
         private static VertexElementSet _elements;
         private static VertexBuffer _vertices;
@@ -57,11 +59,24 @@ namespace Gk3Main.Graphics
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
             _shader = globalContent.Load<Effect>("texturedBillboard.fx");
+
+            try
+            {
+                _alphaShader = globalContent.Load<Effect>("radiosity_omnilight.fx");
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                // oh well, that shader just isn't available
+                // (this will happen if using Direct3D renderer)
+            }
         }
 
         public static void AddBillboard(Math.Vector3 position, float width, float height,
             TextureResource texture)
         {
+            if (texture == null)
+                throw new ArgumentNullException("texture");
+
             if (_numBillboards < _maxBillboards - 1)
             {
                 _billboards[_numBillboards].Position = position;
@@ -77,7 +92,39 @@ namespace Gk3Main.Graphics
             }
         }
 
+        internal static void AddBillboard(Math.Vector3 position, float width, float height,
+            TextureResource diffuse, TextureResource alpha)
+        {
+            if (diffuse == null)
+                throw new ArgumentNullException("diffuse");
+
+            if (_numBillboards < _maxBillboards - 1)
+            {
+                _billboards[_numBillboards].Position = position;
+                _billboards[_numBillboards].Width = width;
+                _billboards[_numBillboards].Height = height;
+                _billboards[_numBillboards].Texture = diffuse;
+                _billboards[_numBillboards].Texture2 = alpha;
+                _billboards[_numBillboards].U = 0;
+                _billboards[_numBillboards].V = 0;
+                _billboards[_numBillboards].USize = 1.0f;
+                _billboards[_numBillboards].VSize = 1.0f;
+
+                _numBillboards++;
+            }
+        }
+
         public static void RenderBillboards(Camera camera)
+        {
+            render(camera, false);
+        }
+
+        internal static void RenderBillboardsWithAlpha(Camera camera)
+        {
+            render(camera, true);
+        }
+
+        private static void render(Camera camera, bool useAlphaShader)
         {
             if (camera == null)
                 throw new ArgumentNullException("camera");
@@ -128,18 +175,29 @@ namespace Gk3Main.Graphics
             RendererManager.CurrentRenderer.Indices = _indices;
             RendererManager.CurrentRenderer.SetVertexBuffer(_vertices);
 
+            Effect shader;
+            
+
             for (int i = 0; i < _numBillboards; i++)
             {
-                _shader.Bind();
-                _shader.SetParameter("ModelView", camera.View);
-                _shader.SetParameter("Projection", camera.Projection);
-                _shader.SetParameter("Diffuse", _billboards[i].Texture, 0);
-            
-                _shader.Begin();
+                if (!useAlphaShader || _billboards[i].Texture2 == null)
+                    shader = _shader;
+                else
+                    shader = _alphaShader;
+
+                shader.Bind();
+                shader.SetParameter("ModelView", camera.View);
+                shader.SetParameter("Projection", camera.Projection);
+                shader.SetParameter("Diffuse", _billboards[i].Texture, 0);
+
+                if (useAlphaShader)
+                    shader.SetParameter("Alpha", _billboards[i].Texture2, 1);
+
+                shader.Begin();
 
                 RendererManager.CurrentRenderer.RenderIndexedPrimitives(i * 6, 2);
-            
-                _shader.End();
+
+                shader.End();
             }
 
             RendererManager.CurrentRenderer.CullMode = originalCullMode;

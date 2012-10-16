@@ -23,27 +23,18 @@ namespace Gk3Main.Graphics.Direct3D9
             convertToDirect3D9Texture(false, true);
         }
 
-        public Direct3D9Texture(string name, System.IO.Stream stream)
-            : base(name, stream)
-        {
-            convertToDirect3D9Texture(true, false);
-        }
-
-        public Direct3D9Texture(string name, System.IO.Stream stream, bool clamp)
-            : base(name, stream)
-        {
-            convertToDirect3D9Texture(true, clamp);
-        }
-
-        public Direct3D9Texture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
-            : base(name, colorStream, alphaStream)
+        public Direct3D9Texture(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface)
+            : base(name, colorSurface, alphaSurface)
         {
             convertToDirect3D9Texture(true, true);
         }
 
-        public Direct3D9Texture(string name, BitmapSurface surface)
+        public Direct3D9Texture(string name, BitmapSurface surface, bool premultiplyAlpha)
             : base(name, surface)
         {
+            if (premultiplyAlpha)
+                this.premultiplyAlpha();
+
             convertToDirect3D9Texture(true, false);
         }
 

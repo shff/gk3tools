@@ -130,6 +130,8 @@ namespace Viewer
             Gk3Main.SceneManager.LightmapsEnabled = true;
             Gk3Main.SceneManager.DoubleLightmapValues = true;
             Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.CullMode = Gk3Main.Graphics.CullMode.CounterClockwise;
+            Gk3Main.Graphics.RendererManager.CurrentRenderer.DepthTestEnabled = true;
 
             // check the arguments to see if we need to load anything
             if (arguments != null)
@@ -164,6 +166,7 @@ namespace Viewer
                 Gk3Main.Graphics.ModelResource.LoadGlobalContent(_globalContent);
                 Gk3Main.SceneManager.Initialize(_globalContent);
                 Gk3Main.Game.GameManager.Load();
+                Gk3Main.Game.HelperIcons.Load(_globalContent);
             }
 
             _initialDataLoaded = true;
@@ -564,6 +567,20 @@ namespace Viewer
 
             Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Anisotropic4X;
             pbRenderWindow.Refresh();
+        }
+
+        private void showHelpersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (showHelpersToolStripMenuItem.Checked)
+            {
+                showHelpersToolStripMenuItem.Checked = false;
+                Gk3Main.SceneManager.RenderHelperIcons = false;
+            }
+            else
+            {
+                showHelpersToolStripMenuItem.Checked = true;
+                Gk3Main.SceneManager.RenderHelperIcons = true;
+            }
         }
 
         private bool _renderHemicube;

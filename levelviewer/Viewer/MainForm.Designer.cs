@@ -58,6 +58,7 @@ namespace Viewer
             this.lblStatusSurface = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblSurfaceIndexValue = new System.Windows.Forms.ToolStripStatusLabel();
             this.pbRenderWindow = new Viewer.Direct3D9RenderControl();
+            this.showHelpersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -149,7 +150,8 @@ namespace Viewer
             this.lightmappingToolStripMenuItem,
             this.texturingToolStripMenuItem,
             this.xLightmapsToolStripMenuItem,
-            this.shadingToolStripMenuItem});
+            this.shadingToolStripMenuItem,
+            this.showHelpersToolStripMenuItem});
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
             this.settingsToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.settingsToolStripMenuItem.Text = "Settings";
@@ -160,7 +162,7 @@ namespace Viewer
             this.openGLToolStripMenuItem,
             this.direct3D9ToolStripMenuItem});
             this.rendererToolStripMenuItem.Name = "rendererToolStripMenuItem";
-            this.rendererToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.rendererToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.rendererToolStripMenuItem.Text = "Renderer";
             // 
             // openGLToolStripMenuItem
@@ -184,7 +186,7 @@ namespace Viewer
             this.lightmappingToolStripMenuItem.Checked = true;
             this.lightmappingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.lightmappingToolStripMenuItem.Name = "lightmappingToolStripMenuItem";
-            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.lightmappingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.lightmappingToolStripMenuItem.Text = "Lightmapping";
             this.lightmappingToolStripMenuItem.Click += new System.EventHandler(this.lightmappingToolStripMenuItem_Click);
             // 
@@ -193,7 +195,7 @@ namespace Viewer
             this.texturingToolStripMenuItem.Checked = true;
             this.texturingToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.texturingToolStripMenuItem.Name = "texturingToolStripMenuItem";
-            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.texturingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.texturingToolStripMenuItem.Text = "Texturing";
             this.texturingToolStripMenuItem.Click += new System.EventHandler(this.texturingToolStripMenuItem_Click);
             // 
@@ -202,7 +204,7 @@ namespace Viewer
             this.xLightmapsToolStripMenuItem.Checked = true;
             this.xLightmapsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.xLightmapsToolStripMenuItem.Name = "xLightmapsToolStripMenuItem";
-            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.xLightmapsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.xLightmapsToolStripMenuItem.Text = "2X Lightmaps";
             this.xLightmapsToolStripMenuItem.Click += new System.EventHandler(this.xLightmapsToolStripMenuItem_Click);
             // 
@@ -214,7 +216,7 @@ namespace Viewer
             this.anisotropicToolStripMenuItem,
             this.anisotropic4XToolStripMenuItem});
             this.shadingToolStripMenuItem.Name = "shadingToolStripMenuItem";
-            this.shadingToolStripMenuItem.Size = new System.Drawing.Size(149, 22);
+            this.shadingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.shadingToolStripMenuItem.Text = "Smoothing";
             // 
             // noneToolStripMenuItem
@@ -316,6 +318,13 @@ namespace Viewer
             this.pbRenderWindow.MouseUp += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseUp);
             this.pbRenderWindow.Resize += new System.EventHandler(this.pbRenderWindow_Resize);
             // 
+            // showHelpersToolStripMenuItem
+            // 
+            this.showHelpersToolStripMenuItem.Name = "showHelpersToolStripMenuItem";
+            this.showHelpersToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.showHelpersToolStripMenuItem.Text = "Show Helpers";
+            this.showHelpersToolStripMenuItem.Click += new System.EventHandler(this.showHelpersToolStripMenuItem_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -368,6 +377,7 @@ namespace Viewer
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel lblStatusSurface;
         private System.Windows.Forms.ToolStripStatusLabel lblSurfaceIndexValue;
+        private System.Windows.Forms.ToolStripMenuItem showHelpersToolStripMenuItem;
     }
 }
 

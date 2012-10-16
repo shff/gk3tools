@@ -10,6 +10,7 @@ namespace Gk3Main.Graphics
 
         private CubeMapResource _cubeMap;
         private TextureResource _sun;
+        private TextureResource _sunMask;
 
         private float _azimuth;
         private Math.Vector3 _sunDirection;
@@ -105,59 +106,7 @@ namespace Gk3Main.Graphics
         {
             const int sunSize = 64;
 
-            BitmapSurface sunSurface = null;
-            if (memory)
-            {
-                // gen the memory texture
-                _sun = Game.Radiosity.GenerateMemoryTexture(sunSize, sunSize, 0, 0, 0);
-                sunSurface = new BitmapSurface(_sun);
-            }
-            else
-            {
-                sunSurface = new BitmapSurface(sunSize, sunSize, null);
-            }
-
-            Math.Vector2 center = new Math.Vector2(sunSize * 0.5f, sunSize * 0.5f);
-            for (int y = 0; y < sunSize; y++)
-            {
-                for (int x = 0; x < sunSize; x++)
-                {
-                    Math.Vector2 texel = new Math.Vector2(x, y);
-                    float distance = Math.Vector2.Distance(texel, center);
-
-                    if (distance < sunSize / 2)
-                    {
-                        if (memory)
-                        {
-                            Color c = sunSurface.ReadColorAt(x, y);
-
-                            uint ptr = (uint)c.R | ((uint)c.G << 8) | ((uint)c.B << 16) | ((uint)c.A << 24);
-
-                            UIntPtr ptr2 = (UIntPtr)ptr;
-
-                            unsafe
-                            {
-                                float* f = (float*)ptr2.ToPointer();
-                                f[0] = color.X;
-                                f[1] = color.Y;
-                                f[2] = color.Z;
-                            }
-                        }
-                        else
-                        {
-                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 0] = (byte)(color.X * 255);
-                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 1] = (byte)(color.Y * 255);
-                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 2] = (byte)(color.Z * 255);
-                            sunSurface.Pixels[(y * sunSurface.Width + x) * 4 + 3] = 255;
-                        }
-                    }
-                }
-            }
-
-            if (!memory)
-            {
-                _sun = RendererManager.CurrentRenderer.CreateTexture("sun", sunSurface, true);
-            }
+            Game.Radiosity.GenerateOmniLight(sunSize, color, out _sun, out _sunMask);
 
             _sunDirection = direction;
         }
@@ -195,8 +144,8 @@ namespace Gk3Main.Graphics
 
             if (_sun != null)
             {
-                BillboardManager.AddBillboard(camera.Position + -_sunDirection * 500.0f, 100.0f, 100.0f, _sun);
-                BillboardManager.RenderBillboards(camera);
+                BillboardManager.AddBillboard(camera.Position + -_sunDirection * 500.0f, 100.0f, 100.0f, _sun, _sunMask);
+                BillboardManager.RenderBillboardsWithAlpha(camera);
             }
 
             RendererManager.CurrentRenderer.DepthTestEnabled = true;

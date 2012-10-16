@@ -215,6 +215,24 @@ namespace Gk3Main.Game
             rad_RenderHemicube(position.X, position.Y, position.Z, normal.X, normal.Y, normal.Z, up.X, up.Y, up.Z);
         }
 
+        public static void GenerateOmniLight(int radius, Math.Vector3 color, out Graphics.TextureResource memoryTex, out Graphics.TextureResource alphaMask)
+        {
+            memoryTex = GenerateMemoryTexture(radius * 2, radius * 2, color.X, color.Y, color.Z);
+
+            Graphics.BitmapSurface alphaSurface = new Graphics.BitmapSurface(radius * 2, radius * 2, null);
+            for (int y = 0; y < radius * 2; y++)
+            {
+                for (int x = 0; x < radius * 2; x++)
+                {
+                    if ((x - radius) * (x - radius) + (y - radius) * (y - radius) > radius * radius)
+                        alphaSurface.Pixels[(y * radius * 2 + x) * 4 + 3] = 0;
+                    else
+                        alphaSurface.Pixels[(y * radius * 2 + x) * 4 + 3] = 255;
+                }
+            }
+            alphaMask = Graphics.RendererManager.CurrentRenderer.CreateTexture("alphaMask", alphaSurface, false, false);
+        }
+
         [StructLayout(LayoutKind.Sequential)]
         private struct LightmapSurface
         {

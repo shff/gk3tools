@@ -500,10 +500,8 @@ namespace Gk3Main.Graphics
         CullMode CullMode { get; set; }
         Viewport Viewport { get; set; }
 
-        TextureResource CreateTexture(string name, System.IO.Stream stream);
-        TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp);
-        TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream);
-        TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped);
+        TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha);
+        TextureResource CreateTexture(string name, BitmapSurface surface, BitmapSurface alpha, bool mipmapped);
         UpdatableTexture CreateUpdatableTexture(string name, int width, int height);
 
         CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,

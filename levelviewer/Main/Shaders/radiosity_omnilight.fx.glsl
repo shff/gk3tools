@@ -23,12 +23,14 @@ void main()
 #version 130
 
 uniform sampler2D Diffuse;
+uniform sampler2D Alpha;
 in vec2 o_diffuseCoords;
 out vec4 outputColor;
 void main()
 {
-	outputColor = texture2D(Diffuse, o_diffuseCoords);
-
-	if (outputColor.a < 0.5)
+	vec4 alpha = texture(Alpha, o_diffuseCoords);
+	if (alpha.a < 0.5)
 		discard;
+
+	outputColor = texture2D(Diffuse, o_diffuseCoords);
 }

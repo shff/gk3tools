@@ -172,24 +172,15 @@ namespace Gk3Main.Graphics.OpenGl
         }
 
         #region Texture creation
-        public TextureResource CreateTexture(string name, System.IO.Stream stream)
+
+        public TextureResource CreateTexture(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface, bool mipmapped)
         {
-            return new GlTexture(this, name, stream);
+            return new GlTexture(this, name, colorSurface, alphaSurface);
         }
 
-        public TextureResource CreateTexture(string name, System.IO.Stream stream, bool clamp)
+        public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha)
         {
-            return new GlTexture(this, name, stream, clamp);
-        }
-
-        public TextureResource CreateTexture(string name, System.IO.Stream colorStream, System.IO.Stream alphaStream)
-        {
-            return new GlTexture(this, name, colorStream, alphaStream);
-        }
-
-        public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped)
-        {
-            return new GlTexture(this, name, surface, mipmapped);
+            return new GlTexture(this, name, surface, mipmapped, premultiplyAlpha);
         }
 
         public UpdatableTexture CreateUpdatableTexture(string name, int width, int height)

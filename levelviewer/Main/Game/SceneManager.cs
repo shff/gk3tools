@@ -208,7 +208,7 @@ namespace Gk3Main
                 string bspFile = scnFile.BspFile;
 
                 _currentRoom = _sceneContentManager.Load<Graphics.BspResource>(bspFile);
-                _currentSkybox = loadSkybox(scnFile);
+                _currentSkybox = loadSkybox(scnFile, false);
 
                 // load the lightmaps
                 _currentLightmaps = _sceneContentManager.Load<Graphics.LightmapResource>(scnWithoutExtension);
@@ -217,6 +217,10 @@ namespace Gk3Main
 
                 _models.Clear();
                 unloadActors();
+
+                _roomLights.Clear();
+                foreach (ScnLight light in scnFile.Lights)
+                    _roomLights.Add(light.Name, light);
             }
             catch (System.IO.FileNotFoundException ex)
             {
@@ -369,17 +373,27 @@ namespace Gk3Main
                         actor.RenderAABB(camera);
                 }
 
-                // add helpers to the billboard list
-                foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
-                {
-                    //Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
-                    //    50.0f, 50.0f, HelperIcons.Flag);
-                }
 
-                foreach (KeyValuePair<string, SifRoomCamera> rcamera in _cameras)
+                // add helpers to the billboard list
+                if (_renderHelperIcons)
                 {
-                   // Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
-                   //     50.0f, 50.0f, HelperIcons.Camera);
+                    foreach (KeyValuePair<string, SifPosition> position in _roomPositions)
+                    {
+                        Graphics.BillboardManager.AddBillboard(new Math.Vector3(position.Value.X, position.Value.Y + 30.0f, position.Value.Z),
+                            50.0f, 50.0f, HelperIcons.Flag);
+                    }
+
+                    foreach (KeyValuePair<string, SifRoomCamera> rcamera in _cameras)
+                    {
+                         Graphics.BillboardManager.AddBillboard(new Math.Vector3(rcamera.Value.X, rcamera.Value.Y + 30.0f, rcamera.Value.Z),
+                             50.0f, 50.0f, HelperIcons.Camera);
+                    }
+
+                    foreach (KeyValuePair<string, ScnLight> light in _roomLights)
+                    {
+                        Graphics.BillboardManager.AddBillboard(light.Value.Position,
+                            20.0f, 20.0f, HelperIcons.Bulb);
+                    }
                 }
 
                 // render any billboards
@@ -453,6 +467,17 @@ namespace Gk3Main
         {
             get { return _currentFilterMode; }
             set { _currentFilterMode = value; }
+        }
+
+        public static bool RenderHelperIcons
+        {
+            get { return _renderHelperIcons; }
+            set { _renderHelperIcons = value; }
+        }
+
+        internal static bool CalculatingRadiosity
+        {
+            get { return _calculatingRadiosity; }
         }
 
         public static bool IsSceneLoaded
@@ -648,12 +673,20 @@ namespace Gk3Main
                _sceneCustomizer.OnCustomFunction(function);
         }
 
+        private struct OmniInfo
+        {
+            public LightmapSpecs.OmniLight Info;
+            public Graphics.TextureResource MemTex;
+            public Graphics.TextureResource AlphaMask;
+        }
+        private static List<OmniInfo> _omniLightInfo;
         public static void CalculateLightmaps(LightmapSpecs specs)
         {
             if (_currentRoom != null && _currentLightmaps != null)
             {
                 Radiosity.Init(new Radiosity.RenderDelegate(renderRadiosityCallback));
 
+                _calculatingRadiosity = true;
                 CurrentFilterMode = TextureFilterMode.None;
                 LightmapsEnabled = true;
                 CurrentShadeMode = ShadeMode.Flat;
@@ -662,6 +695,17 @@ namespace Gk3Main
                 Graphics.Viewport originalViewport = Graphics.RendererManager.CurrentRenderer.Viewport;
 
                 RadiosityMaps radiosityMaps = _currentRoom.GenerateMemoryTextures(specs);
+
+                // generate the omni lights
+                _omniLightInfo = new List<OmniInfo>();
+                foreach (LightmapSpecs.OmniLight light in specs.OmniLights)
+                {
+                    OmniInfo o;
+                    o.Info = light;
+                    Radiosity.GenerateOmniLight((int)light.Radius, light.Color, out o.MemTex, out o.AlphaMask);
+
+                    _omniLightInfo.Add(o);
+                }
 
                 Graphics.RendererManager.CurrentRenderer.CullMode = Graphics.CullMode.None;
 
@@ -682,9 +726,12 @@ namespace Gk3Main
                // Graphics.SkyBox.AddSun(specs.SunDirection, specs.SunColor, 0.125f, skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, true);
 
                 Graphics.SkyBox originalSkybox = _currentSkybox;
-                _currentSkybox = new Graphics.SkyBox("box", skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, skyboxBottomPixels, 0);
+                if (_currentSkybox != null)
+                {
+                    _currentSkybox = new Graphics.SkyBox("box", skyboxFrontPixels, skyboxBackPixels, skyboxLeftPixels, skyboxRightPixels, skyboxTopPixels, skyboxBottomPixels, 0);
 
-                _currentSkybox.AddSun(specs.SunDirection, specs.SunColor, true);
+                    _currentSkybox.AddSun(specs.SunDirection, specs.SunColor, true);
+                }
 
                 Graphics.LightmapResource oldLightmaps = _currentLightmaps;
                 _currentLightmaps = radiosityMaps.CreateBigMemoryTexture(_currentLightmaps.Name);
@@ -699,6 +746,8 @@ namespace Gk3Main
                 Graphics.RendererManager.CurrentRenderer.Viewport = originalViewport;
                 CurrentCamera = originalCamera;
                 _currentSkybox = originalSkybox;
+
+                _calculatingRadiosity = false;
             }
         }
 
@@ -745,11 +794,18 @@ namespace Gk3Main
 
             c.LookAt(new Math.Vector3(eyeX, eyeY, eyeZ), new Math.Vector3(directionX, directionY, directionZ), new Math.Vector3(upX, upY, upZ));
 
-            _currentSkybox.Render(c);
+            if (_currentSkybox != null)
+                _currentSkybox.Render(c);
             _currentRoom.Render(c, _currentLightmaps, true);
 
+            // add any omni lights
+            foreach (OmniInfo omni in _omniLightInfo)
+            {
+                Graphics.BillboardManager.AddBillboard(omni.Info.Position, omni.Info.Radius, omni.Info.Radius, omni.MemTex, omni.AlphaMask);
+            }
+
             // render any billboards
-            Graphics.BillboardManager.RenderBillboards(c);
+            Graphics.BillboardManager.RenderBillboardsWithAlpha(c);
         }
 
         private static void setupCustomScenes(string location)
@@ -883,7 +939,7 @@ namespace Gk3Main
             _actors.Clear();
         }
 
-        private static Graphics.SkyBox loadSkybox(Game.ScnResource scn)
+        private static Graphics.SkyBox loadSkybox(Game.ScnResource scn, bool addSun)
         {
             if (string.IsNullOrEmpty(scn.SkyboxLeft) == false &&
                 string.IsNullOrEmpty(scn.SkyboxRight) == false &&
@@ -922,13 +978,16 @@ namespace Gk3Main
                 rightStream.Close();
                 upStream.Close();
 
-                Math.Vector3 dir = new Math.Vector3(0.4873306f, -0.8727542f, 0.02844055f);
-                //Gk3Main.Graphics.SkyBox.AddSun(dir, new Math.Vector3(1.0f, 0, 0), 0.025f, fronts, backs, lefts, rights, ups, false);
-
                 Gk3Main.Graphics.SkyBox sb = new Gk3Main.Graphics.SkyBox(scn.Name + "_skybox", fronts, backs,
-                    lefts, rights, ups, downs, Utils.DegreesToRadians(scn.SkyboxAzimuth));
+                        lefts, rights, ups, downs, Utils.DegreesToRadians(scn.SkyboxAzimuth));
 
-                sb.AddSun(dir, new Math.Vector3(1.0f, 0, 0), false);
+                if (addSun)
+                {
+                    Math.Vector3 dir = new Math.Vector3(0.4873306f, -0.8727542f, 0.02844055f);
+                    //Gk3Main.Graphics.SkyBox.AddSun(dir, new Math.Vector3(1.0f, 0, 0), 0.025f, fronts, backs, lefts, rights, ups, false);
+
+                    sb.AddSun(dir, new Math.Vector3(1.0f, 0, 0), false);
+                }
 
                 return sb;
             }
@@ -948,6 +1007,7 @@ namespace Gk3Main
         private static List<Sound.SoundTrackResource> _stks = new List<Gk3Main.Sound.SoundTrackResource>();
         private static Dictionary<string, SifRoomCamera> _cameras = new Dictionary<string, SifRoomCamera>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, SifPosition> _roomPositions = new Dictionary<string, SifPosition>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, ScnLight> _roomLights = new Dictionary<string, ScnLight>(StringComparer.OrdinalIgnoreCase);
         private static LinkedList<Sound.SoundTrackResource> _playingSoundTracks = new LinkedList<Sound.SoundTrackResource>();
         private static Resource.ResourceManager _sceneContentManager;
         private static ISceneCustomizer _sceneCustomizer;
@@ -957,5 +1017,6 @@ namespace Gk3Main
         private static bool _lightmapsEnabled = false;
         private static bool _doubleLightmapValues = false;
         private static bool _renderHelperIcons = false;
+        private static bool _calculatingRadiosity = false;
     }
 }
