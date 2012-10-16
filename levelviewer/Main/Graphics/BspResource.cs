@@ -442,6 +442,11 @@ namespace Gk3Main.Graphics
                 RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.PointWrap;
                 RendererManager.CurrentRenderer.SamplerStates[1] = SamplerState.PointWrap;
             }
+            else if (SceneManager.CurrentFilterMode == TextureFilterMode.Anisotropic4X)
+            {
+                RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.AnisotropicWrap;
+                RendererManager.CurrentRenderer.SamplerStates[1] = SamplerState.AnisotropicWrap;
+            }
             else
             {
                 RendererManager.CurrentRenderer.SamplerStates[0] = SamplerState.LinearWrap;

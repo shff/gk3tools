@@ -164,7 +164,8 @@ namespace Gk3Main.Graphics.OpenGl
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST_MIPMAP_NEAREST);
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
                 }
-                else if (current.Filter == TextureFilter.Linear)
+                else if (current.Filter == TextureFilter.Linear ||
+                    current.Filter == TextureFilter.Anisoptropic)
                 {
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR_MIPMAP_LINEAR);
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
@@ -195,7 +196,8 @@ namespace Gk3Main.Graphics.OpenGl
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
                 }
                 else if (current.Filter == TextureFilter.Linear ||
-                    current.Filter == TextureFilter.LinearMipPoint)
+                    current.Filter == TextureFilter.LinearMipPoint ||
+                    current.Filter == TextureFilter.Anisoptropic)
                 {
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
                     Gl.glTexParameteri(target, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
@@ -208,6 +210,14 @@ namespace Gk3Main.Graphics.OpenGl
                 }
             }
 
+            if (current.Filter == TextureFilter.Anisoptropic)
+            {
+                Gl.glTexParameterf(target, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, current.MaxAnisotropy);
+            }
+            else
+            {
+                Gl.glTexParameterf(target, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
+            }
         }
 
         private static int convertTextureAddressMode(TextureAddressMode mode)

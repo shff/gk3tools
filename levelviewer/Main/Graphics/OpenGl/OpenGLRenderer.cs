@@ -17,6 +17,7 @@ namespace Gk3Main.Graphics.OpenGl
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
         private bool _samplerObjectsSupported;
+        private int _maxAnisotropy;
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
         private bool _vertexPointersNeedSetup = true;
@@ -39,6 +40,21 @@ namespace Gk3Main.Graphics.OpenGl
             //_renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
             _renderToTextureSupported = false;
             _samplerObjectsSupported = Gl.IsExtensionSupported("GL_ARB_sampler_objects");
+            if (Gl.IsExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+            {
+                float max;
+                Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out max);
+
+                _maxAnisotropy = (int)max;
+
+                // OpenGL considers 1.0 to be none, but we consider 0 to be none (like Direct3D does)
+                if (_maxAnisotropy == 1)
+                    _maxAnisotropy = 0;
+            }
+            else
+            {
+                _maxAnisotropy = 0;
+            }
 
             // set default render states
             BlendState = BlendState.Opaque;
@@ -415,6 +431,7 @@ namespace Gk3Main.Graphics.OpenGl
         }
 
         public bool RenderToTextureSupported { get { return _renderToTextureSupported; } }
+        public int MaxAnisotropy { get { return _maxAnisotropy; } }
 
         public ZClipMode ZClipMode
         {

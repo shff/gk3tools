@@ -48,7 +48,6 @@ namespace Viewer
             this.shadingToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.noneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.linearToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.anisotropicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.anisotropic4XToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.calculateLightmapsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,8 +56,8 @@ namespace Viewer
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lblStatusSurface = new System.Windows.Forms.ToolStripStatusLabel();
             this.lblSurfaceIndexValue = new System.Windows.Forms.ToolStripStatusLabel();
-            this.pbRenderWindow = new Viewer.Direct3D9RenderControl();
             this.showHelpersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pbRenderWindow = new Viewer.Direct3D9RenderControl();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -213,7 +212,6 @@ namespace Viewer
             this.shadingToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.noneToolStripMenuItem,
             this.linearToolStripMenuItem,
-            this.anisotropicToolStripMenuItem,
             this.anisotropic4XToolStripMenuItem});
             this.shadingToolStripMenuItem.Name = "shadingToolStripMenuItem";
             this.shadingToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
@@ -234,13 +232,6 @@ namespace Viewer
             this.linearToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
             this.linearToolStripMenuItem.Text = "Linear";
             this.linearToolStripMenuItem.Click += new System.EventHandler(this.linearToolStripMenuItem_Click);
-            // 
-            // anisotropicToolStripMenuItem
-            // 
-            this.anisotropicToolStripMenuItem.Name = "anisotropicToolStripMenuItem";
-            this.anisotropicToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
-            this.anisotropicToolStripMenuItem.Text = "Anisotropic (2X)";
-            this.anisotropicToolStripMenuItem.Click += new System.EventHandler(this.anisotropicToolStripMenuItem_Click);
             // 
             // anisotropic4XToolStripMenuItem
             // 
@@ -302,6 +293,13 @@ namespace Viewer
             this.lblSurfaceIndexValue.Name = "lblSurfaceIndexValue";
             this.lblSurfaceIndexValue.Size = new System.Drawing.Size(0, 17);
             // 
+            // showHelpersToolStripMenuItem
+            // 
+            this.showHelpersToolStripMenuItem.Name = "showHelpersToolStripMenuItem";
+            this.showHelpersToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.showHelpersToolStripMenuItem.Text = "Show Helpers";
+            this.showHelpersToolStripMenuItem.Click += new System.EventHandler(this.showHelpersToolStripMenuItem_Click);
+            // 
             // pbRenderWindow
             // 
             this.pbRenderWindow.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -317,13 +315,6 @@ namespace Viewer
             this.pbRenderWindow.MouseMove += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseMove);
             this.pbRenderWindow.MouseUp += new System.Windows.Forms.MouseEventHandler(this.simpleOpenGlControl1_MouseUp);
             this.pbRenderWindow.Resize += new System.EventHandler(this.pbRenderWindow_Resize);
-            // 
-            // showHelpersToolStripMenuItem
-            // 
-            this.showHelpersToolStripMenuItem.Name = "showHelpersToolStripMenuItem";
-            this.showHelpersToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.showHelpersToolStripMenuItem.Text = "Show Helpers";
-            this.showHelpersToolStripMenuItem.Click += new System.EventHandler(this.showHelpersToolStripMenuItem_Click);
             // 
             // MainForm
             // 
@@ -369,7 +360,6 @@ namespace Viewer
         private System.Windows.Forms.ToolStripMenuItem shadingToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem noneToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem linearToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem anisotropicToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem anisotropic4XToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem rendererToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem direct3D9ToolStripMenuItem;

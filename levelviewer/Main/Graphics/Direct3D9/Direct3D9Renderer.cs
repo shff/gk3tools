@@ -202,6 +202,7 @@ namespace Gk3Main.Graphics.Direct3D9
         private TextureResource _defaultTexture;
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
+        private int _maxAnisotropy;
         private BlendState _currentBlendState;
         private Direct3D9VertexBuffer _currentVertexBuffer;
         private Direct3D9IndexBuffer _currentIndexBuffer;
@@ -243,6 +244,9 @@ namespace Gk3Main.Graphics.Direct3D9
             SamplerStates[0] = SamplerState.LinearWrap;
             SamplerStates[1] = SamplerState.LinearClamp;
             BlendState = BlendState.Opaque;
+
+            // TODO: load this from the caps!
+            _maxAnisotropy = 0;
         }
 
         public void Reset(int width, int height)
@@ -560,6 +564,8 @@ namespace Gk3Main.Graphics.Direct3D9
         { 
             get { return _renderToTextureSupported; } 
         }
+
+        public int MaxAnisotropy { get { return _maxAnisotropy; } }
 
         #endregion Capabilities
 

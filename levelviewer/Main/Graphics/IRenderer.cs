@@ -446,6 +446,7 @@ namespace Gk3Main.Graphics
         private TextureAddressMode _addressV;
         private TextureAddressMode _addressW;
         private TextureFilter _filter;
+        private int _maxAnisotropy;
 
         public SamplerState(TextureAddressMode addressU, TextureAddressMode addressV, TextureAddressMode addressW, TextureFilter filter)
         {
@@ -453,6 +454,7 @@ namespace Gk3Main.Graphics
             _addressV = addressV;
             _addressW = addressW;
             _filter = filter;
+            _maxAnisotropy = 4;
         }
 
         public TextureAddressMode AddressU
@@ -479,6 +481,12 @@ namespace Gk3Main.Graphics
             set { _filter = value; }
         }
 
+        public int MaxAnisotropy
+        {
+            get { return _maxAnisotropy; }
+            set { _maxAnisotropy = value; }
+        }
+
         public static SamplerState PointWrap =
             new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Point);
         public static SamplerState PointClamp =
@@ -487,6 +495,10 @@ namespace Gk3Main.Graphics
             new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Linear);
         public static SamplerState LinearClamp =
             new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear);
+        public static SamplerState AnisotropicWrap =
+            new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Anisoptropic);
+        public static SamplerState AnisotropicClamp =
+            new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Anisoptropic);
     }
     #endregion
 
@@ -535,6 +547,11 @@ namespace Gk3Main.Graphics
 
         // caps
         bool RenderToTextureSupported { get; }
+
+        /// <summary>
+        /// Gets the maximum supported degree of anisotripic filtering (0 means none/not supported)
+        /// </summary>
+        int MaxAnisotropy { get; }
 
         string ShaderFilenameSuffix { get; }
 

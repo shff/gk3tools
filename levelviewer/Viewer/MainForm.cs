@@ -529,7 +529,6 @@ namespace Viewer
         {
             noneToolStripMenuItem.Checked = true;
             linearToolStripMenuItem.Checked = false;
-            anisotropicToolStripMenuItem.Checked = false;
             anisotropic4XToolStripMenuItem.Checked = false;
 
             Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.None;
@@ -540,21 +539,9 @@ namespace Viewer
         {
             noneToolStripMenuItem.Checked = false;
             linearToolStripMenuItem.Checked = true;
-            anisotropicToolStripMenuItem.Checked = false;
             anisotropic4XToolStripMenuItem.Checked = false;
 
             Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Linear;
-            pbRenderWindow.Refresh();
-        }
-
-        private void anisotropicToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            noneToolStripMenuItem.Checked = false;
-            linearToolStripMenuItem.Checked = false;
-            anisotropicToolStripMenuItem.Checked = true;
-            anisotropic4XToolStripMenuItem.Checked = false;
-
-            Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Anisotropic2X;
             pbRenderWindow.Refresh();
         }
 
@@ -562,7 +549,6 @@ namespace Viewer
         {
             noneToolStripMenuItem.Checked = false;
             linearToolStripMenuItem.Checked = false;
-            anisotropicToolStripMenuItem.Checked = false;
             anisotropic4XToolStripMenuItem.Checked = true;
 
             Gk3Main.SceneManager.CurrentFilterMode = Gk3Main.TextureFilterMode.Anisotropic4X;
