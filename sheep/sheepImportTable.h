@@ -75,7 +75,7 @@ public:
 	
 	SheepImport* NewImport(const std::string& name, SheepSymbolType returnType, SHP_ImportCallback callback)
 	{
-		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT)
+		if (returnType != SYM_VOID && returnType != SYM_INT && returnType != SYM_FLOAT && returnType != SYM_STRING)
 			return NULL;
 		
 		SheepImport* import = SHEEP_NEW SheepImport;

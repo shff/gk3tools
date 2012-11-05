@@ -642,6 +642,10 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				function.Code->WriteSheepInstruction(CallSysFunctionV);
 			else if (import.ReturnType == SYM_INT)
 				function.Code->WriteSheepInstruction(CallSysFunctionI);
+			else if (import.ReturnType == SYM_FLOAT)
+				function.Code->WriteSheepInstruction(CallSysFunctionF);
+			else if (import.ReturnType == SYM_STRING)
+				function.Code->WriteSheepInstruction(CallSysFunctionS);
 			else
 				throw SheepCompilerException(identifier->GetLineNumber(), "Unsupported import return type");
 			
