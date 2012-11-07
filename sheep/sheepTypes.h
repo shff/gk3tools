@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "sheepc.h"
 
 enum SheepSymbolType
@@ -46,16 +47,19 @@ struct SheepSymbol
 };
 
 class SheepCodeBuffer;
+class SheepCodeTreeDeclarationNode;
 
 struct SheepFunction
 {
-	SheepFunction() { Code = NULL; }
+	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = NULL; Declaration = declaration; }
 
+	SheepCodeTreeDeclarationNode* Declaration;
 	std::string Name;
 	SheepCodeBuffer* Code;
 	int CodeOffset;
 
 	std::vector<std::string> ImportList;
+	std::vector<std::pair<size_t, size_t&> > Gotos; // first = offset of the offset, second = ref to the offset of the label
 };
 
 struct SheepImport : public SheepImportFunction

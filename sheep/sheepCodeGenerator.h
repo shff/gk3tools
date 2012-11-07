@@ -49,8 +49,11 @@ public:
 	IntermediateOutput* BuildIntermediateOutput();
 
 private:
+	typedef std::map<std::string, size_t, ci_less> LabelMap;
+
 	void loadStringConstants(IntermediateOutput* output);
 	void buildSymbolMap(SheepCodeTreeNode* node);
+	void gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNode* node);
 	void determineExpressionTypes(SheepCodeTreeNode* node);
 	SheepFunction writeFunction(SheepCodeTreeDeclarationNode* node, int codeOffset);
 	void writeCode(SheepFunction& function, SheepCodeTreeNode* node);
@@ -72,6 +75,9 @@ private:
 
 	typedef std::map<std::string, SheepSymbol, ci_less> SymbolMap;
 	SymbolMap m_symbolMap;
+
+	typedef std::map<SheepCodeTreeDeclarationNode*, LabelMap> FunctionLabelMap;
+	FunctionLabelMap m_labels;
 	
 	/// Gets the type of symbol. Throws a SheepCompilerException if the symbol doesn't exist.
 	SheepSymbolType getSymbolType(int lineNumber, const std::string& name);

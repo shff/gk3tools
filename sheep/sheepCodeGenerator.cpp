@@ -196,7 +196,11 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 							symbol.InitialStringValue = constant->GetStringValue();
 						else if (symbol.Type == SYM_LOCALFUNCTION)
 						{
-							// don't do anything
+							// dive in and gather a list of all labels in the function.
+							std::pair<FunctionLabelMap::iterator, bool> result = m_labels.insert(FunctionLabelMap::value_type(declaration, LabelMap()));
+							assert(result.second == true);
+
+							gatherFunctionLabels(m_labels[declaration], declaration);
 						}
 						else
 						{
@@ -388,6 +392,39 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 	}
 }
 
+void SheepCodeGenerator::gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNode* node)
+{
+	while(node != NULL)
+	{
+		if (node->GetType() == NODETYPE_DECLARATION)
+		{
+			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
+
+			// if this is a label declaration then add it to the list of labels
+			if (decl->GetDeclarationType() == DECLARATIONTYPE_LABEL)
+			{
+				SheepCodeTreeNode* child = decl->GetChild(0);
+				assert(child != NULL);
+				assert(child->GetType() == NODETYPE_EXPRESSION);
+				
+				SheepCodeTreeExpressionNode* childExpr = static_cast<SheepCodeTreeExpressionNode*>(child);
+				assert(childExpr->GetExpressionType() == EXPRTYPE_IDENTIFIER);
+
+				SheepCodeTreeIdentifierReferenceNode* childID = static_cast<SheepCodeTreeIdentifierReferenceNode*>(childExpr);
+
+				// insert the label. We'll have to set its offset later when we generate bytecode.
+				if (labels.insert(LabelMap::value_type(childID->GetName(), 0)).second == false)
+					throw SheepCompilerException(decl->GetLineNumber(), "The label has already been declared in another location.");
+			}
+		}
+		
+		// go through all the children
+		gatherFunctionLabels(labels, node->GetChild(0));
+
+		// move to the next sibling
+		node = node->GetNextSibling();
+	}
+}
 
 SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* function, int codeOffset)
 {
@@ -395,7 +432,7 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	
 	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(0));
 
-	SheepFunction func;
+	SheepFunction func(function);
 	func.Name = ref->GetName();
 	func.Code = SHEEP_NEW SheepCodeBuffer();
 	func.CodeOffset = codeOffset;
@@ -411,6 +448,12 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	func.Code->WriteSheepInstruction(SitnSpin);
 	func.Code->WriteSheepInstruction(SitnSpin);
 
+	// now we have to go back and update all the GOTOs
+	for (int i = 0; i < func.Gotos.size(); i++)
+	{
+		func.Code->WriteIntAt(func.Gotos[i].second, func.Gotos[i].first);
+	}
+
 	return func;
 }
 
@@ -424,7 +467,16 @@ void SheepCodeGenerator::writeCode(SheepFunction& function, SheepCodeTreeNode* n
 			writeExpression(function, static_cast<SheepCodeTreeExpressionNode*>(node));
 		else if (node->GetType() == NODETYPE_DECLARATION)
 		{
-			// TODO: this must be a label, which can be ignored since 'goto' isn't supported yet
+			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
+
+			// if this is a label declaration then add it to the list of labels
+			if (decl->GetDeclarationType() == DECLARATIONTYPE_LABEL)
+			{
+				SheepCodeTreeIdentifierReferenceNode* id = static_cast<SheepCodeTreeIdentifierReferenceNode*>(decl->GetChild(0));
+
+				// go get the label and set its offset
+				m_labels[function.Declaration][id->GetName()] = function.Code->Tell();
+			}
 		}
 
 		node = node->GetNextSibling();
@@ -457,7 +509,18 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 	}
 	else if (statement->GetStatementType() == SMT_GOTO)
 	{
-		throw SheepCompilerException(statement->GetLineNumber(), "Sorry, 'goto' isn't supported yet");
+		// write the goto instruction
+		function.Code->WriteSheepInstruction(BranchGoto);
+
+		// go get the label to which this GOTO refers and remember it
+		SheepCodeTreeIdentifierReferenceNode* label = static_cast<SheepCodeTreeIdentifierReferenceNode*>(statement->GetChild(0));
+		if (m_labels[function.Declaration].find(label->GetName()) == m_labels[function.Declaration].end())
+			throw SheepCompilerException(statement->GetLineNumber(), "Couldn't find the label to which this goto refers");
+
+		function.Gotos.push_back(std::pair<size_t, size_t&>(function.Code->Tell(), m_labels[function.Declaration][label->GetName()]));
+
+		// write the placeholder for the label offset
+		function.Code->WriteInt(0xdddddddd);
 	}
 	else if (statement->GetStatementType() == SMT_IF)
 	{

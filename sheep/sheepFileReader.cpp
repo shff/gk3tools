@@ -211,7 +211,7 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 				// seek
 				offset = currentOffset + functionsHeader.OffsetArray[j];
 			
-				SheepFunction func;
+				SheepFunction func(NULL);
 
 				unsigned short len;
 				READ2(&len, offset);
