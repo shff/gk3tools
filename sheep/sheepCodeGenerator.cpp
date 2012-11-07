@@ -451,7 +451,7 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	// now we have to go back and update all the GOTOs
 	for (int i = 0; i < func.Gotos.size(); i++)
 	{
-		func.Code->WriteIntAt(func.Gotos[i].second, func.Gotos[i].first);
+		func.Code->WriteIntAt(func.Gotos[i].second + func.CodeOffset, func.Gotos[i].first);
 	}
 
 	return func;
