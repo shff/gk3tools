@@ -7,18 +7,21 @@ namespace Gk3Main.Sound
     public class SoundWaitHandle : WaitHandle
     {
 #if !SOUND_DISABLED
-        private IrrKlang.ISound _sound;
+        private int _source;
 
-        public SoundWaitHandle(IrrKlang.ISound sound)
+        public SoundWaitHandle(int source)
         {
-            _sound = sound;
+            _source = source;
         }
 
         public override bool Finished
         {
             get
             {
-                return _sound.Finished;
+                int state;
+                Tao.OpenAl.Al.alGetSourcei(_source, Tao.OpenAl.Al.AL_SOURCE_STATE, out state);
+
+                return state == Tao.OpenAl.Al.AL_STOPPED || state == Tao.OpenAl.Al.AL_INITIAL;
             }
             set
             {
@@ -40,28 +43,30 @@ namespace Gk3Main.Sound
 
 #if !SOUND_DISABLED
 
-        internal IrrKlang.ISound _PlayingSound;
+        internal int _Source;
 
-        public PlayingSound(IrrKlang.ISound sound) : this(sound, false)
+        public PlayingSound(int source, bool wait)
         {
-        }
+            if (source == 0)
+                throw new ArgumentException("source");
 
-        public PlayingSound(IrrKlang.ISound sound, bool wait)
-        {
-            if (sound == null)
-                throw new ArgumentNullException("sound");
-
-            _PlayingSound = sound;
+            _Source = source;
 
             if (wait)
-                _waitHandle = new SoundWaitHandle(sound);
+                _waitHandle = new SoundWaitHandle(source);
             else
                 _waitHandle = null;
         }
 
         public bool Finished
         {
-            get { return _PlayingSound.Finished; }
+            get 
+            {
+                int state;
+                Tao.OpenAl.Al.alGetSourcei(_Source, Tao.OpenAl.Al.AL_SOURCE_STATE, out state);
+
+                return state == Tao.OpenAl.Al.AL_STOPPED || state == Tao.OpenAl.Al.AL_INITIAL;
+            }
         }
 #else
 
@@ -88,22 +93,26 @@ namespace Gk3Main.Sound
     public class Sound : Resource.Resource
     {
         private bool _disposed = false;
+        private int _buffer;
+        private float _defaultMinDistance = 1.0f;
+        private float _defaultMaxDistance = float.MaxValue;
+        private float _defaultVolume;
 
         public Sound(string name, System.IO.Stream stream)
             : base(name, true)
         {
-            _sound = SoundManager.AddSoundSourceFromFile(name);
+            _buffer = SoundManager.CreateBufferFromFile(name);
+            //_sound = SoundManager.AddSoundSourceFromFile(name);
 
-            if (_sound == null)
-                throw new Exception("Sound source returned from Irrklang was null");
+           // if (_sound == null)
+            //    throw new Exception("Sound source returned from Irrklang was null");
         }
 
         public override void Dispose()
         {
             _disposed = true;
-
-            SoundManager.RemoveSoundSource(_sound.Name);
-            _sound = null;
+            Tao.OpenAl.Al.alDeleteBuffers(1, ref _buffer);
+            _buffer = 0;
         }
 
         public PlayingSound Play2D(SoundTrackChannel channel)
@@ -127,34 +136,31 @@ namespace Gk3Main.Sound
 
         internal float DefaultMinDistance
         {
-            get { return _sound.DefaultMinDistance; }
-            set { _sound.DefaultMinDistance = value; }
+            get { return _defaultMinDistance; }
+            set { _defaultMinDistance = value; }
         }
 
         internal float DefaultMaxDistance
         {
-            get { return _sound.DefaultMaxDistance; }
-            set { _sound.DefaultMaxDistance = value; }
+            get { return _defaultMaxDistance; }
+            set { _defaultMaxDistance = value; }
         }
 
         internal float DefaultVolume
         {
-            get { return _sound.DefaultVolume; }
-            set { _sound.DefaultVolume = value; }
+            get { return _defaultVolume; }
+            set { _defaultVolume = value; }
         }
 
-        internal IrrKlang.ISoundSource Source
+        internal int Buffer
         {
-            get 
-            { 
-                if (_disposed) throw new ObjectDisposedException("Sound"); 
-                
-                return _sound; 
+            get
+            {
+                if (_disposed) throw new ObjectDisposedException("Sound");
+
+                return _buffer;
             }
         }
-
-        private IrrKlang.ISoundSource _sound;
-       
     }
 
     public class SoundLoader : Resource.IResourceLoader

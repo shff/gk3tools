@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 #if !SOUND_DISABLED
-using IrrKlang;
+using Tao.OpenAl;
 #endif
 
 namespace Gk3Main.Sound
@@ -27,34 +27,64 @@ namespace Gk3Main.Sound
     public class SoundManager
     {
         private const int _maxSources = 16;
+        private static IntPtr _device;
+        private static IntPtr _context;
+        private static int[] _sources = new int[_maxSources];
 
         public static void Init()
         {
-            _engine = new ISoundEngine();
-            _engine.AddFileFactory(new BarnFileFactory());
-            _engine.LoadPlugins(".");
-            _engine.SoundVolume = Settings.SoundVolume / 100.0f;
+            _device = Tao.OpenAl.Alc.alcOpenDevice(null);
+            _context = Tao.OpenAl.Alc.alcCreateContext(_device, IntPtr.Zero);
+            Alc.alcMakeContextCurrent(_context);
+            Al.alDistanceModel(Al.AL_INVERSE_DISTANCE_CLAMPED);
 
-            _channelSounds.Add(SoundTrackChannel.Ambient, new List<ISound>());
-            _channelSounds.Add(SoundTrackChannel.Dialog, new List<ISound>());
-            _channelSounds.Add(SoundTrackChannel.Music, new List<ISound>());
-            _channelSounds.Add(SoundTrackChannel.SFX, new List<ISound>());
-            _channelSounds.Add(SoundTrackChannel.UI, new List<ISound>());
+            // TODO: set the main volume
+
+            _channelSounds.Add(SoundTrackChannel.Ambient, new List<int>());
+            _channelSounds.Add(SoundTrackChannel.Dialog, new List<int>());
+            _channelSounds.Add(SoundTrackChannel.Music, new List<int>());
+            _channelSounds.Add(SoundTrackChannel.SFX, new List<int>());
+            _channelSounds.Add(SoundTrackChannel.UI, new List<int>());
+
+            Al.alGenSources(_maxSources, _sources);
         }
 
         public static void Shutdown()
         {
-
+            Al.alDeleteSources(_maxSources, _sources);
+            Alc.alcDestroyContext(_context);
+            Alc.alcCloseDevice(_device);
         }
 
-        public static ISoundSource AddSoundSourceFromFile(string file)
+        public static int CreateBufferFromFile(string file)
         {
-            return _engine.AddSoundSourceFromFile(file);
-        }
+            using (System.IO.Stream stream = FileSystem.Open(file))
+            {
+                WavFile wav = new WavFile(stream);
 
-        public static void RemoveSoundSource(string name)
-        {
-            _engine.RemoveSoundSource(name);
+                int buffer;
+                Al.alGenBuffers(1, out buffer);
+
+                int format;
+                if (wav.Channels == 1)
+                {
+                    if (wav.SampleSize == 8)
+                        format = Al.AL_FORMAT_MONO8;
+                    else
+                        format = Al.AL_FORMAT_MONO16;
+                }
+                else
+                {
+                    if (wav.SampleSize == 8)
+                        format = Al.AL_FORMAT_STEREO8;
+                    else
+                        format = Al.AL_FORMAT_STEREO16;
+                }
+
+                Al.alBufferData(buffer, format, wav.PcmData, wav.Length, wav.SampleRate);
+
+                return buffer;
+            }
         }
 
         public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel, bool clearChannel)
@@ -67,10 +97,22 @@ namespace Gk3Main.Sound
             if (clearChannel)
                 StopChannel(channel);
 
-            ISound isound = _engine.Play2D(sound.Source, false, false, false);
-            _channelSounds[channel].Add(isound);
+            int source = getFreeSource();
+            if (source >= 0)
+            {
+                Al.alSourcei(source, Al.AL_BUFFER, sound.Buffer);
+                Al.alSource3f(source, Al.AL_POSITION, 0, 0, 0);
+                Al.alSourcei(source, Al.AL_SOURCE_RELATIVE, Al.AL_TRUE);
+                Al.alSourcef(source, Al.AL_MAX_DISTANCE, sound.DefaultMaxDistance);
+                Al.alSourcef(source, Al.AL_REFERENCE_DISTANCE, sound.DefaultMinDistance);
+                Al.alSourcePlay(source);
 
-            return new PlayingSound(isound, wait);
+                _channelSounds[channel].Add(source);
+
+                return new PlayingSound(source, wait);
+            }
+
+            return new PlayingSound();
         }
 
         public static PlayingSound PlaySound3DToChannel(Sound sound, float x, float y, float z, SoundTrackChannel channel, bool clearChannel)
@@ -78,21 +120,32 @@ namespace Gk3Main.Sound
             if (clearChannel)
                 StopChannel(channel);
 
-            ISound isound = _engine.Play3D(sound.Source, x, y, z, false, false, false);
-            _channelSounds[channel].Add(isound);// BUG: this should be adding this sound to a collection!
+            int source = getFreeSource();
+            if (source >= 0)
+            {
+                Al.alSourcei(source, Al.AL_BUFFER, sound.Buffer);
+                Al.alSource3f(source, Al.AL_POSITION, x, y, z);
+                Al.alSourcei(source, Al.AL_SOURCE_RELATIVE, Al.AL_FALSE);
+                Al.alSourcef(source, Al.AL_MAX_DISTANCE, sound.DefaultMaxDistance);
+                Al.alSourcef(source, Al.AL_REFERENCE_DISTANCE, sound.DefaultMinDistance);
+                Al.alSourcePlay(source);
 
-            return new PlayingSound(isound);
+                _channelSounds[channel].Add(source);// BUG: this should be adding this sound to a collection!
+
+                return new PlayingSound(source, false);
+            }
+
+            return new PlayingSound();
         }
 
         public static void StopChannel(SoundTrackChannel channel)
         {
-            List<ISound> sounds;
+            List<int> sounds;
             if (_channelSounds.TryGetValue(channel, out sounds))
             {
-                foreach (ISound sound in sounds)
+                foreach (int sound in sounds)
                 {
-                    sound.Stop();
-                    sound.Dispose();
+                    Al.alSourceStop(sound);
                 }
 
                 _channelSounds[channel].Clear();
@@ -101,10 +154,12 @@ namespace Gk3Main.Sound
 
         public static void Stop(PlayingSound sound)
         {
-            sound._PlayingSound.Stop();
-            sound._PlayingSound.Dispose();
+            Al.alSourceStop(sound._Source);
+
+            // BUG: remove the source from the channel
         }
 
+        private static float[] _listenerOrientation = new float[6];
         public static void UpdateListener(Graphics.Camera camera)
         {
             if (camera == null)
@@ -114,31 +169,36 @@ namespace Gk3Main.Sound
             Math.Vector3 forward =  camera.Orientation * -Math.Vector3.Forward;
             Math.Vector3 up = camera.Orientation * Math.Vector3.Up;
 
-            _engine.SetListenerPosition(position.X, position.Y, position.Z, forward.X, forward.Y, forward.Z,
-                0, 0, 0, up.X, up.Y, up.Z);
+            Al.alListener3f(Al.AL_POSITION, position.X, position.Y, position.Z);
+
+            _listenerOrientation[0] = forward.X;
+            _listenerOrientation[1] = forward.Y;
+            _listenerOrientation[2] = forward.Z;
+            _listenerOrientation[3] = up.X;
+            _listenerOrientation[4] = up.Y;
+            _listenerOrientation[5] = up.Z;
+            Al.alListenerfv(Al.AL_ORIENTATION, _listenerOrientation);
         }
 
-        internal static ISoundEngine Enginez
+        private static int getFreeSource()
         {
-            get { return _engine; }
+            for (int i = 0; i < _sources.Length; i++)
+            {
+                int state;
+                Al.alGetSourcei(_sources[i], Al.AL_SOURCE_STATE, out state);
+                if (state == Al.AL_STOPPED || state == Al.AL_INITIAL)
+                {
+                    return _sources[i];
+                }
+            }
+
+            return -1;
         }
 
-        private static ISoundEngine _engine;
-
-        private static int _numSources;
-        private static int[] _sources = new int[_maxSources];
-
-        private static Dictionary<SoundTrackChannel, List<ISound>> _channelSounds 
-            = new Dictionary<SoundTrackChannel, List<ISound>>();
+        private static Dictionary<SoundTrackChannel, List<int>> _channelSounds 
+            = new Dictionary<SoundTrackChannel, List<int>>();
     }
 
-    internal class BarnFileFactory : IFileFactory
-    {
-        public System.IO.Stream openFile(string filename)
-        {
-            return FileSystem.Open(filename);
-        }
-    }
 #else
     public class SoundManager
     {
