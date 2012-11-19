@@ -62,6 +62,10 @@ namespace Gk3Main.Gui
 
                 buttonOffsetX += ButtonWidth;
             }
+
+            // now that we've got all the buttons go back and center them around the cursor
+            _screenX -= (_buttons.Count * ButtonWidth) / 2;
+            _screenY -= ButtonWidth / 2; // assume the buttons are square
         }
 
         public void KeepInsideViewport(Graphics.Viewport viewport)
