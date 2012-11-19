@@ -68,6 +68,7 @@ namespace Gk3Main.Graphics
         public float[] AnimatedNormals;
 
         public VertexBuffer vertexBuffer;
+        public VertexBuffer AnimatedVertexBuffer;
         public IndexBuffer indexBuffer;
     }
 
@@ -287,6 +288,7 @@ namespace Gk3Main.Graphics
                     }
 
                     meshSection.vertexBuffer = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, meshSection.vertices, (int)meshSection.numVerts, _elements);
+                    meshSection.AnimatedVertexBuffer = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Dynamic, meshSection.vertices, (int)meshSection.numVerts, _elements);
                     meshSection.indexBuffer = RendererManager.CurrentRenderer.CreateIndexBuffer(meshSection.indices);
 
                     mesh.sections[j] = meshSection;
@@ -501,13 +503,16 @@ namespace Gk3Main.Graphics
                     _effect.SetParameter("Diffuse", section.textureResource, 0);
                     _effect.CommitParams();
 
-                    float[] vertices;
+                    VertexBuffer vertices;
                     if (section.AnimatedVertices != null)
-                        vertices = section.AnimatedVertices;
+                    {
+                        section.AnimatedVertexBuffer.UpdateData(section.AnimatedVertices, (int)section.numVerts);
+                        vertices = section.AnimatedVertexBuffer;
+                    }
                     else
-                        vertices = section.vertices;
+                        vertices = section.vertexBuffer;
 
-                    RendererManager.CurrentRenderer.SetVertexBuffer(section.vertexBuffer);
+                    RendererManager.CurrentRenderer.SetVertexBuffer(vertices);
                     RendererManager.CurrentRenderer.Indices = section.indexBuffer;
                     RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
                 }
