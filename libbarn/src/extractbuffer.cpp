@@ -52,8 +52,6 @@ namespace Barn
 	
 	void ExtractBuffer::Decompress(Compression compressionType)
 	{
-		std::cout << "Decompressiong..." << std::endl;
-		
 		if (compressionType == LZO)
 		{
 #ifdef DISABLE_LZO
@@ -69,8 +67,6 @@ namespace Barn
 			// TODO: make this work for big-endian machines!
 			lzo_uint size;
 			memcpy(&size, m_buffer, 4);
-			
-			std::cout << "uncompressed size: " << size << std::endl;
 			
 			// create a new buffer
 			char* newBuffer = new char[size];
@@ -112,7 +108,5 @@ namespace Barn
 			m_size = size;
 #endif
 		}
-		
-		std::cout << "done decompressing" << std::endl;
 	}
 }
