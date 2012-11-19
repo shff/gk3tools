@@ -100,9 +100,8 @@ namespace Gk3Main.Graphics
         public void SetPitchYaw(float pitch, float yaw)
         {
             Math.Quaternion yawq = Math.Quaternion.FromAxis(Math.Vector3.Up, yaw);
-            Math.Vector3 right = yawq * Math.Vector3.Right;
 
-            Math.Quaternion pitchq = Math.Quaternion.FromAxis(Math.Vector3.Right, pitch);
+            Math.Quaternion pitchq = Math.Quaternion.FromAxis(Math.Vector3.Left, pitch);
             _orientation = yawq * pitchq;
         }
 

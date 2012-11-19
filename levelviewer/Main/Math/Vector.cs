@@ -214,6 +214,11 @@ namespace Gk3Main.Math
             get { return new Vector3(1.0f, 0, 0); }
         }
 
+        public static Vector3 Left
+        {
+            get { return new Vector3(-1.0f, 0, 0); }
+        }
+
         public static Vector3 One
         {
             get { return new Vector3(1.0f, 1.0f, 1.0f); }

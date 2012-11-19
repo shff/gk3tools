@@ -544,7 +544,7 @@ class MonoMain
                         else
                         {
                             camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
-                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * Game.Input.RelMouseY);
+                            camera.AddRelativePositionOffset(Gk3Main.Math.Vector3.Forward * -Game.Input.RelMouseY);
                         }
                     }
                 }

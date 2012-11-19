@@ -182,6 +182,9 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("SetGameVariableInt", _setGameVariableInt,
                 SymbolType.Void, SymbolType.String, SymbolType.Integer);
 
+            SheepMachine.AddImport("SetIdleGas", _setIdleGas,
+                SymbolType.Void, SymbolType.String, SymbolType.String);
+
             SheepMachine.AddImport("SetListenGas", _setListenGas,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
 
@@ -577,6 +580,8 @@ namespace Gk3Main.Sheep
         {
             string position = SheepMachine.PopStringOffStack(vm);
 
+            Logger.WriteDebug("Setting ego position to {0}", position);
+
             // TODO: put the current ego's model at the specified position
             SceneManager.SetEgoToSifPosition(position);
 
@@ -641,6 +646,8 @@ namespace Gk3Main.Sheep
             string actor = SheepMachine.PopStringOffStack(vm);
 
             SceneManager.SetActorPosition(actor, position);
+
+            Logger.WriteDebug("Setting actor {0} position to {1}", actor, position);
         }
 
         private static void sheep_SetCameraAngleType(IntPtr vm)
@@ -649,6 +656,8 @@ namespace Gk3Main.Sheep
             string type = SheepMachine.PopStringOffStack(vm);
 
             // TODO!
+
+            Logger.WriteDebug("FIXME: SetCameraAngleType() sheep function not implemented");
         }
 
         private static void sheep_SetGameTimer(IntPtr vm)
@@ -662,12 +671,22 @@ namespace Gk3Main.Sheep
             Game.GameManager.AddGameTimer(n, v, milliseconds);
         }
 
+        private static void sheep_setIdleGas(IntPtr vm)
+        {
+            string gas = SheepMachine.PopStringOffStack(vm);
+            string actor = SheepMachine.PopStringOffStack(vm);
+
+            Logger.WriteDebug("FIXME: SetIdleGas() sheep function not implemented");
+        }
+
         private static void sheep_SetListenGas(IntPtr vm)
         {
             string gas = SheepMachine.PopStringOffStack(vm);
             string actor = SheepMachine.PopStringOffStack(vm);
 
             // TODO
+
+            Logger.WriteDebug("FIXME: SetListenGas() sheep function not implemented");
         }
 
         private static void sheep_StartMom(IntPtr vm)
@@ -948,6 +967,7 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _setForcedCameraCuts = new SheepFunctionDelegate(sheep_SetForcedCameraCuts);
         private static SheepFunctionDelegate _setGameTimer = new SheepFunctionDelegate(sheep_SetGameTimer);
         private static SheepFunctionDelegate _setGameVariableInt = new SheepFunctionDelegate(sheep_SetGameVariableInt);
+        private static SheepFunctionDelegate _setIdleGas = new SheepFunctionDelegate(sheep_setIdleGas);
         private static SheepFunctionDelegate _setListenGas = new SheepFunctionDelegate(sheep_SetListenGas);
         private static SheepFunctionDelegate _setLocation = new SheepFunctionDelegate(sheep_setLocation);
         private static SheepFunctionDelegate _setNounVerbCount = new SheepFunctionDelegate(sheep_SetNounVerbCount);

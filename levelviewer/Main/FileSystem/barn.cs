@@ -57,7 +57,7 @@ namespace BarnLib
                 if (barn == (IntPtr)null)
                     throw new BarnException("Unable to open barn: " + name);
 
-                barnHandle = new HandleRef(this, barn);
+                barnHandle = barn;
 
                 numFiles = brn_GetNumFilesInBarn(barnHandle);
 
@@ -76,7 +76,7 @@ namespace BarnLib
 		
 		public void Dispose()
 		{
-            if (disposed == false && barnHandle.Handle != IntPtr.Zero)
+            if (disposed == false && barnHandle != IntPtr.Zero)
                 brn_CloseBarn(barnHandle);
 
             disposed = true;
@@ -236,43 +236,43 @@ namespace BarnLib
 		private static extern IntPtr brn_OpenBarn(string name);
 		
 		[DllImport("barn")]
-		private static extern void brn_CloseBarn(HandleRef barn);
+		private static extern void brn_CloseBarn(IntPtr barn);
 		
 		[DllImport("barn")]
-		private static extern uint brn_GetNumFilesInBarn(HandleRef barn);
+        private static extern uint brn_GetNumFilesInBarn(IntPtr barn);
 		
 		[DllImport("barn")]
-		private static extern int brn_GetFileName(HandleRef barn, uint index,
+        private static extern int brn_GetFileName(IntPtr barn, uint index,
 			[MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
 		
 		[DllImport("barn")]
-		private static extern int brn_GetFileSizeByIndex(HandleRef barn, uint index);
+        private static extern int brn_GetFileSizeByIndex(IntPtr barn, uint index);
         
         [DllImport("barn")]
-        private static extern int brn_GetFileSizeByName(HandleRef barn, string name);
+        private static extern int brn_GetFileSizeByName(IntPtr barn, string name);
 
         [DllImport("barn")]
-        private static extern int brn_GetDecompressedFileSizeByIndex(HandleRef barn, uint index);
+        private static extern int brn_GetDecompressedFileSizeByIndex(IntPtr barn, uint index);
 
         [DllImport("barn")]
-        private static extern int brn_GetDecompressedFileSizeByName(HandleRef barn, string name); 
+        private static extern int brn_GetDecompressedFileSizeByName(IntPtr barn, string name); 
 
 		[DllImport("barn")]
-		private static extern int brn_GetFileCompressionByIndex(HandleRef barn, uint index);
+        private static extern int brn_GetFileCompressionByIndex(IntPtr barn, uint index);
 		
 		[DllImport("barn")]
-		private static extern int brn_GetFileOffsetByIndex(HandleRef barn, uint index);
+        private static extern int brn_GetFileOffsetByIndex(IntPtr barn, uint index);
 		
 		[DllImport("barn")]
-		private static extern int brn_GetFileBarn(HandleRef barn, uint index,
+        private static extern int brn_GetFileBarn(IntPtr barn, uint index,
 			[MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
 		
 		[DllImport("barn")]
-		private static extern int brn_ExtractFileByIndex(HandleRef barn,
+        private static extern int brn_ExtractFileByIndex(IntPtr barn,
 			uint index, string outputPath, bool openChildBarns, bool decompress);
 
         [DllImport("barn")]
-        private static extern int brn_ReadFile(HandleRef barn, string name,
+        private static extern int brn_ReadFile(IntPtr barn, string name,
             byte[] buffer, int bufferSize, bool openChildBarns);
 		
 		[DllImport("barn")]
@@ -281,7 +281,7 @@ namespace BarnLib
 
         private string name;
 		private uint numFiles;
-		private HandleRef barnHandle;
+		private IntPtr barnHandle;
 		private bool disposed;
 			
 		#endregion

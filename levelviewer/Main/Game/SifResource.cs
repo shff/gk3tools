@@ -170,6 +170,8 @@ namespace Gk3Main.Game
                         TryParse2f(angle, out camera.YawDegrees, out camera.PitchDegrees);
                         TryParse3f(pos, out camera.X, out camera.Y, out camera.Z);
 
+                        camera.YawDegrees += 180.0f;
+
                         camera.Camera = GameManager.CreateCameraWithDefaults();
                         camera.Camera.Position = new Gk3Main.Math.Vector3(camera.X, camera.Y, camera.Z);
                         camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
@@ -197,6 +199,8 @@ namespace Gk3Main.Game
                         if (float.TryParse(fov, out ffov) == false)
                             ffov = 60.0f;
 
+                        camera.YawDegrees += 180.0f;
+
                         camera.Camera = GameManager.CreateCameraWithDefaults(Utils.DegreesToRadians(ffov));
                         camera.Camera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
                         camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
@@ -223,6 +227,8 @@ namespace Gk3Main.Game
                         if (float.TryParse(fov, out ffov) == false)
                             ffov = 60.0f;
 
+                        camera.YawDegrees += 180.0f;
+
                         camera.Camera = GameManager.CreateCameraWithDefaults(Utils.DegreesToRadians(ffov));
                         camera.Camera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
                         camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
@@ -243,7 +249,9 @@ namespace Gk3Main.Game
                         line.TryGetAttribute("camera", out position.CameraName);
 
                         TryParse3f(pos, out position.X, out position.Y, out position.Z);
-                        float.TryParse(heading, out position.HeadingDegrees);
+                        float headingDegrees;
+                        float.TryParse(heading, out headingDegrees);
+                        position.HeadingDegrees = headingDegrees + 180.0f;
 
                         _positions.Add(position);
                     }

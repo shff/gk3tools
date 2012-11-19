@@ -478,7 +478,7 @@ namespace Gk3Main.Graphics
             if (!_loaded) return;
 
             Math.Matrix world = Math.Matrix.RotateY(angle)
-                    * Math.Matrix.Translate(position);
+                        * Math.Matrix.Translate(position);
 
             foreach (ModMesh mesh in _meshes)
             {
@@ -487,7 +487,7 @@ namespace Gk3Main.Graphics
                 if (mesh.AnimatedTransformMatrix.HasValue)
                 {
                     if (mesh.AnimatedTransformIsAbsolute)
-                        worldview = mesh.AnimatedTransformMatrix.Value * camera.ViewProjection;
+                        worldview =  mesh.AnimatedTransformMatrix.Value * TempTransform * camera.ViewProjection;
                     else
                         worldview = mesh.AnimatedTransformMatrix.Value * world * camera.ViewProjection;
                 }

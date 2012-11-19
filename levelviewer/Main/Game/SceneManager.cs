@@ -500,7 +500,6 @@ namespace Gk3Main
             {
                 if (model.Visible && model.Model.CollideRay(Math.Vector3.Zero, origin, direction, length, out distance))
                 {
-                    Console.CurrentConsole.WriteLine(model.Name);
                     return model.Model.NameWithoutExtension;
                 }
             }
@@ -509,7 +508,6 @@ namespace Gk3Main
             {
                 if (actor.CollideRay(origin, direction, length, out distance))
                 {
-                    Console.CurrentConsole.WriteLine(actor.ModelName);
                     return actor.ModelName;
                 }
             }
@@ -517,8 +515,6 @@ namespace Gk3Main
             Graphics.BspSurface surface;
             if (_currentRoom != null && _currentRoom.CollideRayWithSurfaces(origin, direction, length, out surface) == true)
                 return _currentRoom.GetModelName(surface.modelIndex);
-
-            
 
             return null;
         }
@@ -883,6 +879,11 @@ namespace Gk3Main
                       // some SIF files can refer to actors that don't actually
                       // exist in the demo, so we need to ignore these errors
                    }
+                }
+                else if (actor.Idle != null)
+                {
+                    // play the idle animation
+                    _sceneContentManager.Load<GasResource>(actor.Idle).Play();
                 }
             }
         }
