@@ -118,7 +118,8 @@ public:
 	}
 	SheepContext* GetCurrentContext() { return m_contextTree->GetCurrent(); }
 	void PrintStackTrace();
-	
+
+	void SetLanguageEnhancementsEnabled(bool enabled);
 
 	enum Verbosity
 	{
@@ -153,6 +154,7 @@ private:
 	Verbosity m_verbosityLevel;
 
 	void* m_tag;
+	bool m_enhancementsEnabled;
 
 	// we consider Call() a built-in function and not technically an import,
 	// mostly for performance reasons

@@ -44,7 +44,7 @@ class SheepCodeGenerator
 {
 public:
 
-	SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports);
+	SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, bool allowEnhancements);
 
 	IntermediateOutput* BuildIntermediateOutput();
 
@@ -63,6 +63,7 @@ private:
 
 	static CodeTreeExpressionValueType convertToExpressionValueType(SheepSymbolType type);
 
+	bool m_allowEnhancements;
 	SheepCodeTree* m_tree;
 	SheepImportTable* m_imports;
 

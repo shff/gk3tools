@@ -274,6 +274,13 @@ void SHP_PrintStackTrace(SheepVM* vm)
 	return SM(vm)->PrintStackTrace();
 }
 
+void SHP_EnableLanguageEnhancements(SheepVM* vm, bool enabled)
+{
+	assert(vm != NULL);
+
+	SM(vm)->SetLanguageEnhancementsEnabled(enabled);
+}
+
 int SHP_GetNumContexts(SheepVM* vm)
 {
 	assert(vm != NULL);

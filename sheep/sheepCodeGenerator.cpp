@@ -37,11 +37,12 @@ void IntermediateOutput::Print()
 	std::cout << "------------" << std::endl;
 }
 
-SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports)
+SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, bool allowEnhancements)
 {
 	assert(tree != NULL);
 	assert(imports != NULL);
 
+	m_allowEnhancements = allowEnhancements;
 	m_tree = tree;
 	m_imports = imports;
 }
@@ -172,7 +173,11 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 
 			while(declaration != NULL)
 			{
-				SheepCodeTreeIdentifierReferenceNode* identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
+				SheepCodeTreeIdentifierReferenceNode* identifier;
+				if (declaration->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
+					identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(1));
+				else
+					identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
 				
 				while(identifier)
 				{
@@ -250,7 +255,11 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 	{
 		if (node->GetType() == NODETYPE_DECLARATION)
 		{
-			determineExpressionTypes(node->GetChild(1));
+			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
+			if (decl->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
+				determineExpressionTypes(node->GetChild(2));
+			else
+				determineExpressionTypes(node->GetChild(1));
 		}
 		else if (node->GetType() == NODETYPE_EXPRESSION)
 		{
@@ -399,6 +408,10 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 			{
 				determineExpressionTypes(statement->GetChild(0));
 			}
+			else if (statement->GetStatementType() == SMT_RETURN)
+			{
+				determineExpressionTypes(statement->GetChild(0));
+			}
 		}
 
 		node = node->GetNextSibling();
@@ -443,23 +456,51 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 {
 	assert(function->GetDeclarationType() == DECLARATIONTYPE_FUNCTION);
 	
-	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(0));
+	SheepCodeTreeSymbolTypeNode* type = static_cast<SheepCodeTreeSymbolTypeNode*>(function->GetChild(0));
+	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(1));
+
+	if (type != nullptr && m_allowEnhancements == false)
+		throw SheepCompilerException(type->GetLineNumber(), "Function return types are not allowed.");
 
 	SheepFunction func(function);
 	func.Name = ref->GetName();
 	func.Code = SHEEP_NEW SheepCodeBuffer();
 	func.CodeOffset = codeOffset;
 
-	SheepCodeTreeNode* child = function->GetChild(1);
+	SheepCodeTreeNode* child = function->GetChild(2);
+
+	if (type != nullptr)
+	{
+		// make sure the function is returning something
+		SheepCodeTreeStatementNode* smt = static_cast<SheepCodeTreeStatementNode*>(child);
+		bool validReturnFound = false;
+		
+		while(smt != nullptr)
+		{
+			if (smt->GetStatementType() == SMT_RETURN)
+			{
+				validReturnFound = true;
+				break;
+			}
+
+			smt = static_cast<SheepCodeTreeStatementNode*>(smt->GetNextSibling());
+		}
+
+		if (validReturnFound == false)
+			throw SheepCompilerException(function->GetLineNumber(), "Not all paths return a value.");
+	}
 
 	writeCode(func, child);
 
-	// add one last bit (the GK3 compiler seems to always do this)
-	func.Code->WriteSheepInstruction(ReturnV);
-	func.Code->WriteSheepInstruction(SitnSpin);
-	func.Code->WriteSheepInstruction(SitnSpin);
-	func.Code->WriteSheepInstruction(SitnSpin);
-	func.Code->WriteSheepInstruction(SitnSpin);
+	if (type == nullptr)
+	{
+		// add one last bit (the GK3 compiler seems to always do this)
+		func.Code->WriteSheepInstruction(ReturnV);
+		func.Code->WriteSheepInstruction(SitnSpin);
+		func.Code->WriteSheepInstruction(SitnSpin);
+		func.Code->WriteSheepInstruction(SitnSpin);
+		func.Code->WriteSheepInstruction(SitnSpin);
+	}
 
 	// now we have to go back and update all the GOTOs
 	for (int i = 0; i < func.Gotos.size(); i++)
@@ -510,7 +551,50 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 	}
 	else if (statement->GetStatementType() == SMT_RETURN)
 	{
-		function.Code->WriteSheepInstruction(ReturnV);
+		SheepCodeTreeExpressionNode* expr = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
+		SheepCodeTreeSymbolTypeNode* returnType = static_cast<SheepCodeTreeSymbolTypeNode*>(function.Declaration->GetChild(0));
+
+		if (expr == nullptr && returnType != nullptr)
+			throw SheepCompilerException(statement->GetLineNumber(), "Non-void functions must return a value.");
+
+		if (returnType == nullptr)
+		{
+			if (expr != nullptr)
+				throw SheepCompilerException(expr->GetLineNumber(), "Unexpected return expression in a void function");
+
+			function.Code->WriteSheepInstruction(ReturnV);
+		}
+		else
+		{
+			writeExpression(function, expr);
+
+			CodeTreeExpressionValueType exprType = expr->GetValueType();
+			if (returnType->GetRefType() == TYPE_INT)
+			{
+				if (exprType == EXPRVAL_FLOAT)
+					function.Code->WriteSheepInstruction(FToI);
+				else if (exprType != EXPRVAL_INT)
+					throw SheepCompilerException(expr->GetLineNumber(), "Expected an integer");
+
+				function.Code->WriteSheepInstruction(ReturnI);
+			}
+			else if (returnType->GetRefType() == TYPE_FLOAT)
+			{
+				if (exprType == EXPRVAL_INT)
+					function.Code->WriteSheepInstruction(IToF);
+				else if (exprType != EXPRVAL_FLOAT)
+					throw SheepCompilerException(expr->GetLineNumber(), "Expected a float");
+
+				function.Code->WriteSheepInstruction(ReturnF);
+			}
+			else if (returnType->GetRefType() == TYPE_STRING)
+			{
+				if (exprType != EXPRVAL_STRING)
+					throw SheepCompilerException(expr->GetLineNumber(), "Expected a string");
+
+				function.Code->WriteSheepInstruction(ReturnS);
+			}
+		}
 	}
 	else if (statement->GetStatementType() == SMT_WAIT)
 	{

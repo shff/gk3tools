@@ -21,6 +21,7 @@ SheepMachine::SheepMachine()
 	m_contextTree = new SheepContextTree();
 
 	m_tag = NULL;
+	m_enhancementsEnabled = false;
 }
 
 SheepMachine::~SheepMachine()
@@ -72,7 +73,7 @@ IntermediateOutput* SheepMachine::Compile(const std::string &script)
 	SheepLog log;
 	tree.Lock(script, &log);
 
-	SheepCodeGenerator generator(&tree, &m_imports);
+	SheepCodeGenerator generator(&tree, &m_imports, m_enhancementsEnabled);
 	IntermediateOutput* output = generator.BuildIntermediateOutput();
 
 	tree.Unlock();
@@ -172,7 +173,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int noun, int verb, int
 	SheepCodeTree tree;
 	tree.Lock(ss.str(), NULL);
 
-	SheepCodeGenerator generator(&tree, &m_imports);
+	SheepCodeGenerator generator(&tree, &m_imports, m_enhancementsEnabled);
 	IntermediateOutput* code = generator.BuildIntermediateOutput();
 
 	tree.Unlock();
@@ -334,6 +335,11 @@ void SheepMachine::PrintStackTrace()
 
 		context = context->Parent;
 	}
+}
+
+void SheepMachine::SetLanguageEnhancementsEnabled(bool enabled)
+{
+	m_enhancementsEnabled = enabled;
 }
 
 void SheepMachine::executeNextInstruction(SheepContext* context)

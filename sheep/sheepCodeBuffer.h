@@ -19,6 +19,8 @@ enum SheepInstruction
 	EndWait              = 0x0A,
 	ReturnV              = 0x0B,
 
+	Fatal                = 0x0C,
+
 	StoreI               = 0x0D,
 	StoreF               = 0x0E,
 	StoreS               = 0x0F,
@@ -56,11 +58,19 @@ enum SheepInstruction
 
 	IToF                 = 0x2D,
 	FToI                 = 0x2E,
+	Modulo               = 0x2F,
 	And                  = 0x30,
 	Or                   = 0x31,
 	Not                  = 0x32,
 	GetString            = 0x33,
-	DebugBreakpoint      = 0x34
+	DebugBreakpoint      = 0x34,
+
+
+	// the following are not part of GK3. They
+	// are part of our own "enhanced" instruction set.
+	ReturnI              = 0xA0,
+	ReturnF              = 0xA1,
+	ReturnS              = 0xA2
 };
 
 class SheepCodeBuffer : public ResizableBuffer

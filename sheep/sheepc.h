@@ -38,7 +38,7 @@ extern "C"
 
 #define SHEEP_VERSION_MAJOR 0
 #define SHEEP_VERSION_MINOR 3
-#define SHEEP_VERSION_REVISION 8
+#define SHEEP_VERSION_REVISION 9
 
 #define SHEEP_VERBOSITY_SILENT 0
 #define SHEEP_VERBOSITY_POLITE 1
@@ -152,6 +152,12 @@ DECLSPEC void LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
 DECLSPEC void LIB_CALL SHP_PrintMemoryUsage();
 DECLSPEC void LIB_CALL SHP_PrintStackTrace(SheepVM* vm);
 
+
+/* There are two versions of Sheep, the vanilla version that shipped with GK3,
+and an "enhanced" version with our own extras. By default the Sheep compiler and VM
+only support GK3's vanilla version of sheep, so if you want the extras you have to explicitly
+as for them, using the following function. */
+DECLSPEC void LIB_CALL SHP_EnableLanguageEnhancements(SheepVM* vm, bool enabled);
 
 /* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.
 

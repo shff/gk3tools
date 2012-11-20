@@ -102,8 +102,32 @@ function_list:
 	;
 
 function:
-	local_identifier LPAREN RPAREN LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); $$->SetChild(0, $1); }
-	| local_identifier LPAREN RPAREN LBRACE statement_list RBRACE { $$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); $$->SetChild(0, $1); $$->SetChild(1, $5); }
+	local_identifier LPAREN RPAREN LBRACE RBRACE
+		{ 
+			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
+			$$->SetChild(0, NULL);
+			$$->SetChild(1, $1); 
+		}
+	| local_identifier LPAREN RPAREN LBRACE statement_list RBRACE
+		{
+			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
+			$$->SetChild(0, NULL);
+			$$->SetChild(1, $1); 
+			$$->SetChild(2, $5);
+		}
+	| symbol_type local_identifier LPAREN RPAREN LBRACE RBRACE
+		{ 
+			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
+			$$->SetChild(0, $1);
+			$$->SetChild(1, $2); 
+		}
+	| symbol_type local_identifier LPAREN RPAREN LBRACE statement_list RBRACE 
+		{
+			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
+			$$->SetChild(0, $1);
+			$$->SetChild(1, $2); 
+			$$->SetChild(2, $6);
+		}
 	;
 	
 	
@@ -118,6 +142,7 @@ simple_statement:
 	| GOTO local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_GOTO, currentLine); $$->SetChild(0, $2); }
 	| expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_EXPR, currentLine); $$->SetChild(0, $1); }
 	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
+	| RETURN expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); $$->SetChild(0, $2); }
 	| wait_statement { $$ = $1 }
 	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_ASSIGN, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
 	;
@@ -142,6 +167,7 @@ open_statement:
 	
 closed_statement:
 	simple_statement { $$ = $1 }
+	| LBRACE RBRACE { $$ = NULL; }
 	| LBRACE statement_list RBRACE { $$ = $2 }
 	| IF LPAREN expr RPAREN closed_statement ELSE closed_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
 	;
