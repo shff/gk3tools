@@ -69,10 +69,19 @@ symbol_list:
 	| symbol_list symbol_declaration { $1->AttachSibling($2); $$ = $1; }
 	;
 	
+symbol_type:
+	INTSYM { $$ = SheepCodeTreeNode::CreateTypeReference(TYPE_INT, currentLine); }
+	| FLOATSYM { $$ = SheepCodeTreeNode::CreateTypeReference(TYPE_FLOAT, currentLine); }
+	| STRINGSYM { $$ = SheepCodeTreeNode::CreateTypeReference(TYPE_STRING, currentLine); }
+	;
+	
 symbol_declaration:
-	INTSYM symbol_declaration_list SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_INT, currentLine); $$->SetChild(0, $2); }
-	| FLOATSYM symbol_declaration_list SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FLOAT, currentLine); $$->SetChild(0, $2); }
-	| STRINGSYM symbol_declaration_list SEMICOLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_STRING, currentLine); $$->SetChild(0, $2); }
+	symbol_type symbol_declaration_list SEMICOLON
+	{
+		$$ = SheepCodeTreeNode::CreateVariableDeclaration(currentLine);
+		$$->SetChild(0, $2);
+		$$->SetChild(1, $1);
+	}
 	;
 	
 symbol_declaration_list:
@@ -93,8 +102,8 @@ function_list:
 	;
 
 function:
-	local_identifier LPAREN RPAREN LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FUNCTION, currentLine); $$->SetChild(0, $1); }
-	| local_identifier LPAREN RPAREN LBRACE statement_list RBRACE { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_FUNCTION, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $5); }
+	local_identifier LPAREN RPAREN LBRACE RBRACE { $$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); $$->SetChild(0, $1); }
+	| local_identifier LPAREN RPAREN LBRACE statement_list RBRACE { $$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); $$->SetChild(0, $1); $$->SetChild(1, $5); }
 	;
 	
 	
@@ -105,7 +114,7 @@ statement_list:
 	
 simple_statement:
 	SEMICOLON
-	| local_identifier COLON { $$ = SheepCodeTreeNode::CreateDeclaration(DECLARATIONTYPE_LABEL, currentLine); $$->SetChild(0, $1); }
+	| local_identifier COLON { $$ = SheepCodeTreeNode::CreateLabelDeclaration(currentLine); $$->SetChild(0, $1); }
 	| GOTO local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_GOTO, currentLine); $$->SetChild(0, $2); }
 	| expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_EXPR, currentLine); $$->SetChild(0, $1); }
 	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }

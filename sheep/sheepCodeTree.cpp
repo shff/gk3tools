@@ -124,9 +124,23 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateCodeSection(int lineNumber)
 	return SHEEP_NEW SheepCodeTreeSectionNode(SECTIONTYPE_CODE, lineNumber);
 }
 
-SheepCodeTreeNode* SheepCodeTreeNode::CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber)
+SheepCodeTreeNode* SheepCodeTreeNode::CreateVariableDeclaration(int lineNumber)
 {
-	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(type, lineNumber);
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_VARIABLE, lineNumber);
+	
+	return node;
+}
+
+SheepCodeTreeNode* SheepCodeTreeNode::CreateFunctionDeclaration(int lineNumber)
+{
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_FUNCTION, lineNumber);
+	
+	return node;
+}
+
+SheepCodeTreeNode* SheepCodeTreeNode::CreateLabelDeclaration(int lineNumber)
+{
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_LABEL, lineNumber);
 	
 	return node;
 }
@@ -176,6 +190,11 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateOperation(CodeTreeOperationType type
 SheepCodeTreeNode* SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType type, int lineNumber)
 {
 	return SHEEP_NEW SheepCodeTreeStatementNode(type, lineNumber);
+}
+
+SheepCodeTreeNode* SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType type, int lineNumber)
+{
+	return SHEEP_NEW SheepCodeTreeSymbolTypeNode(type, lineNumber);
 }
 
 void SheepCodeTreeNode::AttachSibling(SheepCodeTreeNode* sibling)

@@ -178,8 +178,21 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 				{
 					SheepSymbol symbol;
 					symbol.Name = identifier->GetName();
-					symbol.Type = convertToSymbolType(declaration->GetDeclarationType());
-					
+					if (declaration->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
+						symbol.Type = SYM_LOCALFUNCTION;
+					else if (declaration->GetDeclarationType() == DECLARATIONTYPE_LABEL)
+						symbol.Type = SYM_LABEL;
+					else if (declaration->GetDeclarationType() == DECLARATIONTYPE_VARIABLE)
+					{
+						SheepCodeTreeSymbolTypeNode* symType = static_cast<SheepCodeTreeSymbolTypeNode*>(declaration->GetChild(1));
+
+						if (symType->GetRefType() == TYPE_INT)
+							symbol.Type = SYM_INT;
+						else if (symType->GetRefType() == TYPE_FLOAT)
+							symbol.Type = SYM_FLOAT;
+						else if (symType->GetRefType() == TYPE_STRING)
+							symbol.Type = SYM_STRING;
+					}
 					
 					SheepCodeTreeConstantNode* constant =
 						static_cast<SheepCodeTreeConstantNode*>(identifier->GetChild(0));
@@ -869,23 +882,6 @@ SheepSymbolType SheepCodeGenerator::getSymbolType(int lineNumber, const std::str
 		throw SheepCompilerException(lineNumber, "Use of undefined symbol");
 
 	return (*itr).second.Type;
-}
-
-SheepSymbolType SheepCodeGenerator::convertToSymbolType(CodeTreeDeclarationNodeType type)
-{
-	if (type == DECLARATIONTYPE_INT)
-		return SYM_INT;
-	if (type == DECLARATIONTYPE_FLOAT)
-		return SYM_FLOAT;
-	if (type == DECLARATIONTYPE_STRING)
-		return SYM_STRING;
-	if (type == DECLARATIONTYPE_FUNCTION)
-		return SYM_LOCALFUNCTION;
-	if (type == DECLARATIONTYPE_LABEL)
-		return SYM_LABEL;
-
-	// we should never get here!
-	throw SheepException("Unknown declaration type", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 }
 
 CodeTreeExpressionValueType SheepCodeGenerator::convertToExpressionValueType(SheepSymbolType type)

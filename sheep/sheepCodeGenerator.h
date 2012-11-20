@@ -61,7 +61,6 @@ private:
 	int writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);
 	void writeBinaryOperator(SheepFunction& function, SheepCodeTreeOperationNode* operation);
 
-	static SheepSymbolType convertToSymbolType(CodeTreeDeclarationNodeType type);
 	static CodeTreeExpressionValueType convertToExpressionValueType(SheepSymbolType type);
 
 	SheepCodeTree* m_tree;

@@ -57,7 +57,8 @@ enum CodeTreeNodeType
 	NODETYPE_SECTION,
 	NODETYPE_DECLARATION,
 	NODETYPE_STATEMENT,
-	NODETYPE_EXPRESSION
+	NODETYPE_EXPRESSION,
+	NODETYPE_TYPEREFERENCE
 };
 
 enum CodeTreeSectionType
@@ -68,9 +69,7 @@ enum CodeTreeSectionType
 
 enum CodeTreeDeclarationNodeType
 {
-	DECLARATIONTYPE_INT,
-	DECLARATIONTYPE_FLOAT,
-	DECLARATIONTYPE_STRING,
+	DECLARATIONTYPE_VARIABLE,
 	DECLARATIONTYPE_FUNCTION,
 	DECLARATIONTYPE_LABEL
 };
@@ -80,6 +79,15 @@ enum CodeTreeExpressionType
 	EXPRTYPE_OPERATION,
 	EXPRTYPE_IDENTIFIER,
 	EXPRTYPE_CONSTANT
+};
+
+enum CodeTreeTypeReferenceType
+{
+	TYPE_INT,
+	TYPE_FLOAT,
+	TYPE_STRING,
+	TYPE_HANDLE,
+	TYPE_CUSTOM
 };
 
 enum CodeTreeExpressionValueType
@@ -128,7 +136,9 @@ public:
 	static SheepCodeTreeNode* CreateSymbolSection(int lineNumber);
 	static SheepCodeTreeNode* CreateCodeSection(int lineNumber);
 
-	static SheepCodeTreeNode* CreateDeclaration(CodeTreeDeclarationNodeType type, int lineNumber);
+	static SheepCodeTreeNode* CreateVariableDeclaration(int lineNumber);
+	static SheepCodeTreeNode* CreateFunctionDeclaration(int lineNumber);
+	static SheepCodeTreeNode* CreateLabelDeclaration(int lineNumber);
 	static SheepCodeTreeNode* CreateStatement(int lineNumber);
 	static SheepCodeTreeNode* CreateLocalFunction(int lineNumber);
 
@@ -141,6 +151,8 @@ public:
 	static SheepCodeTreeNode* CreateOperation(CodeTreeOperationType type, int lineNumber);
 
 	static SheepCodeTreeNode* CreateKeywordStatement(CodeTreeKeywordStatementType type, int lineNumber);
+
+	static SheepCodeTreeNode* CreateTypeReference(CodeTreeTypeReferenceType type, int lineNumber);
 
 	virtual ~SheepCodeTreeNode();
 
@@ -219,12 +231,8 @@ protected:
 	
 	void PrintData()
 	{		
-		if (m_declarationType == DECLARATIONTYPE_INT)
-			printf("Declaration of integer\n");
-		else if (m_declarationType == DECLARATIONTYPE_FLOAT)
-			printf("Declaration of float\n");
-		else if (m_declarationType == DECLARATIONTYPE_STRING)
-			printf("Declaration of string\n");
+		if (m_declarationType == DECLARATIONTYPE_VARIABLE)
+			printf("Declaration of variable\n");
 		else if (m_declarationType == DECLARATIONTYPE_FUNCTION)
 			printf("Declaration of local function\n");
 		else if (m_declarationType == DECLARATIONTYPE_LABEL)
@@ -297,6 +305,19 @@ private:
 	
 };
 
+class SheepCodeTreeSymbolTypeNode : public SheepCodeTreeNode
+{
+	CodeTreeTypeReferenceType m_refType;
+
+public:
+	SheepCodeTreeSymbolTypeNode(CodeTreeTypeReferenceType type, int lineNumber)
+		: SheepCodeTreeNode(NODETYPE_TYPEREFERENCE, lineNumber)
+	{
+		m_refType = type;
+	}
+
+	CodeTreeTypeReferenceType GetRefType() { return m_refType; }
+};
 
 class SheepCodeTreeConstantNode : public SheepCodeTreeExpressionNode
 {
