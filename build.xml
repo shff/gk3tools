@@ -3,12 +3,12 @@
 	<PropertyGroup>
 		<LzoFile>lzo-2.05</LzoFile>
 		<LzoUrl>http://www.oberhumer.com/opensource/lzo/download/$(LzoFile).tar.gz</LzoUrl>
-		<ZLibFile>zlib-1.2.5</ZLibFile>
+		<ZLibFile>zlib-1.2.7</ZLibFile>
 		<ZLibUrl>http://zlib.net/$(ZLibFile).tar.gz</ZLibUrl>
 	</PropertyGroup>
 	<ItemGroup>
 		<CSFile 
-			Include="Builder\Builder\*.cs; Builder\Builder\Tar\*.cs" />
+			Include="Builder\*.cs; Builder\Tar\*.cs" />
 	</ItemGroup>
 	<Target Name="LzoAndZLib">
 	
