@@ -69,6 +69,7 @@ int main(int argc, char** argv)
 	int indexOfFile = 1;
 	std::string outputFile = "output.shp";
 	std::string functionToRun = "main$";
+	bool enhancementsEnabled = false;
 
 	if (std::string(argv[1]) == "-v")
 	{
@@ -95,6 +96,14 @@ int main(int argc, char** argv)
 		{
 			mode = Disassembler;
 			indexOfFile = 2;
+		}
+		else if (std::string(argv[1]) == "-e")
+		{
+			enhancementsEnabled  = true;
+			indexOfFile = 2;
+
+			if (argc > 3)
+				outputFile = argv[3];
 		}
 		else
 		{
@@ -169,6 +178,9 @@ int main(int argc, char** argv)
 	if (mode == Compiler)
 	{
 		SheepMachine m;
+
+		if (enhancementsEnabled)
+			m.SetLanguageEnhancementsEnabled(true);
 
 		m.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
 		m.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);

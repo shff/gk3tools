@@ -233,11 +233,17 @@ public:
 		m_buffer->WriteUShort(lengthOfName);
 		m_buffer->Write(function.Name.c_str(), lengthOfName + 1);
 
-		char returnType = 0;
-		char numParameters = 0;
+		char returnType = (char)function.ReturnType;
+		char numParameters = (char)function.Parameters.size();
 
 		m_buffer->Write(&returnType, 1);
 		m_buffer->Write(&numParameters, 1);
+		for (int i = 0; i < numParameters; i++)
+		{
+			char paramType = (char)function.Parameters[i].Type;
+			m_buffer->Write(&paramType, 1);
+		}
+
 		m_buffer->WriteUInt(m_currentCodeOffset);
 
 		m_currentCodeOffset += (int)function.Code->GetSize();

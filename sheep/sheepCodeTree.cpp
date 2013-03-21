@@ -29,6 +29,8 @@ SheepCodeTreeNode* SheepCodeTree::GetCodeTree()
 	return g_codeTreeRoot;
 }
 
+extern int currentLine;
+
 void SheepCodeTree::Lock(const std::string& script, SheepLog* log)
 {
 	if (m_locked == true)
@@ -42,6 +44,9 @@ void SheepCodeTree::Lock(const std::string& script, SheepLog* log)
 	// the real GK3 compiler seems to do this too
 	AddStringConstant("");
 	
+	// reset the line number
+	currentLine = 1;
+
 	YY_BUFFER_STATE buffer = yy_scan_string(script.c_str());
 	if (buffer != NULL)
 	{
@@ -135,6 +140,13 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateFunctionDeclaration(int lineNumber)
 {
 	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_FUNCTION, lineNumber);
 	
+	return node;
+}
+
+SheepCodeTreeNode* SheepCodeTreeNode::CreateLocalFunctionParam(int lineNumber)
+{
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_VARIABLE, lineNumber);
+
 	return node;
 }
 

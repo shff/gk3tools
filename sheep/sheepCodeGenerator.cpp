@@ -70,9 +70,6 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		SheepCodeTreeSectionNode* section = static_cast<SheepCodeTreeSectionNode*>(root);
 		while(section != NULL)
 		{
-			if (section->GetSectionType() == SECTIONTYPE_CODE)
-				determineExpressionTypes(section->GetChild(0));
-
 			// iterate over each function/snippet and output a SheepFunction object
 			if (section->GetSectionType() == SECTIONTYPE_CODE)
 			{
@@ -249,7 +246,7 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 	}
 }
 
-void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
+void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, SheepCodeTreeNode* node)
 {
 	while (node != NULL)
 	{
@@ -257,9 +254,9 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 		{
 			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
 			if (decl->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
-				determineExpressionTypes(node->GetChild(2));
+				determineExpressionTypes(function, node->GetChild(3));
 			else
-				determineExpressionTypes(node->GetChild(1));
+				determineExpressionTypes(function, node->GetChild(1));
 		}
 		else if (node->GetType() == NODETYPE_EXPRESSION)
 		{
@@ -272,8 +269,8 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 				SheepCodeTreeExpressionNode* child1 = static_cast<SheepCodeTreeExpressionNode*>(expr->GetChild(0));
 				SheepCodeTreeExpressionNode* child2 = static_cast<SheepCodeTreeExpressionNode*>(expr->GetChild(1));
 
-				if (child1 != NULL)	determineExpressionTypes(child1);
-				if (child2 != NULL) determineExpressionTypes(child2);
+				if (child1 != NULL)	determineExpressionTypes(function, child1);
+				if (child2 != NULL) determineExpressionTypes(function, child2);
 
 				if (child1->GetValueType() == EXPRVAL_VOID ||
 					(child2 && child2->GetValueType() == EXPRVAL_VOID))
@@ -354,13 +351,32 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 						throw SheepCompilerException(identifier->GetLineNumber(), "Unrecognized import function");
 
 					// check the parameters
-					determineExpressionTypes(identifier->GetChild(0));
+					determineExpressionTypes(function, identifier->GetChild(0));
 
 					identifier->SetValueType(convertToExpressionValueType(import.ReturnType));
 				}
 				else
 				{
-					SheepSymbolType definedType = getSymbolType(identifier->GetLineNumber(), identifier->GetName());
+					SheepSymbolType definedType = SYM_VOID;
+					SymbolMap::iterator itr = m_symbolMap.find(identifier->GetName());
+					if (itr != m_symbolMap.end())
+					{
+						definedType = (*itr).second.Type;
+					}
+					else
+					{
+						for (int i = 0; i < function.Parameters.size(); i++)
+						{
+							if (CIEqual(function.Parameters[i].Name, identifier->GetName()))
+							{
+								definedType = function.Parameters[i].Type;
+								break;
+							}
+						}
+					}
+
+					if (definedType == SYM_VOID)
+						throw SheepCompilerException(identifier->GetLineNumber(), "Use of undefined symbol");
 
 					if (definedType == SYM_LOCALFUNCTION)
 						throw SheepCompilerException(identifier->GetLineNumber(), "Function name used like a variable");
@@ -385,9 +401,9 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 
 			if (statement->GetStatementType() == SMT_IF)
 			{
-				determineExpressionTypes(statement->GetChild(0));
-				determineExpressionTypes(statement->GetChild(1));
-				determineExpressionTypes(statement->GetChild(2));
+				determineExpressionTypes(function, statement->GetChild(0));
+				determineExpressionTypes(function, statement->GetChild(1));
+				determineExpressionTypes(function, statement->GetChild(2));
 
 				SheepCodeTreeExpressionNode* ifCondition = 
 					static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
@@ -397,20 +413,20 @@ void SheepCodeGenerator::determineExpressionTypes(SheepCodeTreeNode* node)
 			}
 			else if (statement->GetStatementType() == SMT_WAIT)
 			{
-				determineExpressionTypes(statement->GetChild(0));
+				determineExpressionTypes(function, statement->GetChild(0));
 			}
 			else if (statement->GetStatementType() == SMT_ASSIGN)
 			{
-				determineExpressionTypes(statement->GetChild(0));
-				determineExpressionTypes(statement->GetChild(1));
+				determineExpressionTypes(function, statement->GetChild(0));
+				determineExpressionTypes(function, statement->GetChild(1));
 			}
 			else if (statement->GetStatementType() == SMT_EXPR)
 			{
-				determineExpressionTypes(statement->GetChild(0));
+				determineExpressionTypes(function, statement->GetChild(0));
 			}
 			else if (statement->GetStatementType() == SMT_RETURN)
 			{
-				determineExpressionTypes(statement->GetChild(0));
+				determineExpressionTypes(function, statement->GetChild(0));
 			}
 		}
 
@@ -458,16 +474,56 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	
 	SheepCodeTreeSymbolTypeNode* type = static_cast<SheepCodeTreeSymbolTypeNode*>(function->GetChild(0));
 	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(1));
+	SheepCodeTreeDeclarationNode* params = static_cast<SheepCodeTreeDeclarationNode*>(function->GetChild(2));
 
 	if (type != nullptr && m_allowEnhancements == false)
 		throw SheepCompilerException(type->GetLineNumber(), "Function return types are not allowed.");
+	if (params != nullptr && m_allowEnhancements == false)
+		throw SheepCompilerException(params->GetLineNumber(), "Function parameters are not allowed.");
 
 	SheepFunction func(function);
 	func.Name = ref->GetName();
 	func.Code = SHEEP_NEW SheepCodeBuffer();
 	func.CodeOffset = codeOffset;
 
-	SheepCodeTreeNode* child = function->GetChild(2);
+	if (type != NULL)
+	{
+		if (type->GetRefType() == TYPE_INT)
+			func.ReturnType = SYM_INT;
+		else if (type->GetRefType() == TYPE_FLOAT)
+			func.ReturnType = SYM_FLOAT;
+		else if (type->GetRefType() == TYPE_STRING)
+			func.ReturnType = SYM_STRING;
+	}
+
+	while (params != NULL)
+	{
+		SheepCodeTreeSymbolTypeNode* paramType = static_cast<SheepCodeTreeSymbolTypeNode*>(params->GetChild(0));
+		SheepCodeTreeIdentifierReferenceNode* paramID = static_cast<SheepCodeTreeIdentifierReferenceNode*>(params->GetChild(1));
+
+		SheepSymbol param;
+		param.Name = paramID->GetName();
+
+		// make sure the parameter name doesn't conflict with a global symbol
+		if (m_symbolMap.find(param.Name) != m_symbolMap.end())
+			throw SheepCompilerException(paramID->GetLineNumber(), "Parameter identifier conflicts with an existing symbol");
+
+		if (paramType->GetRefType() == TYPE_INT)
+			param.Type = SYM_INT;
+		else if (paramType->GetRefType() == TYPE_FLOAT)
+			param.Type = SYM_FLOAT;
+		else if (paramType->GetRefType() == TYPE_STRING)
+			param.Type = SYM_STRING;
+		else
+			throw SheepCompilerException(paramType->GetLineNumber(), "Unknown parameter type (possible compiler bug)");
+
+		func.Parameters.push_back(param);
+		params = static_cast<SheepCodeTreeDeclarationNode*>(params->GetNextSibling());
+	}
+
+	SheepCodeTreeNode* child = function->GetChild(3);
+
+	determineExpressionTypes(func, child);
 
 	if (type != nullptr)
 	{
@@ -488,6 +544,19 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 
 		if (validReturnFound == false)
 			throw SheepCompilerException(function->GetLineNumber(), "Not all paths return a value.");
+	}
+
+	// write "store" instructions for the parameters
+	for (int i = func.Parameters.size() - 1; i >= 0; i--)
+	{
+		if (func.Parameters[i].Type == SYM_INT)
+			func.Code->WriteSheepInstruction(StoreI);
+		else if (func.Parameters[i].Type == SYM_FLOAT)
+			func.Code->WriteSheepInstruction(StoreF);
+		else if (func.Parameters[i].Type == SYM_STRING)
+			func.Code->WriteSheepInstruction(StoreS);
+
+		func.Code->WriteInt(i + m_variables.size());
 	}
 
 	writeCode(func, child);
@@ -683,25 +752,47 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			static_cast<SheepCodeTreeIdentifierReferenceNode*>(child1);
 
 		assert(reference->IsGlobal() == false);
-		SheepSymbol variable = (*m_symbolMap.find(reference->GetName())).second;
-		int index = getIndexOfVariable(variable);
+		SheepSymbol variable;
+		int symbolIndex;
+
+		SymbolMap::iterator symbol = m_symbolMap.find(reference->GetName());
+		if (symbol != m_symbolMap.end())
+		{
+			variable = symbol->second;
+
+			// expression is just a regular ol' identifier, so get its index
+			symbolIndex = getIndexOfVariable(variable);
+		}
+		else
+		{
+			// the symbol is not a global symbol. Maybe it's a function parameter.
+			for (int i = 0; function.Parameters.size(); i++)
+			{
+				if (CIEqual(reference->GetName(), function.Parameters[i].Name))
+				{
+					variable = function.Parameters[i];
+					symbolIndex = m_variables.size() + i;
+					break;
+				}
+			}
+		}
 		
 		if (child1->GetValueType() == EXPRVAL_INT)
 		{
 			function.Code->WriteSheepInstruction(StoreI);
-			function.Code->WriteInt(index);
+			function.Code->WriteInt(symbolIndex);
 		}
 		else if (child1->GetValueType() == EXPRVAL_FLOAT)
 		{
 			function.Code->WriteSheepInstruction(StoreF);
-			function.Code->WriteInt(index);
+			function.Code->WriteInt(symbolIndex);
 		}
 		else
 		{
 			assert(child1->GetValueType() == EXPRVAL_STRING);
 
 			function.Code->WriteSheepInstruction(StoreS);
-			function.Code->WriteInt(index);
+			function.Code->WriteInt(symbolIndex);
 		}
 	}
 }
@@ -817,27 +908,47 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 		}
 		else
 		{
-			SheepSymbol variable = (*m_symbolMap.find(identifier->GetName())).second;
+			SheepSymbol variable;
+			int symbolIndex;
 
-			// expression is just a regular ol' identifier, so get its index
-			int index = getIndexOfVariable(variable);
+			SymbolMap::iterator symbol = m_symbolMap.find(identifier->GetName());
+			if (symbol != m_symbolMap.end())
+			{
+				variable = symbol->second;
+
+				// expression is just a regular ol' identifier, so get its index
+				symbolIndex = getIndexOfVariable(variable);
+			}
+			else
+			{
+				// the symbol is not a global symbol. Maybe it's a function parameter.
+				for (int i = 0; function.Parameters.size(); i++)
+				{
+					if (CIEqual(identifier->GetName(), function.Parameters[i].Name))
+					{
+						variable = function.Parameters[i];
+						symbolIndex = m_variables.size() + i;
+						break;
+					}
+				}
+			}
 
 			itemsOnStack++;
 			if (variable.Type == SYM_INT)
 			{
 				function.Code->WriteSheepInstruction(LoadI);
-				function.Code->WriteInt(index);
+				function.Code->WriteInt(symbolIndex);
 			}
 			else if (variable.Type == SYM_FLOAT)
 			{
 				function.Code->WriteSheepInstruction(LoadF);
-				function.Code->WriteInt(index);
+				function.Code->WriteInt(symbolIndex);
 			}
 			else
 			{
 				assert(variable.Type == SYM_STRING);
 				function.Code->WriteSheepInstruction(LoadS);
-				function.Code->WriteInt(index);
+				function.Code->WriteInt(symbolIndex);
 				function.Code->WriteSheepInstruction(GetString);
 			}
 		}

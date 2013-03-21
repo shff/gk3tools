@@ -102,34 +102,60 @@ function_list:
 	;
 
 function:
-	local_identifier LPAREN RPAREN LBRACE RBRACE
+	local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE RBRACE
 		{ 
 			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
 			$$->SetChild(0, NULL);
-			$$->SetChild(1, $1); 
+			$$->SetChild(1, $1);
+			$$->SetChild(2, $3);
 		}
-	| local_identifier LPAREN RPAREN LBRACE statement_list RBRACE
+	| local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE statement_list RBRACE
 		{
 			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
 			$$->SetChild(0, NULL);
-			$$->SetChild(1, $1); 
-			$$->SetChild(2, $5);
+			$$->SetChild(1, $1);
+			$$->SetChild(2, $3); 
+			$$->SetChild(3, $6);
 		}
-	| symbol_type local_identifier LPAREN RPAREN LBRACE RBRACE
+	| symbol_type local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE RBRACE
 		{ 
 			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
 			$$->SetChild(0, $1);
-			$$->SetChild(1, $2); 
+			$$->SetChild(1, $2);
+			$$->SetChild(2, $4);
 		}
-	| symbol_type local_identifier LPAREN RPAREN LBRACE statement_list RBRACE 
+	| symbol_type local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE statement_list RBRACE 
 		{
 			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
 			$$->SetChild(0, $1);
-			$$->SetChild(1, $2); 
-			$$->SetChild(2, $6);
+			$$->SetChild(1, $2);
+			$$->SetChild(2, $4);
+			$$->SetChild(3, $7);
 		}
 	;
 	
+function_parameter_list_opt:
+	/* nothing */ { $$ = NULL; }
+	| function_parameter_list { $$ = $1; }
+	;
+
+function_parameter_list:
+	symbol_type local_identifier
+	{
+		$$ = SheepCodeTreeNode::CreateLocalFunctionParam(currentLine);
+		$$->SetChild(0, $1);
+		$$->SetChild(1, $2);
+	}
+	| function_parameter_list COMMA symbol_type local_identifier
+	{
+		SheepCodeTreeNode* param = SheepCodeTreeNode::CreateLocalFunctionParam(currentLine);
+		param->SetChild(0, $3);
+		param->SetChild(1, $4);
+
+		$$ = $1;
+		$1->AttachSibling(param);
+	}
+	;
 	
 statement_list:
 	statement { $$ = $1 }

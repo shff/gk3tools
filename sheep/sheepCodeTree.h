@@ -141,6 +141,7 @@ public:
 	static SheepCodeTreeNode* CreateLabelDeclaration(int lineNumber);
 	static SheepCodeTreeNode* CreateStatement(int lineNumber);
 	static SheepCodeTreeNode* CreateLocalFunction(int lineNumber);
+	static SheepCodeTreeNode* CreateLocalFunctionParam(int lineNumber);
 
 	static SheepCodeTreeNode* CreateIntegerConstant(int value, int lineNumber);
 	static SheepCodeTreeNode* CreateFloatConstant(float value, int lineNumber);

@@ -51,9 +51,11 @@ class SheepCodeTreeDeclarationNode;
 
 struct SheepFunction
 {
-	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = NULL; Declaration = declaration; }
+	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = NULL; Declaration = declaration; ReturnType = SYM_VOID; }
 
 	SheepCodeTreeDeclarationNode* Declaration;
+	SheepSymbolType ReturnType;
+	std::vector<SheepSymbol> Parameters;
 	std::string Name;
 	SheepCodeBuffer* Code;
 	int CodeOffset;
