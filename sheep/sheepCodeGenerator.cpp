@@ -324,6 +324,13 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 						else
 							operation->SetValueType(EXPRVAL_INT);
 						break;
+					case OP_NEGATE:
+						if (child1->GetValueType() != EXPRVAL_FLOAT &&
+							child1->GetValueType() != EXPRVAL_INT)
+							throw SheepCompilerException(operation->GetLineNumber(), "Can only negate ints and floats");
+						else
+							operation->SetValueType(child1->GetValueType());
+						break;
 					case OP_AND:
 					case OP_OR:
 						if (child1->GetValueType() != EXPRVAL_INT ||
@@ -962,6 +969,8 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 
 		if (operation->GetOperationType() == OP_NEGATE)
 		{
+			writeExpression(function, child1);
+
 			if (operation->GetValueType() == EXPRVAL_INT)
 			{
 				function.Code->WriteSheepInstruction(NegateI);

@@ -219,9 +219,21 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 				func.Name = readString(data + offset, len+1, &bytesRead);
 				offset += bytesRead;
 
-				char dummy;
-				READ1(&dummy, offset);
-				READ1(&dummy, offset);
+				char returnType, numParameters;
+				READ1(&returnType, offset);
+				READ1(&numParameters, offset);
+
+				func.ReturnType = (SheepSymbolType)returnType;
+				for (int k = 0; k < numParameters; k++)
+				{
+					char paramType;
+					READ1(&paramType, offset);
+
+					SheepSymbol param;
+					param.Type = (SheepSymbolType)paramType;
+					func.Parameters.push_back(param);
+				}
+				
 				READ4(&func.CodeOffset, offset);
 
 				m_intermediateOutput->Functions.push_back(func);

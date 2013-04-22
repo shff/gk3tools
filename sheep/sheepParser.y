@@ -242,6 +242,7 @@ expr:
 	| local_identifier { $$ = $1 }
 	| LPAREN expr RPAREN { $$ = $2; }
 	| NOT expr { $$ = SheepCodeTreeNode::CreateOperation(OP_NOT, currentLine); $$->SetChild(0, $2); }
+	| MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_NEGATE, currentLine); $$->SetChild(0, $2); }
 	| expr PLUS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_ADD, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
 	| expr MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_MINUS, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
 	| expr TIMES expr { $$ = SheepCodeTreeNode::CreateOperation(OP_TIMES, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }

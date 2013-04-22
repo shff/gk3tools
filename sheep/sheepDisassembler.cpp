@@ -224,6 +224,28 @@ namespace SheepCompiler
 			
 			return 5;
 		}
+		else if (op == CallSysFunctionF)
+		{
+			memcpy(param, &code[1], 4);
+
+			int function = convertBytesToInt(param[0], param[1], param[2], param[3]);
+
+			printDisassembly(output, op, param[0], param[1], param[2], param[3],
+				"CallSysFunctionF", imports[function].Name);
+			
+			return 5;
+		}
+		else if (op == CallSysFunctionS)
+		{
+			memcpy(param, &code[1], 4);
+
+			int function = convertBytesToInt(param[0], param[1], param[2], param[3]);
+
+			printDisassembly(output, op, param[0], param[1], param[2], param[3],
+				"CallSysFunctionS", imports[function].Name);
+			
+			return 5;
+		}
 		else if (op == Branch)
 		{
 			memcpy(param, &code[1], 4);
@@ -258,6 +280,21 @@ namespace SheepCompiler
 		else if (op == ReturnV)
 		{
 			printDisassembly(output, op, "ReturnV");
+			return 1;
+		}
+		else if (op == ReturnI)
+		{
+			printDisassembly(output, op, "ReturnI");
+			return 1;
+		}
+		else if (op == ReturnF)
+		{
+			printDisassembly(output, op, "ReturnF");
+			return 1;
+		}
+		else if (op == ReturnS)
+		{
+			printDisassembly(output, op, "ReturnS");
 			return 1;
 		}
 		else if (op == StoreI)
@@ -332,9 +369,74 @@ namespace SheepCompiler
 			printDisassembly(output, op, "Pop");
 			return 1;
 		}
+		else if (op == AddI)
+		{
+			printDisassembly(output, op, "AddI");
+			return 1;
+		}
+		else if (op == AddF)
+		{
+			printDisassembly(output, op, "AddF");
+			return 1;
+		}
+		else if (op == SubtractI)
+		{
+			printDisassembly(output, op, "SubtractI");
+			return 1;
+		}
+		else if (op == SubtractF)
+		{
+			printDisassembly(output, op, "SubtractF");
+			return 1;
+		}
+		else if (op == MultiplyI)
+		{
+			printDisassembly(output, op, "MultiplyI");
+			return 1;
+		}
+		else if (op == MultiplyF)
+		{
+			printDisassembly(output, op, "MultiplyF");
+			return 1;
+		}
+		else if (op == DivideI)
+		{
+			printDisassembly(output, op, "DivideI");
+			return 1;
+		}
+		else if (op == DivideF)
+		{
+			printDisassembly(output, op, "DivideF");
+			return 1;
+		}
+		else if (op == NegateI)
+		{
+			printDisassembly(output, op, "NegateI");
+			return 1;
+		}
+		else if (op == NegateF)
+		{
+			printDisassembly(output, op, "NegateF");
+			return 1;
+		}
 		else if (op == IsEqualI)
 		{
 			printDisassembly(output, op, "IsEqualI");
+			return 1;
+		}
+		else if (op == IsEqualF)
+		{
+			printDisassembly(output, op, "IsEqualF");
+			return 1;
+		}
+		else if (op == NotEqualI)
+		{
+			printDisassembly(output, op, "NotEqualI");
+			return 1;
+		}
+		else if (op == NotEqualF)
+		{
+			printDisassembly(output, op, "NotEqualF");
 			return 1;
 		}
 		else if (op == IsGreaterI)
