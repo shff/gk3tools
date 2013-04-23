@@ -483,13 +483,13 @@ namespace SheepCompiler
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "IToF");
-			return 4;
+			return 5;
 		}
 		else if (op == FToI)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "FToI");
-			return 4;
+			return 5;
 		}
 		else if (op == And)
 		{
