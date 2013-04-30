@@ -79,7 +79,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Tao.OpenAl">
-      <HintPath>..\..\..\..\..\code\taoframework-2.1.0\bin\Tao.OpenAl.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\code\taoframework-2.1.0\bin\Tao.OpenAl.dll</HintPath>
     </Reference>
     <Reference Include="Tao.OpenGl">
       <HintPath>..\..\..\..\..\..\code\taoframework-2.1.0\bin\Tao.OpenGl.dll</HintPath>
