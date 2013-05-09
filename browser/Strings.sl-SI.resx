@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AboutCopyright1" xml:space="preserve">
-    <value>Copyright 2010 Brad Farris</value>
+    <value>Copyright 2013 Brad Farris</value>
   </data>
   <data name="AboutCopyright2" xml:space="preserve">
     <value>Pod pooblastilom GNU GPL</value>

@@ -46,6 +46,7 @@ namespace GK3BB
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.convertBitmapsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.decompressFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuSetViewerPath = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,15 +57,14 @@ namespace GK3BB
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mainListView = new System.Windows.Forms.ListView();
-            this.filenameColumn = new System.Windows.Forms.ColumnHeader();
-            this.sizeColumn = new System.Windows.Forms.ColumnHeader();
-            this.typeColumn = new System.Windows.Forms.ColumnHeader();
-            this.barnColumn = new System.Windows.Forms.ColumnHeader();
-            this.compressionColumn = new System.Windows.Forms.ColumnHeader();
+            this.filenameColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.sizeColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.typeColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.barnColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.compressionColumn = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.mainContextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.previewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.extractFilesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.mnuSetViewerPath = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.mainContextMenu.SuspendLayout();
             this.SuspendLayout();
@@ -150,6 +150,13 @@ namespace GK3BB
             this.decompressFilesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.decompressFilesToolStripMenuItem.Text = "Decompress files";
             // 
+            // mnuSetViewerPath
+            // 
+            this.mnuSetViewerPath.Name = "mnuSetViewerPath";
+            this.mnuSetViewerPath.Size = new System.Drawing.Size(179, 22);
+            this.mnuSetViewerPath.Text = "Set path to viewer...";
+            this.mnuSetViewerPath.Click += new System.EventHandler(this.mnuSetViewerPath_Click);
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -232,8 +239,8 @@ namespace GK3BB
             this.mainListView.TabIndex = 1;
             this.mainListView.UseCompatibleStateImageBehavior = false;
             this.mainListView.View = System.Windows.Forms.View.Details;
-            this.mainListView.SelectedIndexChanged += new System.EventHandler(this.mainListView_SelectedIndexChanged);
             this.mainListView.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.mainListView_ColumnClick);
+            this.mainListView.SelectedIndexChanged += new System.EventHandler(this.mainListView_SelectedIndexChanged);
             // 
             // filenameColumn
             // 
@@ -282,15 +289,9 @@ namespace GK3BB
             this.extractFilesToolStripMenuItem.Text = "Extract Files";
             this.extractFilesToolStripMenuItem.Click += new System.EventHandler(this.extractFilesToolStripMenuItem_Click);
             // 
-            // mnuSetViewerPath
-            // 
-            this.mnuSetViewerPath.Name = "mnuSetViewerPath";
-            this.mnuSetViewerPath.Size = new System.Drawing.Size(179, 22);
-            this.mnuSetViewerPath.Text = "Set path to viewer...";
-            this.mnuSetViewerPath.Click += new System.EventHandler(this.mnuSetViewerPath_Click);
-            // 
             // MainForm
             // 
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(590, 373);
@@ -300,6 +301,8 @@ namespace GK3BB
             this.Name = "MainForm";
             this.Text = "Gabriel Knight 3 Browser";
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainForm_DragEnter);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.mainContextMenu.ResumeLayout(false);

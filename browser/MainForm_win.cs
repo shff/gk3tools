@@ -102,52 +102,7 @@ namespace GK3BB
                 try
                 {
                     Cursor.Current = Cursors.WaitCursor;
-                    _currentBarnName = dialog.FileName;
-
-                    BarnManager.OpenBarn(dialog.FileName);
-
-                    List<BarnFile> files = BarnManager.GetFiles();
-
-                    foreach (BarnFile file in files)
-                    {
-                        string iconKey = "";
-                        if (file.Extension == "WAV")
-                            iconKey = "audio";
-                        else if (file.Extension == "EXE")
-                            iconKey = "executable";
-                        else if (file.Extension == "BMP")
-                            iconKey = "image";
-                        else if (file.Extension == "TXT")
-                            iconKey = "text";
-                        else if (file.Extension == "HTML" || file.Extension == "HTM")
-                            iconKey = "html";
-                        else if (file.Extension == "MUL" || file.Extension == "MOD" ||
-                            file.Extension == "BSP" || file.Extension == "ACT")
-                            iconKey = "binary";
-                        else if (file.Extension == "YAK" || file.Extension == "ANM" ||
-                            file.Extension == "NVC" || file.Extension == "SIF" ||
-                            file.Extension == "STK" || file.Extension == "GAS" ||
-                            file.Extension == "SCN")
-                            iconKey = "script";
-                        else if (file.Extension == "FON")
-                            iconKey = "font";
-                        else if (file.Extension == "CUR")
-                            iconKey = "cursor";
-
-                        string compression;
-                        if (file.Compression == BarnLib.Compression.None)
-                            compression = Strings.CompressionNone;
-                        else
-                            compression = file.Compression.ToString();
-
-                        ListViewItem item = new ListViewItem(new string[] {file.Name,
-                            file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
-                            file.Barn, compression}, iconKey);
-
-                        item.Tag = file;
-
-                        mainListView.Items.Add(item);
-                    }
+                    openFile(dialog.FileName);
                 }
                 catch (BarnLib.BarnException)
                 {
@@ -160,15 +115,6 @@ namespace GK3BB
                 {
                     Cursor.Current = Cursors.Default;
                 }
-
-                // enable the menu items
-                extractSelectedFilesToolStripMenuItem.Enabled = true;
-                // TODO: uncomment the following lines once previewing and stuff is implemented
-                previewFileToolStripMenuItem.Enabled = true;
-                //extractAllBitmapsToolStripMenuItem.Enabled = true;
-                //extractAllDocsToolStripMenuItem.Enabled = true;
-                //extractAllHtmlFilesToolStripMenuItem.Enabled = true;
-                //extractAllWavsToolStripMenuItem.Enabled = true;
 			}
 		}
 
@@ -429,7 +375,84 @@ namespace GK3BB
             extractFilesToolStripMenuItem.Enabled = numSelected > 0;
         }
 
+        private void MainForm_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+        }
+
+        private void MainForm_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files.Length > 0)
+            {
+                // open the first file
+                openFile(files[0]);
+            }
+        }
+
         #endregion
+
+        private void openFile(string filename)
+        {
+            _currentBarnName = filename;
+
+            BarnManager.OpenBarn(filename);
+
+            List<BarnFile> files = BarnManager.GetFiles();
+
+            mainListView.SuspendLayout();
+            foreach (BarnFile file in files)
+            {
+                string iconKey = "";
+                if (file.Extension == "WAV")
+                    iconKey = "audio";
+                else if (file.Extension == "EXE")
+                    iconKey = "executable";
+                else if (file.Extension == "BMP")
+                    iconKey = "image";
+                else if (file.Extension == "TXT")
+                    iconKey = "text";
+                else if (file.Extension == "HTML" || file.Extension == "HTM")
+                    iconKey = "html";
+                else if (file.Extension == "MUL" || file.Extension == "MOD" ||
+                    file.Extension == "BSP" || file.Extension == "ACT")
+                    iconKey = "binary";
+                else if (file.Extension == "YAK" || file.Extension == "ANM" ||
+                    file.Extension == "NVC" || file.Extension == "SIF" ||
+                    file.Extension == "STK" || file.Extension == "GAS" ||
+                    file.Extension == "SCN")
+                    iconKey = "script";
+                else if (file.Extension == "FON")
+                    iconKey = "font";
+                else if (file.Extension == "CUR")
+                    iconKey = "cursor";
+
+                string compression;
+                if (file.Compression == BarnLib.Compression.None)
+                    compression = Strings.CompressionNone;
+                else
+                    compression = file.Compression.ToString();
+
+                ListViewItem item = new ListViewItem(new string[] {file.Name,
+                            file.InternalSize.ToString(), BarnManager.MapExtensionToType(file.Extension),
+                            file.Barn, compression}, iconKey);
+
+                item.Tag = file;
+
+                mainListView.Items.Add(item);
+            }
+            mainListView.ResumeLayout();
+
+            // enable the menu items
+            extractSelectedFilesToolStripMenuItem.Enabled = true;
+            // TODO: uncomment the following lines once previewing and stuff is implemented
+            previewFileToolStripMenuItem.Enabled = true;
+            //extractAllBitmapsToolStripMenuItem.Enabled = true;
+            //extractAllDocsToolStripMenuItem.Enabled = true;
+            //extractAllHtmlFilesToolStripMenuItem.Enabled = true;
+            //extractAllWavsToolStripMenuItem.Enabled = true;
+        }
 
         private bool isPreviewSupported(string extension)
         {
