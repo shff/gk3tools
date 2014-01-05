@@ -15,8 +15,8 @@ SheepMachine::SheepMachine()
 	m_executingDepth = 0;
 
 	// add Call() as an import
-	SheepImport* call = m_imports.NewImport("Call", SYM_VOID, s_call);
-	call->Parameters.push_back(SYM_STRING);
+	SheepImport* call = m_imports.NewImport("Call", SheepSymbolType::Void, s_call);
+	call->Parameters.push_back(SheepSymbolType::String);
 
 	m_contextTree = new SheepContextTree();
 
@@ -53,7 +53,7 @@ std::string& SheepMachine::PopStringFromStack()
 	StackItem item = current->Stack.top();
 	current->Stack.pop();
 
-	if (item.Type != SYM_STRING)
+	if (item.Type != SheepSymbolType::String)
 		throw SheepMachineException("Expected string on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 	IntermediateOutput* code = current->FullCode;
@@ -108,12 +108,12 @@ void SheepMachine::prepareVariables(SheepContext* context)
 	for (std::vector<SheepSymbol>::iterator itr = context->FullCode->Symbols.begin();
 		itr != context->FullCode->Symbols.end(); itr++)
 	{
-		if ((*itr).Type == SYM_INT)
-			context->Variables.push_back(StackItem(SYM_INT, (*itr).InitialIntValue));
-		else if ((*itr).Type == SYM_FLOAT)
-			context->Variables.push_back(StackItem(SYM_FLOAT, (*itr).InitialFloatValue));
-		else if ((*itr).Type == SYM_STRING)
-			context->Variables.push_back(StackItem(SYM_STRING, (*itr).InitialStringValue));
+		if ((*itr).Type == SheepSymbolType::Int)
+			context->Variables.push_back(StackItem(SheepSymbolType::Int, (*itr).InitialIntValue));
+		else if ((*itr).Type == SheepSymbolType::Float)
+			context->Variables.push_back(StackItem(SheepSymbolType::Float, (*itr).InitialFloatValue));
+		else if ((*itr).Type == SheepSymbolType::String)
+			context->Variables.push_back(StackItem(SheepSymbolType::String, (*itr).InitialStringValue));
 		else
 			throw SheepMachineException("Unsupported variable type");
 	}
@@ -399,7 +399,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case CallSysFunctionI:
 			context->InstructionOffset += 4;
 			callIntFunction(context->Stack, imports, context->CodeBuffer->ReadInt());
-			if (context->Stack.top().Type != SYM_INT)
+			if (context->Stack.top().Type != SheepSymbolType::Int)
 			{
 				throw SheepMachineException("CallSysFunctionI instruction requires integer on stack afterwards", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 			}
@@ -412,7 +412,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
 			break;
 		case BranchIfZero:
-			if (context->Stack.top().Type == SYM_INT)
+			if (context->Stack.top().Type == SheepSymbolType::Int)
 			{
 				if (context->Stack.top().IValue == 0)
 					context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
@@ -465,15 +465,15 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			context->InstructionOffset += 4;
 			break;
 		case PushI:
-			context->Stack.push(StackItem(SYM_INT, context->CodeBuffer->ReadInt()));
+			context->Stack.push(StackItem(SheepSymbolType::Int, context->CodeBuffer->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
 		case PushF:
-			context->Stack.push(StackItem(SYM_FLOAT, context->CodeBuffer->ReadFloat()));
+			context->Stack.push(StackItem(SheepSymbolType::Float, context->CodeBuffer->ReadFloat()));
 			context->InstructionOffset += 4;
 			break;
 		case PushS:
-			context->Stack.push(StackItem(SYM_STRING, context->CodeBuffer->ReadInt()));
+			context->Stack.push(StackItem(SheepSymbolType::String, context->CodeBuffer->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
 		case Pop:
@@ -512,86 +512,86 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case IsEqualI:
 			get2Ints(context->Stack, iparam1, iparam2, IsEqualI);
 			if (iparam1 == iparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsEqualF:
 			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 == fparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case NotEqualI:
 			get2Ints(context->Stack, iparam1, iparam2, NotEqualI);
 			if (iparam1 != iparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case NotEqualF:
 			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 != fparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterI:
 			get2Ints(context->Stack, iparam1, iparam2, IsGreaterI);
 			if (iparam1 > iparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterF:
 			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 > fparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessI:
 			get2Ints(context->Stack, iparam1, iparam2, IsLessI);
 			if (iparam1 < iparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessF:
 			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 < fparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterEqualI:
 			get2Ints(context->Stack, iparam1, iparam2, IsGreaterEqualI);
 			if (iparam1 >= iparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterEqualF:
 			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 >= fparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessEqualI:
 			get2Ints(context->Stack, iparam1, iparam2, IsLessEqualI);
 			if (iparam1 <= iparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessEqualF:
 			get2Floats(context->Stack, fparam1, fparam2);
 			if (fparam1 <= fparam2)
-				context->Stack.push(StackItem(SYM_INT, 1));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SYM_INT, 0));
+				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IToF:
 			itof(context->Stack, context->CodeBuffer->ReadInt());
@@ -611,7 +611,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			noti(context->Stack);
 			break;
 		case GetString:
-			if (context->Stack.top().Type != SYM_STRING)
+			if (context->Stack.top().Type != SheepSymbolType::String)
 				throw SheepMachineException("Expected string on stack");
 			break;
 		case DebugBreakpoint:

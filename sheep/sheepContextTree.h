@@ -9,7 +9,7 @@ struct StackItem
 {
 	StackItem()
 	{
-		Type = SYM_VOID;
+		Type = SheepSymbolType::Void;
 		IValue = 0;
 	}
 

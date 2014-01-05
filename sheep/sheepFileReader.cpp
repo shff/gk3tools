@@ -126,9 +126,9 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 					byte parameterType;
 					READ1(&parameterType, offset);
 
-					if (parameterType == SYM_INT ||
-						parameterType == SYM_FLOAT ||
-						parameterType == SYM_STRING)
+					if (parameterType == (byte)SheepSymbolType::Int ||
+						parameterType == (byte)SheepSymbolType::Float ||
+						parameterType == (byte)SheepSymbolType::String)
 						import.Parameters.push_back((SheepSymbolType)parameterType);
 				}
 					
@@ -180,19 +180,19 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 				READ4(&type, offset);
 				READ4(&value, offset);
 
-				if (type == SYM_INT)
+				if (type == (unsigned int)SheepSymbolType::Int)
 				{
-					symbol.Type = SYM_INT;
+					symbol.Type = SheepSymbolType::Int;
 					symbol.InitialIntValue = offset;
 				}
-				else if (type == SYM_FLOAT)
+				else if (type == (unsigned int)SheepSymbolType::Float)
 				{
-					symbol.Type = SYM_FLOAT;
+					symbol.Type = SheepSymbolType::Float;
 					symbol.InitialFloatValue = offset;
 				}
-				else if (type == SYM_STRING)
+				else if (type == (unsigned int)SheepSymbolType::String)
 				{
-					symbol.Type = SYM_STRING;
+					symbol.Type = SheepSymbolType::String;
 					symbol.InitialStringValue = offset;
 				}
 				

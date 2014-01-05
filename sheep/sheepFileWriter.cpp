@@ -135,15 +135,15 @@ public:
 		m_buffer->WriteUShort(lengthOfName);
 		m_buffer->Write(symbol.Name.c_str(), lengthOfName + 1);
 
-		m_buffer->WriteUInt(symbol.Type);
+		m_buffer->WriteUInt((unsigned int)symbol.Type);
 		
-		if (symbol.Type == SYM_INT)
+		if (symbol.Type == SheepSymbolType::Int)
 			m_buffer->WriteInt(symbol.InitialIntValue);
-		else if (symbol.Type == SYM_FLOAT)
+		else if (symbol.Type == SheepSymbolType::Float)
 			m_buffer->WriteFloat(symbol.InitialFloatValue);
 		else
 		{
-			assert(symbol.Type == SYM_STRING);
+			assert(symbol.Type == SheepSymbolType::String);
 			m_buffer->WriteUInt(symbol.InitialStringValue);
 		}
 	}

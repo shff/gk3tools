@@ -5,17 +5,17 @@
 #include <vector>
 #include <map>
 #include "sheepc.h"
+#include "sheepConfig.h"
 
-enum SheepSymbolType
-{
-	SYM_VOID = 0,
-	SYM_INT,
-	SYM_FLOAT,
-	SYM_STRING,
-	SYM_LOCALFUNCTION,
-	SYM_IMPORT,
-	SYM_LABEL
-};
+SHEEP_ENUM(SheepSymbolType)
+	Void = 0,
+	Int,
+	Float,
+	String,
+	LocalFunction,
+	Import,
+	Label
+END_SHEEP_ENUM(SheepSymbolType)
 
 static const char* SheepSymbolTypeNames[] =
 {
@@ -32,7 +32,7 @@ struct SheepSymbol
 {
 	SheepSymbol()
 	{
-		Type = SYM_INT;
+		Type = SheepSymbolType::Int;
 		InitialIntValue = 0;
 		InitialFloatValue = 0;
 		InitialStringValue = 0;
@@ -51,7 +51,7 @@ class SheepCodeTreeDeclarationNode;
 
 struct SheepFunction
 {
-	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = NULL; Declaration = declaration; ReturnType = SYM_VOID; }
+	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = NULL; Declaration = declaration; ReturnType = SheepSymbolType::Void; }
 
 	SheepCodeTreeDeclarationNode* Declaration;
 	SheepSymbolType ReturnType;

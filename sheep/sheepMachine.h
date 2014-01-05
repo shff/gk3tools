@@ -84,7 +84,7 @@ public:
 		StackItem item = current->Stack.top();
 		current->Stack.pop();
 
-		if (item.Type != SYM_FLOAT)
+		if (item.Type != SheepSymbolType::Float)
 			throw SheepMachineException("Expected float on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 		return item.FValue;
@@ -99,7 +99,7 @@ public:
 		if (current == NULL)
 			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
 
-		current->Stack.push(StackItem(SYM_INT, i));
+		current->Stack.push(StackItem(SheepSymbolType::Int, i));
 	}
 	
 	SheepImportTable& GetImports() { return m_imports; }
@@ -168,13 +168,13 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (string == false && item.Type != SYM_INT)
+		if (string == false && item.Type != SheepSymbolType::Int)
 		{
 			char buffer[256];
 			_snprintf(buffer, 256, "Expected integer on stack; found %d", item.Type);
 			throw SheepMachineException(buffer, SHEEP_ERR_WRONG_TYPE_ON_STACK);
 		}
-		else if (string == true && item.Type != SYM_STRING)
+		else if (string == true && item.Type != SheepSymbolType::String)
 		{
 			char buffer[256];
 			_snprintf(buffer, 256, "Expected string on stack; found %d", item.Type);
@@ -196,7 +196,7 @@ private:
 		StackItem item1 = stack.top();
 		stack.pop();
 		
-		if (item1.Type != SYM_INT || item2.Type != SYM_INT)
+		if (item1.Type != SheepSymbolType::Int || item2.Type != SheepSymbolType::Int)
 		{
 			char buffer[256];
 			_snprintf(buffer, 256, "Expected integers on stack during %x instruction. Found: %d, %d\n", instruction, item1.Type, item2.Type);
@@ -219,7 +219,7 @@ private:
 		StackItem item1 = stack.top();
 		stack.pop();
 		
-		if (item1.Type != SYM_FLOAT || item2.Type != SYM_FLOAT)
+		if (item1.Type != SheepSymbolType::Float || item2.Type != SheepSymbolType::Float)
 			throw SheepMachineException("Expected floats on stack.", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 
 		f1 = item1.FValue;
@@ -231,7 +231,7 @@ private:
 		int value = getInt(stack);
 
 		if (variable >= variables.size() ||
-			variables[variable].Type != SYM_INT)
+			variables[variable].Type != SheepSymbolType::Int)
 			throw SheepMachineException("Invalid variable");
 
 		variables[variable].IValue = value;
@@ -241,11 +241,11 @@ private:
 	{
 		StackItem item = stack.top();
 		stack.pop();
-		if (item.Type != SYM_FLOAT)
+		if (item.Type != SheepSymbolType::Float)
 			throw SheepMachineException("Expected float on stack");
 
 		if (variable >= variables.size() ||
-			variables[variable].Type != SYM_FLOAT)
+			variables[variable].Type != SheepSymbolType::Float)
 			throw SheepMachineException("Invalid variable");
 
 		variables[variable].FValue = item.FValue;
@@ -256,7 +256,7 @@ private:
 		int value = getInt(stack, true);
 
 		if (variable >= variables.size() ||
-			variables[variable].Type != SYM_STRING)
+			variables[variable].Type != SheepSymbolType::String)
 			throw SheepMachineException("Invalid variable");
 
 		variables[variable].IValue = value;
@@ -265,28 +265,28 @@ private:
 	static void loadI(SheepStack& stack, std::vector<StackItem>& variables, int variable)
 	{
 		if (variable >= variables.size() ||
-			variables[variable].Type != SYM_INT)
+			variables[variable].Type != SheepSymbolType::Int)
 			throw SheepMachineException("Invalid variable");
 
-		stack.push(StackItem(SYM_INT, variables[variable].IValue));
+		stack.push(StackItem(SheepSymbolType::Int, variables[variable].IValue));
 	}
 
 	static void loadF(SheepStack& stack, std::vector<StackItem>& variables, int variable)
 	{
 		if (variable >= variables.size() ||
-			variables[variable].Type != SYM_FLOAT)
+			variables[variable].Type != SheepSymbolType::Float)
 			throw SheepMachineException("Invalid variable");
 
-		stack.push(StackItem(SYM_FLOAT, variables[variable].FValue));
+		stack.push(StackItem(SheepSymbolType::Float, variables[variable].FValue));
 	}
 
 	static void loadS(SheepStack& stack, std::vector<StackItem>& variables, int variable)
 	{
 		if (variable >= variables.size() ||
-			variables[variable].Type != SYM_STRING)
+			variables[variable].Type != SheepSymbolType::String)
 			throw SheepMachineException("Invalid variable");
 
-		stack.push(StackItem(SYM_STRING, variables[variable].IValue));
+		stack.push(StackItem(SheepSymbolType::String, variables[variable].IValue));
 	}
 
 	static void addI(SheepStack& stack)
@@ -294,7 +294,7 @@ private:
 		int i1, i2;
 		get2Ints(stack, i1, i2, AddI);
 
-		stack.push(StackItem(SYM_INT, i1 + i2));
+		stack.push(StackItem(SheepSymbolType::Int, i1 + i2));
 	}
 
 	static void addF(SheepStack& stack)
@@ -302,7 +302,7 @@ private:
 		float f1, f2;
 		get2Floats(stack, f1, f2);
 
-		stack.push(StackItem(SYM_FLOAT, f1 + f2));
+		stack.push(StackItem(SheepSymbolType::Float, f1 + f2));
 	}
 
 	static void subI(SheepStack& stack)
@@ -310,7 +310,7 @@ private:
 		int i1, i2;
 		get2Ints(stack, i1, i2, SubtractI);
 
-		stack.push(StackItem(SYM_INT, i1 - i2));
+		stack.push(StackItem(SheepSymbolType::Int, i1 - i2));
 	}
 
 	static void subF(SheepStack& stack)
@@ -318,7 +318,7 @@ private:
 		float f1, f2;
 		get2Floats(stack, f1, f2);
 
-		stack.push(StackItem(SYM_FLOAT, f1 - f2));
+		stack.push(StackItem(SheepSymbolType::Float, f1 - f2));
 	}
 
 	static void mulI(SheepStack& stack)
@@ -326,7 +326,7 @@ private:
 		int i1, i2;
 		get2Ints(stack, i1, i2, MultiplyI);
 
-		stack.push(StackItem(SYM_INT, i1 * i2));
+		stack.push(StackItem(SheepSymbolType::Int, i1 * i2));
 	}
 
 	static void mulF(SheepStack& stack)
@@ -334,7 +334,7 @@ private:
 		float f1, f2;
 		get2Floats(stack, f1, f2);
 
-		stack.push(StackItem(SYM_FLOAT, f1 * f2));
+		stack.push(StackItem(SheepSymbolType::Float, f1 * f2));
 	}
 
 	static void divI(SheepStack& stack)
@@ -342,7 +342,7 @@ private:
 		int i1, i2;
 		get2Ints(stack, i1, i2, DivideI);
 
-		stack.push(StackItem(SYM_INT, i1 / i2));
+		stack.push(StackItem(SheepSymbolType::Int, i1 / i2));
 	}
 
 	static void divF(SheepStack& stack)
@@ -350,7 +350,7 @@ private:
 		float f1, f2;
 		get2Floats(stack, f1, f2);
 
-		stack.push(StackItem(SYM_FLOAT, f1 / f2));
+		stack.push(StackItem(SheepSymbolType::Float, f1 / f2));
 	}
 
 	static void negI(SheepStack& stack)
@@ -358,10 +358,10 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (item.Type != SYM_INT)
+		if (item.Type != SheepSymbolType::Int)
 			throw SheepMachineException("Expected integer on stack");
 
-		stack.push(StackItem(SYM_INT, -item.IValue));
+		stack.push(StackItem(SheepSymbolType::Int, -item.IValue));
 	}
 
 	static void negF(SheepStack& stack)
@@ -369,10 +369,10 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (item.Type != SYM_FLOAT)
+		if (item.Type != SheepSymbolType::Float)
 			throw SheepMachineException("Expected float on stack");
 
-		stack.push(StackItem(SYM_FLOAT, -item.FValue));
+		stack.push(StackItem(SheepSymbolType::Float, -item.FValue));
 	}
 
 	static void itof(SheepStack& stack, int stackoffset)
@@ -387,10 +387,10 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (item.Type != SYM_INT)
+		if (item.Type != SheepSymbolType::Int)
 			throw SheepMachineException("Expected integer on stack");
 
-		stack.push(StackItem(SYM_FLOAT, (float)item.IValue));
+		stack.push(StackItem(SheepSymbolType::Float, (float)item.IValue));
 
 		while(tempstack.empty() == false)
 		{
@@ -411,10 +411,10 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (item.Type != SYM_FLOAT)
+		if (item.Type != SheepSymbolType::Float)
 			throw SheepMachineException("Expected integer on stack");
 
-		stack.push(StackItem(SYM_INT, (int)item.FValue));
+		stack.push(StackItem(SheepSymbolType::Int, (int)item.FValue));
 
 		while(tempstack.empty() == false)
 		{
@@ -428,7 +428,7 @@ private:
 		int i1, i2;
 		get2Ints(stack, i1, i2, And);
 
-		stack.push(StackItem(SYM_INT, i1 && i2 ? 1 : 0));
+		stack.push(StackItem(SheepSymbolType::Int, i1 && i2 ? 1 : 0));
 	}
 
 	static void ori(SheepStack& stack)
@@ -436,7 +436,7 @@ private:
 		int i1, i2;
 		get2Ints(stack, i1, i2, Or);
 
-		stack.push(StackItem(SYM_INT, i1 || i2 ? 1 : 0));
+		stack.push(StackItem(SheepSymbolType::Int, i1 || i2 ? 1 : 0));
 	}
 
 	static void noti(SheepStack& stack)
@@ -444,10 +444,10 @@ private:
 		StackItem item = stack.top();
 		stack.pop();
 
-		if (item.Type != SYM_INT)
+		if (item.Type != SheepSymbolType::Int)
 			throw SheepMachineException("Expected integer on stack");
 
-		stack.push(StackItem(SYM_INT, item.IValue == 0 ? 1 : 0));
+		stack.push(StackItem(SheepSymbolType::Int, item.IValue == 0 ? 1 : 0));
 	}
 
 	void callVoidFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index)
@@ -455,7 +455,7 @@ private:
 		callFunction(stack, imports, index, 0);
 
 		// the GK3 VM seems to expect something on the stack, even after 'void' functions.
-		stack.push(StackItem(SYM_INT, 0));
+		stack.push(StackItem(SheepSymbolType::Int, 0));
 	}
 
 	void callIntFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index)

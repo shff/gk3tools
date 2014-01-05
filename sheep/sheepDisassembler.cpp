@@ -54,15 +54,15 @@ namespace SheepCompiler
 			for (int j = 0; j < io->Imports[i].Parameters.size(); j++)
 			{
 				if (j > 0) output << ", ";
-				int parameterType = io->Imports[i].Parameters[j];
+				SheepSymbolType parameterType = io->Imports[i].Parameters[j];
 
-				if (parameterType == SYM_VOID)
+				if (parameterType == SheepSymbolType::Void)
 					output << "void";
-				else if (parameterType == SYM_INT)
+				else if (parameterType == SheepSymbolType::Int)
 					output << "int";
-				else if (parameterType == SYM_FLOAT)
+				else if (parameterType == SheepSymbolType::Float)
 					output << "float";
-				else if (parameterType == SYM_STRING)
+				else if (parameterType == SheepSymbolType::String)
 					output << "string";
 				else
 					output << "??";
@@ -86,15 +86,15 @@ namespace SheepCompiler
 		for (unsigned int i = 0; i < io->Symbols.size(); i++)
 		{	
 			output << "\t" << i << "\t";
-			int type = io->Symbols[i].Type;
+			SheepSymbolType type = io->Symbols[i].Type;
 			
-			if (type == SYM_VOID)
+			if (type == SheepSymbolType::Void)
 				output << "void";
-			else if (type == SYM_INT)
+			else if (type == SheepSymbolType::Int)
 				output << "int";
-			else if (type == SYM_FLOAT)
+			else if (type == SheepSymbolType::Float)
 				output << "float";
-			else if (type == SYM_STRING)
+			else if (type == SheepSymbolType::String)
 				output << "string";
 			else
 				output << "??";

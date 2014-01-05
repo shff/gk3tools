@@ -6,6 +6,7 @@
 #include <string>
 #include <map>
 #include "sheepScanner.h"
+#include "sheepConfig.h"
 
 class SheepCodeTreeNode;
 class SheepLog;
@@ -51,83 +52,76 @@ private:
 	std::map<std::string, StringConst> m_stringConstants;
 };
 
-enum CodeTreeNodeType
-{
-	NODETYPE_INVALID = 0,
-	NODETYPE_SECTION,
-	NODETYPE_DECLARATION,
-	NODETYPE_STATEMENT,
-	NODETYPE_EXPRESSION,
-	NODETYPE_TYPEREFERENCE
-};
+SHEEP_ENUM(CodeTreeNodeType)
+	Invalid = 0,
+	Section,
+	Declaration,
+	Statement,
+	Expression,
+	TypeReference
+END_SHEEP_ENUM(CodeTreeNodeType)
 
-enum CodeTreeSectionType
-{
-	SECTIONTYPE_SYMBOLS,
-	SECTIONTYPE_CODE
-};
+SHEEP_ENUM(CodeTreeSectionType)
+	Symbols,
+	Code
+END_SHEEP_ENUM(CodeTreeSectionType)
 
-enum CodeTreeDeclarationNodeType
-{
-	DECLARATIONTYPE_VARIABLE,
-	DECLARATIONTYPE_FUNCTION,
-	DECLARATIONTYPE_LABEL
-};
 
-enum CodeTreeExpressionType
-{
-	EXPRTYPE_OPERATION,
-	EXPRTYPE_IDENTIFIER,
-	EXPRTYPE_CONSTANT
-};
+SHEEP_ENUM(CodeTreeDeclarationNodeType)
+	Variable,
+	Function,
+	Label
+END_SHEEP_ENUM(CodeTreeDeclarationNodeType)
 
-enum CodeTreeTypeReferenceType
-{
-	TYPE_INT,
-	TYPE_FLOAT,
-	TYPE_STRING,
-	TYPE_HANDLE,
-	TYPE_CUSTOM
-};
+SHEEP_ENUM(CodeTreeExpressionType)
+	Operation,
+	Identifier,
+	Constant
+END_SHEEP_ENUM(CodeTreeExpressionType)
 
-enum CodeTreeExpressionValueType
-{
-	EXPRVAL_UNKNOWN,
-	EXPRVAL_VOID,
-	EXPRVAL_INT,
-	EXPRVAL_FLOAT,
-	EXPRVAL_STRING
-};
+SHEEP_ENUM(CodeTreeTypeReferenceType)
+	Int,
+	Float,
+	String,
+	Handle,
+	Custom
+END_SHEEP_ENUM(CodeTreeTypeReferenceType)
 
-enum CodeTreeOperationType
-{
-	OP_ADD,
-	OP_MINUS,
-	OP_TIMES,
-	OP_DIVIDE,
-	OP_GT,
-	OP_LT,
-	OP_GTE,
-	OP_LTE,
-	OP_EQ,
-	OP_NE,
+SHEEP_ENUM(CodeTreeExpressionValueType)
+	Unknown,
+	Void,
+	Int,
+	Float,
+	String
+END_SHEEP_ENUM(CodeTreeExpressionValueType)
 
-	OP_NEGATE,
+SHEEP_ENUM(CodeTreeOperationType)
+	Add,
+	Minus,
+	Times,
+	Divide,
+	GreaterThan,
+	LessThan,
+	GreaterThanEqual,
+	LessThanEqual,
+	Equal,
+	NotEqual,
 
-	OP_NOT,
-	OP_AND,
-	OP_OR
-};
+	Negate,
 
-enum CodeTreeKeywordStatementType
-{
-	SMT_EXPR,
-	SMT_ASSIGN,
-	SMT_RETURN,
-	SMT_WAIT,
-	SMT_GOTO,
-	SMT_IF
-};
+	Not,
+	And,
+	Or
+END_SHEEP_ENUM(CodeTreeOperationType)
+
+SHEEP_ENUM(CodeTreeKeywordStatementType)
+	Expression,
+	Assignment,
+	Return,
+	Wait,
+	Goto,
+	If
+END_SHEEP_ENUM(CodeTreeKeywordStatementType)
 
 class SheepCodeTreeNode
 {
@@ -193,7 +187,7 @@ class SheepCodeTreeSectionNode : public SheepCodeTreeNode
 {
 public:
 	SheepCodeTreeSectionNode(CodeTreeSectionType type, int lineNumber)
-		: SheepCodeTreeNode(NODETYPE_SECTION, lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Section, lineNumber)
 	{
 		m_sectionType = type;
 	}
@@ -206,9 +200,9 @@ protected:
 
 	void PrintData()
 	{
-		if (m_sectionType == SECTIONTYPE_SYMBOLS)
+		if (m_sectionType == CodeTreeSectionType::Symbols)
 			printf("Symbols section\n");
-		else if (m_sectionType == SECTIONTYPE_CODE)
+		else if (m_sectionType == CodeTreeSectionType::Code)
 			printf("Code section\n");
 		else
 			printf("UNKNOWN SECTION TYPE!\n");
@@ -221,7 +215,7 @@ class SheepCodeTreeDeclarationNode : public SheepCodeTreeNode
 {
 public:
 	SheepCodeTreeDeclarationNode(CodeTreeDeclarationNodeType type, int lineNumber)
-		: SheepCodeTreeNode(NODETYPE_DECLARATION, lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Declaration, lineNumber)
 	{
 		m_declarationType = type;
 	}
@@ -232,11 +226,11 @@ protected:
 	
 	void PrintData()
 	{		
-		if (m_declarationType == DECLARATIONTYPE_VARIABLE)
+		if (m_declarationType == CodeTreeDeclarationNodeType::Variable)
 			printf("Declaration of variable\n");
-		else if (m_declarationType == DECLARATIONTYPE_FUNCTION)
+		else if (m_declarationType == CodeTreeDeclarationNodeType::Function)
 			printf("Declaration of local function\n");
-		else if (m_declarationType == DECLARATIONTYPE_LABEL)
+		else if (m_declarationType == CodeTreeDeclarationNodeType::Label)
 			printf("Declaration of label\n");
 	}
 
@@ -248,7 +242,7 @@ class SheepCodeTreeStatementNode : public SheepCodeTreeNode
 {
 public:
 	SheepCodeTreeStatementNode(CodeTreeKeywordStatementType type, int lineNumber)
-		: SheepCodeTreeNode(NODETYPE_STATEMENT, lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Statement, lineNumber)
 	{
 		m_type = type;
 	}
@@ -259,17 +253,17 @@ protected:
 	
 	void PrintData()
 	{
-		if (m_type == SMT_EXPR)
+		if (m_type == CodeTreeKeywordStatementType::Expression)
 			printf("Expression statement\n");
-		else if (m_type == SMT_ASSIGN)
+		else if (m_type == CodeTreeKeywordStatementType::Assignment)
 			printf("ASSIGN\n");
-		else if (m_type == SMT_RETURN)
+		else if (m_type == CodeTreeKeywordStatementType::Return)
 			printf("RETURN\n");
-		else if (m_type == SMT_WAIT)
+		else if (m_type == CodeTreeKeywordStatementType::Wait)
 			printf("WAIT\n");
-		else if (m_type == SMT_GOTO)
+		else if (m_type == CodeTreeKeywordStatementType::Goto)
 			printf("GOTO\n");
-		else if (m_type == SMT_IF)
+		else if (m_type == CodeTreeKeywordStatementType::If)
 			printf("IF\n");
 		else
 			printf("UNKNOWN KEYWORD STATEMENT!\n");
@@ -285,10 +279,10 @@ class SheepCodeTreeExpressionNode : public SheepCodeTreeNode
 {
 public:
 	SheepCodeTreeExpressionNode(CodeTreeExpressionType expressionType, int lineNumber)
-		: SheepCodeTreeNode(NODETYPE_EXPRESSION, lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Expression, lineNumber)
 	{
 		m_expressionType = expressionType;
-		m_valueType = EXPRVAL_UNKNOWN;
+		m_valueType = CodeTreeExpressionValueType::Unknown;
 	}
 
 	virtual ~SheepCodeTreeExpressionNode() {}
@@ -312,7 +306,7 @@ class SheepCodeTreeSymbolTypeNode : public SheepCodeTreeNode
 
 public:
 	SheepCodeTreeSymbolTypeNode(CodeTreeTypeReferenceType type, int lineNumber)
-		: SheepCodeTreeNode(NODETYPE_TYPEREFERENCE, lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::TypeReference, lineNumber)
 	{
 		m_refType = type;
 	}
@@ -325,7 +319,7 @@ class SheepCodeTreeConstantNode : public SheepCodeTreeExpressionNode
 public:
 
 	SheepCodeTreeConstantNode(CodeTreeExpressionValueType valueType, int lineNumber)
-		: SheepCodeTreeExpressionNode(EXPRTYPE_CONSTANT, lineNumber)
+		: SheepCodeTreeExpressionNode(CodeTreeExpressionType::Constant, lineNumber)
 	{
 		m_valueType = valueType;
 
@@ -346,11 +340,11 @@ protected:
 
 	void PrintData()
 	{
-		if (m_valueType == EXPRVAL_INT)
+		if (m_valueType == CodeTreeExpressionValueType::Int)
 			printf("Integer constant with value %d\n", m_intValue);
-		else if (m_valueType == EXPRVAL_FLOAT)
+		else if (m_valueType == CodeTreeExpressionValueType::Float)
 			printf("Float constant with value %f\n", m_floatValue);
-		else if (m_valueType == EXPRVAL_STRING)
+		else if (m_valueType == CodeTreeExpressionValueType::String)
 			printf("String constant with offset %d\n", m_stringValue);
 		else
 			printf("UNKNOWN CONSTANT TYPE!\n");
@@ -368,7 +362,7 @@ class SheepCodeTreeIdentifierReferenceNode : public SheepCodeTreeExpressionNode
 {
 public:
 	SheepCodeTreeIdentifierReferenceNode(const std::string& name, bool global, int lineNumber)
-		: SheepCodeTreeExpressionNode(EXPRTYPE_IDENTIFIER, lineNumber)
+		: SheepCodeTreeExpressionNode(CodeTreeExpressionType::Identifier, lineNumber)
 	{
 		m_name = name;
 		m_global = global;
@@ -398,7 +392,7 @@ class SheepCodeTreeOperationNode : public SheepCodeTreeExpressionNode
 {
 public:
 	SheepCodeTreeOperationNode(CodeTreeOperationType type, int lineNumber)
-		: SheepCodeTreeExpressionNode(EXPRTYPE_OPERATION, lineNumber)
+		: SheepCodeTreeExpressionNode(CodeTreeExpressionType::Operation, lineNumber)
 	{
 		m_type = type;
 	}
@@ -413,31 +407,31 @@ protected:
 	{
 		std::string operationText = "????";
 		
-		if (m_type == OP_ADD)
+		if (m_type == CodeTreeOperationType::Add)
 			operationText = "ADD";
-		else if (m_type == OP_MINUS)
+		else if (m_type == CodeTreeOperationType::Minus)
 			operationText = "MINUS";
-		else if (m_type == OP_TIMES)
+		else if (m_type == CodeTreeOperationType::Times)
 			operationText = "TIMES";
-		else if (m_type == OP_DIVIDE)
+		else if (m_type == CodeTreeOperationType::Divide)
 			operationText = "DIVIDE";
-		else if (m_type == OP_LT)
+		else if (m_type == CodeTreeOperationType::LessThan)
 			operationText = "LESS THAN";
-		else if (m_type == OP_GT)
+		else if (m_type == CodeTreeOperationType::GreaterThan)
 			operationText = "GREATER THAN";
-		else if (m_type == OP_LTE)
+		else if (m_type == CodeTreeOperationType::LessThanEqual)
 			operationText = "LESS THAN OR EQUAL";
-		else if (m_type == OP_GTE)
+		else if (m_type == CodeTreeOperationType::GreaterThanEqual)
 			operationText = "GREATER THAN OR EQUAL";
-		else if (m_type == OP_EQ)
+		else if (m_type == CodeTreeOperationType::Equal)
 			operationText = "EQUALS";
-		else if (m_type == OP_NE)
+		else if (m_type == CodeTreeOperationType::NotEqual)
 			operationText = "NOT EQUAL";
-		else if (m_type == OP_NOT)
+		else if (m_type == CodeTreeOperationType::Not)
 			operationText = "NOT";
-		else if (m_type == OP_AND)
+		else if (m_type == CodeTreeOperationType::And)
 			operationText = "AND";
-		else if (m_type == OP_OR)
+		else if (m_type == CodeTreeOperationType::Or)
 			operationText = "OR";
 		
 		printf("Operation: %s\n", operationText.c_str());

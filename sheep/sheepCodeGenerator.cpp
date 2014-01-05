@@ -26,7 +26,7 @@ void IntermediateOutput::Print()
 	std::cout << "------------" << std::endl;
 
 	for (std::vector<SheepSymbol>::iterator itr = Symbols.begin(); itr != Symbols.end(); itr++)
-		std::cout << "Symbol: " << SheepSymbolTypeNames[(*itr).Type] << " " << (*itr).Name << std::endl;
+		std::cout << "Symbol: " << SheepSymbolTypeNames[(int)(*itr).Type] << " " << (*itr).Name << std::endl;
 
 	for (std::vector<SheepFunction>::iterator itr = Functions.begin(); itr != Functions.end(); itr++)
 		std::cout << "Function: " << (*itr).Name << std::endl;
@@ -71,7 +71,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		while(section != NULL)
 		{
 			// iterate over each function/snippet and output a SheepFunction object
-			if (section->GetSectionType() == SECTIONTYPE_CODE)
+			if (section->GetSectionType() == CodeTreeSectionType::Code)
 			{
 				SheepCodeTreeDeclarationNode* function = 
 					static_cast<SheepCodeTreeDeclarationNode*>(section->GetChild(0));
@@ -103,7 +103,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		{
 			SheepSymbol symbol = (*itr);
 
-			if (symbol.Type == SYM_INT || symbol.Type == SYM_FLOAT || symbol.Type == SYM_STRING)
+			if (symbol.Type == SheepSymbolType::Int || symbol.Type == SheepSymbolType::Float || symbol.Type == SheepSymbolType::String)
 				output->Symbols.push_back((*itr));
 		}
 
@@ -157,12 +157,12 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 {
 	while (node != NULL)
 	{
-		assert(node->GetType() == NODETYPE_SECTION);
+		assert(node->GetType() == CodeTreeNodeType::Section);
 
 		SheepCodeTreeSectionNode* section = static_cast<SheepCodeTreeSectionNode*>(node);
 
-		if (section->GetSectionType() == SECTIONTYPE_SYMBOLS ||
-			section->GetSectionType() == SECTIONTYPE_CODE)
+		if (section->GetSectionType() == CodeTreeSectionType::Symbols ||
+			section->GetSectionType() == CodeTreeSectionType::Code)
 		{
 			// section is full of yummy declaration nodes!
 			SheepCodeTreeDeclarationNode* declaration = 
@@ -171,7 +171,7 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 			while(declaration != NULL)
 			{
 				SheepCodeTreeIdentifierReferenceNode* identifier;
-				if (declaration->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
+				if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Function)
 					identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(1));
 				else
 					identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
@@ -180,20 +180,20 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 				{
 					SheepSymbol symbol;
 					symbol.Name = identifier->GetName();
-					if (declaration->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
-						symbol.Type = SYM_LOCALFUNCTION;
-					else if (declaration->GetDeclarationType() == DECLARATIONTYPE_LABEL)
-						symbol.Type = SYM_LABEL;
-					else if (declaration->GetDeclarationType() == DECLARATIONTYPE_VARIABLE)
+					if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Function)
+						symbol.Type = SheepSymbolType::LocalFunction;
+					else if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Label)
+						symbol.Type = SheepSymbolType::Label;
+					else if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Variable)
 					{
 						SheepCodeTreeSymbolTypeNode* symType = static_cast<SheepCodeTreeSymbolTypeNode*>(declaration->GetChild(1));
 
-						if (symType->GetRefType() == TYPE_INT)
-							symbol.Type = SYM_INT;
-						else if (symType->GetRefType() == TYPE_FLOAT)
-							symbol.Type = SYM_FLOAT;
-						else if (symType->GetRefType() == TYPE_STRING)
-							symbol.Type = SYM_STRING;
+						if (symType->GetRefType() == CodeTreeTypeReferenceType::Int)
+							symbol.Type = SheepSymbolType::Int;
+						else if (symType->GetRefType() == CodeTreeTypeReferenceType::Float)
+							symbol.Type = SheepSymbolType::Float;
+						else if (symType->GetRefType() == CodeTreeTypeReferenceType::String)
+							symbol.Type = SheepSymbolType::String;
 					}
 					
 					SheepCodeTreeConstantNode* constant =
@@ -201,15 +201,15 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 
 					if (constant != NULL)
 					{
-						if (symbol.Type == SYM_INT)
+						if (symbol.Type == SheepSymbolType::Int)
 						{
 							symbol.InitialIntValue = constant->GetIntValue();
 						}
-						else if (symbol.Type == SYM_FLOAT)
+						else if (symbol.Type == SheepSymbolType::Float)
 							symbol.InitialFloatValue = constant->GetFloatValue();
-						else if (symbol.Type == SYM_STRING)
+						else if (symbol.Type == SheepSymbolType::String)
 							symbol.InitialStringValue = constant->GetStringValue();
-						else if (symbol.Type == SYM_LOCALFUNCTION)
+						else if (symbol.Type == SheepSymbolType::LocalFunction)
 						{
 							// dive in and gather a list of all labels in the function.
 							std::pair<FunctionLabelMap::iterator, bool> result = m_labels.insert(FunctionLabelMap::value_type(declaration, LabelMap()));
@@ -228,9 +228,9 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 					throw SheepCompilerException(declaration->GetLineNumber(), "Symbol already defined");
 
 					// should we add this as a variable?
-					if (section->GetSectionType() == SECTIONTYPE_SYMBOLS)
+					if (section->GetSectionType() == CodeTreeSectionType::Symbols)
 					{
-						if (symbol.Type == SYM_INT || symbol.Type == SYM_FLOAT || symbol.Type == SYM_STRING)
+						if (symbol.Type == SheepSymbolType::Int || symbol.Type == SheepSymbolType::Float || symbol.Type == SheepSymbolType::String)
 							m_variables.push_back(symbol);
 					}
 					
@@ -250,19 +250,19 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 {
 	while (node != NULL)
 	{
-		if (node->GetType() == NODETYPE_DECLARATION)
+		if (node->GetType() == CodeTreeNodeType::Declaration)
 		{
 			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
-			if (decl->GetDeclarationType() == DECLARATIONTYPE_FUNCTION)
+			if (decl->GetDeclarationType() == CodeTreeDeclarationNodeType::Function)
 				determineExpressionTypes(function, node->GetChild(3));
 			else
 				determineExpressionTypes(function, node->GetChild(1));
 		}
-		else if (node->GetType() == NODETYPE_EXPRESSION)
+		else if (node->GetType() == CodeTreeNodeType::Expression)
 		{
 			SheepCodeTreeExpressionNode* expr = static_cast<SheepCodeTreeExpressionNode*>(node);
 
-			if (expr->GetExpressionType() == EXPRTYPE_OPERATION)
+			if (expr->GetExpressionType() == CodeTreeExpressionType::Operation)
 			{
 				SheepCodeTreeOperationNode* operation = static_cast<SheepCodeTreeOperationNode*>(expr);
 
@@ -272,8 +272,8 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 				if (child1 != NULL)	determineExpressionTypes(function, child1);
 				if (child2 != NULL) determineExpressionTypes(function, child2);
 
-				if (child1->GetValueType() == EXPRVAL_VOID ||
-					(child2 && child2->GetValueType() == EXPRVAL_VOID))
+				if (child1->GetValueType() == CodeTreeExpressionValueType::Void ||
+					(child2 && child2->GetValueType() == CodeTreeExpressionValueType::Void))
 				{
 					// can't use void with *any* operators!
 					throw SheepCompilerException(operation->GetLineNumber(), "Cannot use void types with operator");
@@ -281,12 +281,12 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 
 				switch(operation->GetOperationType())
 				{
-					case OP_ADD:
-					case OP_MINUS:
-					case OP_TIMES:
-					case OP_DIVIDE:
-						if (child1->GetValueType() == EXPRVAL_STRING ||
-							child2->GetValueType() == EXPRVAL_STRING)
+					case CodeTreeOperationType::Add:
+					case CodeTreeOperationType::Minus:
+					case CodeTreeOperationType::Times:
+					case CodeTreeOperationType::Divide:
+						if (child1->GetValueType() == CodeTreeExpressionValueType::String ||
+							child2->GetValueType() == CodeTreeExpressionValueType::String)
 						{
 							// strings cannot be added, multiplied, etc
 							throw SheepCompilerException(operation->GetLineNumber(), "Cannot use this operator with strings");
@@ -298,46 +298,46 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 						else
 						{
 							// one must be an int and one is a float, so set the type to float
-							operation->SetValueType(EXPRVAL_FLOAT);
+							operation->SetValueType(CodeTreeExpressionValueType::Float);
 						}
 						break;
-					case OP_GT:
-					case OP_LT:
-					case OP_GTE:
-					case OP_LTE:
-					case OP_EQ:
-					case OP_NE:
-						if ((child1->GetValueType() == EXPRVAL_STRING ||
-							child2->GetValueType() == EXPRVAL_STRING) &&
+					case CodeTreeOperationType::GreaterThan:
+					case CodeTreeOperationType::LessThan:
+					case CodeTreeOperationType::GreaterThanEqual:
+					case CodeTreeOperationType::LessThanEqual:
+					case CodeTreeOperationType::Equal:
+					case CodeTreeOperationType::NotEqual:
+						if ((child1->GetValueType() == CodeTreeExpressionValueType::String ||
+							child2->GetValueType() == CodeTreeExpressionValueType::String) &&
 							child1->GetValueType() != child2->GetValueType())
 						{
 							throw SheepCompilerException(operation->GetLineNumber(), "Cannot compare string and non-string");
 						}
 						else
 						{
-							operation->SetValueType(EXPRVAL_INT);
+							operation->SetValueType(CodeTreeExpressionValueType::Int);
 						}
 						break;
-					case OP_NOT:
-						if (child1->GetValueType() != EXPRVAL_INT)
+					case CodeTreeOperationType::Not:
+						if (child1->GetValueType() != CodeTreeExpressionValueType::Int)
 							throw SheepCompilerException(operation->GetLineNumber(), "Cannot apply '!' operator to a non-integer");
 						else
-							operation->SetValueType(EXPRVAL_INT);
+							operation->SetValueType(CodeTreeExpressionValueType::Int);
 						break;
-					case OP_NEGATE:
-						if (child1->GetValueType() != EXPRVAL_FLOAT &&
-							child1->GetValueType() != EXPRVAL_INT)
+					case CodeTreeOperationType::Negate:
+						if (child1->GetValueType() != CodeTreeExpressionValueType::Float &&
+							child1->GetValueType() != CodeTreeExpressionValueType::Int)
 							throw SheepCompilerException(operation->GetLineNumber(), "Can only negate ints and floats");
 						else
 							operation->SetValueType(child1->GetValueType());
 						break;
-					case OP_AND:
-					case OP_OR:
-						if (child1->GetValueType() != EXPRVAL_INT ||
-							child2->GetValueType() != EXPRVAL_INT)
+					case CodeTreeOperationType::And:
+					case CodeTreeOperationType::Or:
+						if (child1->GetValueType() != CodeTreeExpressionValueType::Int ||
+							child2->GetValueType() != CodeTreeExpressionValueType::Int)
 							throw SheepCompilerException(operation->GetLineNumber(), "Cannot apply '&&' and '||' operators to non-integers");
 						else
-							operation->SetValueType(EXPRVAL_INT);
+							operation->SetValueType(CodeTreeExpressionValueType::Int);
 						break;
 					default:
 						throw SheepException("Unknown operation type", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
@@ -345,7 +345,7 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 				}
 				
 			}
-			else if (expr->GetExpressionType() == EXPRTYPE_IDENTIFIER)
+			else if (expr->GetExpressionType() == CodeTreeExpressionType::Identifier)
 			{
 				SheepCodeTreeIdentifierReferenceNode* identifier = 
 					static_cast<SheepCodeTreeIdentifierReferenceNode*>(expr);
@@ -364,7 +364,7 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 				}
 				else
 				{
-					SheepSymbolType definedType = SYM_VOID;
+					SheepSymbolType definedType = SheepSymbolType::Void;
 					SymbolMap::iterator itr = m_symbolMap.find(identifier->GetName());
 					if (itr != m_symbolMap.end())
 					{
@@ -382,31 +382,31 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 						}
 					}
 
-					if (definedType == SYM_VOID)
+					if (definedType == SheepSymbolType::Void)
 						throw SheepCompilerException(identifier->GetLineNumber(), "Use of undefined symbol");
 
-					if (definedType == SYM_LOCALFUNCTION)
+					if (definedType == SheepSymbolType::LocalFunction)
 						throw SheepCompilerException(identifier->GetLineNumber(), "Function name used like a variable");
-					else if (definedType == SYM_INT)
-						identifier->SetValueType(EXPRVAL_INT);
-					else if (definedType == SYM_FLOAT)
-						identifier->SetValueType(EXPRVAL_FLOAT);
-					else if (definedType == SYM_STRING)
-						identifier->SetValueType(EXPRVAL_STRING);
+					else if (definedType == SheepSymbolType::Int)
+						identifier->SetValueType(CodeTreeExpressionValueType::Int);
+					else if (definedType == SheepSymbolType::Float)
+						identifier->SetValueType(CodeTreeExpressionValueType::Float);
+					else if (definedType == SheepSymbolType::String)
+						identifier->SetValueType(CodeTreeExpressionValueType::String);
 					else
 						throw SheepCompilerException(identifier->GetLineNumber(), "Expected variable");
 				}
 			}
-			else if (expr->GetExpressionType() == EXPRTYPE_CONSTANT)
+			else if (expr->GetExpressionType() == CodeTreeExpressionType::Constant)
 			{
 				// nothing to do! type is already defined
 			}
 		}
-		else if (node->GetType() == NODETYPE_STATEMENT)
+		else if (node->GetType() == CodeTreeNodeType::Statement)
 		{
 			SheepCodeTreeStatementNode* statement = static_cast<SheepCodeTreeStatementNode*>(node);
 
-			if (statement->GetStatementType() == SMT_IF)
+			if (statement->GetStatementType() == CodeTreeKeywordStatementType::If)
 			{
 				determineExpressionTypes(function, statement->GetChild(0));
 				determineExpressionTypes(function, statement->GetChild(1));
@@ -415,23 +415,23 @@ void SheepCodeGenerator::determineExpressionTypes(SheepFunction& function, Sheep
 				SheepCodeTreeExpressionNode* ifCondition = 
 					static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
 
-				if (ifCondition->GetValueType() != EXPRVAL_INT)
+				if (ifCondition->GetValueType() != CodeTreeExpressionValueType::Int)
 					throw SheepCompilerException(statement->GetLineNumber(), "Condition must evaluate to an int");
 			}
-			else if (statement->GetStatementType() == SMT_WAIT)
+			else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Wait)
 			{
 				determineExpressionTypes(function, statement->GetChild(0));
 			}
-			else if (statement->GetStatementType() == SMT_ASSIGN)
+			else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Assignment)
 			{
 				determineExpressionTypes(function, statement->GetChild(0));
 				determineExpressionTypes(function, statement->GetChild(1));
 			}
-			else if (statement->GetStatementType() == SMT_EXPR)
+			else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Expression)
 			{
 				determineExpressionTypes(function, statement->GetChild(0));
 			}
-			else if (statement->GetStatementType() == SMT_RETURN)
+			else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Return)
 			{
 				determineExpressionTypes(function, statement->GetChild(0));
 			}
@@ -445,19 +445,19 @@ void SheepCodeGenerator::gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNod
 {
 	while(node != NULL)
 	{
-		if (node->GetType() == NODETYPE_DECLARATION)
+		if (node->GetType() == CodeTreeNodeType::Declaration)
 		{
 			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
 
 			// if this is a label declaration then add it to the list of labels
-			if (decl->GetDeclarationType() == DECLARATIONTYPE_LABEL)
+			if (decl->GetDeclarationType() == CodeTreeDeclarationNodeType::Label)
 			{
 				SheepCodeTreeNode* child = decl->GetChild(0);
 				assert(child != NULL);
-				assert(child->GetType() == NODETYPE_EXPRESSION);
+				assert(child->GetType() == CodeTreeNodeType::Expression);
 				
 				SheepCodeTreeExpressionNode* childExpr = static_cast<SheepCodeTreeExpressionNode*>(child);
-				assert(childExpr->GetExpressionType() == EXPRTYPE_IDENTIFIER);
+				assert(childExpr->GetExpressionType() == CodeTreeExpressionType::Identifier);
 
 				SheepCodeTreeIdentifierReferenceNode* childID = static_cast<SheepCodeTreeIdentifierReferenceNode*>(childExpr);
 
@@ -477,7 +477,7 @@ void SheepCodeGenerator::gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNod
 
 SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* function, int codeOffset)
 {
-	assert(function->GetDeclarationType() == DECLARATIONTYPE_FUNCTION);
+	assert(function->GetDeclarationType() == CodeTreeDeclarationNodeType::Function);
 	
 	SheepCodeTreeSymbolTypeNode* type = static_cast<SheepCodeTreeSymbolTypeNode*>(function->GetChild(0));
 	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(1));
@@ -495,12 +495,12 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 
 	if (type != NULL)
 	{
-		if (type->GetRefType() == TYPE_INT)
-			func.ReturnType = SYM_INT;
-		else if (type->GetRefType() == TYPE_FLOAT)
-			func.ReturnType = SYM_FLOAT;
-		else if (type->GetRefType() == TYPE_STRING)
-			func.ReturnType = SYM_STRING;
+		if (type->GetRefType() == CodeTreeTypeReferenceType::Int)
+			func.ReturnType = SheepSymbolType::Int;
+		else if (type->GetRefType() == CodeTreeTypeReferenceType::Float)
+			func.ReturnType = SheepSymbolType::Float;
+		else if (type->GetRefType() == CodeTreeTypeReferenceType::String)
+			func.ReturnType = SheepSymbolType::String;
 	}
 
 	while (params != NULL)
@@ -515,12 +515,12 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 		if (m_symbolMap.find(param.Name) != m_symbolMap.end())
 			throw SheepCompilerException(paramID->GetLineNumber(), "Parameter identifier conflicts with an existing symbol");
 
-		if (paramType->GetRefType() == TYPE_INT)
-			param.Type = SYM_INT;
-		else if (paramType->GetRefType() == TYPE_FLOAT)
-			param.Type = SYM_FLOAT;
-		else if (paramType->GetRefType() == TYPE_STRING)
-			param.Type = SYM_STRING;
+		if (paramType->GetRefType() == CodeTreeTypeReferenceType::Int)
+			param.Type = SheepSymbolType::Int;
+		else if (paramType->GetRefType() == CodeTreeTypeReferenceType::Float)
+			param.Type = SheepSymbolType::Float;
+		else if (paramType->GetRefType() == CodeTreeTypeReferenceType::String)
+			param.Type = SheepSymbolType::String;
 		else
 			throw SheepCompilerException(paramType->GetLineNumber(), "Unknown parameter type (possible compiler bug)");
 
@@ -540,7 +540,7 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 		
 		while(smt != nullptr)
 		{
-			if (smt->GetStatementType() == SMT_RETURN)
+			if (smt->GetStatementType() == CodeTreeKeywordStatementType::Return)
 			{
 				validReturnFound = true;
 				break;
@@ -556,11 +556,11 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 	// write "store" instructions for the parameters
 	for (int i = func.Parameters.size() - 1; i >= 0; i--)
 	{
-		if (func.Parameters[i].Type == SYM_INT)
+		if (func.Parameters[i].Type == SheepSymbolType::Int)
 			func.Code->WriteSheepInstruction(StoreI);
-		else if (func.Parameters[i].Type == SYM_FLOAT)
+		else if (func.Parameters[i].Type == SheepSymbolType::Float)
 			func.Code->WriteSheepInstruction(StoreF);
-		else if (func.Parameters[i].Type == SYM_STRING)
+		else if (func.Parameters[i].Type == SheepSymbolType::String)
 			func.Code->WriteSheepInstruction(StoreS);
 
 		func.Code->WriteInt(i + m_variables.size());
@@ -591,16 +591,16 @@ void SheepCodeGenerator::writeCode(SheepFunction& function, SheepCodeTreeNode* n
 {
 	while(node != NULL)
 	{
-		if (node->GetType() == NODETYPE_STATEMENT)
+		if (node->GetType() == CodeTreeNodeType::Statement)
 			writeStatement(function, static_cast<SheepCodeTreeStatementNode*>(node));
-		else if (node->GetType() == NODETYPE_EXPRESSION)
+		else if (node->GetType() == CodeTreeNodeType::Expression)
 			writeExpression(function, static_cast<SheepCodeTreeExpressionNode*>(node));
-		else if (node->GetType() == NODETYPE_DECLARATION)
+		else if (node->GetType() == CodeTreeNodeType::Declaration)
 		{
 			SheepCodeTreeDeclarationNode* decl = static_cast<SheepCodeTreeDeclarationNode*>(node);
 
 			// if this is a label declaration then add it to the list of labels
-			if (decl->GetDeclarationType() == DECLARATIONTYPE_LABEL)
+			if (decl->GetDeclarationType() == CodeTreeDeclarationNodeType::Label)
 			{
 				SheepCodeTreeIdentifierReferenceNode* id = static_cast<SheepCodeTreeIdentifierReferenceNode*>(decl->GetChild(0));
 
@@ -617,7 +617,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 {
 	assert(statement != NULL);
 
-	if (statement->GetStatementType() == SMT_EXPR)
+	if (statement->GetStatementType() == CodeTreeKeywordStatementType::Expression)
 	{
 		int itemsOnStack = writeExpression(function, static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0)));
 
@@ -625,7 +625,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		for (int i = 0; i < itemsOnStack; i++)
 			function.Code->WriteSheepInstruction(Pop);
 	}
-	else if (statement->GetStatementType() == SMT_RETURN)
+	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Return)
 	{
 		SheepCodeTreeExpressionNode* expr = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
 		SheepCodeTreeSymbolTypeNode* returnType = static_cast<SheepCodeTreeSymbolTypeNode*>(function.Declaration->GetChild(0));
@@ -645,34 +645,34 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			writeExpression(function, expr);
 
 			CodeTreeExpressionValueType exprType = expr->GetValueType();
-			if (returnType->GetRefType() == TYPE_INT)
+			if (returnType->GetRefType() == CodeTreeTypeReferenceType::Int)
 			{
-				if (exprType == EXPRVAL_FLOAT)
+				if (exprType == CodeTreeExpressionValueType::Float)
 					function.Code->WriteSheepInstruction(FToI);
-				else if (exprType != EXPRVAL_INT)
+				else if (exprType != CodeTreeExpressionValueType::Int)
 					throw SheepCompilerException(expr->GetLineNumber(), "Expected an integer");
 
 				function.Code->WriteSheepInstruction(ReturnI);
 			}
-			else if (returnType->GetRefType() == TYPE_FLOAT)
+			else if (returnType->GetRefType() == CodeTreeTypeReferenceType::Float)
 			{
-				if (exprType == EXPRVAL_INT)
+				if (exprType == CodeTreeExpressionValueType::Int)
 					function.Code->WriteSheepInstruction(IToF);
-				else if (exprType != EXPRVAL_FLOAT)
+				else if (exprType != CodeTreeExpressionValueType::Float)
 					throw SheepCompilerException(expr->GetLineNumber(), "Expected a float");
 
 				function.Code->WriteSheepInstruction(ReturnF);
 			}
-			else if (returnType->GetRefType() == TYPE_STRING)
+			else if (returnType->GetRefType() == CodeTreeTypeReferenceType::String)
 			{
-				if (exprType != EXPRVAL_STRING)
+				if (exprType != CodeTreeExpressionValueType::String)
 					throw SheepCompilerException(expr->GetLineNumber(), "Expected a string");
 
 				function.Code->WriteSheepInstruction(ReturnS);
 			}
 		}
 	}
-	else if (statement->GetStatementType() == SMT_WAIT)
+	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Wait)
 	{
 		function.Code->WriteSheepInstruction(BeginWait);
 
@@ -680,7 +680,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 
 		function.Code->WriteSheepInstruction(EndWait);
 	}
-	else if (statement->GetStatementType() == SMT_GOTO)
+	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Goto)
 	{
 		// write the goto instruction
 		function.Code->WriteSheepInstruction(BranchGoto);
@@ -695,7 +695,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		// write the placeholder for the label offset
 		function.Code->WriteInt(0xdddddddd);
 	}
-	else if (statement->GetStatementType() == SMT_IF)
+	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::If)
 	{
 		SheepCodeTreeExpressionNode* condition =
 			static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
@@ -727,7 +727,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			function.Code->WriteIntAt(function.CodeOffset + (int)function.Code->Tell(), ifBranchOffset);
 		}
 	}
-	else if (statement->GetStatementType() == SMT_ASSIGN)
+	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Assignment)
 	{
 		SheepCodeTreeExpressionNode* child1 = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
 		SheepCodeTreeExpressionNode* child2 = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(1));
@@ -736,11 +736,11 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		writeExpression(function, child2);
 		if (child1->GetValueType() != child2->GetValueType())
 		{
-			assert(child1->GetValueType() != EXPRVAL_STRING);
+			assert(child1->GetValueType() != CodeTreeExpressionValueType::String);
 
 			// should only be assigning a float to int or int to float at this point!
-			if (child1->GetValueType() == EXPRVAL_INT &&
-				child2->GetValueType() == EXPRVAL_FLOAT)
+			if (child1->GetValueType() == CodeTreeExpressionValueType::Int &&
+				child2->GetValueType() == CodeTreeExpressionValueType::Float)
 			{
 				function.Code->WriteSheepInstruction(FToI);
 				function.Code->WriteUInt(0);
@@ -753,7 +753,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		}
 
 		assert(child1 != NULL);
-		assert(child1->GetExpressionType() == EXPRTYPE_IDENTIFIER);
+		assert(child1->GetExpressionType() == CodeTreeExpressionType::Identifier);
 
 		SheepCodeTreeIdentifierReferenceNode* reference =
 			static_cast<SheepCodeTreeIdentifierReferenceNode*>(child1);
@@ -784,19 +784,19 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			}
 		}
 		
-		if (child1->GetValueType() == EXPRVAL_INT)
+		if (child1->GetValueType() == CodeTreeExpressionValueType::Int)
 		{
 			function.Code->WriteSheepInstruction(StoreI);
 			function.Code->WriteInt(symbolIndex);
 		}
-		else if (child1->GetValueType() == EXPRVAL_FLOAT)
+		else if (child1->GetValueType() == CodeTreeExpressionValueType::Float)
 		{
 			function.Code->WriteSheepInstruction(StoreF);
 			function.Code->WriteInt(symbolIndex);
 		}
 		else
 		{
-			assert(child1->GetValueType() == EXPRVAL_STRING);
+			assert(child1->GetValueType() == CodeTreeExpressionValueType::String);
 
 			function.Code->WriteSheepInstruction(StoreS);
 			function.Code->WriteInt(symbolIndex);
@@ -809,22 +809,22 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 	assert(expression != NULL);
 
 	int itemsOnStack = 0;
-	if (expression->GetExpressionType() == EXPRTYPE_CONSTANT)
+	if (expression->GetExpressionType() == CodeTreeExpressionType::Constant)
 	{
 		SheepCodeTreeConstantNode* constant = static_cast<SheepCodeTreeConstantNode*>(expression);
 
 		itemsOnStack++;
-		if (constant->GetValueType() == EXPRVAL_INT)
+		if (constant->GetValueType() == CodeTreeExpressionValueType::Int)
 		{
 			function.Code->WriteSheepInstruction(PushI);
 			function.Code->WriteInt(constant->GetIntValue());
 		}
-		else if (constant->GetValueType() == EXPRVAL_FLOAT)
+		else if (constant->GetValueType() == CodeTreeExpressionValueType::Float)
 		{
 			function.Code->WriteSheepInstruction(PushF);
 			function.Code->WriteFloat(constant->GetFloatValue());
 		}
-		else if (constant->GetValueType() == EXPRVAL_STRING)
+		else if (constant->GetValueType() == CodeTreeExpressionValueType::String)
 		{
 			function.Code->WriteSheepInstruction(PushS);
 			function.Code->WriteInt(constant->GetStringValue());
@@ -835,7 +835,7 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			throw SheepCompilerException(constant->GetLineNumber(), "Unknown constant type");
 		}
 	}
-	else if (expression->GetExpressionType() == EXPRTYPE_IDENTIFIER)
+	else if (expression->GetExpressionType() == CodeTreeExpressionType::Identifier)
 	{
 		SheepCodeTreeIdentifierReferenceNode* identifier =
 			static_cast<SheepCodeTreeIdentifierReferenceNode*>(expression);
@@ -857,13 +857,13 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				if (params.size() >= import.Parameters.size())
 					throw SheepCompilerException(identifier->GetLineNumber(), "Too many parameters");
 
-				if (param->GetValueType() == EXPRVAL_STRING &&
-					convertToExpressionValueType(import.Parameters[params.size()]) != EXPRVAL_STRING)
+				if (param->GetValueType() == CodeTreeExpressionValueType::String &&
+					convertToExpressionValueType(import.Parameters[params.size()]) != CodeTreeExpressionValueType::String)
 				{
 					throw SheepCompilerException(param->GetLineNumber(), "Cannot convert string to parameter type");
 				}
-				else if (param->GetValueType() != EXPRVAL_STRING &&
-					convertToExpressionValueType(import.Parameters[params.size()]) == EXPRVAL_STRING)
+				else if (param->GetValueType() != CodeTreeExpressionValueType::String &&
+					convertToExpressionValueType(import.Parameters[params.size()]) == CodeTreeExpressionValueType::String)
 				{
 					throw SheepCompilerException(param->GetLineNumber(), "Cannot convert parameter to string");
 				}
@@ -880,12 +880,12 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			// convert the parameters if necessary
 			for (int i = 0; i < (int)params.size(); i++)
 			{
-				if (params[i] == EXPRVAL_INT && import.Parameters[i] == SYM_FLOAT)
+				if (params[i] == CodeTreeExpressionValueType::Int && import.Parameters[i] == SheepSymbolType::Float)
 				{
 					function.Code->WriteSheepInstruction(IToF);
 					function.Code->WriteUInt((int)params.size() - 1 - i);
 				}
-				else if (params[i] == EXPRVAL_FLOAT && import.Parameters[i] == SYM_INT)
+				else if (params[i] == CodeTreeExpressionValueType::Float && import.Parameters[i] == SheepSymbolType::Int)
 				{
 					function.Code->WriteSheepInstruction(FToI);
 					function.Code->WriteUInt((int)params.size() - 1 - i);
@@ -896,13 +896,13 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			function.Code->WriteSheepInstruction(PushI);
 			function.Code->WriteInt((int)params.size());
 
-			if (import.ReturnType == SYM_VOID)
+			if (import.ReturnType == SheepSymbolType::Void)
 				function.Code->WriteSheepInstruction(CallSysFunctionV);
-			else if (import.ReturnType == SYM_INT)
+			else if (import.ReturnType == SheepSymbolType::Int)
 				function.Code->WriteSheepInstruction(CallSysFunctionI);
-			else if (import.ReturnType == SYM_FLOAT)
+			else if (import.ReturnType == SheepSymbolType::Float)
 				function.Code->WriteSheepInstruction(CallSysFunctionF);
-			else if (import.ReturnType == SYM_STRING)
+			else if (import.ReturnType == SheepSymbolType::String)
 				function.Code->WriteSheepInstruction(CallSysFunctionS);
 			else
 				throw SheepCompilerException(identifier->GetLineNumber(), "Unsupported import return type");
@@ -941,43 +941,43 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			}
 
 			itemsOnStack++;
-			if (variable.Type == SYM_INT)
+			if (variable.Type == SheepSymbolType::Int)
 			{
 				function.Code->WriteSheepInstruction(LoadI);
 				function.Code->WriteInt(symbolIndex);
 			}
-			else if (variable.Type == SYM_FLOAT)
+			else if (variable.Type == SheepSymbolType::Float)
 			{
 				function.Code->WriteSheepInstruction(LoadF);
 				function.Code->WriteInt(symbolIndex);
 			}
 			else
 			{
-				assert(variable.Type == SYM_STRING);
+				assert(variable.Type == SheepSymbolType::String);
 				function.Code->WriteSheepInstruction(LoadS);
 				function.Code->WriteInt(symbolIndex);
 				function.Code->WriteSheepInstruction(GetString);
 			}
 		}
 	}
-	else if (expression->GetExpressionType() == EXPRTYPE_OPERATION)
+	else if (expression->GetExpressionType() == CodeTreeExpressionType::Operation)
 	{
 		SheepCodeTreeOperationNode* operation = static_cast<SheepCodeTreeOperationNode*>(expression);
 
 		SheepCodeTreeExpressionNode* child1 = static_cast<SheepCodeTreeExpressionNode*>(operation->GetChild(0));
 		SheepCodeTreeExpressionNode* child2 = static_cast<SheepCodeTreeExpressionNode*>(operation->GetChild(1));
 
-		if (operation->GetOperationType() == OP_NEGATE)
+		if (operation->GetOperationType() == CodeTreeOperationType::Negate)
 		{
 			writeExpression(function, child1);
 
-			if (operation->GetValueType() == EXPRVAL_INT)
+			if (operation->GetValueType() == CodeTreeExpressionValueType::Int)
 			{
 				function.Code->WriteSheepInstruction(NegateI);
 			}
 			else // assume float
 			{
-				assert(operation->GetValueType() == EXPRVAL_FLOAT);
+				assert(operation->GetValueType() == CodeTreeExpressionValueType::Float);
 				function.Code->WriteSheepInstruction(NegateF);
 			}
 		}
@@ -989,55 +989,55 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			itemsOnStack--; // everything pops twice and pushes once
 			switch(operation->GetOperationType())
 			{
-			case OP_ADD:
+			case CodeTreeOperationType::Add:
 				intOp = AddI;
 				floatOp = AddF;
 				break;
-			case OP_MINUS:
+			case CodeTreeOperationType::Minus:
 				intOp = SubtractI;
 				floatOp = SubtractF;
 				break;
-			case OP_TIMES:
+			case CodeTreeOperationType::Times:
 				intOp = MultiplyI;
 				floatOp = MultiplyF;
 				break;
-			case OP_DIVIDE:
+			case CodeTreeOperationType::Divide:
 				intOp = DivideI;
 				floatOp = DivideF;
 				break;
-			case OP_GT:
+			case CodeTreeOperationType::GreaterThan:
 				intOp = IsGreaterI;
 				floatOp = IsGreaterF;
 				break;
-			case OP_LT:
+			case CodeTreeOperationType::LessThan:
 				intOp = IsLessI;
 				floatOp = IsLessF;
 				break;
-			case OP_GTE:
+			case CodeTreeOperationType::GreaterThanEqual:
 				intOp = IsGreaterEqualI;
 				floatOp = IsGreaterEqualF;
 				break;
-			case OP_LTE:
+			case CodeTreeOperationType::LessThanEqual:
 				intOp = IsLessEqualI;
 				floatOp = IsLessEqualF;
 				break;
-			case OP_EQ:
+			case CodeTreeOperationType::Equal:
 				intOp = IsEqualI;
 				floatOp = IsEqualF;
 				break;
-			case OP_NE:
+			case CodeTreeOperationType::NotEqual:
 				intOp = NotEqualI;
 				floatOp = NotEqualF;
 				break;
-			case OP_NOT:
+			case CodeTreeOperationType::Not:
 				intOp = Not;
 				floatOp = Not;
 				break;
-			case OP_AND:
+			case CodeTreeOperationType::And:
 				intOp = And;
 				floatOp = And;
 				break;
-			case OP_OR:
+			case CodeTreeOperationType::Or:
 				intOp = Or;
 				floatOp = Or;
 				break;
@@ -1045,7 +1045,7 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				throw SheepException("Unknown operator type!", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 			}
 
-			if (operation->GetValueType() == EXPRVAL_STRING)
+			if (operation->GetValueType() == CodeTreeExpressionValueType::String)
 				throw SheepCompilerException(operation->GetLineNumber(), "Operator not supported with strings (yet?)");
 			
 			itemsOnStack += writeExpression(function, child1);
@@ -1055,20 +1055,20 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				itemsOnStack += writeExpression(function, child2);
 
 				// TODO: shouldn't type be determined by the parent's type (the operator)?
-				if (child1->GetValueType() == EXPRVAL_INT && child2->GetValueType() == EXPRVAL_FLOAT)
+				if (child1->GetValueType() == CodeTreeExpressionValueType::Int && child2->GetValueType() == CodeTreeExpressionValueType::Float)
 				{
 					function.Code->WriteSheepInstruction(IToF);
 					function.Code->WriteUInt(1);
 				}
 				
-				if (child1->GetValueType() == EXPRVAL_FLOAT && child2->GetValueType() == EXPRVAL_INT)
+				if (child1->GetValueType() == CodeTreeExpressionValueType::Float && child2->GetValueType() == CodeTreeExpressionValueType::Int)
 				{
 					function.Code->WriteSheepInstruction(IToF);
 					function.Code->WriteUInt(0);
 				}
 			}
 
-			if (child1->GetValueType() == EXPRVAL_INT && (child2 == NULL || child2->GetValueType() == EXPRVAL_INT))
+			if (child1->GetValueType() == CodeTreeExpressionValueType::Int && (child2 == NULL || child2->GetValueType() == CodeTreeExpressionValueType::Int))
 				function.Code->WriteSheepInstruction(intOp);
 			else
 				function.Code->WriteSheepInstruction(floatOp);
@@ -1090,16 +1090,16 @@ SheepSymbolType SheepCodeGenerator::getSymbolType(int lineNumber, const std::str
 
 CodeTreeExpressionValueType SheepCodeGenerator::convertToExpressionValueType(SheepSymbolType type)
 {
-	if (type == SYM_VOID)
-		return EXPRVAL_VOID;
-	if (type == SYM_INT)
-		return EXPRVAL_INT;
-	if (type == SYM_FLOAT)
-		return EXPRVAL_FLOAT;
-	if (type == SYM_STRING)
-		return EXPRVAL_STRING;
+	if (type == SheepSymbolType::Void)
+		return CodeTreeExpressionValueType::Void;
+	if (type == SheepSymbolType::Int)
+		return CodeTreeExpressionValueType::Int;
+	if (type == SheepSymbolType::Float)
+		return CodeTreeExpressionValueType::Float;
+	if (type == SheepSymbolType::String)
+		return CodeTreeExpressionValueType::String;
 	
-	return EXPRVAL_UNKNOWN;
+	return CodeTreeExpressionValueType::Unknown;
 }
 
 int SheepCodeGenerator::getIndexOfImport(SheepImport &import)

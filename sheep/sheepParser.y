@@ -70,9 +70,9 @@ symbol_list:
 	;
 	
 symbol_type:
-	INTSYM { $$ = SheepCodeTreeNode::CreateTypeReference(TYPE_INT, currentLine); }
-	| FLOATSYM { $$ = SheepCodeTreeNode::CreateTypeReference(TYPE_FLOAT, currentLine); }
-	| STRINGSYM { $$ = SheepCodeTreeNode::CreateTypeReference(TYPE_STRING, currentLine); }
+	INTSYM { $$ = SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType::Int, currentLine); }
+	| FLOATSYM { $$ = SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType::Float, currentLine); }
+	| STRINGSYM { $$ = SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType::String, currentLine); }
 	;
 	
 symbol_declaration:
@@ -165,18 +165,18 @@ statement_list:
 simple_statement:
 	SEMICOLON
 	| local_identifier COLON { $$ = SheepCodeTreeNode::CreateLabelDeclaration(currentLine); $$->SetChild(0, $1); }
-	| GOTO local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_GOTO, currentLine); $$->SetChild(0, $2); }
-	| expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_EXPR, currentLine); $$->SetChild(0, $1); }
-	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
-	| RETURN expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); $$->SetChild(0, $2); }
+	| GOTO local_identifier SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Goto, currentLine); $$->SetChild(0, $2); }
+	| expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Expression, currentLine); $$->SetChild(0, $1); }
+	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Return, currentLine); }
+	| RETURN expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Return, currentLine); $$->SetChild(0, $2); }
 	| wait_statement { $$ = $1 }
-	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_ASSIGN, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Assignment, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
 	;
 
 wait_statement:
-	WAIT SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); }
-	| WAIT global_function_call SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); $$->SetChild(0, $2); }
-	| WAIT LBRACE global_function_call_list SEMICOLON RBRACE { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); $$->SetChild(0, $3); }
+	WAIT SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Wait, currentLine); }
+	| WAIT global_function_call SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Wait, currentLine); $$->SetChild(0, $2); }
+	| WAIT LBRACE global_function_call_list SEMICOLON RBRACE { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Wait, currentLine); $$->SetChild(0, $3); }
 	;
 
 /* this "open" and "closed" stuff can be found here:
@@ -187,15 +187,15 @@ statement:
 	;
 	
 open_statement:
-	IF LPAREN expr RPAREN statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); }
-	| IF LPAREN expr RPAREN closed_statement ELSE open_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
+	IF LPAREN expr RPAREN statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); }
+	| IF LPAREN expr RPAREN closed_statement ELSE open_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
 	;
 	
 closed_statement:
 	simple_statement { $$ = $1 }
 	| LBRACE RBRACE { $$ = NULL; }
 	| LBRACE statement_list RBRACE { $$ = $2 }
-	| IF LPAREN expr RPAREN closed_statement ELSE closed_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
+	| IF LPAREN expr RPAREN closed_statement ELSE closed_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
 	;
 	
 local_identifier:
@@ -241,18 +241,18 @@ expr:
 	| global_function_call { $$ = $1 }
 	| local_identifier { $$ = $1 }
 	| LPAREN expr RPAREN { $$ = $2; }
-	| NOT expr { $$ = SheepCodeTreeNode::CreateOperation(OP_NOT, currentLine); $$->SetChild(0, $2); }
-	| MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_NEGATE, currentLine); $$->SetChild(0, $2); }
-	| expr PLUS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_ADD, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
-	| expr MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_MINUS, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
-	| expr TIMES expr { $$ = SheepCodeTreeNode::CreateOperation(OP_TIMES, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
-	| expr DIVIDE expr { $$ = SheepCodeTreeNode::CreateOperation(OP_DIVIDE, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
-	| expr LESSTHAN expr { $$ = SheepCodeTreeNode::CreateOperation(OP_LT, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
-	| expr GREATERTHAN expr { $$ = SheepCodeTreeNode::CreateOperation(OP_GT, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
-	| expr LESSTHAN BECOMES expr { $$ = SheepCodeTreeNode::CreateOperation(OP_LTE, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $4);}
-	| expr GREATERTHAN BECOMES expr { $$ = SheepCodeTreeNode::CreateOperation(OP_GTE, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $4);}
-	| expr EQUALS expr { $$ = SheepCodeTreeNode::CreateOperation(OP_EQ, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
-	| expr NOTEQUAL expr { $$ = SheepCodeTreeNode::CreateOperation(OP_NE, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
-	| expr OR expr { $$ = SheepCodeTreeNode::CreateOperation(OP_OR, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
-	| expr AND expr { $$ = SheepCodeTreeNode::CreateOperation(OP_AND, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);  }
+	| NOT expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Not, currentLine); $$->SetChild(0, $2); }
+	| MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Negate, currentLine); $$->SetChild(0, $2); }
+	| expr PLUS expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Add, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	| expr MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Minus, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	| expr TIMES expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Times, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	| expr DIVIDE expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Divide, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
+	| expr LESSTHAN expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::LessThan, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
+	| expr GREATERTHAN expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::GreaterThan, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
+	| expr LESSTHAN BECOMES expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::LessThanEqual, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $4);}
+	| expr GREATERTHAN BECOMES expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::GreaterThanEqual, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $4);}
+	| expr EQUALS expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Equal, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
+	| expr NOTEQUAL expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::NotEqual, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);}
+	| expr OR expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Or, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
+	| expr AND expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::And, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3);  }
 	;

@@ -121,45 +121,45 @@ SheepCodeTreeNode::~SheepCodeTreeNode()
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateSymbolSection(int lineNumber)
 {
-	return SHEEP_NEW SheepCodeTreeSectionNode(SECTIONTYPE_SYMBOLS, lineNumber);
+	return SHEEP_NEW SheepCodeTreeSectionNode(CodeTreeSectionType::Symbols, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateCodeSection(int lineNumber)
 {
-	return SHEEP_NEW SheepCodeTreeSectionNode(SECTIONTYPE_CODE, lineNumber);
+	return SHEEP_NEW SheepCodeTreeSectionNode(CodeTreeSectionType::Code, lineNumber);
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateVariableDeclaration(int lineNumber)
 {
-	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_VARIABLE, lineNumber);
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(CodeTreeDeclarationNodeType::Variable, lineNumber);
 	
 	return node;
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateFunctionDeclaration(int lineNumber)
 {
-	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_FUNCTION, lineNumber);
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(CodeTreeDeclarationNodeType::Function, lineNumber);
 	
 	return node;
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateLocalFunctionParam(int lineNumber)
 {
-	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_VARIABLE, lineNumber);
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(CodeTreeDeclarationNodeType::Variable, lineNumber);
 
 	return node;
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateLabelDeclaration(int lineNumber)
 {
-	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(DECLARATIONTYPE_LABEL, lineNumber);
+	SheepCodeTreeNode* node = SHEEP_NEW SheepCodeTreeDeclarationNode(CodeTreeDeclarationNodeType::Label, lineNumber);
 	
 	return node;
 }
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateIntegerConstant(int value, int lineNumber)
 {
-	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(EXPRVAL_INT, lineNumber);
+	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(CodeTreeExpressionValueType::Int, lineNumber);
 	constant->SetIntValue(value);
 
 	return constant;
@@ -167,7 +167,7 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateIntegerConstant(int value, int lineN
 
 SheepCodeTreeNode* SheepCodeTreeNode::CreateFloatConstant(float value, int lineNumber)
 {
-	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(EXPRVAL_FLOAT, lineNumber);
+	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(CodeTreeExpressionValueType::Float, lineNumber);
 	constant->SetFloatValue(value);
 
 	return constant;
@@ -177,7 +177,7 @@ SheepCodeTreeNode* SheepCodeTreeNode::CreateStringConstant(const std::string& va
 {
 	int offset = g_codeTree->AddStringConstant(value);
 	
-	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(EXPRVAL_STRING, lineNumber);
+	SheepCodeTreeConstantNode* constant = SHEEP_NEW SheepCodeTreeConstantNode(CodeTreeExpressionValueType::String, lineNumber);
 	constant->SetStringValue(offset);
 
 	return constant;
