@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <map>
+#include <vector>
 #include "sheepScanner.h"
 #include "sheepConfig.h"
 
@@ -151,14 +152,14 @@ public:
 
 	virtual ~SheepCodeTreeNode();
 
-	void AttachSibling(SheepCodeTreeNode* sibling);
-	void SetChild(int index, SheepCodeTreeNode* node);
+	virtual void AttachSibling(SheepCodeTreeNode* sibling);
+	virtual void SetChild(int index, SheepCodeTreeNode* node);
 
-	SheepCodeTreeNode* GetChild(int index) { assert(index >= 0 && index < NUM_CHILD_NODES); return m_children[index]; }
-	const SheepCodeTreeNode* GetChild(int index) const { assert(index >= 0 && index < NUM_CHILD_NODES); return m_children[index]; }
+	virtual SheepCodeTreeNode* GetChild(int index) { assert(index >= 0 && index < NUM_CHILD_NODES); return m_children[index]; }
+	virtual const SheepCodeTreeNode* GetChild(int index) const { assert(index >= 0 && index < NUM_CHILD_NODES); return m_children[index]; }
 	
-	SheepCodeTreeNode* GetNextSibling() { return m_sibling; }
-	const SheepCodeTreeNode* GetNextSibling() const { return m_sibling; }
+	virtual SheepCodeTreeNode* GetNextSibling() { return m_sibling; }
+	virtual const SheepCodeTreeNode* GetNextSibling() const { return m_sibling; }
 
 	CodeTreeNodeType GetType() const { return m_type; }
 	int GetLineNumber() const { return m_lineNumber; }
@@ -182,6 +183,13 @@ private:
 	CodeTreeNodeType m_type;
 	int m_lineNumber;
 };
+
+template <class Target>
+inline Target polymorphic_downcast(SheepCodeTreeNode* node)
+{
+    assert(dynamic_cast<Target>(node) == node );  // detect logic error
+    return static_cast<Target>(node);
+}
 
 class SheepCodeTreeSectionNode : public SheepCodeTreeNode
 {
@@ -237,6 +245,74 @@ protected:
 private:
 	CodeTreeDeclarationNodeType m_declarationType;
 };
+
+class SheepCodeTreeSymbolTypeNode;
+class SheepCodeTreeIdentifierReferenceNode;
+
+class SheepCodeTreeVariableListNode : public SheepCodeTreeNode
+{
+public:
+	SheepCodeTreeVariableListNode(int lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Invalid, lineNumber)
+	{
+	}
+
+	std::vector<SheepCodeTreeSymbolTypeNode*> ParameterTypes;
+	std::vector<SheepCodeTreeIdentifierReferenceNode*> ParameterNames;
+};
+
+class SheepCodeTreeStatementNode;
+
+class SheepCodeTreeFunctionDeclarationNode : public SheepCodeTreeDeclarationNode
+{
+public:
+	SheepCodeTreeFunctionDeclarationNode(int lineNumber)
+		: SheepCodeTreeDeclarationNode(CodeTreeDeclarationNodeType::Function, lineNumber)
+	{
+		Name = nullptr;
+		ReturnType = nullptr;
+		Parameters = nullptr;
+		FirstStatement = nullptr;
+	}
+
+	virtual void AttachSibling(SheepCodeTreeNode* sibling) override { assert(false && "Not implemented"); }
+	virtual void SetChild(int index, SheepCodeTreeNode* node) override { assert(false && "Not implemented"); }
+
+	virtual SheepCodeTreeNode* GetChild(int index) override { assert(false && "Not implemented"); return nullptr; }
+	virtual const SheepCodeTreeNode* GetChild(int index) const override { assert(false && "Not implemented"); return nullptr; }
+	
+	virtual SheepCodeTreeNode* GetNextSibling() override { assert(false && "Not implemented"); return nullptr; }
+	virtual const SheepCodeTreeNode* GetNextSibling() const override { assert(false && "Not implemented"); return nullptr; }
+
+	SheepCodeTreeIdentifierReferenceNode* Name;
+	SheepCodeTreeSymbolTypeNode* ReturnType;
+	SheepCodeTreeVariableListNode* Parameters;
+	SheepCodeTreeStatementNode* FirstStatement;
+};
+
+class SheepCodeTreeFunctionListNode : public SheepCodeTreeNode
+{
+public:
+	SheepCodeTreeFunctionListNode(int lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Invalid, lineNumber)
+	{
+	}
+
+	std::vector<SheepCodeTreeFunctionDeclarationNode*> Functions;
+};
+
+class SheepCodeTreeStatementListNode : public SheepCodeTreeNode
+{
+
+public:
+	SheepCodeTreeStatementListNode(int lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Invalid, lineNumber)
+	{
+	}
+
+	std::vector<SheepCodeTreeStatementNode*> Statements;
+};
+
 
 class SheepCodeTreeStatementNode : public SheepCodeTreeNode
 {

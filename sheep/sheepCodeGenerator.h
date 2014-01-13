@@ -40,6 +40,11 @@ public:
 class SheepCodeTree;
 class SheepImportTable;
 
+struct CompilerContext
+{
+	std::vector<CompilerOutput> Output;
+};
+
 class SheepCodeGenerator
 {
 public:
@@ -55,7 +60,7 @@ private:
 	void buildSymbolMap(SheepCodeTreeNode* node);
 	void gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNode* node);
 	void determineExpressionTypes(SheepFunction& function, SheepCodeTreeNode* node);
-	SheepFunction writeFunction(SheepCodeTreeDeclarationNode* node, int codeOffset);
+	SheepFunction writeFunction(SheepCodeTreeFunctionDeclarationNode* function, int codeOffset, CompilerContext& context);
 	void writeCode(SheepFunction& function, SheepCodeTreeNode* node);
 	void writeStatement(SheepFunction& function, SheepCodeTreeStatementNode* statement);
 	int writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);

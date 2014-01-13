@@ -2,8 +2,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 #include "symbols.h"
 #include "sheepCodeTree.h"
+#include "sheepMemoryAllocator.h"
 #define YYSTYPE SheepCodeTreeNode*
 
 #define TRUE 1
@@ -97,40 +99,62 @@ code_section:
 	;
 	
 function_list:
-	function { $$ = $1 }
-	| function_list function { $1->AttachSibling($2); $$ = $1; }
+	function
+	{
+		SheepCodeTreeFunctionListNode* function = SHEEP_NEW SheepCodeTreeFunctionListNode(currentLine);
+		function->Functions.push_back(static_cast<SheepCodeTreeFunctionDeclarationNode*>($1));
+		 
+		$$ = function;
+	}
+	| function_list function
+	{ 
+		SheepCodeTreeFunctionListNode* function = static_cast<SheepCodeTreeFunctionListNode*>($1);
+		function->Functions.push_back(static_cast<SheepCodeTreeFunctionDeclarationNode*>($2));
+		 
+		$$ = function;
+	}
 	;
 
 function:
 	local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE RBRACE
-		{ 
-			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
-			$$->SetChild(0, NULL);
-			$$->SetChild(1, $1);
-			$$->SetChild(2, $3);
+		{
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($1);
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>($3);
+
+			$$ = functionDecl;
 		}
 	| local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE statement_list RBRACE
 		{
-			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
-			$$->SetChild(0, NULL);
-			$$->SetChild(1, $1);
-			$$->SetChild(2, $3); 
-			$$->SetChild(3, $6);
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($1);
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>($3);
+			functionDecl->FirstStatement = polymorphic_downcast<SheepCodeTreeStatementNode*>($6);
+
+			$$ = functionDecl;
 		}
 	| symbol_type local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE RBRACE
 		{ 
-			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
-			$$->SetChild(0, $1);
-			$$->SetChild(1, $2);
-			$$->SetChild(2, $4);
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->ReturnType = polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>($1);
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($1);
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>($4);
+
+			$$ = functionDecl;
 		}
 	| symbol_type local_identifier LPAREN function_parameter_list_opt RPAREN LBRACE statement_list RBRACE 
 		{
-			$$ = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
-			$$->SetChild(0, $1);
-			$$->SetChild(1, $2);
-			$$->SetChild(2, $4);
-			$$->SetChild(3, $7);
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->ReturnType = polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>($1);
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($2);
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>($4);
+			functionDecl->FirstStatement = polymorphic_downcast<SheepCodeTreeStatementNode*>($7);
+
+			$$ = functionDecl;
 		}
 	;
 	
@@ -142,18 +166,21 @@ function_parameter_list_opt:
 function_parameter_list:
 	symbol_type local_identifier
 	{
-		$$ = SheepCodeTreeNode::CreateLocalFunctionParam(currentLine);
-		$$->SetChild(0, $1);
-		$$->SetChild(1, $2);
+		SheepCodeTreeVariableListNode* variableList = SHEEP_NEW SheepCodeTreeVariableListNode(currentLine);
+
+		variableList->ParameterTypes.push_back(polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>($1));
+		variableList->ParameterNames.push_back(polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($2));
+
+		$$ = variableList;
 	}
 	| function_parameter_list COMMA symbol_type local_identifier
 	{
-		SheepCodeTreeNode* param = SheepCodeTreeNode::CreateLocalFunctionParam(currentLine);
-		param->SetChild(0, $3);
-		param->SetChild(1, $4);
+		SheepCodeTreeVariableListNode* variableList = polymorphic_downcast<SheepCodeTreeVariableListNode*>($1);
+
+		variableList->ParameterTypes.push_back(polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>($3));
+		variableList->ParameterNames.push_back(polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($4));
 
 		$$ = $1;
-		$1->AttachSibling(param);
 	}
 	;
 	

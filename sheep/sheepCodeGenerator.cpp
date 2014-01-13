@@ -53,6 +53,8 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 
 	//std::map<std::string, SheepImport> usedImports;
 
+	CompilerContext context;
+
 	try
 	{
 		int functionCodeOffset = 0;
@@ -73,12 +75,12 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 			// iterate over each function/snippet and output a SheepFunction object
 			if (section->GetSectionType() == CodeTreeSectionType::Code)
 			{
-				SheepCodeTreeDeclarationNode* function = 
-					static_cast<SheepCodeTreeDeclarationNode*>(section->GetChild(0));
+				SheepCodeTreeFunctionListNode* functions = 
+					static_cast<SheepCodeTreeFunctionListNode*>(section->GetChild(0));
 
-				while(function != NULL)
+				for (int i = 0; i < functions->Functions.size(); i++)
 				{
-					SheepFunction func = writeFunction(function, functionCodeOffset);
+					SheepFunction func = writeFunction(functions->Functions[i], functionCodeOffset, context);
 					output->Functions.push_back(func);
 					functionCodeOffset += (int)func.Code->GetSize();
 
@@ -90,8 +92,6 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 						m_imports->TryFindImport(*itr, import);
 						// TODO: I don't think this is even necessary...
 					}
-
-					function = static_cast<SheepCodeTreeDeclarationNode*>(function->GetNextSibling());
 				}
 			}
 
@@ -121,8 +121,10 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 		error.LineNumber = ex.GetLineNumber();
 		error.Output = ex.GetMessage();
 
-		output->Errors.push_back(error);
+		context.Output.push_back(error);
 	}
+
+	output->Errors = context.Output;
 
 	return output.release();
 }
@@ -161,8 +163,7 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 
 		SheepCodeTreeSectionNode* section = static_cast<SheepCodeTreeSectionNode*>(node);
 
-		if (section->GetSectionType() == CodeTreeSectionType::Symbols ||
-			section->GetSectionType() == CodeTreeSectionType::Code)
+		if (section->GetSectionType() == CodeTreeSectionType::Symbols)
 		{
 			// section is full of yummy declaration nodes!
 			SheepCodeTreeDeclarationNode* declaration = 
@@ -170,11 +171,7 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 
 			while(declaration != NULL)
 			{
-				SheepCodeTreeIdentifierReferenceNode* identifier;
-				if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Function)
-					identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(1));
-				else
-					identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
+				SheepCodeTreeIdentifierReferenceNode* identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
 				
 				while(identifier)
 				{
@@ -209,14 +206,6 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 							symbol.InitialFloatValue = constant->GetFloatValue();
 						else if (symbol.Type == SheepSymbolType::String)
 							symbol.InitialStringValue = constant->GetStringValue();
-						else if (symbol.Type == SheepSymbolType::LocalFunction)
-						{
-							// dive in and gather a list of all labels in the function.
-							std::pair<FunctionLabelMap::iterator, bool> result = m_labels.insert(FunctionLabelMap::value_type(declaration, LabelMap()));
-							assert(result.second == true);
-
-							gatherFunctionLabels(m_labels[declaration], declaration);
-						}
 						else
 						{
 							throw SheepCompilerException(declaration->GetLineNumber(),
@@ -239,6 +228,27 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 			
 
 				declaration = static_cast<SheepCodeTreeDeclarationNode*>(declaration->GetNextSibling());
+			}
+		}
+		else
+		{
+			// this is a Code section
+			SheepCodeTreeFunctionListNode* functions = static_cast<SheepCodeTreeFunctionListNode*>(section->GetChild(0));
+
+			for (int i = 0; i < functions->Functions.size(); i++)
+			{
+				SheepSymbol symbol;
+				symbol.Type = SheepSymbolType::LocalFunction;
+				symbol.Name = functions->Functions[i]->Name->GetName();
+
+				if (m_symbolMap.insert(SymbolMap::value_type(symbol.Name, symbol)).second == false)
+					throw SheepCompilerException(functions->Functions[i]->GetLineNumber(), "Function already defined");
+				
+				// dive in and gather a list of all labels in the function.
+				std::pair<FunctionLabelMap::iterator, bool> result = m_labels.insert(FunctionLabelMap::value_type(functions->Functions[i], LabelMap()));
+				assert(result.second == true);
+
+				gatherFunctionLabels(m_labels[functions->Functions[i]], functions->Functions[i]);
 			}
 		}
 
@@ -465,6 +475,20 @@ void SheepCodeGenerator::gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNod
 				if (labels.insert(LabelMap::value_type(childID->GetName(), 0)).second == false)
 					throw SheepCompilerException(decl->GetLineNumber(), "The label has already been declared in another location.");
 			}
+			else if (decl->GetDeclarationType() == CodeTreeDeclarationNodeType::Function)
+			{
+				SheepCodeTreeFunctionDeclarationNode* function = static_cast<SheepCodeTreeFunctionDeclarationNode*>(decl);
+
+				SheepCodeTreeStatementNode* statement = function->FirstStatement;
+
+				while(statement != nullptr)
+				{
+					gatherFunctionLabels(labels, statement);
+					statement = static_cast<SheepCodeTreeStatementNode*>(statement->GetNextSibling());
+				}
+
+				return;
+			}
 		}
 		
 		// go through all the children
@@ -475,18 +499,25 @@ void SheepCodeGenerator::gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNod
 	}
 }
 
-SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* function, int codeOffset)
+SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclarationNode* function, int codeOffset, CompilerContext& context)
 {
 	assert(function->GetDeclarationType() == CodeTreeDeclarationNodeType::Function);
 	
-	SheepCodeTreeSymbolTypeNode* type = static_cast<SheepCodeTreeSymbolTypeNode*>(function->GetChild(0));
-	SheepCodeTreeIdentifierReferenceNode* ref = static_cast<SheepCodeTreeIdentifierReferenceNode*>(function->GetChild(1));
-	SheepCodeTreeDeclarationNode* params = static_cast<SheepCodeTreeDeclarationNode*>(function->GetChild(2));
+	bool declarationErrorsFound = false;
+	SheepCodeTreeSymbolTypeNode* type = function->ReturnType;
+	SheepCodeTreeIdentifierReferenceNode* ref = function->Name;
+	SheepCodeTreeVariableListNode* params = function->Parameters;
 
 	if (type != nullptr && m_allowEnhancements == false)
-		throw SheepCompilerException(type->GetLineNumber(), "Function return types are not allowed.");
+	{
+		declarationErrorsFound = true;
+		context.Output.push_back(CompilerOutput(type->GetLineNumber(), "Function return types are not allowed."));
+	}
 	if (params != nullptr && m_allowEnhancements == false)
-		throw SheepCompilerException(params->GetLineNumber(), "Function parameters are not allowed.");
+	{
+		declarationErrorsFound = true;
+		context.Output.push_back(CompilerOutput(params->GetLineNumber(), "Function parameters are not allowed."));
+	}
 
 	SheepFunction func(function);
 	func.Name = ref->GetName();
@@ -501,34 +532,50 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeDeclarationNode* fu
 			func.ReturnType = SheepSymbolType::Float;
 		else if (type->GetRefType() == CodeTreeTypeReferenceType::String)
 			func.ReturnType = SheepSymbolType::String;
-	}
-
-	while (params != NULL)
-	{
-		SheepCodeTreeSymbolTypeNode* paramType = static_cast<SheepCodeTreeSymbolTypeNode*>(params->GetChild(0));
-		SheepCodeTreeIdentifierReferenceNode* paramID = static_cast<SheepCodeTreeIdentifierReferenceNode*>(params->GetChild(1));
-
-		SheepSymbol param;
-		param.Name = paramID->GetName();
-
-		// make sure the parameter name doesn't conflict with a global symbol
-		if (m_symbolMap.find(param.Name) != m_symbolMap.end())
-			throw SheepCompilerException(paramID->GetLineNumber(), "Parameter identifier conflicts with an existing symbol");
-
-		if (paramType->GetRefType() == CodeTreeTypeReferenceType::Int)
-			param.Type = SheepSymbolType::Int;
-		else if (paramType->GetRefType() == CodeTreeTypeReferenceType::Float)
-			param.Type = SheepSymbolType::Float;
-		else if (paramType->GetRefType() == CodeTreeTypeReferenceType::String)
-			param.Type = SheepSymbolType::String;
 		else
-			throw SheepCompilerException(paramType->GetLineNumber(), "Unknown parameter type (possible compiler bug)");
-
-		func.Parameters.push_back(param);
-		params = static_cast<SheepCodeTreeDeclarationNode*>(params->GetNextSibling());
+		{
+			declarationErrorsFound = true;
+			context.Output.push_back(CompilerOutput(type->GetLineNumber(), "Invalid function return type. Valid types are int, float, and string."));
+		}
 	}
 
-	SheepCodeTreeNode* child = function->GetChild(3);
+	if (params != nullptr)
+	{
+		for (int i = 0; i < params->ParameterTypes.size(); i++)
+		{
+			SheepCodeTreeSymbolTypeNode* paramType = params->ParameterTypes[i];
+			SheepCodeTreeIdentifierReferenceNode* paramID = params->ParameterNames[i];
+
+			SheepSymbol param;
+			param.Name = paramID->GetName();
+
+			// make sure the parameter name doesn't conflict with a global symbol
+			if (m_symbolMap.find(param.Name) != m_symbolMap.end())
+			{
+				declarationErrorsFound = true;
+				context.Output.push_back(CompilerOutput(paramID->GetLineNumber(), "Parameter identifier conflicts with an existing symbol"));
+			}
+
+			if (paramType->GetRefType() == CodeTreeTypeReferenceType::Int)
+				param.Type = SheepSymbolType::Int;
+			else if (paramType->GetRefType() == CodeTreeTypeReferenceType::Float)
+				param.Type = SheepSymbolType::Float;
+			else if (paramType->GetRefType() == CodeTreeTypeReferenceType::String)
+				param.Type = SheepSymbolType::String;
+			else
+			{
+				declarationErrorsFound = true;
+				context.Output.push_back(CompilerOutput(paramID->GetLineNumber(), "Unknown parameter type (possible compiler bug)"));
+			}
+
+			func.Parameters.push_back(param);
+		}
+	}
+
+	if (declarationErrorsFound)
+		return func;
+
+	SheepCodeTreeNode* child = function->FirstStatement;
 
 	determineExpressionTypes(func, child);
 
@@ -628,7 +675,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Return)
 	{
 		SheepCodeTreeExpressionNode* expr = static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
-		SheepCodeTreeSymbolTypeNode* returnType = static_cast<SheepCodeTreeSymbolTypeNode*>(function.Declaration->GetChild(0));
+		SheepCodeTreeSymbolTypeNode* returnType = polymorphic_downcast<SheepCodeTreeFunctionDeclarationNode*>(function.Declaration)->ReturnType;
 
 		if (expr == nullptr && returnType != nullptr)
 			throw SheepCompilerException(statement->GetLineNumber(), "Non-void functions must return a value.");

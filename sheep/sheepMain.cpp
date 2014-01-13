@@ -182,9 +182,9 @@ int main(int argc, char** argv)
 		if (enhancementsEnabled)
 			m.SetLanguageEnhancementsEnabled(true);
 
-		m.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
-		m.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
-		m.GetImports().TryAddImport("PrintInt", SYM_VOID, SYM_INT, s_printInt);
+		m.GetImports().TryAddImport("PrintString", SheepSymbolType::Void, SheepSymbolType::String, s_printString);
+		m.GetImports().TryAddImport("PrintFloat", SheepSymbolType::Void, SheepSymbolType::Float, s_printFloat);
+		m.GetImports().TryAddImport("PrintInt", SheepSymbolType::Void, SheepSymbolType::Int, s_printInt);
 		
 		IntermediateOutput* output;
 		
@@ -217,9 +217,12 @@ int main(int argc, char** argv)
 		{
 			SheepMachine machine;
 
-			machine.GetImports().TryAddImport("PrintString", SYM_VOID, SYM_STRING, s_printString);
-			machine.GetImports().TryAddImport("PrintFloat", SYM_VOID, SYM_FLOAT, s_printFloat);
-			machine.GetImports().TryAddImport("PrintInt", SYM_VOID, SYM_INT, s_printInt);
+			if (enhancementsEnabled)
+				machine.SetLanguageEnhancementsEnabled(true);
+
+			machine.GetImports().TryAddImport("PrintString", SheepSymbolType::Void, SheepSymbolType::String, s_printString);
+			machine.GetImports().TryAddImport("PrintFloat", SheepSymbolType::Void, SheepSymbolType::Float, s_printFloat);
+			machine.GetImports().TryAddImport("PrintInt", SheepSymbolType::Void, SheepSymbolType::Int, s_printInt);
 
 			IntermediateOutput* output;
 		
@@ -227,6 +230,14 @@ int main(int argc, char** argv)
 				output = reader->GetIntermediateOutput();
 			else
 				output = machine.Compile(ss.str());
+
+			if (output->Errors.empty() == false)
+			{
+				for (size_t i = 0; i < output->Errors.size(); i++)
+				{
+					std::cout << "Error " << output->Errors[i].LineNumber << ": " << output->Errors[i].Output << std::endl;
+				}
+			}
 
 			machine.Run(output, functionToRun);
 		}

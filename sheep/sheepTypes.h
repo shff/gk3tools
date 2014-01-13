@@ -85,6 +85,17 @@ struct CompilerOutput
 {
 	int LineNumber;
 	std::string Output;
+
+	CompilerOutput()
+	{
+		LineNumber = 0;
+	}
+
+	CompilerOutput(int lineNumber, const std::string& text)
+	{
+		LineNumber = lineNumber;
+		Output = text;
+	}
 };
 
 #endif // SHEEPTYPES_H
