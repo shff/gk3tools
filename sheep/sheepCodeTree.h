@@ -247,7 +247,48 @@ private:
 };
 
 class SheepCodeTreeSymbolTypeNode;
+class SheepCodeTreeVariableDeclarationNameAndValueNode;
+
+class SheepCodeTreeVariableDeclarationNode : public SheepCodeTreeNode
+{
+public:
+	SheepCodeTreeSymbolTypeNode* VariableType;
+	SheepCodeTreeVariableDeclarationNameAndValueNode* FirstVariable;
+
+	SheepCodeTreeVariableDeclarationNode(int lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Invalid, lineNumber)
+	{
+		VariableType = nullptr;
+		FirstVariable = nullptr;
+	}
+
+	virtual void SetChild(int index, SheepCodeTreeNode* node) override { assert(false && "Not implemented"); }
+
+	virtual SheepCodeTreeNode* GetChild(int index) override { assert(false && "Not implemented"); return nullptr; }
+	virtual const SheepCodeTreeNode* GetChild(int index) const override { assert(false && "Not implemented"); return nullptr; }
+};
+
 class SheepCodeTreeIdentifierReferenceNode;
+class SheepCodeTreeConstantNode;
+
+class SheepCodeTreeVariableDeclarationNameAndValueNode : public SheepCodeTreeNode
+{
+public:
+	SheepCodeTreeIdentifierReferenceNode* VariableName;
+	SheepCodeTreeConstantNode* InitialValue;
+
+	SheepCodeTreeVariableDeclarationNameAndValueNode(int lineNumber)
+		: SheepCodeTreeNode(CodeTreeNodeType::Invalid, lineNumber)
+	{
+		VariableName = nullptr;
+		InitialValue = nullptr;
+	}
+
+	virtual void SetChild(int index, SheepCodeTreeNode* node) override { assert(false && "Not implemented"); }
+
+	virtual SheepCodeTreeNode* GetChild(int index) override { assert(false && "Not implemented"); return nullptr; }
+	virtual const SheepCodeTreeNode* GetChild(int index) const override { assert(false && "Not implemented"); return nullptr; }
+};
 
 class SheepCodeTreeVariableListNode : public SheepCodeTreeNode
 {

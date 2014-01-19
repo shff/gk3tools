@@ -80,17 +80,47 @@ symbol_type:
 symbol_declaration:
 	symbol_type symbol_declaration_list SEMICOLON
 	{
-		$$ = SheepCodeTreeNode::CreateVariableDeclaration(currentLine);
-		$$->SetChild(0, $2);
-		$$->SetChild(1, $1);
+		SheepCodeTreeVariableDeclarationNode* decl = new SheepCodeTreeVariableDeclarationNode(currentLine);
+		decl->VariableType = polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>($1);
+		decl->FirstVariable = polymorphic_downcast<SheepCodeTreeVariableDeclarationNameAndValueNode*>($2);
+
+		$$ = decl;
 	}
 	;
 	
 symbol_declaration_list:
-	local_identifier { $$ = $1; }
-	| local_identifier BECOMES constant { $$ = $1;  $$->SetChild(0, $3); }
-	| symbol_declaration_list COMMA local_identifier { $$ = $1; $$->AttachSibling($3); }
-	| symbol_declaration_list COMMA local_identifier BECOMES constant { $$ = $1; $$->AttachSibling($3); $3->SetChild(0, $5); }
+	local_identifier
+	{
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($1);
+		 
+		$$ = decl; 
+	}
+	| local_identifier BECOMES constant
+	{
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($1);
+		decl->InitialValue = polymorphic_downcast<SheepCodeTreeConstantNode*>($3);
+
+		$$ = decl;
+	}
+	| symbol_declaration_list COMMA local_identifier
+	{
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($3);
+
+		$$ = $1; 
+		$$->AttachSibling(decl);
+	}
+	| symbol_declaration_list COMMA local_identifier BECOMES constant
+	{
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>($3);
+		decl->InitialValue = polymorphic_downcast<SheepCodeTreeConstantNode*>($5);
+
+		$$ = $1; 
+		$$->AttachSibling(decl);
+	}
 	;
 	
 code_section:

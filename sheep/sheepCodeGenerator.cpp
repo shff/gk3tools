@@ -166,68 +166,47 @@ void SheepCodeGenerator::buildSymbolMap(SheepCodeTreeNode *node)
 		if (section->GetSectionType() == CodeTreeSectionType::Symbols)
 		{
 			// section is full of yummy declaration nodes!
-			SheepCodeTreeDeclarationNode* declaration = 
-				static_cast<SheepCodeTreeDeclarationNode*>(section->GetChild(0));
+			SheepCodeTreeVariableDeclarationNode* variableDecl = polymorphic_downcast<SheepCodeTreeVariableDeclarationNode*>(section->GetChild(0));
 
-			while(declaration != NULL)
+			while(variableDecl != NULL)
 			{
-				SheepCodeTreeIdentifierReferenceNode* identifier = static_cast<SheepCodeTreeIdentifierReferenceNode*>(declaration->GetChild(0));
+				SheepSymbolType type;
+				if (variableDecl->VariableType->GetRefType() == CodeTreeTypeReferenceType::Int)
+					type = SheepSymbolType::Int;
+				else if (variableDecl->VariableType->GetRefType() == CodeTreeTypeReferenceType::Float)
+					type = SheepSymbolType::Float;
+				else if (variableDecl->VariableType->GetRefType() == CodeTreeTypeReferenceType::String)
+					type = SheepSymbolType::String;
+				else
+					assert(false && "Unknown symbol type! Probable compiler bug.");
+
+				SheepCodeTreeVariableDeclarationNameAndValueNode* variable = variableDecl->FirstVariable;
 				
-				while(identifier)
+				while(variable)
 				{
 					SheepSymbol symbol;
-					symbol.Name = identifier->GetName();
-					if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Function)
-						symbol.Type = SheepSymbolType::LocalFunction;
-					else if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Label)
-						symbol.Type = SheepSymbolType::Label;
-					else if (declaration->GetDeclarationType() == CodeTreeDeclarationNodeType::Variable)
-					{
-						SheepCodeTreeSymbolTypeNode* symType = static_cast<SheepCodeTreeSymbolTypeNode*>(declaration->GetChild(1));
+					symbol.Name = variable->VariableName->GetName();
+					symbol.Type = type;
 
-						if (symType->GetRefType() == CodeTreeTypeReferenceType::Int)
-							symbol.Type = SheepSymbolType::Int;
-						else if (symType->GetRefType() == CodeTreeTypeReferenceType::Float)
-							symbol.Type = SheepSymbolType::Float;
-						else if (symType->GetRefType() == CodeTreeTypeReferenceType::String)
-							symbol.Type = SheepSymbolType::String;
-					}
-					
-					SheepCodeTreeConstantNode* constant =
-						static_cast<SheepCodeTreeConstantNode*>(identifier->GetChild(0));
-
-					if (constant != NULL)
+					if (variable->InitialValue != nullptr)
 					{
 						if (symbol.Type == SheepSymbolType::Int)
-						{
-							symbol.InitialIntValue = constant->GetIntValue();
-						}
+							symbol.InitialIntValue = variable->InitialValue->GetIntValue();
 						else if (symbol.Type == SheepSymbolType::Float)
-							symbol.InitialFloatValue = constant->GetFloatValue();
+							symbol.InitialFloatValue = variable->InitialValue->GetFloatValue();
 						else if (symbol.Type == SheepSymbolType::String)
-							symbol.InitialStringValue = constant->GetStringValue();
-						else
-						{
-							throw SheepCompilerException(declaration->GetLineNumber(),
-								"Symbols must be 'int', 'float', or 'string'");
-						}
+							symbol.InitialStringValue = variable->InitialValue->GetStringValue();
 					}
 					
 					if (m_symbolMap.insert(SymbolMap::value_type(symbol.Name, symbol)).second == false)
-					throw SheepCompilerException(declaration->GetLineNumber(), "Symbol already defined");
+						throw SheepCompilerException(variable->GetLineNumber(), "Symbol already defined");
 
-					// should we add this as a variable?
-					if (section->GetSectionType() == CodeTreeSectionType::Symbols)
-					{
-						if (symbol.Type == SheepSymbolType::Int || symbol.Type == SheepSymbolType::Float || symbol.Type == SheepSymbolType::String)
-							m_variables.push_back(symbol);
-					}
+					m_variables.push_back(symbol);
 					
-					identifier =  static_cast<SheepCodeTreeIdentifierReferenceNode*>(identifier->GetNextSibling());
+					variable = polymorphic_downcast<SheepCodeTreeVariableDeclarationNameAndValueNode*>(variable->GetNextSibling());
 				}
-			
 
-				declaration = static_cast<SheepCodeTreeDeclarationNode*>(declaration->GetNextSibling());
+				variableDecl = polymorphic_downcast<SheepCodeTreeVariableDeclarationNode*>(variableDecl->GetNextSibling());
 			}
 		}
 		else
