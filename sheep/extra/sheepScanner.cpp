@@ -597,8 +597,10 @@ char *yytext;
 	#include "sheepParser.hpp"
     
 	int currentLine = 1;
+	
+	#define YY_NO_UNISTD_H
 
-#line 602 "sheepScanner.cpp"
+#line 604 "sheepScanner.cpp"
 
 #define INITIAL 0
 #define IN_COMMENT 1
@@ -786,11 +788,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 15 "sheepScanner.l"
+#line 17 "sheepScanner.l"
 
 
 
-#line 794 "sheepScanner.cpp"
+#line 796 "sheepScanner.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -872,238 +874,238 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 18 "sheepScanner.l"
+#line 20 "sheepScanner.l"
 { currentLine++; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 19 "sheepScanner.l"
+#line 21 "sheepScanner.l"
 { }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 20 "sheepScanner.l"
+#line 22 "sheepScanner.l"
 { }
 	YY_BREAK
 
 case 4:
 YY_RULE_SETUP
-#line 23 "sheepScanner.l"
+#line 25 "sheepScanner.l"
 return INTSYM;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 24 "sheepScanner.l"
+#line 26 "sheepScanner.l"
 return FLOATSYM;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 25 "sheepScanner.l"
+#line 27 "sheepScanner.l"
 return STRINGSYM;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 27 "sheepScanner.l"
+#line 29 "sheepScanner.l"
 return CODE;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 28 "sheepScanner.l"
+#line 30 "sheepScanner.l"
 return SYMBOLS;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 29 "sheepScanner.l"
+#line 31 "sheepScanner.l"
 return RETURN;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 30 "sheepScanner.l"
+#line 32 "sheepScanner.l"
 return WAIT;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 31 "sheepScanner.l"
+#line 33 "sheepScanner.l"
 return IF;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 32 "sheepScanner.l"
+#line 34 "sheepScanner.l"
 return ELSE;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 33 "sheepScanner.l"
+#line 35 "sheepScanner.l"
 return GOTO;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 35 "sheepScanner.l"
+#line 37 "sheepScanner.l"
 return COLON;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 36 "sheepScanner.l"
+#line 38 "sheepScanner.l"
 return SEMICOLON;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 37 "sheepScanner.l"
+#line 39 "sheepScanner.l"
 return COMMA;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 38 "sheepScanner.l"
+#line 40 "sheepScanner.l"
 return DOLLAR;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 39 "sheepScanner.l"
+#line 41 "sheepScanner.l"
 return LPAREN;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 40 "sheepScanner.l"
+#line 42 "sheepScanner.l"
 return RPAREN;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 41 "sheepScanner.l"
+#line 43 "sheepScanner.l"
 return LBRACE;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 42 "sheepScanner.l"
+#line 44 "sheepScanner.l"
 return RBRACE;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 44 "sheepScanner.l"
+#line 46 "sheepScanner.l"
 return QUOTE;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 46 "sheepScanner.l"
+#line 48 "sheepScanner.l"
 return EQUALS;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 47 "sheepScanner.l"
+#line 49 "sheepScanner.l"
 return NOTEQUAL;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 48 "sheepScanner.l"
+#line 50 "sheepScanner.l"
 return BECOMES;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 50 "sheepScanner.l"
+#line 52 "sheepScanner.l"
 return PLUS;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 51 "sheepScanner.l"
+#line 53 "sheepScanner.l"
 return MINUS;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 52 "sheepScanner.l"
+#line 54 "sheepScanner.l"
 return TIMES;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 53 "sheepScanner.l"
+#line 55 "sheepScanner.l"
 return DIVIDE;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 55 "sheepScanner.l"
+#line 57 "sheepScanner.l"
 return GREATERTHAN;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 56 "sheepScanner.l"
+#line 58 "sheepScanner.l"
 return LESSTHAN;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 58 "sheepScanner.l"
+#line 60 "sheepScanner.l"
 return NOT;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 59 "sheepScanner.l"
+#line 61 "sheepScanner.l"
 return AND;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 60 "sheepScanner.l"
+#line 62 "sheepScanner.l"
 return OR;
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 63 "sheepScanner.l"
+#line 65 "sheepScanner.l"
 { return FLOAT; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 64 "sheepScanner.l"
+#line 66 "sheepScanner.l"
 { return INTEGER; }
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 65 "sheepScanner.l"
+#line 67 "sheepScanner.l"
 { return STRING; }
 	YY_BREAK
 case 38:
 /* rule 38 can match eol */
 YY_RULE_SETUP
-#line 66 "sheepScanner.l"
+#line 68 "sheepScanner.l"
 { return STRING; }
 	YY_BREAK
 
 case 39:
 YY_RULE_SETUP
-#line 69 "sheepScanner.l"
+#line 71 "sheepScanner.l"
 { return LOCALIDENTIFIER; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 70 "sheepScanner.l"
+#line 72 "sheepScanner.l"
 { return IDENTIFIER; }
 	YY_BREAK
 
 case 41:
 YY_RULE_SETUP
-#line 74 "sheepScanner.l"
+#line 76 "sheepScanner.l"
 BEGIN(IN_COMMENT);
 	YY_BREAK
 
 
 case 42:
 YY_RULE_SETUP
-#line 77 "sheepScanner.l"
+#line 79 "sheepScanner.l"
 BEGIN(INITIAL);
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 78 "sheepScanner.l"
+#line 80 "sheepScanner.l"
 // eat comment in chucks
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 79 "sheepScanner.l"
+#line 81 "sheepScanner.l"
 // eat the lone star
 	YY_BREAK
 
 case 45:
 YY_RULE_SETUP
-#line 83 "sheepScanner.l"
+#line 85 "sheepScanner.l"
 ECHO;
 	YY_BREAK
-#line 1107 "sheepScanner.cpp"
+#line 1109 "sheepScanner.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(IN_COMMENT):
 	yyterminate();
@@ -2099,7 +2101,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 83 "sheepScanner.l"
+#line 85 "sheepScanner.l"
 
 
 

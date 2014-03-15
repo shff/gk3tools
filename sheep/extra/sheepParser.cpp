@@ -68,8 +68,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <vector>
 #include "symbols.h"
 #include "sheepCodeTree.h"
+#include "sheepMemoryAllocator.h"
 #define YYSTYPE SheepCodeTreeNode*
 
 #define TRUE 1
@@ -100,7 +102,7 @@ char* removeQuotes(char* str)
 
 
 /* Line 371 of yacc.c  */
-#line 104 "sheepParser.cpp"
+#line 106 "sheepParser.cpp"
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -204,7 +206,7 @@ int yyparse ();
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 208 "sheepParser.cpp"
+#line 210 "sheepParser.cpp"
 
 #ifdef short
 # undef short
@@ -538,14 +540,14 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    54,    54,    56,    57,    58,    62,    63,    68,    69,
-      73,    74,    75,    79,    88,    89,    90,    91,    95,    96,
-     100,   101,   105,   112,   120,   127,   138,   139,   143,   149,
-     161,   162,   166,   167,   168,   169,   170,   171,   172,   173,
-     177,   178,   179,   185,   186,   190,   191,   195,   196,   197,
-     198,   202,   211,   219,   220,   221,   225,   226,   230,   231,
-     235,   236,   240,   241,   242,   243,   244,   245,   246,   247,
-     248,   249,   250,   251,   252,   253,   254,   255,   256,   257
+       0,    56,    56,    58,    59,    60,    64,    65,    70,    71,
+      75,    76,    77,    81,    92,    99,   107,   115,   127,   128,
+     132,   139,   149,   158,   168,   178,   192,   193,   197,   206,
+     218,   219,   223,   224,   225,   226,   227,   228,   229,   230,
+     234,   235,   236,   242,   243,   247,   248,   252,   253,   254,
+     255,   259,   268,   276,   277,   278,   282,   283,   287,   288,
+     292,   293,   297,   298,   299,   300,   301,   302,   303,   304,
+     305,   306,   307,   308,   309,   310,   311,   312,   313,   314
 };
 #endif
 
@@ -1581,326 +1583,375 @@ yyreduce:
     {
         case 3:
 /* Line 1787 of yacc.c  */
-#line 56 "sheepParser.y"
+#line 58 "sheepParser.y"
     { g_codeTreeRoot = (yyvsp[(1) - (2)]); if ((yyvsp[(1) - (2)]) && (yyvsp[(2) - (2)])) (yyvsp[(1) - (2)])->AttachSibling((yyvsp[(2) - (2)])); }
     break;
 
   case 4:
 /* Line 1787 of yacc.c  */
-#line 57 "sheepParser.y"
+#line 59 "sheepParser.y"
     { g_codeTreeRoot = (yyvsp[(1) - (1)]); }
     break;
 
   case 5:
 /* Line 1787 of yacc.c  */
-#line 58 "sheepParser.y"
+#line 60 "sheepParser.y"
     { g_codeTreeRoot = (yyvsp[(1) - (1)]); }
     break;
 
   case 6:
 /* Line 1787 of yacc.c  */
-#line 62 "sheepParser.y"
+#line 64 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateSymbolSection(currentLine); }
     break;
 
   case 7:
 /* Line 1787 of yacc.c  */
-#line 63 "sheepParser.y"
+#line 65 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateSymbolSection(currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (4)])); }
     break;
 
   case 8:
 /* Line 1787 of yacc.c  */
-#line 68 "sheepParser.y"
+#line 70 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]); }
     break;
 
   case 9:
 /* Line 1787 of yacc.c  */
-#line 69 "sheepParser.y"
+#line 71 "sheepParser.y"
     { (yyvsp[(1) - (2)])->AttachSibling((yyvsp[(2) - (2)])); (yyval) = (yyvsp[(1) - (2)]); }
     break;
 
   case 10:
 /* Line 1787 of yacc.c  */
-#line 73 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateTypeReference(TYPE_INT, currentLine); }
+#line 75 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType::Int, currentLine); }
     break;
 
   case 11:
 /* Line 1787 of yacc.c  */
-#line 74 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateTypeReference(TYPE_FLOAT, currentLine); }
+#line 76 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType::Float, currentLine); }
     break;
 
   case 12:
 /* Line 1787 of yacc.c  */
-#line 75 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateTypeReference(TYPE_STRING, currentLine); }
+#line 77 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateTypeReference(CodeTreeTypeReferenceType::String, currentLine); }
     break;
 
   case 13:
 /* Line 1787 of yacc.c  */
-#line 80 "sheepParser.y"
+#line 82 "sheepParser.y"
     {
-		(yyval) = SheepCodeTreeNode::CreateVariableDeclaration(currentLine);
-		(yyval)->SetChild(0, (yyvsp[(2) - (3)]));
-		(yyval)->SetChild(1, (yyvsp[(1) - (3)]));
+		SheepCodeTreeVariableDeclarationNode* decl = new SheepCodeTreeVariableDeclarationNode(currentLine);
+		decl->VariableType = polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>((yyvsp[(1) - (3)]));
+		decl->FirstVariable = polymorphic_downcast<SheepCodeTreeVariableDeclarationNameAndValueNode*>((yyvsp[(2) - (3)]));
+
+		(yyval) = decl;
 	}
     break;
 
   case 14:
 /* Line 1787 of yacc.c  */
-#line 88 "sheepParser.y"
-    { (yyval) = (yyvsp[(1) - (1)]); }
+#line 93 "sheepParser.y"
+    {
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(1) - (1)]));
+		 
+		(yyval) = decl; 
+	}
     break;
 
   case 15:
 /* Line 1787 of yacc.c  */
-#line 89 "sheepParser.y"
-    { (yyval) = (yyvsp[(1) - (3)]);  (yyval)->SetChild(0, (yyvsp[(3) - (3)])); }
+#line 100 "sheepParser.y"
+    {
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(1) - (3)]));
+		decl->InitialValue = polymorphic_downcast<SheepCodeTreeConstantNode*>((yyvsp[(3) - (3)]));
+
+		(yyval) = decl;
+	}
     break;
 
   case 16:
 /* Line 1787 of yacc.c  */
-#line 90 "sheepParser.y"
-    { (yyval) = (yyvsp[(1) - (3)]); (yyval)->AttachSibling((yyvsp[(3) - (3)])); }
+#line 108 "sheepParser.y"
+    {
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(3) - (3)]));
+
+		(yyval) = (yyvsp[(1) - (3)]); 
+		(yyval)->AttachSibling(decl);
+	}
     break;
 
   case 17:
 /* Line 1787 of yacc.c  */
-#line 91 "sheepParser.y"
-    { (yyval) = (yyvsp[(1) - (5)]); (yyval)->AttachSibling((yyvsp[(3) - (5)])); (yyvsp[(3) - (5)])->SetChild(0, (yyvsp[(5) - (5)])); }
+#line 116 "sheepParser.y"
+    {
+		SheepCodeTreeVariableDeclarationNameAndValueNode* decl = new SheepCodeTreeVariableDeclarationNameAndValueNode(currentLine);
+		decl->VariableName = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(3) - (5)]));
+		decl->InitialValue = polymorphic_downcast<SheepCodeTreeConstantNode*>((yyvsp[(5) - (5)]));
+
+		(yyval) = (yyvsp[(1) - (5)]); 
+		(yyval)->AttachSibling(decl);
+	}
     break;
 
   case 18:
 /* Line 1787 of yacc.c  */
-#line 95 "sheepParser.y"
+#line 127 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateCodeSection(currentLine); }
     break;
 
   case 19:
 /* Line 1787 of yacc.c  */
-#line 96 "sheepParser.y"
+#line 128 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateCodeSection(currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (4)])); }
     break;
 
   case 20:
 /* Line 1787 of yacc.c  */
-#line 100 "sheepParser.y"
-    { (yyval) = (yyvsp[(1) - (1)]) ;}
+#line 133 "sheepParser.y"
+    {
+		SheepCodeTreeFunctionListNode* function = SHEEP_NEW SheepCodeTreeFunctionListNode(currentLine);
+		function->Functions.push_back(static_cast<SheepCodeTreeFunctionDeclarationNode*>((yyvsp[(1) - (1)])));
+		 
+		(yyval) = function;
+	}
     break;
 
   case 21:
 /* Line 1787 of yacc.c  */
-#line 101 "sheepParser.y"
-    { (yyvsp[(1) - (2)])->AttachSibling((yyvsp[(2) - (2)])); (yyval) = (yyvsp[(1) - (2)]); }
+#line 140 "sheepParser.y"
+    { 
+		SheepCodeTreeFunctionListNode* function = static_cast<SheepCodeTreeFunctionListNode*>((yyvsp[(1) - (2)]));
+		function->Functions.push_back(static_cast<SheepCodeTreeFunctionDeclarationNode*>((yyvsp[(2) - (2)])));
+		 
+		(yyval) = function;
+	}
     break;
 
   case 22:
 /* Line 1787 of yacc.c  */
-#line 106 "sheepParser.y"
-    { 
-			(yyval) = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
-			(yyval)->SetChild(0, NULL);
-			(yyval)->SetChild(1, (yyvsp[(1) - (6)]));
-			(yyval)->SetChild(2, (yyvsp[(3) - (6)]));
+#line 150 "sheepParser.y"
+    {
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(1) - (6)]));
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>((yyvsp[(3) - (6)]));
+
+			(yyval) = functionDecl;
 		}
     break;
 
   case 23:
 /* Line 1787 of yacc.c  */
-#line 113 "sheepParser.y"
+#line 159 "sheepParser.y"
     {
-			(yyval) = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine); 
-			(yyval)->SetChild(0, NULL);
-			(yyval)->SetChild(1, (yyvsp[(1) - (7)]));
-			(yyval)->SetChild(2, (yyvsp[(3) - (7)])); 
-			(yyval)->SetChild(3, (yyvsp[(6) - (7)]));
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(1) - (7)]));
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>((yyvsp[(3) - (7)]));
+			functionDecl->FirstStatement = polymorphic_downcast<SheepCodeTreeStatementNode*>((yyvsp[(6) - (7)]));
+
+			(yyval) = functionDecl;
 		}
     break;
 
   case 24:
 /* Line 1787 of yacc.c  */
-#line 121 "sheepParser.y"
+#line 169 "sheepParser.y"
     { 
-			(yyval) = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
-			(yyval)->SetChild(0, (yyvsp[(1) - (7)]));
-			(yyval)->SetChild(1, (yyvsp[(2) - (7)]));
-			(yyval)->SetChild(2, (yyvsp[(4) - (7)]));
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->ReturnType = polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>((yyvsp[(1) - (7)]));
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(1) - (7)]));
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>((yyvsp[(4) - (7)]));
+
+			(yyval) = functionDecl;
 		}
     break;
 
   case 25:
 /* Line 1787 of yacc.c  */
-#line 128 "sheepParser.y"
+#line 179 "sheepParser.y"
     {
-			(yyval) = SheepCodeTreeNode::CreateFunctionDeclaration(currentLine);
-			(yyval)->SetChild(0, (yyvsp[(1) - (8)]));
-			(yyval)->SetChild(1, (yyvsp[(2) - (8)]));
-			(yyval)->SetChild(2, (yyvsp[(4) - (8)]));
-			(yyval)->SetChild(3, (yyvsp[(7) - (8)]));
+			SheepCodeTreeFunctionDeclarationNode* functionDecl = SHEEP_NEW SheepCodeTreeFunctionDeclarationNode(currentLine);
+
+			functionDecl->ReturnType = polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>((yyvsp[(1) - (8)]));
+			functionDecl->Name = polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(2) - (8)]));
+			functionDecl->Parameters = polymorphic_downcast<SheepCodeTreeVariableListNode*>((yyvsp[(4) - (8)]));
+			functionDecl->FirstStatement = polymorphic_downcast<SheepCodeTreeStatementNode*>((yyvsp[(7) - (8)]));
+
+			(yyval) = functionDecl;
 		}
     break;
 
   case 26:
 /* Line 1787 of yacc.c  */
-#line 138 "sheepParser.y"
+#line 192 "sheepParser.y"
     { (yyval) = NULL; }
     break;
 
   case 27:
 /* Line 1787 of yacc.c  */
-#line 139 "sheepParser.y"
+#line 193 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]); }
     break;
 
   case 28:
 /* Line 1787 of yacc.c  */
-#line 144 "sheepParser.y"
+#line 198 "sheepParser.y"
     {
-		(yyval) = SheepCodeTreeNode::CreateLocalFunctionParam(currentLine);
-		(yyval)->SetChild(0, (yyvsp[(1) - (2)]));
-		(yyval)->SetChild(1, (yyvsp[(2) - (2)]));
+		SheepCodeTreeVariableListNode* variableList = SHEEP_NEW SheepCodeTreeVariableListNode(currentLine);
+
+		variableList->ParameterTypes.push_back(polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>((yyvsp[(1) - (2)])));
+		variableList->ParameterNames.push_back(polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(2) - (2)])));
+
+		(yyval) = variableList;
 	}
     break;
 
   case 29:
 /* Line 1787 of yacc.c  */
-#line 150 "sheepParser.y"
+#line 207 "sheepParser.y"
     {
-		SheepCodeTreeNode* param = SheepCodeTreeNode::CreateLocalFunctionParam(currentLine);
-		param->SetChild(0, (yyvsp[(3) - (4)]));
-		param->SetChild(1, (yyvsp[(4) - (4)]));
+		SheepCodeTreeVariableListNode* variableList = polymorphic_downcast<SheepCodeTreeVariableListNode*>((yyvsp[(1) - (4)]));
+
+		variableList->ParameterTypes.push_back(polymorphic_downcast<SheepCodeTreeSymbolTypeNode*>((yyvsp[(3) - (4)])));
+		variableList->ParameterNames.push_back(polymorphic_downcast<SheepCodeTreeIdentifierReferenceNode*>((yyvsp[(4) - (4)])));
 
 		(yyval) = (yyvsp[(1) - (4)]);
-		(yyvsp[(1) - (4)])->AttachSibling(param);
 	}
     break;
 
   case 30:
 /* Line 1787 of yacc.c  */
-#line 161 "sheepParser.y"
+#line 218 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 31:
 /* Line 1787 of yacc.c  */
-#line 162 "sheepParser.y"
+#line 219 "sheepParser.y"
     { (yyvsp[(1) - (2)])->AttachSibling((yyvsp[(2) - (2)])); (yyval) = (yyvsp[(1) - (2)]); }
     break;
 
   case 33:
 /* Line 1787 of yacc.c  */
-#line 167 "sheepParser.y"
+#line 224 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateLabelDeclaration(currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (2)])); }
     break;
 
   case 34:
 /* Line 1787 of yacc.c  */
-#line 168 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_GOTO, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (3)])); }
+#line 225 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Goto, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (3)])); }
     break;
 
   case 35:
 /* Line 1787 of yacc.c  */
-#line 169 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_EXPR, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (2)])); }
+#line 226 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Expression, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (2)])); }
     break;
 
   case 36:
 /* Line 1787 of yacc.c  */
-#line 170 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); }
+#line 227 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Return, currentLine); }
     break;
 
   case 37:
 /* Line 1787 of yacc.c  */
-#line 171 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_RETURN, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (3)])); }
+#line 228 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Return, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (3)])); }
     break;
 
   case 38:
 /* Line 1787 of yacc.c  */
-#line 172 "sheepParser.y"
+#line 229 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 39:
 /* Line 1787 of yacc.c  */
-#line 173 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_ASSIGN, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
+#line 230 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Assignment, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
     break;
 
   case 40:
 /* Line 1787 of yacc.c  */
-#line 177 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); }
+#line 234 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Wait, currentLine); }
     break;
 
   case 41:
 /* Line 1787 of yacc.c  */
-#line 178 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (3)])); }
+#line 235 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Wait, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (3)])); }
     break;
 
   case 42:
 /* Line 1787 of yacc.c  */
-#line 179 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_WAIT, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (5)])); }
+#line 236 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Wait, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (5)])); }
     break;
 
   case 43:
 /* Line 1787 of yacc.c  */
-#line 185 "sheepParser.y"
+#line 242 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 44:
 /* Line 1787 of yacc.c  */
-#line 186 "sheepParser.y"
+#line 243 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 45:
 /* Line 1787 of yacc.c  */
-#line 190 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (5)])); (yyval)->SetChild(1, (yyvsp[(5) - (5)])); }
+#line 247 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (5)])); (yyval)->SetChild(1, (yyvsp[(5) - (5)])); }
     break;
 
   case 46:
 /* Line 1787 of yacc.c  */
-#line 191 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (7)])); (yyval)->SetChild(1, (yyvsp[(5) - (7)])); (yyval)->SetChild(2, (yyvsp[(7) - (7)])); }
+#line 248 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (7)])); (yyval)->SetChild(1, (yyvsp[(5) - (7)])); (yyval)->SetChild(2, (yyvsp[(7) - (7)])); }
     break;
 
   case 47:
 /* Line 1787 of yacc.c  */
-#line 195 "sheepParser.y"
+#line 252 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 48:
 /* Line 1787 of yacc.c  */
-#line 196 "sheepParser.y"
+#line 253 "sheepParser.y"
     { (yyval) = NULL; }
     break;
 
   case 49:
 /* Line 1787 of yacc.c  */
-#line 197 "sheepParser.y"
+#line 254 "sheepParser.y"
     { (yyval) = (yyvsp[(2) - (3)]) ;}
     break;
 
   case 50:
 /* Line 1787 of yacc.c  */
-#line 198 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(SMT_IF, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (7)])); (yyval)->SetChild(1, (yyvsp[(5) - (7)])); (yyval)->SetChild(2, (yyvsp[(7) - (7)])); }
+#line 255 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); (yyval)->SetChild(0, (yyvsp[(3) - (7)])); (yyval)->SetChild(1, (yyvsp[(5) - (7)])); (yyval)->SetChild(2, (yyvsp[(7) - (7)])); }
     break;
 
   case 51:
 /* Line 1787 of yacc.c  */
-#line 203 "sheepParser.y"
+#line 260 "sheepParser.y"
     {
 		char errorBuffer[256];
 		(yyval) = SheepCodeTreeNode::CreateIdentifierReference(yytext, false, currentLine, errorBuffer, 256); 
@@ -1910,7 +1961,7 @@ yyreduce:
 
   case 52:
 /* Line 1787 of yacc.c  */
-#line 212 "sheepParser.y"
+#line 269 "sheepParser.y"
     {
 		char errorBuffer[256];
 		(yyval) = SheepCodeTreeNode::CreateIdentifierReference(yytext, true, currentLine, errorBuffer, 256); 
@@ -1919,169 +1970,169 @@ yyreduce:
 
   case 53:
 /* Line 1787 of yacc.c  */
-#line 219 "sheepParser.y"
+#line 276 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateIntegerConstant(atoi(yytext), currentLine); }
     break;
 
   case 54:
 /* Line 1787 of yacc.c  */
-#line 220 "sheepParser.y"
+#line 277 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateFloatConstant(atof(yytext), currentLine); }
     break;
 
   case 55:
 /* Line 1787 of yacc.c  */
-#line 221 "sheepParser.y"
+#line 278 "sheepParser.y"
     { (yyval) = SheepCodeTreeNode::CreateStringConstant(removeQuotes(yytext), currentLine); }
     break;
 
   case 56:
 /* Line 1787 of yacc.c  */
-#line 225 "sheepParser.y"
+#line 282 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (3)]) ;}
     break;
 
   case 57:
 /* Line 1787 of yacc.c  */
-#line 226 "sheepParser.y"
+#line 283 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (4)]); (yyval)->SetChild(0, (yyvsp[(3) - (4)])); }
     break;
 
   case 58:
 /* Line 1787 of yacc.c  */
-#line 230 "sheepParser.y"
+#line 287 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 59:
 /* Line 1787 of yacc.c  */
-#line 231 "sheepParser.y"
+#line 288 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (3)]); (yyval)->AttachSibling((yyvsp[(3) - (3)])); }
     break;
 
   case 60:
 /* Line 1787 of yacc.c  */
-#line 235 "sheepParser.y"
+#line 292 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 61:
 /* Line 1787 of yacc.c  */
-#line 236 "sheepParser.y"
+#line 293 "sheepParser.y"
     { (yyval)->AttachSibling((yyvsp[(3) - (3)])); }
     break;
 
   case 62:
 /* Line 1787 of yacc.c  */
-#line 240 "sheepParser.y"
+#line 297 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]); }
     break;
 
   case 63:
 /* Line 1787 of yacc.c  */
-#line 241 "sheepParser.y"
+#line 298 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 64:
 /* Line 1787 of yacc.c  */
-#line 242 "sheepParser.y"
+#line 299 "sheepParser.y"
     { (yyval) = (yyvsp[(1) - (1)]) ;}
     break;
 
   case 65:
 /* Line 1787 of yacc.c  */
-#line 243 "sheepParser.y"
+#line 300 "sheepParser.y"
     { (yyval) = (yyvsp[(2) - (3)]); }
     break;
 
   case 66:
 /* Line 1787 of yacc.c  */
-#line 244 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_NOT, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (2)])); }
+#line 301 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Not, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (2)])); }
     break;
 
   case 67:
 /* Line 1787 of yacc.c  */
-#line 245 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_NEGATE, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (2)])); }
+#line 302 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Negate, currentLine); (yyval)->SetChild(0, (yyvsp[(2) - (2)])); }
     break;
 
   case 68:
 /* Line 1787 of yacc.c  */
-#line 246 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_ADD, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
+#line 303 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Add, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
     break;
 
   case 69:
 /* Line 1787 of yacc.c  */
-#line 247 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_MINUS, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
+#line 304 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Minus, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
     break;
 
   case 70:
 /* Line 1787 of yacc.c  */
-#line 248 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_TIMES, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
+#line 305 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Times, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
     break;
 
   case 71:
 /* Line 1787 of yacc.c  */
-#line 249 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_DIVIDE, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
+#line 306 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Divide, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
     break;
 
   case 72:
 /* Line 1787 of yacc.c  */
-#line 250 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_LT, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
+#line 307 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::LessThan, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
     break;
 
   case 73:
 /* Line 1787 of yacc.c  */
-#line 251 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_GT, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
+#line 308 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::GreaterThan, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
     break;
 
   case 74:
 /* Line 1787 of yacc.c  */
-#line 252 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_LTE, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (4)])); (yyval)->SetChild(1, (yyvsp[(4) - (4)]));}
+#line 309 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::LessThanEqual, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (4)])); (yyval)->SetChild(1, (yyvsp[(4) - (4)]));}
     break;
 
   case 75:
 /* Line 1787 of yacc.c  */
-#line 253 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_GTE, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (4)])); (yyval)->SetChild(1, (yyvsp[(4) - (4)]));}
+#line 310 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::GreaterThanEqual, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (4)])); (yyval)->SetChild(1, (yyvsp[(4) - (4)]));}
     break;
 
   case 76:
 /* Line 1787 of yacc.c  */
-#line 254 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_EQ, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
+#line 311 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Equal, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
     break;
 
   case 77:
 /* Line 1787 of yacc.c  */
-#line 255 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_NE, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
+#line 312 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::NotEqual, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));}
     break;
 
   case 78:
 /* Line 1787 of yacc.c  */
-#line 256 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_OR, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
+#line 313 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Or, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)])); }
     break;
 
   case 79:
 /* Line 1787 of yacc.c  */
-#line 257 "sheepParser.y"
-    { (yyval) = SheepCodeTreeNode::CreateOperation(OP_AND, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));  }
+#line 314 "sheepParser.y"
+    { (yyval) = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::And, currentLine); (yyval)->SetChild(0, (yyvsp[(1) - (3)])); (yyval)->SetChild(1, (yyvsp[(3) - (3)]));  }
     break;
 
 
 /* Line 1787 of yacc.c  */
-#line 2085 "sheepParser.cpp"
+#line 2136 "sheepParser.cpp"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

@@ -5,6 +5,8 @@
 	#include "sheepParser.hpp"
     
 	int currentLine = 1;
+	
+	#define YY_NO_UNISTD_H
 %}
 
 %option never-interactive

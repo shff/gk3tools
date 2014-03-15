@@ -1,7 +1,7 @@
 CC=gcc
 CPPC=g++
 LINKER=g++
-COMPILER_FLAGS= -g
+COMPILER_FLAGS= -g -std=c++11
 LINKER_FLAGS=
 EXECUTABLE=parser
 
