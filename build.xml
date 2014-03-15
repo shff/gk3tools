@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<LzoFile>lzo-2.05</LzoFile>
 		<LzoUrl>http://www.oberhumer.com/opensource/lzo/download/$(LzoFile).tar.gz</LzoUrl>
-		<ZLibFile>zlib-1.2.7</ZLibFile>
+		<ZLibFile>zlib-1.2.8</ZLibFile>
 		<ZLibUrl>http://zlib.net/$(ZLibFile).tar.gz</ZLibUrl>
 	</PropertyGroup>
 	<ItemGroup>
@@ -68,13 +68,13 @@
 		/>
 		<Exec
 			Command="msbuild zlibstat.vcxproj /p:Configuration=Release"
-			WorkingDirectory="Lib\$(ZLibFile)/contrib/vstudio/vc10"
+			WorkingDirectory="Lib\$(ZLibFile)/contrib/vstudio/vc11"
 		/>
 		
 		<!-- Copy the output -->
 		<Message Text="Copying output..." />
 		<Copy
-			SourceFiles="Lib\$(LzoFile)\lzo2.lib;Lib\$(LzoFile)\lzo2.dll;Lib\$(ZLibFile)\contrib\vstudio\vc10\x86\ZlibStatRelease\zlibstat.lib"
+			SourceFiles="Lib\$(LzoFile)\lzo2.lib;Lib\$(LzoFile)\lzo2.dll;Lib\$(ZLibFile)\contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib"
 			DestinationFolder="Lib"
 		/>
 		
