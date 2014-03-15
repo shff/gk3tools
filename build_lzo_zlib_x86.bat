@@ -32,14 +32,17 @@ cd Lib
 echo Extracting ZLib...
 ..\Builder.exe -x %ZLibFile%.tar.gz
 
+move %LzoFile% lzo
+move %ZLibFile% zlib
+
 rem build LZO and ZLib
 echo Building LZO...
-cd %LzoFile%
+cd lzo
 call b\win32\vc_dll.bat
 cd ..
 
 echo Building ZLib...
-cd %ZLibFile%\contrib\masmx86
+cd zlib\contrib\masmx86
 call bld_ml32.bat
 cd ..\vstudio\vc11
 msbuild zlibstat.vcxproj /p:Configuration=Release
@@ -48,8 +51,8 @@ cd ..\..\..\..\
 mkdir lzo\build\windows\x86
 mkdir zlib\build\windows\x86
 
-xcopy /Y %LzoFile%\lzo2.lib lzo\build\windows\x86
-xcopy /Y %LzoFile%\lzo2.dll lzo\build\windows\x86
-xcopy /Y %ZLibFile%\contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib zlib\build\windows\x86
+xcopy /Y lzo\lzo2.lib lzo\build\windows\x86
+xcopy /Y lzo\lzo2.dll lzo\build\windows\x86
+xcopy /Y zlib\contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib zlib\build\windows\x86
 
 cd ..
