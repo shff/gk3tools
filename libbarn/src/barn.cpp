@@ -467,6 +467,12 @@ namespace Barn
 				readUInt32(m_file);
 				readByte(m_file);
 				file.compression = (Compression)readByte(m_file);
+
+				// for some reason there can be files with an invalid compression value (3, to be specific).
+				// treat those as uncompressed.
+				if (file.compression == 3)
+					file.compression = None;
+
 				unsigned char len = readByte(m_file);
 
 				char nameBuffer[257];
