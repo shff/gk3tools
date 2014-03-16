@@ -25,82 +25,91 @@ using System.Runtime.InteropServices;
 
 namespace BarnLib
 {
-	public enum Compression : int
-	{
-		None = 0,
-		ZLib = 1,
-		LZO = 2
-	}
-	
-	public class BarnException : System.Exception
-	{
-		public BarnException(string message)
-			: base(message)
-		{}
-	};
-	
-	public class Barn : System.IDisposable
-	{
-		public Barn(string name)
-		{
-            this.name = name;
+    public enum Compression : int
+    {
+        None = 0,
+        ZLib = 1,
+        LZO = 2
+    }
 
-			IntPtr barn = brn_OpenBarn(name);
-			
-			if (barn == (IntPtr)null)
-				throw new BarnException("Unable to open barn: " + name);
+    public class BarnException : System.Exception
+    {
+        public BarnException(string message)
+            : base(message)
+        { }
 
-			barnHandle = new HandleRef(this, barn);
-			
-			numFiles = brn_GetNumFilesInBarn(barnHandle);
-			
-			disposed = false;
-		}
-		
-		~Barn()
-		{
-			Dispose();
-		}
-		
-		public void Dispose()
-		{
-			if (disposed == false)
-				brn_CloseBarn(barnHandle);
-			
-			disposed = true;
-		}
-		
-		public uint NumberOfFiles
-		{
-			get { return numFiles; }
-		}
-
-        public string Name { get { return name; } }
-		
-		public string GetFileName(uint index)
-		{
-			System.Text.StringBuilder filename = new System.Text.StringBuilder(255);
-			int success = brn_GetFileName(barnHandle, index, filename, filename.Capacity+1);
-			
-			if (success == -1)
-				throw new BarnException("Unable to get file name at index " + index);
-			
-			return filename.ToString();
-		}
-		
-		public uint GetFileSize(uint index)
-		{
-			int size = brn_GetFileSizeByIndex(barnHandle, index);
-			
-			if (size >= 0)
-				return (uint)size;
-			
-			throw new BarnException("Unable to get file size at index " + index);
-		}
-
-        public uint GetDecompressedFileSize(uint index)
+        public BarnException(string message, Exception inner)
+            : base(message, inner)
         {
-            int size = brn_GetDecompressedFileSizeByIndex(barnHandle, index);
+        }
+    };
+
+    public class Barn : System.IDisposable
+    {
+        public Barn(string path)
+        {
+            try
+            {
+                _path = path;
+                _name = System.IO.Path.GetFileName(path);
+
+                IntPtr barn = brn_OpenBarn(path);
+
+                if (barn == (IntPtr)null)
+                    throw new BarnException("Unable to open barn: " + path);
+
+                barnHandle = barn;
+
+                numFiles = brn_GetNumFilesInBarn(barnHandle);
+
+                disposed = false;
+            }
+            catch (DllNotFoundException ex)
+            {
+                throw new BarnException("Unable to load the Barn library.", ex);
+            }
+        }
+
+        ~Barn()
+        {
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            if (disposed == false && barnHandle != IntPtr.Zero)
+                brn_CloseBarn(barnHandle);
+
+            disposed = true;
+        }
+
+        public uint NumberOfFiles
+        {
+            get { return numFiles; }
+        }
+
+        public string Path { get { return _path; } }
+        public string Name { get { return _name; } }
+
+        public string GetFileName(int index)
+        {
+            System.Text.StringBuilder filename = new System.Text.StringBuilder(255);
+            int success = brn_GetFileName(barnHandle, index, filename, filename.Capacity + 1);
+
+            if (success == -1)
+                throw new BarnException("Unable to get file name at index " + index);
+
+            return filename.ToString();
+        }
+
+        public int GetFileIndex(string name)
+        {
+            return brn_GetFileIndex(barnHandle, name);
+        }
+
+        public uint GetFileSize(int index)
+        {
+            int size = brn_GetFileSize(barnHandle, index);
 
             if (size >= 0)
                 return (uint)size;
@@ -108,87 +117,74 @@ namespace BarnLib
             throw new BarnException("Unable to get file size at index " + index);
         }
 
-        public uint GetDecompressedFileSize(string name)
+        public uint GetDecompressedFileSize(int index)
         {
-            int size = brn_GetDecompressedFileSizeByName(barnHandle, name);
+            int size = brn_GetDecompressedFileSize(barnHandle, index);
 
             if (size >= 0)
                 return (uint)size;
 
-            throw new BarnException("Unable to get file size of " + name);
+            throw new BarnException("Unable to get file size at index " + index);
         }
-        
-        public uint GetFileSize(string name)
+
+        public Compression GetFileCompression(int index)
         {
-            int size = brn_GetFileSizeByName(barnHandle, name);
-            
-            if (size > 0)
-                return (uint)size;
-            
-            throw new BarnException("Unable to get file size of file " + name);
+            int compression = brn_GetFileCompression(barnHandle, index);
+
+            if (compression == -1)
+                throw new BarnException("Unable to get file compression type at index " + index);
+
+            return (Compression)compression;
         }
-		
-		public Compression GetFileCompression(uint index)
-		{
-			int compression = brn_GetFileCompressionByIndex(barnHandle, index);
-			
-			if (compression == -1)
-				throw new BarnException("Unable to get file compression type at index " + index);
-			
-			return (Compression)compression;
-		}
-		
-		public string GetBarnName(uint index)
-		{
-			System.Text.StringBuilder buffer = new System.Text.StringBuilder(255);
-			int success = brn_GetFileBarn(barnHandle, index, buffer, buffer.Capacity+1);
-			
-			if (success == -1)
-				throw new BarnException("Unable to get barn name at index " + index);
-			
-			return buffer.ToString();
-		}
-		
-		public uint GetOffset(uint index)
-		{
-			int offset = brn_GetFileOffsetByIndex(barnHandle, index);
-			
-			return (uint)offset;
-		}
-		
-		public void ExtractByIndex(uint index, string outputPath, 
-			bool openChildBarns, bool decompress, bool convertBitmaps)
-		{
-			int success = 0;
-		
-			if (decompress)
-			//	success = brn_ExtractFileByIndex(barnHandle, index,
-			//	outputPath, openChildBarns, decompress, convertBitmaps);
-			success = brn_ExtractFileByIndex(barnHandle, index, outputPath,
-				true, true);
 
-            if (success != (int)BarnError.Success)
-                throw new BarnException(convertErrorNumberToString(success));
-		}
-
-        public void ReadFile(string filename, byte[] buffer, bool openChildBarns)
+        public string GetBarnName(int index)
         {
-            int success = brn_ReadFile(barnHandle, filename, buffer, buffer.Length, openChildBarns);
+            System.Text.StringBuilder buffer = new System.Text.StringBuilder(255);
+            int success = brn_GetFileBarn(barnHandle, index, buffer, buffer.Capacity + 1);
 
-            if (success < 0)
-                throw new BarnException(convertErrorNumberToString(success));
+            if (success == -1)
+                throw new BarnException("Unable to get barn name at index " + index);
+
+            return buffer.ToString();
         }
 
-        public System.IO.Stream ReadFile(string filename, bool openChildBarns)
+        public void ReadFile(int index, byte[] buffer)
+        {
+            int success = brn_ReadFileDecompress(barnHandle, index, buffer, buffer.Length);
+
+            if (success == -4)
+                throw new BarnException("Unable to open child barn");
+            else if (success < 0)
+                throw new BarnException("Unable to read file");
+        }
+
+        public byte[] ReadFile(int barnFileIndex, bool decompress)
         {
             try
             {
-                int size = brn_GetDecompressedFileSizeByName(barnHandle, filename);
-
-                byte[] buffer = new byte[size];
-                if (brn_ReadFile(barnHandle, filename, buffer, size, openChildBarns) > 0)
+                if (decompress)
                 {
-                    return new System.IO.MemoryStream(buffer);
+                    int size = brn_GetDecompressedFileSize(barnHandle, barnFileIndex);
+
+                    if (size < 0) return null;
+
+                    byte[] buffer = new byte[size];
+                    if (brn_ReadFileDecompress(barnHandle, barnFileIndex, buffer, size) > 0)
+                    {
+                        return buffer;
+                    }
+                }
+                else
+                {
+                    int size = brn_GetFileSize(barnHandle, barnFileIndex);
+
+                    if (size < 0) return null;
+
+                    byte[] buffer = new byte[size];
+                    if (brn_ReadFileRaw(barnHandle, barnFileIndex, buffer, size) > 0)
+                    {
+                        return buffer;
+                    }
                 }
 
                 return null;
@@ -198,101 +194,63 @@ namespace BarnLib
                 return null;
             }
         }
-		
-		public static string GetLibBarnInfo()
-		{
-			System.Text.StringBuilder sb = new System.Text.StringBuilder(255);
-			
-			brn_GetLibInfo(sb, sb.Capacity);
-			
-			return sb.ToString();
-		}
-		
-		#region Private Members
 
-        private enum BarnError
+        public static string GetLibBarnInfo()
         {
-            Success = 0,
-            InvalidBarn = -1,
-            FileNotFound = -2,
-            InvalidIndex = -3,
-            UnableToOpenChildBarn = -4,
-            UnableToOpenOutputFile = -5,
-            NotYetImplemented = -6,
-            UnableToInitLzo = -7,
-            UnableToInitZLib = -8,
-            DecompressionError = -9,
-            Unknown = -100
+            System.Text.StringBuilder sb = new System.Text.StringBuilder(255);
+
+            brn_GetLibInfo(sb, sb.Capacity);
+
+            return sb.ToString();
         }
 
-        private static string convertErrorNumberToString(int error)
-        {
-            if (error == (int)BarnError.UnableToOpenChildBarn)
-                return "Unable to open child barn";
-            else if (error == (int)BarnError.DecompressionError)
-                return "Error while decompressing file";
-            else if (error == (int)BarnError.UnableToOpenOutputFile)
-                return "Unable to open output file";
-            if (error == (int)BarnError.InvalidIndex)
-                return "Unvalid index";
-            else if (error < 0)
-                return "Unknown Barn error";
+        #region Private Members
 
-            return "Success";
-        }
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr brn_OpenBarn(string name);
 
-		[DllImport("barn")]
-		private static extern IntPtr brn_OpenBarn(string name);
-		
-		[DllImport("barn")]
-		private static extern void brn_CloseBarn(HandleRef barn);
-		
-		[DllImport("barn")]
-		private static extern uint brn_GetNumFilesInBarn(HandleRef barn);
-		
-		[DllImport("barn")]
-		private static extern int brn_GetFileName(HandleRef barn, uint index,
-			[MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
-		
-		[DllImport("barn")]
-		private static extern int brn_GetFileSizeByIndex(HandleRef barn, uint index);
-        
-        [DllImport("barn")]
-        private static extern int brn_GetFileSizeByName(HandleRef barn, string name);
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void brn_CloseBarn(IntPtr barn);
 
-        [DllImport("barn")]
-        private static extern int brn_GetDecompressedFileSizeByIndex(HandleRef barn, uint index);
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern uint brn_GetNumFilesInBarn(IntPtr barn);
 
-        [DllImport("barn")]
-        private static extern int brn_GetDecompressedFileSizeByName(HandleRef barn, string name); 
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetFileName(IntPtr barn, int index,
+            [MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
 
-		[DllImport("barn")]
-		private static extern int brn_GetFileCompressionByIndex(HandleRef barn, uint index);
-		
-		[DllImport("barn")]
-		private static extern int brn_GetFileOffsetByIndex(HandleRef barn, uint index);
-		
-		[DllImport("barn")]
-		private static extern int brn_GetFileBarn(HandleRef barn, uint index,
-			[MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
-		
-		[DllImport("barn")]
-		private static extern int brn_ExtractFileByIndex(HandleRef barn,
-			uint index, string outputPath, bool openChildBarns, bool decompress);
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetFileIndex(IntPtr barn, string name);
 
-        [DllImport("barn")]
-        private static extern int brn_ReadFile(HandleRef barn, string name,
-            byte[] buffer, int bufferSize, bool openChildBarns);
-		
-		[DllImport("barn")]
-		private static extern int brn_GetLibInfo(
-			[MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetFileSize(IntPtr barn, int index);
 
-        private string name;
-		private uint numFiles;
-		private HandleRef barnHandle;
-		private bool disposed;
-			
-		#endregion
-	}
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetDecompressedFileSize(IntPtr barn, int index);
+
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetFileCompression(IntPtr barn, int index);
+
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetFileBarn(IntPtr barn, int index,
+            [MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
+
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_ReadFileRaw(IntPtr barn, int index, byte[] buffer, int bufferSize);
+
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_ReadFileDecompress(IntPtr barn, int index, byte[] buffer, int bufferSize);
+
+        [DllImport("barn", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int brn_GetLibInfo(
+            [MarshalAs(UnmanagedType.LPStr)]System.Text.StringBuilder buffer, int size);
+
+        private string _path;
+        private string _name;
+        private uint numFiles;
+        private IntPtr barnHandle;
+        private bool disposed;
+
+        #endregion
+    }
 }

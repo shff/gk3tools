@@ -35,22 +35,7 @@
 
 namespace Barn
 {
-	void ExtractBuffer::WriteToFile(const std::string& filename, unsigned int startOffset)
-	{
-		std::ofstream output(filename.c_str(), std::ios_base::binary | std::ios_base::out);
-		
-		if (output.good() == false)
-		{
-			std::cout << "Unable to open " << filename << std::endl;
-			throw BarnException("Unable to open output file", BARNERR_UNABLE_TO_OPEN_OUTPUT_FILE);
-		}
-		
-		output.write(&m_buffer[startOffset], m_size - startOffset);
-		
-		output.close();
-	}
-	
-	void ExtractBuffer::Decompress(Compression compressionType)
+	void ExtractBuffer::Decompress(Compression compressionType, const char* input, unsigned int inputSize, char* output, unsigned int uncompressedSize)
 	{
 		if (compressionType == LZO)
 		{
@@ -63,25 +48,13 @@ namespace Barn
 				throw BarnException("Unable to initialize LZO library", BARNERR_UNABLE_TO_INIT_LZO);
 			}
 			
-			// get the uncompressed file size
-			// TODO: make this work for big-endian machines!
-			lzo_uint size;
-			memcpy(&size, m_buffer, 4);
-			
-			// create a new buffer
-			char* newBuffer = new char[size];
-			
+			lzo_uint outputSize = uncompressedSize;
+
 			// decompress the data
-			if (lzo1x_decompress((unsigned char*)&m_buffer[8], m_size, (unsigned char*)newBuffer, &size, NULL) != LZO_E_OK && false)
+			if (lzo1x_decompress((unsigned char*)input, inputSize, (unsigned char*)output, &outputSize, NULL) != LZO_E_OK && false)
 			{
-				delete[] newBuffer;
 				throw BarnException("Error while decompressing LZO-compressed data", BARNERR_DECOMPRESSION_ERROR);
 			}
-			
-			// delete the old buffer
-			delete[] m_buffer;
-			m_buffer = newBuffer;
-			m_size = size;
 #endif
 		}
 		else if (compressionType == ZLib)
@@ -89,23 +62,12 @@ namespace Barn
 #ifdef DISABLE_ZLIB
 			throw BarnException("This version of LibBarn does not have support for ZLib", BARNERR_UNABLE_TO_INIT_ZLIB);
 #else
-			// TODO: make this work for big-endian machines!
-			unsigned int size;
-			memcpy(&size, m_buffer, 4);
 
-			char* newBuffer = new char[size];
-
-			uLongf s = size;
-			if (uncompress((Bytef*)newBuffer, &s, (const Bytef*)&m_buffer[8], m_size) != Z_OK)
+			uLongf s = uncompressedSize;
+			if (uncompress((Bytef*)output, &s, (const Bytef*)input, inputSize) != Z_OK)
 			{
-				delete[] newBuffer;
 				throw BarnException("Error while decompressing ZLib-compressed data", BARNERR_DECOMPRESSION_ERROR);
 			}
-
-			// delete the old buffer
-			delete[] m_buffer;
-			m_buffer = newBuffer;
-			m_size = size;
 #endif
 		}
 	}

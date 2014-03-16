@@ -11,9 +11,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Viewer2010", "Viewer\Viewer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game2010", "Game\Game2010.csproj", "{30E5C3A1-EFD2-4139-95AF-1175ED6AA0D3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "barn", "..\libbarn\libbarn2010.vcxproj", "{3D4E8A32-4623-4D60-839D-E05789D6ABD6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "barn", "..\libbarn\libbarn2012.vcxproj", "{3D4E8A32-4623-4D60-839D-E05789D6ABD6}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheep", "..\sheep\sheep2010.vcxproj", "{91B41B87-3404-4D66-A842-ADC31948CA9F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheep", "..\sheep\sheep2012.vcxproj", "{91B41B87-3404-4D66-A842-ADC31948CA9F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

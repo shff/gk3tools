@@ -24,7 +24,7 @@ namespace Viewer
                 if (info.Barn == null)
                     lstSearchPaths.Items.Add(info.Name);
                 else
-                    lstSearchPaths.Items.Add(info.Barn.Name);
+                    lstSearchPaths.Items.Add(info.Barn.InternalBarn.Name);
 
                 searchPathString.Append(info.Name);
                 searchPathString.Append(';');

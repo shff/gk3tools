@@ -128,11 +128,11 @@ namespace GK3BB
                 {
                     BarnFile bf = item.Tag as BarnFile;
 
-                    uint index = bf.Index;
+                    int index = bf.Index;
 
                     if (bf.Extension == "BMP" && convertBitmapsToolStripMenuItem.Checked)
                     {
-                        byte[] data = BarnManager.ExtractData(bf.Name);
+                        byte[] data = BarnManager.ExtractData(bf.Index);
                         GK3Bitmap bmp = new GK3Bitmap(data);
 
                         bmp.Save(BarnManager.ExtractPath + bf.Name);
@@ -148,7 +148,7 @@ namespace GK3BB
                     // FileNotFoundException most likely means the barn the file
                     // is in could not be found.
 
-                    string filename = BarnManager.GetFileName((uint)item.Tag);
+                    string filename = BarnManager.GetFileName((int)item.Tag);
 
                     DialogResult result = MessageBox.Show("Unable to extract " + filename + Environment.NewLine
                          + "Continue extracting the rest of the files?", "Error extracting file",
@@ -218,7 +218,7 @@ namespace GK3BB
                             System.IO.Path.DirectorySeparatorChar +
                             bf.Name + "." + getPreviewExtension(bf.Extension);
 
-                        byte[] data = BarnManager.ExtractData(bf.Name);
+                        byte[] data = BarnManager.ExtractData(bf.Index);
                         bool success = true;
 
                         // if it's a bitmap then convert it
@@ -296,8 +296,13 @@ namespace GK3BB
         private void convertBitmapsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             convertBitmapsToolStripMenuItem.Checked = !convertBitmapsToolStripMenuItem.Checked;
+        }
 
+        private void decompressFilesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            decompressFilesToolStripMenuItem.Checked = !decompressFilesToolStripMenuItem.Checked;
 
+            BarnManager.Decompress = decompressFilesToolStripMenuItem.Checked;
         }
 
         private void mainListView_SelectedIndexChanged(object sender, EventArgs e)

@@ -6,8 +6,8 @@ namespace Gk3Main
 {
     public static class Settings
     {
-        const int DefaultScreenWidth = 320;
-        const int DefaultScreenHeight = 240;
+        const int DefaultScreenWidth = 640;
+        const int DefaultScreenHeight = 480;
 
         private static string _settingsFilename;
         private static string _renderer;

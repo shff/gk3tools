@@ -192,7 +192,15 @@ class MonoMain
 
         _globalContent = new Gk3Main.Resource.ResourceManager();
 
-        Gk3Main.Sound.SoundManager.Init();
+        try
+        {
+            Gk3Main.Sound.SoundManager.Init();
+        }
+        catch (DllNotFoundException)
+        {
+            Gk3Main.Console.CurrentConsole.ReportError("Unable to find OpenAL library");
+            return null;
+        }
         
         Gk3Main.SceneManager.LightmapsEnabled = true;
         Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;

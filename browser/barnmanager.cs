@@ -54,6 +54,9 @@ namespace GK3BB
 		
 		public static void Unload()
 		{
+            foreach (var barn in _children)
+                barn.Dispose();
+
 			if (_barn != null) _barn.Dispose();
 			_barn = null;
 		}
@@ -62,15 +65,14 @@ namespace GK3BB
 		{
 			List<BarnFile> files = new List<BarnFile>();
 		
-			for (uint i = 0; i < _barn.NumberOfFiles; i++)
+			for (int i = 0; i < _barn.NumberOfFiles; i++)
 			{
 				string filename = _barn.GetFileName(i);
 				uint size = _barn.GetFileSize(i);
 				Compression c = _barn.GetFileCompression(i);
 				string barn = _barn.GetBarnName(i);
-				uint offset = _barn.GetOffset(i);
 				
-				BarnFile file = new BarnFile(i, filename, size, c, barn, offset);
+				BarnFile file = new BarnFile(i, filename, size, c, barn);
 				
 				files.Add(file);
 			}
@@ -78,36 +80,31 @@ namespace GK3BB
 			return files;
 		}
 		
-		public static string GetFileName(uint index)
+		public static string GetFileName(int index)
 		{
 			return _barn.GetFileName(index);
 		}
 		
-		public static void Extract(uint index)
+		public static void Extract(int index)
 		{
-			_barn.ExtractByIndex(index, _extractPath, true, 
-				_decompress, _convertBitmaps);
+            string filename = _barn.GetFileName(index);
+            byte[] buffer = ReadFile(index, _decompress);
+
+            using(FileStream fs = new FileStream(_extractPath + filename, FileMode.OpenOrCreate, FileAccess.Write))
+            {
+                fs.Write(buffer, 0, buffer.Length);
+            }
 		}
 
-        public static byte[] ExtractData(string name)
+        public static byte[] ExtractData(int index)
         {
-            byte[] buffer = new byte[_barn.GetDecompressedFileSize(name)];
-
-            _barn.ReadFile(name, buffer, true);
-
-            return buffer;
+            return ReadFile(index, _decompress);
         }
 		
 		public static string ExtractPath
 		{
 			get { return _extractPath; }
 			set { _extractPath = value; }
-		}
-		
-		public static bool ConvertBitmaps
-		{
-			get { return _convertBitmaps; }
-			set { _convertBitmaps = value; }
 		}
 		
 		public static bool Decompress
@@ -125,10 +122,42 @@ namespace GK3BB
 				
 			return type;
 		}
+
+        private static byte[] ReadFile(int index, bool decompress)
+        {
+            string barn = _barn.GetBarnName(index);
+            if (barn == string.Empty)
+                return _barn.ReadFile(index, decompress);
+
+            // it's a child barn!
+            Barn child = FindOrAddChildBarn(barn);
+
+            string filename = _barn.GetFileName(index);
+            index = child.GetFileIndex(filename);
+
+            return child.ReadFile(index, decompress);
+        }
+
+        private static Barn FindOrAddChildBarn(string name)
+        {
+            foreach (var child in _children)
+            {
+                if (child.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return child;
+            }
+
+            // guess we need to open the barn ourselves
+            string path = System.IO.Path.GetDirectoryName(_barn.Path) + "/" + name;
+
+            Barn barn = new Barn(path);
+            _children.Add(barn);
+
+            return barn;
+        }
 		
 		private static Barn _barn = null;
+        private static List<Barn> _children = new List<Barn>();
 		private static string _extractPath = String.Empty;
-		private static bool _convertBitmaps = true;
 		private static bool _decompress = true;
 		
 		private static Dictionary<string, string> _typeMap;
@@ -136,18 +165,16 @@ namespace GK3BB
 	
 	public class BarnFile
 	{
-		public BarnFile(uint index, string name, uint size, Compression compression,
-			string barn, uint offset)
+		public BarnFile(int index, string name, uint size, Compression compression, string barn)
 		{
 			_index = index;
 			_name = name;
 			_size = size;
 			_compression = compression;
 			_barn = barn;
-			_offset = offset;
 		}
 		
-		public uint Index
+		public int Index
 		{
 			get { return _index; }
 		}
@@ -184,16 +211,10 @@ namespace GK3BB
 			get { return _barn; }
 		}
 		
-		public uint Offset
-		{
-			get { return _offset; }
-		}
-		
-		private uint _index;
+		private int _index;
 		private string _name;
 		private uint _size;
 		private Compression _compression;
 		private string _barn;
-		private uint _offset;
 	}
 }

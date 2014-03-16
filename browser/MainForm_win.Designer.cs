@@ -149,6 +149,7 @@ namespace GK3BB
             this.decompressFilesToolStripMenuItem.Name = "decompressFilesToolStripMenuItem";
             this.decompressFilesToolStripMenuItem.Size = new System.Drawing.Size(179, 22);
             this.decompressFilesToolStripMenuItem.Text = "Decompress files";
+            this.decompressFilesToolStripMenuItem.Click += new System.EventHandler(this.decompressFilesToolStripMenuItem_Click);
             // 
             // mnuSetViewerPath
             // 

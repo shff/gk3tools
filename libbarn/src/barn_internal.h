@@ -46,9 +46,20 @@ namespace Barn
 		std::string name;
 		std::string barn;
 		unsigned int size;
+		unsigned int uncompressedSize;
 		Compression compression;
-		
+		int index;
+
 		unsigned int offset;
+
+		BarnFile()
+		{
+			size = 0;
+			uncompressedSize = 0;
+			compression = None;
+			index = -1;
+			offset = 0;
+		}
 		
 		BarnFile(const std::string& name, unsigned int size, Compression compression,
 			const std::string& barnName, unsigned int offset)
@@ -58,6 +69,9 @@ namespace Barn
 			this->compression = compression;
 			this->barn = barnName;
 			this->offset = offset;
+
+			this->index = -1;
+			this->uncompressedSize = 0; // set to 0 until we know
 		}
 	};
 	
@@ -82,43 +96,7 @@ namespace Barn
 	class ExtractBuffer
 	{
 	public:
-		ExtractBuffer(unsigned int size)
-		{
-			m_buffer = new char[size];
-			m_size = size;
-		}
-		
-		ExtractBuffer(unsigned int size, const char* src)
-		{
-			m_buffer = new char[size];
-			memcpy(m_buffer, src, size);
-			
-			m_size = size;
-		}
-		
-		~ExtractBuffer()
-		{
-			if (m_buffer)
-				delete[] m_buffer;
-		}
-		
-		void ReadFromFile(std::ifstream& file, unsigned int offset)
-		{
-			file.seekg(offset);
-			
-			file.read(m_buffer, m_size);
-		}
-		
-		void Decompress(Compression compressionType);
-		void ConvertToBitmap();
-		void WriteToFile(const std::string& filename, unsigned int startOffset = 0);
-		
-		const char* GetBuffer() { return m_buffer; }
-		unsigned int GetSize() { return m_size; }
-		
-	private:
-		char* m_buffer;
-		unsigned int m_size;
+		static void Decompress(Compression compressionType, const char* input, unsigned int inputSize, char* output, unsigned int uncompressedSize);
 	};
 	
 	/// The barn archive
@@ -131,42 +109,31 @@ namespace Barn
 		~Barn();
 	
 		unsigned int GetNumberOfFiles() const { return m_numFiles; }
-		std::string GetBarnName() { return m_name; }
-		std::string GetFileName(unsigned int index) const;
-		std::string GetFileBarn(unsigned int index) const;
+		int GetFileIndex(const char* name);
+		const char* GetBarnName() { return m_name.c_str(); }
+		const char* GetFileName(int index) const;
+		const char* GetFileBarn(int index) const;
 	
-		unsigned int GetFileSize(unsigned int index, bool decompressedSize);
-		unsigned int GetFileSize(const std::string& name, bool decompressedSize);
+		unsigned int GetFileSize(int index);
+		unsigned int GetUncompressedFileSize(int index);
 
-		Compression GetFileCompression(unsigned int index) const;
-		unsigned int GetFileOffset(unsigned int index) const;
-		
-		int ExtractFileByIndex(unsigned int index, const std::string& outputPath,
-			bool openChild, bool decompress);
+		Compression GetFileCompression(int index) const;
+		unsigned int GetFileOffset(int index) const;
 
-		/// Reads the givenfile and copies it into a new ExtractBuffer.
-		/// @param filename The name of the file to extract
-		/// @param decompress Whether or not to decompress the file before reading
-		/// @param openChildBarns Whether to allow opening files that exist within child barns
-		/// @remarks There's no performance advantage to reading an LZO file in parts
-		///		while decompressing it, since the entire file must be loaded and
-		///     decompressed.
-		ExtractBuffer* ReadFile(const std::string& filename, bool decompress, bool openChildBarns);
-
-		ExtractBuffer* ReadRaw(unsigned int offset, unsigned int size, Compression compression, bool decompress);
+		unsigned int ReadRaw(int index, char* buffer, unsigned int bufferSize);
+		unsigned int ReadDecompress(int index, char* buffer, unsigned int bufferSize);
 		
 	private:
 	
 		void load(const std::string& filename, const std::string& path);
-		Barn* openBarn(const std::string& filename);
 
-		static unsigned char readByte(std::ifstream* file);
-		static unsigned short readUInt16(std::ifstream* file);
-		static unsigned int readUInt32(std::ifstream* file);
-		static std::string readString(std::ifstream* file, unsigned int length);
+		static unsigned char readByte(std::ifstream& file);
+		static unsigned short readUInt16(std::ifstream& file);
+		static unsigned int readUInt32(std::ifstream& file);
+		static void readString(std::ifstream& file, unsigned int length, char* output);
 		
 		template<typename T>
-		static T readRaw(std::ifstream* file)
+		static T readRaw(std::ifstream& file)
 		{
 			// TODO: endian switching!
 			
@@ -176,21 +143,21 @@ namespace Barn
 			
 			if (size == 1)
 			{
-				file->read((char*)&data, 1);
+				file.read((char*)&data, 1);
 			}
 			else if (size == 2)
 			{
-				file->read((char*)&data, 2);
+				file.read((char*)&data, 2);
 			}
 			else if (size == 4)
 			{
-				file->read((char*)&data, 4);
+				file.read((char*)&data, 4);
 			}
 			else
 			{
 				// BAD BAD BAD! No endian switching is being done!
 				// This better be throw away data!!
-				file->read((char*)&data, size);
+				file.read((char*)&data, size);
 			}
 
 			return data;
@@ -206,7 +173,7 @@ namespace Barn
 			bool operator() (const std::string& s1, const std::string& s2) const
 			{
 #ifdef WIN32
-				return stricmp(s1.c_str(), s2.c_str()) < 0;
+				return _stricmp(s1.c_str(), s2.c_str()) < 0;
 #else
 				return strcasecmp(s1.c_str(), s2.c_str()) < 0;
 #endif
@@ -215,10 +182,9 @@ namespace Barn
 
 		typedef std::map<std::string, BarnFile, ci_less> FileMap;
 		FileMap m_fileMap;
-		std::vector<Barn*> m_openChildBarns;
 		unsigned int m_dataOffset;
 		
-		std::ifstream* m_file;
+		std::ifstream m_file;
 	};
 
 }

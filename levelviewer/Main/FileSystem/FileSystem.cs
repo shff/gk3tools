@@ -49,23 +49,21 @@ namespace Gk3Main
             }
         }
 
-        public static BarnLib.Barn AddBarnToSearchPath(string barn)
+        public static void AddBarnToSearchPath(string barn)
         {
-            return AddBarnToSearchPath(barn, false);
+            AddBarnToSearchPath(barn, false);
         }
 
-        public static BarnLib.Barn AddBarnToSearchPath(string barn, bool addAsFirst)
+        public static void AddBarnToSearchPath(string barn, bool addAsFirst)
         {
             PathInfo path = new PathInfo();
             path.Name = barn;
-            path.Barn = new BarnLib.Barn(barn);
+            path.Barn = new BetterBarn(new BarnLib.Barn(barn), barn);
 
             if (addAsFirst)
                 _searchPath.Insert(0, path);
             else
                 _searchPath.Add(path);
-
-            return path.Barn;
         }
 
         public static void RemoveFromSearchPath(PathInfo path)
@@ -119,7 +117,7 @@ namespace Gk3Main
 
             public bool Where(PathInfo info)
             {
-                if (info.Name == Path || (info.Barn != null && info.Barn.Name == Path))
+                if (info.Name == Path || (info.Barn != null && info.Barn.InternalBarn.Path == Path))
                     return true;
                 
                 return false;
@@ -136,13 +134,27 @@ namespace Gk3Main
 
         public static PathInfo[] SearchPath { get { return _searchPath.ToArray(); } }
 
+        /// <summary>
+        /// Returns the absolute filename of the file, based on the search path, or null if the file isn't found
+        /// </summary>
+        public static BarnLib.Barn FindBarn(string name)
+        {
+            foreach (PathInfo path in _searchPath)
+            {
+                if (path.Barn != null && path.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                    return path.Barn.InternalBarn;
+            }
+
+            return null;
+        }
+
         public static Stream Open(string filename)
         {
             foreach (PathInfo path in _searchPath)
             {
                 if (path.Barn != null)
                 {
-                    Stream file = path.Barn.ReadFile(filename, true);
+                    Stream file = path.Barn.ReadFile(filename);
                     if (file == null) continue;
 
                     return file;
@@ -170,11 +182,11 @@ namespace Gk3Main
             {
                 if (path.Barn != null)
                 {
-                    for (uint i = 0; i < path.Barn.NumberOfFiles; i++)
+                    for (int i = 0; i < path.Barn.InternalBarn.NumberOfFiles; i++)
                     {
                         try
                         {
-                            string name = path.Barn.GetFileName(i);
+                            string name = path.Barn.InternalBarn.GetFileName(i);
 
                             if (name.EndsWith(dotExtension))
                                 files.Add(name, name);
@@ -208,7 +220,7 @@ namespace Gk3Main
         public struct PathInfo
         {
             public string Name;
-            public BarnLib.Barn Barn;
+            public BetterBarn Barn;
         }
 
         private static List<PathInfo> _searchPath = new List<PathInfo>();
