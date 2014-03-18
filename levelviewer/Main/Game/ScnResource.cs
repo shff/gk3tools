@@ -61,42 +61,41 @@ namespace Gk3Main.Game
                 {
                     foreach (Resource.InfoLine line in section.Lines)
                     {
-                        ScnLight light = new ScnLight();
-                        light.Name = line.Value;
+                        // does this light already exist? (sometimes the same light is listed more than once)
+                        if (_lights.ContainsKey(line.Value) == false)
+                        {
+                            ScnLight light = new ScnLight();
+                            light.Name = line.Value;
 
-                        _lights.Add(light);
+                            _lights.Add(line.Value, light);
+                        }
                     }
                 }
                 else if (section.Name.StartsWith("Light_", StringComparison.OrdinalIgnoreCase))
                 {
                     // find the light
-                    
-                    for (int i = 0; i < _lights.Count; i++)
+                    ScnLight light;
+                    if (_lights.TryGetValue(section.Name.Substring(6), out light))
                     {
-                        ScnLight light = _lights[i];
-                        if (light.Name.Equals(section.Name.Substring(6), StringComparison.OrdinalIgnoreCase))
+                        foreach (Resource.InfoLine line in section.Lines)
                         {
-                            foreach (Resource.InfoLine line in section.Lines)
+                            if (line.Attributes.Count > 0)
                             {
-                                if (line.Attributes.Count > 0)
+                                if (line.Attributes[0].Key.Equals("Type", StringComparison.OrdinalIgnoreCase))
+                                    int.TryParse(line.Attributes[0].Value, out light.Type);
+                                else if (line.Attributes[0].Key.Equals("Position", StringComparison.OrdinalIgnoreCase))
                                 {
-                                    if (line.Attributes[0].Key.Equals("Type", StringComparison.OrdinalIgnoreCase))
-                                        int.TryParse(line.Attributes[0].Value, out light.Type);
-                                    else if (line.Attributes[0].Key.Equals("Position", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        float x, y, z;
-                                        float.TryParse(line.Attributes[0].Value, out x);
-                                        float.TryParse(line.Attributes[1].Key, out y);
-                                        float.TryParse(line.Attributes[2].Key, out z);
+                                    float x, y, z;
+                                    float.TryParse(line.Attributes[0].Value, out x);
+                                    float.TryParse(line.Attributes[1].Key, out y);
+                                    float.TryParse(line.Attributes[2].Key, out z);
 
-                                        light.Position = new Math.Vector3(x, y, z);
-                                    }
+                                    light.Position = new Math.Vector3(x, y, z);
                                 }
                             }
-
-                            _lights[i] = light;
-                            break;
                         }
+
+                        _lights[light.Name] = light;
                     }
                 }
             }
@@ -117,7 +116,7 @@ namespace Gk3Main.Game
         public string SkyboxDown { get { return _skyboxDown; } }
         public float SkyboxAzimuth { get { return _skyboxAzimuth; } }
 
-        public List<ScnLight> Lights
+        public Dictionary<string, ScnLight> Lights
         {
             get { return _lights; }
         }
@@ -132,7 +131,7 @@ namespace Gk3Main.Game
         private string _skyboxDown;
         private float _skyboxAzimuth;
 
-        private List<ScnLight> _lights = new List<ScnLight>();
+        private Dictionary<string, ScnLight> _lights = new Dictionary<string, ScnLight>(StringComparer.OrdinalIgnoreCase);
     }
 
     public class ScnResourceLoader : Resource.IResourceLoader

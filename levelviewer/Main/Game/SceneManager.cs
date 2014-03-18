@@ -219,7 +219,7 @@ namespace Gk3Main
                 unloadActors();
 
                 _roomLights.Clear();
-                foreach (ScnLight light in scnFile.Lights)
+                foreach (ScnLight light in scnFile.Lights.Values)
                     _roomLights.Add(light.Name, light);
             }
             catch (System.IO.FileNotFoundException ex)
