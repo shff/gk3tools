@@ -426,17 +426,18 @@ namespace Gk3Main.Sheep
 
         private static void sheep_GetEgoCurrentLocationCount(IntPtr vm)
         {
-            // TODO!
+            int count = Game.GameManager.GetEgoLocationCount(Game.GameManager.CurrentLocation);
 
-            SheepMachine.PushIntOntoStack(vm, 1);
+            SheepMachine.PushIntOntoStack(vm, count);
         }
 
         private static void sheep_GetEgoLocationCount(IntPtr vm)
         {
             string location = SheepMachine.PopStringOffStack(vm);
 
-            // TODO!
-            SheepMachine.PushIntOntoStack(vm, 0);
+            int count = Game.GameManager.GetEgoLocationCount(location);
+
+            SheepMachine.PushIntOntoStack(vm, count);
         }
 
         private static void sheep_GetFlag(IntPtr vm)

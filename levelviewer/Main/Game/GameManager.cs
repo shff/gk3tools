@@ -140,6 +140,11 @@ namespace Gk3Main.Game
             _lastLocation = _location;
             _location = location;
 
+            if (_currentEgo == Ego.Gabriel)
+                incrementLocationCount(location, _gabeLocationCounts);
+            else if (_currentEgo == Ego.Grace)
+                incrementLocationCount(location, _graceLocationCounts);
+
             SceneManager.LoadSif(location, GetTimeBlockString(_currentTime));
             List<NounVerbCase> nvcs = NvcManager.GetNounVerbCases(Nouns.N_SCENE, true);
 
@@ -150,6 +155,17 @@ namespace Gk3Main.Game
                     Sheep.SheepMachine.RunCommand(nvc.Script);
                 }
             }
+        }
+
+        public static int GetEgoLocationCount(string location)
+        {
+            int count;
+            if (_currentEgo == Ego.Gabriel)
+                return _gabeLocationCounts.TryGetValue(location, out count) ? count : 0;
+            else if (_currentEgo == Ego.Grace)
+                return _graceLocationCounts.TryGetValue(location, out count) ? count : 0;
+
+            return 0;
         }
 
         public static int GetNounVerbCount(Nouns noun, Verbs verb, bool isGabe)
@@ -415,6 +431,15 @@ namespace Gk3Main.Game
             return new Gk3Main.Graphics.Camera(fov, Graphics.RendererManager.CurrentRenderer.Viewport.Aspect, 5.0f, 5000.0f, zNegOne);
         }
 
+        private static void incrementLocationCount(string location, Dictionary<string, int> locationCounts)
+        {
+            int currentCount;
+            if (locationCounts.TryGetValue(location, out currentCount))
+                locationCounts[location] = currentCount + 1;
+            else
+                locationCounts.Add(location, 1);
+        }
+
         private static int _tickCount, _elapsedTickCount;
         private static Timeblock _currentTime = Timeblock.Day1_10AM;
         private static Ego _currentEgo;
@@ -422,6 +447,8 @@ namespace Gk3Main.Game
         private static string _location;
         private static string _lastLocation;
         private static LocalizedStrings _strings;
+        private static Dictionary<string, int> _gabeLocationCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, int> _graceLocationCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<NounVerbCombination, int> _nounVerbCounts = new Dictionary<NounVerbCombination,int>(new NounVerbComparison());
         private static Dictionary<string, int> _integerGameVariables = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         private static Dictionary<string, string> _stringGameVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
