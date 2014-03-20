@@ -95,6 +95,7 @@
     <Compile Include="Game\AnimationResource.cs" />
     <Compile Include="Game\Animator.cs" />
     <Compile Include="Game\AnmResource.cs" />
+    <Compile Include="Game\Case.cs" />
     <Compile Include="Game\CommonStrings.cs" />
     <Compile Include="Game\DialogManager.cs" />
     <Compile Include="Game\FaceDefinitions.cs" />

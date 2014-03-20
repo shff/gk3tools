@@ -212,7 +212,15 @@ namespace Gk3Main.Game
                     // So since we already have a valid case, ignore this one if it's "ALL".
                     if (isAll) return;
 
-                    nvcs[i] = nvc;
+                    // compare priorities and keep the higher of the two
+                    int oldPriority = CaseUtils.GetCasePriority(nvcs[i].CaseType);
+                    int newPriority = CaseUtils.GetCasePriority(nvc.CaseType);
+
+                    if (newPriority > oldPriority)
+                    {
+                        nvcs[i] = nvc;
+                    }
+                    
                     return;
                 }
             }
