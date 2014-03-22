@@ -55,6 +55,7 @@ namespace Game
                 WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
                 WGL_CONTEXT_MINOR_VERSION_ARB, 0,
                 WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+                //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
                 0
             };
 
@@ -137,6 +138,7 @@ namespace Game
         private const int WGL_CONTEXT_MAJOR_VERSION_ARB = 0x2091;
         private const int WGL_CONTEXT_MINOR_VERSION_ARB = 0x2092;
         private const int WGL_CONTEXT_FLAGS_ARB = 0x2094;
+        private const int WGL_CONTEXT_DEBUG_BIT_ARB = 0x001;
         private const int WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB = 0x002;
 
         #endregion

@@ -170,7 +170,7 @@ namespace Gk3Main.Graphics
             CullMode originalCullMode = RendererManager.CurrentRenderer.CullMode;
             RendererManager.CurrentRenderer.CullMode = CullMode.None;
 
-            _vertices.UpdateData(_workingVertices, _numBillboards * 4);
+            _vertices.SetData(_workingVertices, 0, _numBillboards * 28);
 
             RendererManager.CurrentRenderer.Indices = _indices;
             RendererManager.CurrentRenderer.SetVertexBuffer(_vertices);

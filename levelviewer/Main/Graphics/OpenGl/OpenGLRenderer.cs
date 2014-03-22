@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Runtime.InteropServices;
 using Tao.OpenGl;
 
 
@@ -17,6 +17,7 @@ namespace Gk3Main.Graphics.OpenGl
         private TextureResource _errorTexture;
         private bool _renderToTextureSupported;
         private bool _samplerObjectsSupported;
+        private bool _debugOutputSupported;
         private int _maxAnisotropy;
         private BlendState _currentBlendState;
         private SamplerStateCollection _currentSamplerStates = new SamplerStateCollection();
@@ -40,6 +41,7 @@ namespace Gk3Main.Graphics.OpenGl
             //_renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
             _renderToTextureSupported = false;
             _samplerObjectsSupported = Gl.IsExtensionSupported("GL_ARB_sampler_objects");
+            _debugOutputSupported = Gl.IsExtensionSupported("GL_ARB_debug_output");
             if (Gl.IsExtensionSupported("GL_EXT_texture_filter_anisotropic"))
             {
                 float max;
@@ -58,6 +60,14 @@ namespace Gk3Main.Graphics.OpenGl
 
             // set default render states
             BlendState = BlendState.Opaque;
+
+            if (_debugOutputSupported)
+            {
+                glDebugMessageCallback = (glDebugMessageCallbackDelegate)Gl.GetDelegate("glDebugMessageCallback", typeof(glDebugMessageCallbackDelegate));
+                glDebugMessageCallback(glDebugLog, IntPtr.Zero);
+
+                Gl.glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+            }
 
             // according to the GL3 spec we need a VAO bound... for some reason...
             glGenVertexArrays = (glGenVertexArraysDelegate)Gl.GetDelegate("glGenVertexArrays", typeof(glGenVertexArraysDelegate));
@@ -520,8 +530,16 @@ namespace Gk3Main.Graphics.OpenGl
                 return Gl.GL_REPEAT;
         }
 
+        private static void glDebugLog(int source, int type, uint id, int severity, int length, string message, IntPtr userParam)
+        {
+            Console.CurrentConsole.WriteLine(message);
+        }
+
         #region Extensions
 
+        [UnmanagedFunctionPointer(CallingConvention.StdCall)]
+        internal delegate void glDebugMessageCallbackFunctionDelegate(int source, int type, uint id, int severity, int length, string message, IntPtr userParam);
+        internal delegate void glDebugMessageCallbackDelegate(glDebugMessageCallbackFunctionDelegate callback, IntPtr userParam);
         internal delegate void glGenVertexArraysDelegate(int count, out uint arrays);
         internal delegate void glBindVertexArrayDelegate(uint array);
         internal delegate void glGenSamplersDelegate(int count, out uint samplers);
@@ -529,12 +547,15 @@ namespace Gk3Main.Graphics.OpenGl
         internal delegate void glBindSamplerDelegate(uint textureUnit, uint sampler);
         internal delegate void glDeleteSamplersDelegate(int count, out uint samplers);
 
+        internal static glDebugMessageCallbackDelegate glDebugMessageCallback;
         internal static glGenVertexArraysDelegate glGenVertexArrays;
         internal static glBindVertexArrayDelegate glBindVertexArray;
         internal static glGenSamplersDelegate glGenSamplers;
         internal static glSamplerParameteriDelegate glSamplerParameteri;
         internal static glBindSamplerDelegate glBindSampler;
         internal static glDeleteSamplersDelegate glDeleteSamplers;
+
+        private const int GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB = 0x8242;
 
         #endregion
     }

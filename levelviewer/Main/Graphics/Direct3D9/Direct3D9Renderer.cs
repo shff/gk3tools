@@ -140,15 +140,15 @@ namespace Gk3Main.Graphics.Direct3D9
             get { return _numVertices; }
         }
 
-        public override void UpdateData<T>(T[] data, int numVertices)
+        public override void SetData<T>(T[] data, int startIndex, int elementCount)
         {
             if (_usage == VertexBufferUsage.Static)
                 throw new Exception("Cannot update a VertexBuffer that's Static");
 
-            SlimDX.DataStream ds = _buffer.Lock(0, numVertices * _declaration.Stride, LockFlags.None);
+            int size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
+            SlimDX.DataStream ds = _buffer.Lock(0, size * elementCount, LockFlags.None);
 
-            for (int i = 0; i < data.Length; i++)
-                ds.Write(data[i]);
+            ds.WriteRange(data, startIndex, elementCount); 
 
             _buffer.Unlock();
         }

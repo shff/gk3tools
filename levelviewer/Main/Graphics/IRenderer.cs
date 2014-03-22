@@ -198,7 +198,7 @@ namespace Gk3Main.Graphics
         public abstract int NumVertices { get; }
 
         public VertexBufferUsage Usage { get { return _usage; } }
-        public abstract void UpdateData<T>(T[] data, int numVertices) where T : struct;
+        public abstract void SetData<T>(T[] data, int startIndex, int elementCount) where T : struct;
     }
 
     public abstract class IndexBuffer : IDisposable

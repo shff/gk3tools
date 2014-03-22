@@ -506,7 +506,7 @@ namespace Gk3Main.Graphics
                     VertexBuffer vertices;
                     if (section.AnimatedVertices != null)
                     {
-                        section.AnimatedVertexBuffer.UpdateData(section.AnimatedVertices, (int)section.numVerts);
+                        section.AnimatedVertexBuffer.SetData(section.AnimatedVertices, 0, (int)section.numVerts * _elements.Stride / 4);
                         vertices = section.AnimatedVertexBuffer;
                     }
                     else

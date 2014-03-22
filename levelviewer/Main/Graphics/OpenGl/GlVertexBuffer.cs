@@ -46,14 +46,30 @@ namespace Gk3Main.Graphics.OpenGl
             get { return _numVertices; }
         }
 
-        public override void UpdateData<T>(T[] data, int numVertices)
+        public override void SetData<T>(T[] data, int startIndex, int elementCount)
         {
             if (_usage == VertexBufferUsage.Static)
                 throw new Exception("Can't update a vertex buffer created as Static");
 
             Gl.glGetError();
             Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, _buffer);
-            Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(numVertices * _declaration.Stride), data, convertUsage(_usage));
+
+            System.Runtime.InteropServices.GCHandle handle = System.Runtime.InteropServices.GCHandle.Alloc(data, System.Runtime.InteropServices.GCHandleType.Pinned);
+            try
+            {
+                IntPtr pointer = handle.AddrOfPinnedObject();
+                int size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
+
+                Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(elementCount * size), Gk3Main.Utils.IncrementIntPtr(pointer, size * startIndex), convertUsage(_usage));
+            }
+            finally
+            {
+                if (handle.IsAllocated)
+                {
+                    handle.Free();
+                }
+            }
+
             GlException.ThrowExceptionIfErrorExists();
         }
 

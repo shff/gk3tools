@@ -46,7 +46,6 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void Bind(int index)
         {
-            Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP);
             Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
             //Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, 0);
 

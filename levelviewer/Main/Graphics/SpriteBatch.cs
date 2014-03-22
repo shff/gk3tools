@@ -153,7 +153,7 @@ namespace Gk3Main.Graphics
                 _workingVertices[3 * stride + 2] = u;
                 _workingVertices[3 * stride + 3] = v + th;
 
-                _vertexBuffer.UpdateData(_workingVertices, 4);
+                _vertexBuffer.SetData(_workingVertices, 0, 4 * stride);
 
                 Math.Vector4 color = new Gk3Main.Math.Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
