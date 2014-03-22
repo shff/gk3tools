@@ -226,7 +226,7 @@ namespace Gk3Main.Graphics.OpenGl
                     if (_attributes[j].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     {
                         Attribute a = _attributes[j];
-                        a.GlHandle = i;
+                        a.GlHandle = Gl.glGetAttribLocation(_program, name);
                         _attributes[j] = a;
 
                         break;
@@ -346,7 +346,7 @@ namespace Gk3Main.Graphics.OpenGl
                 
                 currentIndex = semicolon;
 
-                attrib.GlHandle = 0; // will be set later
+                attrib.GlHandle = -1; // will be set later
                 _attributes.Add(attrib);
             }
 

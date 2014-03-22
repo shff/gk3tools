@@ -323,8 +323,12 @@ namespace Gk3Main.Graphics.OpenGl
                 {
                     for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
                     {
+                        GlslEffect.Attribute attrib = _currentEffect.GetAttribute(_vertexDeclaration.Elements[i].Usage, _vertexDeclaration.Elements[i].UsageIndex);
+                        if (GlslEffect.Attribute.IsValidAttribute(attrib) == false)
+                            continue;
+
                         Gl.glEnableVertexAttribArray(i);
-                        Gl.glVertexAttribPointer(i, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                        Gl.glVertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
                             Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
                     }
                 }
