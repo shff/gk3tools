@@ -85,7 +85,7 @@ private:
 		{
 			int currentIndex = i + (searchLength - i) / 2;
 
-			int comparison = ci_less_cstr::compare(m_data[currentIndex].first.c_str(), key);
+			int comparison = compare(m_data[currentIndex].first.c_str(), key);
 			if (comparison == 0)
 			{
 				// we found it!
@@ -99,6 +99,13 @@ private:
 		}
 
 		return -1;
+	}
+
+	static int compare(const char* str1, const char* str2)
+	{
+#ifdef WIN32
+		return stricmp(str1, str2);
+#endif
 	}
 };
 

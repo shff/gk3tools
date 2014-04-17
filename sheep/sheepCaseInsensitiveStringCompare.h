@@ -18,6 +18,12 @@ struct ci_less : std::binary_function<std::string, std::string, bool>
 	{
 		return std::lexicographical_compare(s1.begin(), s1.end(), s2.begin(), s2.end(), nocase_compare());
 	}
+
+	static bool areEqual(const std::string& s1, const std::string& s2)
+	{
+		ci_less l;
+		return l(s1, s2);
+	}
 };
 
 static bool CIEqual(const std::string& s1, const std::string& s2)

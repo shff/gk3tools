@@ -16,5 +16,8 @@
     <ClCompile Include="Tests\test.cpp">
       <Filter>Tests</Filter>
     </ClCompile>
+    <ClCompile Include="CppTests.cpp">
+      <Filter>Tests</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

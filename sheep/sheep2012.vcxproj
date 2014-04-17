@@ -173,9 +173,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Internal\compiler.cpp" />
+    <ClCompile Include="Internal\script.cpp" />
+    <ClCompile Include="Internal\virtualmachine.cpp" />
     <ClCompile Include="sheepCodeGenerator.cpp" />
     <ClCompile Include="sheepCodeTree.cpp" />
     <ClCompile Include="sheepCompiler.cpp" />
+    <ClCompile Include="sheepcpp.cpp" />
     <ClCompile Include="sheepDisassembler.cpp" />
     <ClCompile Include="sheepFileReader.cpp" />
     <ClCompile Include="sheepFileWriter.cpp" />
@@ -185,6 +189,9 @@
     <ClCompile Include="sheepScanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Internal\compiler.h" />
+    <ClInclude Include="Internal\script.h" />
+    <ClInclude Include="Internal\virtualmachine.h" />
     <ClInclude Include="rbuffer.h" />
     <ClInclude Include="sheepc.h" />
     <ClInclude Include="sheepCaseInsensitiveStringCompare.h" />
@@ -192,7 +199,9 @@
     <ClInclude Include="sheepCodeGenerator.h" />
     <ClInclude Include="sheepCodeTree.h" />
     <ClInclude Include="sheepContextTree.h" />
+    <ClInclude Include="sheepcpp.h" />
     <ClInclude Include="sheepDisassembler.h" />
+    <ClInclude Include="sheepErrorCodes.h" />
     <ClInclude Include="sheepFileReader.h" />
     <ClInclude Include="sheepFileWriter.h" />
     <ClInclude Include="sheepImportTable.h" />
@@ -200,6 +209,7 @@
     <ClInclude Include="sheepMachine.h" />
     <ClInclude Include="sheepMemoryAllocator.h" />
     <ClInclude Include="sheepScanner.h" />
+    <ClInclude Include="sheepStringDictionary.h" />
     <ClInclude Include="sheepTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

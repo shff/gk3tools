@@ -95,6 +95,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CppTests.cpp" />
     <ClCompile Include="gtest\src\gtest-all.cc" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Tests\test.cpp" />
