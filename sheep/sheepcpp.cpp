@@ -1,5 +1,5 @@
 #include "sheepcpp.h"
-#include "sheepCompiler.h"
+#include "Internal/compiler.h"
 #include "Internal/virtualmachine.h"
 
 extern "C" Sheep::ICompiler* SHP_APIENTRY CreateSheepCompiler(Sheep::SheepLanguageVersion version)

@@ -17,8 +17,32 @@
 
 namespace Sheep
 {
+	enum class SymbolType
+	{
+		Void = 0,
+		Int = 1,
+		Float = 2,
+		String = 3
+	};
+
 	class IScript;
 	class IVirtualMachine;
+
+	class IExecutionContext
+	{
+	public:
+		virtual void Release() = 0;
+
+		virtual int GetNumVariables() = 0;
+		virtual const char* GetVariableName(int index) = 0;
+		virtual SymbolType GetVariableType(int index) = 0;
+		virtual int SetVariableInt(int index, int value) = 0;
+		virtual int SetVariableFloat(int index, float value) = 0;
+		virtual int SetVariableString(int index, const char* value) = 0;
+		virtual int GetVariableInt(int index, int* result) = 0;
+		virtual int GetVariableFloat(int index, float* result) = 0;
+		virtual int GetVariableString(int index, const char** result) = 0;
+	};
 
 	typedef void (SHP_CALLBACK *ImportCallback)(IVirtualMachine* vm);
 
@@ -32,7 +56,8 @@ namespace Sheep
 
 		virtual int SetImportCallback(const char* importName, ImportCallback callback) = 0;
 
-		virtual int ExecuteScript(IScript* script) = 0;
+		virtual int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) = 0;
+		virtual int Execute(IExecutionContext* context) = 0;
 
 		virtual int PopIntFromStack(int* result) = 0;
 		virtual int PopFloatFromStack(float* result) = 0;
@@ -59,14 +84,6 @@ namespace Sheep
 		virtual ScriptStatus GetStatus() = 0;
 		virtual int GetNumMessages() = 0;
 		virtual const char* GetMessage(int index) = 0;
-	};
-
-	enum class SymbolType
-	{
-		Void = 0,
-		Int = 1,
-		Float = 2,
-		String = 3
 	};
 
 	enum class SheepLanguageVersion

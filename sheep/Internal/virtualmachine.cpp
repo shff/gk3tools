@@ -25,37 +25,50 @@ namespace Internal
 
 	int VirtualMachine::SetImportCallback(const char* importName, ImportCallback callback)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
 	}
 
-	int VirtualMachine::ExecuteScript(IScript* script)
+	int VirtualMachine::PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
+	}
+
+	int VirtualMachine::Execute(IExecutionContext* context)
+	{
+		// TODO
+		return SHEEP_ERROR;
 	}
 
 	int VirtualMachine::PopIntFromStack(int* result)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
 	}
 
 	int VirtualMachine::PopFloatFromStack(float* result)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
 	}
 
 	int VirtualMachine::PopStringFromStack(const char** result)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
 	}
 
 	int VirtualMachine::PushIntOntoStack(int value)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
 	}
 
 	int VirtualMachine::PushFloatOntoStack(float value)
 	{
-		return 0;
+		// TODO
+		return SHEEP_ERROR;
 	}
 }
 }
