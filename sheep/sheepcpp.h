@@ -45,7 +45,7 @@ namespace Sheep
 	};
 
 	typedef void (SHP_CALLBACK *ImportCallback)(IVirtualMachine* vm);
-	typedef void (SHP_CALLBACK* EndWaitCallback)(IVirtualMachine* vm);
+	typedef void (SHP_CALLBACK* EndWaitCallback)(IVirtualMachine* vm, IExecutionContext* context);
 
 	class IVirtualMachine
 	{

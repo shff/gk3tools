@@ -438,7 +438,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			assert(context->InWaitSection == true);
 			context->InWaitSection = false;
 			context->ChildSuspended = context->AreAnyChildrenSuspended();
-			if (m_endWaitCallback) m_endWaitCallback(this);
+			if (m_endWaitCallback) m_endWaitCallback(this, context);
 			break;
 		case ReturnV:
 			return;
