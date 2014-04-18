@@ -23,6 +23,12 @@ namespace Internal
 			delete this;
 	}
 
+	int VirtualMachine::SetEndWaitCallback(EndWaitCallback callback)
+	{
+		// TODO
+		return SHEEP_ERROR;
+	}
+
 	int VirtualMachine::SetImportCallback(const char* importName, ImportCallback callback)
 	{
 		// TODO

@@ -21,9 +21,9 @@ public:
 		}
 	}
 
-	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SHP_ImportCallback callback)
+	bool TryAddImport(const std::string& name, SheepSymbolType returnType)
 	{
-		SheepImport* import = NewImport(name, returnType, callback);
+		SheepImport* import = NewImport(name, returnType);
 		
 		if (import)
 		{
@@ -33,9 +33,9 @@ public:
 		return false;
 	}
 
-	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter, SHP_ImportCallback callback)
+	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter)
 	{
-		SheepImport* import = NewImport(name, returnType, callback);
+		SheepImport* import = NewImport(name, returnType);
 		
 		if (import)
 		{
@@ -46,9 +46,9 @@ public:
 		return false;
 	}
 
-	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter1, SheepSymbolType parameter2, SHP_ImportCallback callback)
+	bool TryAddImport(const std::string& name, SheepSymbolType returnType, SheepSymbolType parameter1, SheepSymbolType parameter2)
 	{
-		SheepImport* import = NewImport(name, returnType, callback);
+		SheepImport* import = NewImport(name, returnType);
 		
 		if (import)
 		{
@@ -60,9 +60,9 @@ public:
 		return false;
 	}
 
-	bool TryAddImport(const std::string& name, SheepSymbolType returnType, const std::vector<SheepSymbolType>& parameters, SHP_ImportCallback callback)
+	bool TryAddImport(const std::string& name, SheepSymbolType returnType, const std::vector<SheepSymbolType>& parameters)
 	{
-		SheepImport* import = NewImport(name, returnType, callback);
+		SheepImport* import = NewImport(name, returnType);
 		
 		if (import)
 		{
@@ -73,7 +73,7 @@ public:
 		return false;
 	}
 	
-	SheepImport* NewImport(const std::string& name, SheepSymbolType returnType, SHP_ImportCallback callback)
+	SheepImport* NewImport(const std::string& name, SheepSymbolType returnType)
 	{
 		if (returnType != SheepSymbolType::Void && returnType != SheepSymbolType::Int && returnType != SheepSymbolType::Float && returnType != SheepSymbolType::String)
 			return NULL;
@@ -81,7 +81,6 @@ public:
 		SheepImport* import = SHEEP_NEW SheepImport;
 		import->Name = name;
 		import->ReturnType = returnType;
-		import->Callback = callback;
 		
 		if (m_imports.insert(ImportMap::value_type(name, import)).second == false)
 		{

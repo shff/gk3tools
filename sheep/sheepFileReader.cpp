@@ -7,6 +7,7 @@
 #include "sheepTypes.h"
 #include "sheepException.h"
 #include "sheepImportTable.h"
+#include "sheepMachine.h"
 #include "sheepCaseInsensitiveStringCompare.h"
 
 
@@ -284,25 +285,8 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 	if (codeHeader.OffsetArray) delete[] codeHeader.OffsetArray;
 }
 
-void SheepFileReader::WireImportCallbacks(const SheepImportTable& imports)
+void SheepFileReader::WireImportCallbacks(SheepMachine* vm)
 {
-	assert(m_intermediateOutput != NULL);
-
-	SheepImport import;
-	for (unsigned int i = 0; i < m_intermediateOutput->Imports.size(); i++)
-	{
-		if (imports.TryFindImport(m_intermediateOutput->Imports[i].Name, import))
-		{
-			if (import.Callback != NULL)
-			{
-				m_intermediateOutput->Imports[i].Callback = import.Callback;
-				continue;
-			}
-		}
-
-		// still here? must have been something wrong with the callback!
-		printf("Warning: Unable to find a callback for import: %s\n", m_intermediateOutput->Imports[i].Name.c_str());
-	}
 }
 
 SectionHeader SheepFileReader::readSectionHeader(const byte* data, const std::string& name, int* bytesRead)

@@ -47,8 +47,11 @@ TEST(CreateNewVMTestCpp, TestCompiler)
 	ASSERT_NE(script, nullptr);
 	ASSERT_EQ(Sheep::ScriptStatus::Success, script->GetStatus());
 
-
 	ASSERT_EQ(nullptr, script->GetMessage(1000));
+
+	script = compiler->CompileScript("code { main$() { call(\"foo$\"); } foo$() { } }");
+	ASSERT_NE(script, nullptr);
+	ASSERT_EQ(Sheep::ScriptStatus::Success, script->GetStatus());
 
 	compiler->Release();
 }

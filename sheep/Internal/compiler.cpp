@@ -11,6 +11,10 @@ namespace Internal
 	Compiler::Compiler(SheepLanguageVersion version)
 	{
 		m_refCount = 0;
+
+		// define the built-in "call" function
+		SymbolType params[] = { SymbolType::String };
+		DefineImportFunction("call", SymbolType::Void, params, 1);
 	}
 
 	Compiler::~Compiler()
@@ -32,7 +36,7 @@ namespace Internal
 		if (name == nullptr)
 			return SHEEP_ERR_INVALID_ARGUMENT;
 		
-		SheepImport* import = m_imports.NewImport(name, (SheepSymbolType)returnType, nullptr);
+		SheepImport* import = m_imports.NewImport(name, (SheepSymbolType)returnType);
 		if (import == nullptr)
 		{
 			// this import function is already defined
@@ -68,6 +72,14 @@ namespace Internal
 				result->SetStatus(ScriptStatus::Error);
 
 			result->AddMessage(entries[i].LineNumber, entries[i].Text.c_str());
+		}
+
+		if (output->Errors.empty() == false)
+		{
+			result->SetStatus(ScriptStatus::Error);
+
+			for (int i = 0; i < output->Errors.size(); i++)
+				result->AddMessage(output->Errors[i].LineNumber, output->Errors[i].Output.c_str());
 		}
 
 		return result;

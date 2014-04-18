@@ -15,8 +15,10 @@ SheepMachine::SheepMachine()
 	m_executingDepth = 0;
 
 	// add Call() as an import
-	SheepImport* call = m_imports.NewImport("Call", SheepSymbolType::Void, s_call);
+	SheepImport* call = m_imports.NewImport("Call", SheepSymbolType::Void);
 	call->Parameters.push_back(SheepSymbolType::String);
+
+	SetImportCallback("Call", s_call);
 
 	m_contextTree = new SheepContextTree();
 
@@ -41,30 +43,48 @@ void SheepMachine::SetCompileOutputCallback(SHP_MessageCallback callback)
 	m_compilerCallback = callback;
 }
 
-std::string& SheepMachine::PopStringFromStack()
+int SheepMachine::SetImportCallback(const char* importName, Sheep::ImportCallback callback)
+{
+	if (importName == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	m_importCallbacks.InsertOrUpdate(importName, callback);
+
+	return SHEEP_SUCCESS;
+}
+
+int SheepMachine::PopStringFromStack(const char** result)
 {
 	SheepContext* current = m_contextTree->GetCurrent();
 
 	if (current == NULL)
-		throw SheepMachineException("No contexts", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+		return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
 	if (current->Stack.empty())
-		throw SheepMachineException("Stack is empty", SHEEP_ERR_EMPTY_STACK);
+		return SHEEP_ERR_EMPTY_STACK;
 
 	StackItem item = current->Stack.top();
 	current->Stack.pop();
 
 	if (item.Type != SheepSymbolType::String)
-		throw SheepMachineException("Expected string on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
+		return SHEEP_ERR_WRONG_TYPE_ON_STACK;
 
-	IntermediateOutput* code = current->FullCode;
-	for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
-		itr != code->Constants.end(); itr++)
+	if (result != nullptr)
 	{
-		if ((*itr).Offset == item.IValue)
-			return (*itr).Value;
+		IntermediateOutput* code = current->FullCode;
+		for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
+			itr != code->Constants.end(); itr++)
+		{
+			if ((*itr).Offset == item.IValue)
+			{
+				*result = (*itr).Value.c_str();
+				return SHEEP_SUCCESS;
+			}
+		}
+
+		throw SheepMachineException("Invalid string offset found on stack");
 	}
 
-	throw SheepMachineException("Invalid string offset found on stack");
+	return SHEEP_SUCCESS;
 }
 
 IntermediateOutput* SheepMachine::Compile(const std::string &script)
@@ -293,11 +313,6 @@ int SheepMachine::Resume(SheepContext* context)
 	}
 }
 
-void SheepMachine::SetEndWaitCallback(SHP_EndWaitCallback callback)
-{
-	m_endWaitCallback = callback;
-}
-
 void SheepMachine::PrintStackTrace()
 {
 	SheepContext* context = m_contextTree->GetCurrent();
@@ -381,11 +396,11 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			throw SheepMachineInstructionException("Yield instruction not supported yet.");
 		case CallSysFunctionV:
 			context->InstructionOffset += 4;
-			callVoidFunction(context->Stack, imports, context->CodeBuffer->ReadInt());
+			callVoidFunction(context, context->CodeBuffer->ReadInt());
 			break;
 		case CallSysFunctionI:
 			context->InstructionOffset += 4;
-			callIntFunction(context->Stack, imports, context->CodeBuffer->ReadInt());
+			callIntFunction(context, context->CodeBuffer->ReadInt());
 			if (context->Stack.top().Type != SheepSymbolType::Int)
 			{
 				throw SheepMachineException("CallSysFunctionI instruction requires integer on stack afterwards", SHEEP_ERR_WRONG_TYPE_ON_STACK);
@@ -423,7 +438,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			assert(context->InWaitSection == true);
 			context->InWaitSection = false;
 			context->ChildSuspended = context->AreAnyChildrenSuspended();
-			if (m_endWaitCallback) m_endWaitCallback(this, (SheepVMContext*)context);
+			if (m_endWaitCallback) m_endWaitCallback(this);
 			break;
 		case ReturnV:
 			return;
@@ -619,14 +634,13 @@ void SheepMachine::execute(SheepContext* context)
 	}
 }
 
-
-
-
-void SheepMachine::s_call(SheepVM* vm)
+void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
 {
 	SheepMachine* machine = static_cast<SheepMachine*>(vm);
 
-	std::string function = machine->PopStringFromStack();
+	const char* f;
+	machine->PopStringFromStack(&f);
+	std::string function = f;
 
 	// make sure there's a '$' at the end
 	if (function[function.length()-1] != '$')

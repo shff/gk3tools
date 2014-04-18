@@ -7,6 +7,7 @@
 #include "sheepImportTable.h"
 #include "sheepCodeBuffer.h"
 #include "sheepException.h"
+#include "sheepStringDictionary.h"
 
 #ifndef _MSC_VER
 #define _snprintf snprintf
@@ -37,16 +38,26 @@ public:
 
 
 
-class SheepMachine : public SheepVM
+class SheepMachine : public Sheep::IVirtualMachine
 {
+	StringDictionary<Sheep::ImportCallback> m_importCallbacks;
+
 public:
 
 	SheepMachine();
 	virtual ~SheepMachine();
 
+	void Release() override
+	{
+		// TODO
+	}
+
 	void SetOutputCallback(void (*callback)(const char* message));
 	void SetCompileOutputCallback(SHP_MessageCallback callback);
-	
+
+	int SetEndWaitCallback(Sheep::EndWaitCallback callback) { m_endWaitCallback = callback; return SHEEP_SUCCESS; }
+	int SetImportCallback(const char* importName, Sheep::ImportCallback callback);
+
 	IntermediateOutput* Compile(const std::string& script);
 
 	void Run(IntermediateOutput* code, const std::string& function);
@@ -60,48 +71,80 @@ public:
     }
     int RunSnippet(const std::string& snippet, int noun, int verb, int* result);
 
+	int PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context) override
+	{
+		// TODO
+		return SHEEP_ERROR;
+	}
+
+	int Execute(Sheep::IExecutionContext* context) override
+	{
+		// TODO
+		return SHEEP_ERROR;
+	}
+
 	/// Resumes where the code left off.
 	int Resume(SheepContext* context);
 	SheepContext* Suspend();
 
-	int PopIntFromStack()
+	int PopIntFromStack(int* result)
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
 		if (current == NULL)
-			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
 
-		return getInt(current->Stack);
+		if (result != nullptr)
+			*result = getInt(current->Stack);
+
+		return SHEEP_SUCCESS;
 	}
 
-	float PopFloatFromStack()
+	int PopFloatFromStack(float* result)
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
 		if (current == NULL)
-			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
 
 		StackItem item = current->Stack.top();
 		current->Stack.pop();
 
 		if (item.Type != SheepSymbolType::Float)
-			throw SheepMachineException("Expected float on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
+			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
 
-		return item.FValue;
+		if (result != nullptr)
+			*result = item.FValue;
+
+		return SHEEP_SUCCESS;
 	}
 
-	std::string& PopStringFromStack();
+	int PopStringFromStack(const char** result);
 
-	void PushIntOntoStack(int i)
+	int PushIntOntoStack(int i)
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
 		if (current == NULL)
-			throw SheepMachineException("No contexts available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
 
 		current->Stack.push(StackItem(SheepSymbolType::Int, i));
+
+		return SHEEP_SUCCESS;
 	}
 	
+	int PushFloatOntoStack(float f)
+	{
+		SheepContext* current = m_contextTree->GetCurrent();
+
+		if (current == NULL)
+			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
+
+		current->Stack.push(StackItem(SheepSymbolType::Float, f));
+
+		return SHEEP_SUCCESS;
+	}
+
 	SheepImportTable& GetImports() { return m_imports; }
 
 	bool IsInWaitSection()
@@ -109,7 +152,6 @@ public:
 		SheepContext* current = m_contextTree->GetCurrent();
 		return current != NULL && current->InWaitSection; 
 	}
-	void SetEndWaitCallback(SHP_EndWaitCallback callback);
 
 	int GetNumContexts() { return 0; }
 	int GetCurrentContextStackSize()
@@ -149,7 +191,7 @@ private:
 
 	SheepImportTable m_imports;
 
-	SHP_EndWaitCallback m_endWaitCallback;
+	Sheep::EndWaitCallback m_endWaitCallback;
 
 	Verbosity m_verbosityLevel;
 
@@ -158,7 +200,7 @@ private:
 
 	// we consider Call() a built-in function and not technically an import,
 	// mostly for performance reasons
-	static void CALLBACK s_call(SheepVM* vm);
+	static void CALLBACK s_call(Sheep::IVirtualMachine* vm);
 
 	static int getInt(SheepStack& stack, bool string = false)
 	{
@@ -441,22 +483,22 @@ private:
 		stack.push(StackItem(SheepSymbolType::Int, item.IValue == 0 ? 1 : 0));
 	}
 
-	void callVoidFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index)
+	void callVoidFunction(SheepContext* context, int index)
 	{
-		callFunction(stack, imports, index, 0);
+		callFunction(context, index, 0);
 
 		// the GK3 VM seems to expect something on the stack, even after 'void' functions.
-		stack.push(StackItem(SheepSymbolType::Int, 0));
+		context->Stack.push(StackItem(SheepSymbolType::Int, 0));
 	}
 
-	void callIntFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index)
+	void callIntFunction(SheepContext* context, int index)
 	{
-		callFunction(stack, imports, index, 1);
+		callFunction(context, index, 1);
 	}
 
-	void callFunction(SheepStack& stack, std::vector<SheepImport>& imports, int index, int numExpectedReturns)
+	void callFunction(SheepContext* context, int index, int numExpectedReturns)
 	{
-		int numParams = getInt(stack);
+		int numParams = getInt(context->Stack);
 
 		const int MAX_NUM_PARAMS = 16;
 		StackItem params[MAX_NUM_PARAMS];
@@ -464,32 +506,30 @@ private:
 		if (numParams >= MAX_NUM_PARAMS)
 			throw SheepException("More than the maximum number of allowed parameters found", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
 
-		size_t numItemsOnStack = stack.size();
+		size_t numItemsOnStack = context->Stack.size();
 
 		// find the function
-		if (index < 0 || index >= imports.size())
+		if (index < 0 || index >= context->FullCode->Imports.size())
 			throw SheepMachineException("Invalid import function");
-		if (imports[index].Parameters.size() != numParams)
+		if (context->FullCode->Imports[index].Parameters.size() != numParams)
 			throw SheepMachineException("Invalid number of parameters to import function");
-		if (numParams > stack.size())
+		if (numParams > context->Stack.size())
 		{
 			if (m_verbosityLevel > Verbosity_Silent)
-				printf("stack size: %d numparams: %d\n", stack.size(), numParams);
+				printf("stack size: %d numparams: %d\n", context->Stack.size(), numParams);
 			throw SheepMachineException("Stack is not in a valid state for calling this import function");
 		}
 			
+		Sheep::ImportCallback callback;
+		if (m_importCallbacks.TryGetValue(context->FullCode->Imports[index].Name.c_str(), callback) && callback != nullptr)
+			callback(this);
 
-		if (imports[index].Callback != NULL)
-		{
-			imports[index].Callback(this);
-		}
-
-		int paramsLeftOver = numParams - (int)(numItemsOnStack - stack.size());
+		int paramsLeftOver = numParams - (int)(numItemsOnStack - context->Stack.size());
 		if (paramsLeftOver > numExpectedReturns)
 		{
 			// lazy bums didn't pop everything off!
 			for (int i = numExpectedReturns; i < paramsLeftOver; i++)
-				stack.pop();
+				context->Stack.pop();
 		}
 		else if (paramsLeftOver < numExpectedReturns)
 		{

@@ -11,32 +11,31 @@
 #include "sheepDisassembler.h"
 
 
-void CALLBACK s_printString(SheepVM* vm)
+void CALLBACK s_printString(Sheep::IVirtualMachine* vm)
 {
 	const char* result;
-	SHP_PopStringFromStack(vm, &result);
+	vm->PopStringFromStack(&result);
 	std::cout << result << std::endl;
 }
 
-void CALLBACK s_printFloat(SheepVM* vm)
+void CALLBACK s_printFloat(Sheep::IVirtualMachine* vm)
 {
 	float result;
-	SHP_PopFloatFromStack(vm, &result);
+	vm->PopFloatFromStack(&result);
 	std::cout << result << std::endl;
 }
 
-void CALLBACK s_printInt(SheepVM* vm)
+void CALLBACK s_printInt(Sheep::IVirtualMachine* vm)
 {
 	int result;
-	SHP_PopIntFromStack(vm, &result);
+	vm->PopIntFromStack(&result);
 	std::cout << result << std::endl;
 }
 
-void CALLBACK s_isCurrentTime(SheepVM* vm)
+void CALLBACK s_isCurrentTime(Sheep::IVirtualMachine* vm)
 {
-	SHP_PopStringFromStack(vm, NULL);
-
-	SHP_PushIntOntoStack(vm, 0);
+	vm->PopStringFromStack(nullptr);
+	vm->PushIntOntoStack(0);
 }
 
 enum CompilerMode
@@ -182,9 +181,13 @@ int main(int argc, char** argv)
 		if (enhancementsEnabled)
 			m.SetLanguageEnhancementsEnabled(true);
 
-		m.GetImports().TryAddImport("PrintString", SheepSymbolType::Void, SheepSymbolType::String, s_printString);
-		m.GetImports().TryAddImport("PrintFloat", SheepSymbolType::Void, SheepSymbolType::Float, s_printFloat);
-		m.GetImports().TryAddImport("PrintInt", SheepSymbolType::Void, SheepSymbolType::Int, s_printInt);
+		m.GetImports().TryAddImport("PrintString", SheepSymbolType::Void, SheepSymbolType::String);
+		m.GetImports().TryAddImport("PrintFloat", SheepSymbolType::Void, SheepSymbolType::Float);
+		m.GetImports().TryAddImport("PrintInt", SheepSymbolType::Void, SheepSymbolType::Int);
+
+		m.SetImportCallback("PrintString", s_printString);
+		m.SetImportCallback("PrintFloat", s_printFloat);
+		m.SetImportCallback("PrintInt", s_printInt);
 		
 		IntermediateOutput* output;
 		
@@ -220,9 +223,13 @@ int main(int argc, char** argv)
 			if (enhancementsEnabled)
 				machine.SetLanguageEnhancementsEnabled(true);
 
-			machine.GetImports().TryAddImport("PrintString", SheepSymbolType::Void, SheepSymbolType::String, s_printString);
-			machine.GetImports().TryAddImport("PrintFloat", SheepSymbolType::Void, SheepSymbolType::Float, s_printFloat);
-			machine.GetImports().TryAddImport("PrintInt", SheepSymbolType::Void, SheepSymbolType::Int, s_printInt);
+			machine.GetImports().TryAddImport("PrintString", SheepSymbolType::Void, SheepSymbolType::String);
+			machine.GetImports().TryAddImport("PrintFloat", SheepSymbolType::Void, SheepSymbolType::Float);
+			machine.GetImports().TryAddImport("PrintInt", SheepSymbolType::Void, SheepSymbolType::Int);
+
+			machine.SetImportCallback("PrintString", s_printString);
+			machine.SetImportCallback("PrintFloat", s_printFloat);
+			machine.SetImportCallback("PrintInt", s_printInt);
 
 			IntermediateOutput* output;
 		

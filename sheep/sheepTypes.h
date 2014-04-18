@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include "sheepc.h"
+#include "sheepcpp.h"
 #include "sheepConfig.h"
 
 SHEEP_ENUM(SheepSymbolType)
@@ -66,13 +67,11 @@ struct SheepFunction
 
 struct SheepImport : public SheepImportFunction
 {
-	SheepImport() { Callback = NULL; }
+	SheepImport() { }
 
 	std::string Name;
 	SheepSymbolType ReturnType;
 	std::vector<SheepSymbolType> Parameters;
-
-	SHP_ImportCallback Callback;
 };
 
 struct SheepStringConstant

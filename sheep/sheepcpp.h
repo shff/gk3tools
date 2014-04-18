@@ -45,6 +45,7 @@ namespace Sheep
 	};
 
 	typedef void (SHP_CALLBACK *ImportCallback)(IVirtualMachine* vm);
+	typedef void (SHP_CALLBACK* EndWaitCallback)(IVirtualMachine* vm);
 
 	class IVirtualMachine
 	{
@@ -54,6 +55,7 @@ namespace Sheep
 		virtual void SetTag(void* tag) = 0;
 		virtual void* GetTag() = 0;
 
+		virtual int SetEndWaitCallback(EndWaitCallback callback) = 0;
 		virtual int SetImportCallback(const char* importName, ImportCallback callback) = 0;
 
 		virtual int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) = 0;

@@ -41,6 +41,7 @@ struct SectionHeader
 
 class IntermediateOutput;
 class SheepImportTable;
+class SheepMachine;
 
 class SheepFileReader
 {
@@ -50,7 +51,7 @@ public:
 	SheepFileReader(std::ifstream& file);
 	SheepFileReader(const byte* data, int length);
 
-	void WireImportCallbacks(const SheepImportTable& imports);
+	void WireImportCallbacks(SheepMachine* imports);
 
 	IntermediateOutput* GetIntermediateOutput() { return m_intermediateOutput; }
 

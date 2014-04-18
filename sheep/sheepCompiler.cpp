@@ -9,14 +9,14 @@
 #include "sheepFileWriter.h"
 #include "sheepDisassembler.h"
 
-#define SM(v) static_cast<SheepMachine*>(v)
+#define SM(v) ((SheepMachine*)(v))
 
 SHP_Allocator g_allocator;
 
 
 SheepVM* SHP_CreateNewVM()
 {
-	return SHEEP_NEW SheepMachine();
+	return (SheepVM*)(SHEEP_NEW SheepMachine());
 }
 
 void SHP_DestroyVM(SheepVM* vm)
@@ -49,7 +49,8 @@ void SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback)
 
 SheepImportFunction* SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_ImportCallback callback)
 {
-	return SM(vm)->GetImports().NewImport(name, (SheepSymbolType)returnType, callback);
+	SM(vm)->SetImportCallback(name, (Sheep::ImportCallback)callback);
+	return SM(vm)->GetImports().NewImport(name, (SheepSymbolType)returnType);
 }
 
 void SHP_AddImportParameter(SheepImportFunction* import, SHP_SymbolType parameterType)
@@ -95,7 +96,7 @@ int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
 	try
 	{
 		SheepFileReader* reader = SHEEP_NEW SheepFileReader(code, length);
-		reader->WireImportCallbacks(SM(vm)->GetImports());
+		reader->WireImportCallbacks(SM(vm));
 		IntermediateOutput* output = reader->GetIntermediateOutput();
 		SM(vm)->Run(output, function);
 		
@@ -142,59 +143,26 @@ int SHP_RunNounVerbSnippet(SheepVM* vm, const char* script, int noun, int verb, 
 
 int SHP_PopIntFromStack(SheepVM* vm, int* result)
 {
-	assert(vm != NULL);
+	if (vm == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	try
-	{
-		if (result)
-			*result = SM(vm)->PopIntFromStack();
-		else
-			SM(vm)->PopIntFromStack();
-
-		return SHEEP_SUCCESS;
-	}
-	catch(SheepException& ex)
-	{
-		return ex.GetErrorNum();
-	}
+	return SM(vm)->PopIntFromStack(result);
 }
 
 int SHP_PopFloatFromStack(SheepVM* vm, float* result)
 {
-	assert(vm != NULL);
+	if (vm == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	try
-	{
-		if (result)
-			*result = SM(vm)->PopFloatFromStack();
-		else
-			SM(vm)->PopFloatFromStack();
-
-		return SHEEP_SUCCESS;
-	}
-	catch(SheepException& ex)
-	{
-		return ex.GetErrorNum();
-	}
+	return SM(vm)->PopFloatFromStack(result);
 }
 
 int SHP_PopStringFromStack(SheepVM* vm, const char** result)
 {
-	assert(vm != NULL);
+	if (vm == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	try
-	{
-		if (result)
-			*result = SM(vm)->PopStringFromStack().c_str();
-		else
-			SM(vm)->PopStringFromStack();
-
-		return SHEEP_SUCCESS;
-	}
-	catch(SheepException& ex)
-	{
-		return ex.GetErrorNum();
-	}
+	return SM(vm)->PopStringFromStack(result);
 }
 
 
@@ -248,7 +216,7 @@ void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)
 {
 	assert(vm != NULL);
 
-	return SM(vm)->SetEndWaitCallback(callback);
+	SM(vm)->SetEndWaitCallback((Sheep::EndWaitCallback)callback);
 }
 
 SheepVMContext* SHP_GetCurrentContext(SheepVM* vm)
