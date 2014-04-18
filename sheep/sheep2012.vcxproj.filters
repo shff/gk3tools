@@ -21,6 +21,7 @@
     <ClCompile Include="Internal\script.cpp">
       <Filter>Internal</Filter>
     </ClCompile>
+    <ClCompile Include="sheepContextTree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="rbuffer.h" />
@@ -49,6 +50,9 @@
       <Filter>Internal</Filter>
     </ClInclude>
     <ClInclude Include="Internal\compiler.h">
+      <Filter>Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Internal\ExecutionContext.h">
       <Filter>Internal</Filter>
     </ClInclude>
   </ItemGroup>

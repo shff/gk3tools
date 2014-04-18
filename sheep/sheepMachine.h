@@ -226,67 +226,58 @@ private:
 		f2 = item2.FValue;
 	}
 
-	static void storeI(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	static void storeI(SheepStack& stack, SheepContext* context, int variable)
 	{
 		int value = getInt(stack);
 
-		if (variable >= variables.size() ||
-			variables[variable].Type != SheepSymbolType::Int)
+		if (context->SetVariableInt(variable, value) != SHEEP_SUCCESS)
 			throw SheepMachineException("Invalid variable");
-
-		variables[variable].IValue = value;
 	}
 
-	static void storeF(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	static void storeF(SheepStack& stack, SheepContext* context, int variable)
 	{
 		StackItem item = stack.top();
 		stack.pop();
 		if (item.Type != SheepSymbolType::Float)
 			throw SheepMachineException("Expected float on stack");
 
-		if (variable >= variables.size() ||
-			variables[variable].Type != SheepSymbolType::Float)
+		if (context->SetVariableFloat(variable, item.FValue) != SHEEP_SUCCESS)
 			throw SheepMachineException("Invalid variable");
-
-		variables[variable].FValue = item.FValue;
 	}
 
-	static void storeS(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	static void storeS(SheepStack& stack, SheepContext* context, int variable)
 	{
 		int value = getInt(stack, true);
 
-		if (variable >= variables.size() ||
-			variables[variable].Type != SheepSymbolType::String)
+		if (context->SetVariableInt(variable, value) != SHEEP_SUCCESS)
 			throw SheepMachineException("Invalid variable");
-
-		variables[variable].IValue = value;
 	}
 
-	static void loadI(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	static void loadI(SheepStack& stack, SheepContext* context, int variable)
 	{
-		if (variable >= variables.size() ||
-			variables[variable].Type != SheepSymbolType::Int)
+		int value;
+		if (context->GetVariableInt(variable, &value) != SHEEP_SUCCESS)
 			throw SheepMachineException("Invalid variable");
 
-		stack.push(StackItem(SheepSymbolType::Int, variables[variable].IValue));
+		stack.push(StackItem(SheepSymbolType::Int, value));
 	}
 
-	static void loadF(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	static void loadF(SheepStack& stack, SheepContext* context, int variable)
 	{
-		if (variable >= variables.size() ||
-			variables[variable].Type != SheepSymbolType::Float)
+		float value;
+		if (context->GetVariableFloat(variable, &value) != SHEEP_SUCCESS)
 			throw SheepMachineException("Invalid variable");
 
-		stack.push(StackItem(SheepSymbolType::Float, variables[variable].FValue));
+		stack.push(StackItem(SheepSymbolType::Float, value));
 	}
 
-	static void loadS(SheepStack& stack, std::vector<StackItem>& variables, int variable)
+	static void loadS(SheepStack& stack, SheepContext* context, int variable)
 	{
-		if (variable >= variables.size() ||
-			variables[variable].Type != SheepSymbolType::String)
+		int value;
+		if (context->GetVariableStringIndex(variable, &value) != SHEEP_SUCCESS)
 			throw SheepMachineException("Invalid variable");
 
-		stack.push(StackItem(SheepSymbolType::String, variables[variable].IValue));
+		stack.push(StackItem(SheepSymbolType::String, value));
 	}
 
 	static void addI(SheepStack& stack)

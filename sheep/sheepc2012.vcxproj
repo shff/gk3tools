@@ -176,6 +176,7 @@ rem flex -osheepScanner.cpp sheepScanner.l
     <ClCompile Include="sheepCodeGenerator.cpp" />
     <ClCompile Include="sheepCodeTree.cpp" />
     <ClCompile Include="sheepCompiler.cpp" />
+    <ClCompile Include="sheepContextTree.cpp" />
     <ClCompile Include="sheepDisassembler.cpp" />
     <ClCompile Include="sheepFileReader.cpp" />
     <ClCompile Include="sheepFileWriter.cpp" />

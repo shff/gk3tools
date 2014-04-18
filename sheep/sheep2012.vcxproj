@@ -179,6 +179,7 @@
     <ClCompile Include="sheepCodeGenerator.cpp" />
     <ClCompile Include="sheepCodeTree.cpp" />
     <ClCompile Include="sheepCompiler.cpp" />
+    <ClCompile Include="sheepContextTree.cpp" />
     <ClCompile Include="sheepcpp.cpp" />
     <ClCompile Include="sheepDisassembler.cpp" />
     <ClCompile Include="sheepFileReader.cpp" />
@@ -190,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Internal\compiler.h" />
+    <ClInclude Include="Internal\ExecutionContext.h" />
     <ClInclude Include="Internal\script.h" />
     <ClInclude Include="Internal\virtualmachine.h" />
     <ClInclude Include="rbuffer.h" />

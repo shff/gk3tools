@@ -2,8 +2,10 @@
 #define SHEEPCONTEXTTREE_H
 
 #include <cassert>
+#include <stack>
 #include "sheepTypes.h"
 #include "sheepMemoryAllocator.h"
+#include "sheepcpp.h"
 
 struct StackItem
 {
@@ -38,8 +40,11 @@ typedef std::stack<StackItem> SheepStack;
 
 class IntermediateOutput;
 
-struct SheepContext
+class SheepContext : public Sheep::IExecutionContext
 {
+	std::vector<StackItem> m_variables;
+
+public:
 	SheepContext()
 	{
 		InWaitSection = false;
@@ -57,8 +62,7 @@ struct SheepContext
 	}
 
 	SheepStack Stack;
-	std::vector<StackItem> Variables;
-
+	
 	bool InWaitSection;
 	bool UserSuspended;
 	bool ChildSuspended;
@@ -85,6 +89,139 @@ struct SheepContext
 		}
 
 		return false;
+	}
+
+	void PrepareVariables();
+
+	void Release() override
+	{
+		// TODO
+	}
+
+	int GetNumVariables() override
+	{
+		return (int)m_variables.size();
+	}
+
+	const char* GetVariableName(int index) override;
+
+	Sheep::SymbolType GetVariableType(int index) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return Sheep::SymbolType::Void;
+
+		return (Sheep::SymbolType)m_variables[index].Type;
+	}
+
+	int SetVariableInt(int index, int value) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::Int)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		m_variables[index].IValue = value;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int SetVariableFloat(int index, float value) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::Float)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		m_variables[index].FValue = value;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int SetVariableString(int index, const char* value) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::String)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		// TODO
+		return SHEEP_ERROR;
+	}
+
+	int SetVariableStringIndex(int index, int value)
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::String)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		m_variables[index].IValue = value;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int GetVariableInt(int index, int* result) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+		if (result == nullptr)
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::Int)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		*result = m_variables[index].IValue;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int GetVariableFloat(int index, float* result) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+		if (result == nullptr)
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::Float)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		*result = m_variables[index].FValue;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int GetVariableString(int index, const char** result) override
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+		if (result == nullptr)
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::String)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		// TODO
+		return SHEEP_ERROR;
+	}
+
+	int GetVariableStringIndex(int index, int* result)
+	{
+		if (index < 0 || index >= m_variables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+		if (result == nullptr)
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		if (m_variables[index].Type != SheepSymbolType::String)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		*result = m_variables[index].IValue;
+
+		// TODO
+		return SHEEP_ERROR;
 	}
 };
 

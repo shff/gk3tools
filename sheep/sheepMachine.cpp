@@ -103,20 +103,7 @@ IntermediateOutput* SheepMachine::Compile(const std::string &script)
 
 void SheepMachine::prepareVariables(SheepContext* context)
 {
-	assert(context->FullCode != NULL);
-
-	for (std::vector<SheepSymbol>::iterator itr = context->FullCode->Symbols.begin();
-		itr != context->FullCode->Symbols.end(); itr++)
-	{
-		if ((*itr).Type == SheepSymbolType::Int)
-			context->Variables.push_back(StackItem(SheepSymbolType::Int, (*itr).InitialIntValue));
-		else if ((*itr).Type == SheepSymbolType::Float)
-			context->Variables.push_back(StackItem(SheepSymbolType::Float, (*itr).InitialFloatValue));
-		else if ((*itr).Type == SheepSymbolType::String)
-			context->Variables.push_back(StackItem(SheepSymbolType::String, (*itr).InitialStringValue));
-		else
-			throw SheepMachineException("Unsupported variable type");
-	}
+	context->PrepareVariables();
 }
 
 void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
@@ -205,8 +192,8 @@ int SheepMachine::RunSnippet(const std::string& snippet, int noun, int verb, int
 	c->InstructionOffset = 0;
 	prepareVariables(c);
 	
-    c->Variables[1].IValue = noun;
-    c->Variables[2].IValue = verb;
+	c->SetVariableInt(1, noun);
+	c->SetVariableInt(2, verb);
 
 	m_contextTree->Add(c);
 	m_executingDepth++;
@@ -214,7 +201,7 @@ int SheepMachine::RunSnippet(const std::string& snippet, int noun, int verb, int
 	m_executingDepth--;
 
 	if (result != NULL)
-		*result = c->Variables[0].IValue;
+		c->GetVariableInt(0, result);
 
 	c->FullCode->Release();
 	m_contextTree->KillContext(c);
@@ -441,27 +428,27 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case ReturnV:
 			return;
 		case StoreI:
-			storeI(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			storeI(context->Stack, context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case StoreF:
-			storeF(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			storeF(context->Stack, context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case StoreS:
-			storeS(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			storeS(context->Stack, context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadI:
-			loadI(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			loadI(context->Stack, context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadF:
-			loadF(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			loadF(context->Stack, context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadS:
-			loadS(context->Stack, context->Variables, context->CodeBuffer->ReadInt());
+			loadS(context->Stack, context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case PushI:
