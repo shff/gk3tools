@@ -34,6 +34,11 @@ namespace Gk3Main.Sheep
 
         public static void Initialize()
         {
+            if (_compiler == IntPtr.Zero)
+            {
+                _compiler = shp_CreateNewCompiler(1);
+            }
+
             if (_vm == IntPtr.Zero)
             {
                 try
@@ -71,13 +76,9 @@ namespace Gk3Main.Sheep
         {
             if (_vm != IntPtr.Zero)
             {
-                IntPtr import = SHP_AddImport(_vm, name, returnType, Marshal.GetFunctionPointerForDelegate(callback));
+                SHP_AddImport(_vm, name, returnType, parameters, parameters.Length, Marshal.GetFunctionPointerForDelegate(callback));
 
-                if (import == IntPtr.Zero)
-                    throw new SheepException("Unable to add import");
-
-                foreach (SymbolType parameterType in parameters)
-                    SHP_AddImportParameter(import, parameterType);
+                shp_DefineImportFunction(_compiler, name, returnType, parameters, parameters.Length);
             }
             else
             {
@@ -110,7 +111,13 @@ namespace Gk3Main.Sheep
                             ms.Write(buffer, 0, read);
                         }
 
-                        int err = SHP_RunCode(_vm, ms.ToArray(), (int)ms.Length, function);
+                        IntPtr script;
+                        int err = shp_LoadScriptFromBytecode(ms.ToArray(), (int)ms.Length, out script);
+
+                        if (err != SHEEP_SUCCESS)
+                            throw new SheepException("Unable to load sheep bytecode");
+
+                        err = SHP_RunScript(_vm, script, function);
                         if (err != SHEEP_SUCCESS && err != SHEEP_SUSPENDED)
                         {
                             SHP_PrintStackTrace(_vm);
@@ -127,7 +134,13 @@ namespace Gk3Main.Sheep
                     {
                         string script = reader.ReadToEnd();
 
-                        int err = SHP_RunScript(_vm, script, function);
+                        IntPtr result;
+                        int err = shp_CompileScript(_compiler, script, out result);
+
+                        if (err != SHEEP_SUCCESS)
+                            throw new SheepException("Unable to compile Sheep script");
+
+                        err = SHP_RunScript(_vm, result, function);
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to execute Sheep script");
                     }
@@ -199,7 +212,12 @@ namespace Gk3Main.Sheep
             {
                 _output.Clear();
 
-                int err = SHP_RunScript(_vm, sheep, "main$");
+                IntPtr result;
+                int err = shp_CompileScript(_compiler, sheep, out result);
+                if (err != SHEEP_SUCCESS)
+                    throw new SheepException("Unable to compile sheep command: " + err.ToString());
+
+                err = SHP_RunScript(_vm, result, "main$");
 
                 if (err != 0)
                 {
@@ -215,7 +233,12 @@ namespace Gk3Main.Sheep
 
         public static void RunScript(string script, string function)
         {
-            int err = SHP_RunScript(_vm, script, function);
+            IntPtr result;
+            int err = shp_CompileScript(_compiler, script, out result);
+            if (err != SHEEP_SUCCESS)
+                throw new SheepException("Unable to compile sheep script: " + err.ToString());
+
+            err = SHP_RunScript(_vm, result, function);
             if (err != SHEEP_SUCCESS)
                 throw new SheepException("Unable to execute Sheep script");
         }
@@ -345,6 +368,7 @@ namespace Gk3Main.Sheep
         }
 
         private static IntPtr _vm;
+        private static IntPtr _compiler;
         private static Dictionary<IntPtr, List<WaitHandle>> _waitHandles = new Dictionary<IntPtr, List<WaitHandle>>();
 
         struct CompilerOutput
@@ -415,7 +439,7 @@ namespace Gk3Main.Sheep
         private static extern void SHP_DestroyVM(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern IntPtr SHP_AddImport(IntPtr vm, string name, SymbolType returnType, IntPtr callback);
+        private static extern void SHP_AddImport(IntPtr vm, string name, SymbolType returnType, SymbolType[] parameters, int numParameters, IntPtr callback);
 
         [DllImport("sheep")]
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
@@ -436,10 +460,7 @@ namespace Gk3Main.Sheep
         private static extern IntPtr SHP_GetCurrentContext(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern int SHP_RunScript(IntPtr vm, string script, string function);
-
-        [DllImport("sheep")]
-        private static extern int SHP_RunCode(IntPtr vm, byte[] code, int length, string function);
+        private static extern int SHP_RunScript(IntPtr vm, IntPtr script, string function);
 
         [DllImport("sheep")]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
@@ -467,6 +488,25 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern void SHP_PrintStackTrace(IntPtr vm);
+
+        [DllImport("sheep")]
+        private static extern IntPtr shp_CreateNewCompiler(int languageVersion);
+
+        [DllImport("sheep")]
+        private static extern void shp_DestroyCompiler(IntPtr compiler);
+
+        [DllImport("sheep")]
+        private static extern int shp_DefineImportFunction(IntPtr compiler, string name, SymbolType returnType, SymbolType[] parameters, int numParameters);
+
+        [DllImport("sheep")]
+        private static extern int shp_CompileScript(IntPtr compiler, string script, out IntPtr result);
+
+        [DllImport("sheep")]
+        private static extern int shp_LoadScriptFromBytecode(byte[] bytecode, int length, out IntPtr result);
+
+        [DllImport("sheep")]
+        private static extern void shp_ReleaseSheepScript(IntPtr script);
+
 
         [DllImport("sheep")]
         private static extern SHP_Version SHP_GetVersion();

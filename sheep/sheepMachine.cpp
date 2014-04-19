@@ -101,10 +101,12 @@ void SheepMachine::prepareVariables(SheepContext* context)
 	context->PrepareVariables();
 }
 
-void SheepMachine::Run(IntermediateOutput* code, const std::string &function)
+void SheepMachine::Run(Sheep::IScript* script, const std::string &function)
 {
-	if (code == NULL)
+	if (script == NULL)
 		throw SheepMachineException("No code to execute.");
+
+	IntermediateOutput* code = static_cast<Sheep::Internal::Script*>(script)->GetIntermediateOutput();
 
 	// find the requsted function
 	SheepFunction* sheepfunction = NULL;

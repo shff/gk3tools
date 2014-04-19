@@ -61,7 +61,7 @@ public:
 
 	Sheep::IScript* Compile(const std::string& script);
 
-	void Run(IntermediateOutput* code, const std::string& function);
+	void Run(Sheep::IScript* script, const std::string& function);
 
 	/// Runs a snippet. Returns SHEEP_SUCCESS on success, and the value
 	/// left on the stack (if any) is put into 'result'. Or returns

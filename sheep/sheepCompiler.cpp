@@ -55,50 +55,21 @@ void SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP
 	SM(vm)->GetCompiler()->DefineImportFunction(name, (Sheep::SymbolType)returnType, (Sheep::SymbolType*)parameters, numParameters);
 }
 
-int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
+int SHP_RunScript(SheepVM* vm, SheepScript* script, const char* function)
 {
 	assert(vm != NULL);
 	
 	try
 	{
-		Sheep::Internal::Script* s = static_cast<Sheep::Internal::Script*>(SM(vm)->Compile(script));
-		IntermediateOutput* output = s->GetIntermediateOutput();
-		if (output->Errors.empty())
+		Sheep::Internal::Script* s = (Sheep::Internal::Script*)script;
+		if (s->GetStatus() == Sheep::ScriptStatus::Success)
 		{
-			SM(vm)->Run(output, function);
+			SM(vm)->Run(s, function);
 
 			return SHEEP_SUCCESS;
 		}
 
-		// delete the output (there's no need to delete it if it runs since
-		// the VM will take care of it for us)
-		s->Release();
-
 		return SHEEP_GENERIC_COMPILER_ERROR;
-	}
-	catch(SheepException& ex)
-	{
-		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
-			printf("%s\n", ex.GetMessage().c_str());
-
-		return ex.GetErrorNum();
-	}
-}
-
-int SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function)
-{
-	assert(vm != NULL);
-
-	try
-	{
-		SheepFileReader* reader = SHEEP_NEW SheepFileReader(code, length);
-		reader->WireImportCallbacks(SM(vm));
-		IntermediateOutput* output = reader->GetIntermediateOutput();
-		SM(vm)->Run(output, function);
-		
-		SHEEP_DELETE(reader);
-
-		return SHEEP_SUCCESS;
 	}
 	catch(SheepException& ex)
 	{
@@ -296,58 +267,43 @@ void SHP_FreeDisassembly(const SheepDisassembly* disassembly)
     SHEEP_DELETE(disassembly);
 }
 
-struct InternalCompiledScript : public CompiledScript
-{
-    int Size;
-    byte* Buffer;
-};
 
-CompiledScript* SHP_CompileSheepScript(SheepVM* vm, const char* script)
+
+SheepCompiler* shp_CreateNewCompiler(int languageVersion)
 {
-	try
+	return (SheepCompiler*)CreateSheepCompiler((Sheep::SheepLanguageVersion)languageVersion);
+}
+
+void shp_DestroyCompiler(SheepCompiler* compiler)
+{
+	((Sheep::ICompiler*)(compiler))->Release();
+}
+
+int shp_DefineImportFunction(SheepCompiler* compiler, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters)
+{
+	return ((Sheep::ICompiler*)(compiler))->DefineImportFunction(name, (Sheep::SymbolType)returnType, (Sheep::SymbolType*)parameters, numParameters);
+}
+
+int shp_CompileScript(SheepCompiler* compiler, const char* script, SheepScript** result)
+{
+	Sheep::IScript* s = ((Sheep::ICompiler*)(compiler))->CompileScript(script);
+
+	if (s->GetStatus() == Sheep::ScriptStatus::Success)
 	{
-		InternalCompiledScript* result = NULL;
-		Sheep::Internal::Script* s = static_cast<Sheep::Internal::Script*>(SM(vm)->Compile(script));
-		IntermediateOutput* output = s->GetIntermediateOutput();
-		if (output->Errors.empty())
-		{
-			SheepFileWriter writer(output);
-			ResizableBuffer* buffer = writer.GetBuffer();
-
-			result = SHEEP_NEW(InternalCompiledScript);
-			result->Size = buffer->GetSize();
-			result->Buffer = SHEEP_NEW_ARRAY(byte, result->Size);
-			memcpy(result->Buffer, buffer->GetData(), result->Size);
-		}
-
-		s->Release();
-
-		return result;
+		*result = (SheepScript*)s;
+		return SHEEP_SUCCESS;
 	}
-	catch(SheepException& ex)
-	{
-		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
-			printf("%s\n", ex.GetMessage().c_str());
 
-		return NULL;
-	}
+	s->Release();
+	return SHEEP_ERROR;
 }
 
-void SHP_FreeCompiledScript(CompiledScript* script)
+int shp_LoadScriptFromBytecode(const char* bytecode, int length, SheepScript** result)
 {
-    InternalCompiledScript* is = static_cast<InternalCompiledScript*>(script);
-    SHEEP_DELETE_ARRAY(is->Buffer);
-    SHEEP_DELETE(is);
+	return CreateScriptFromBytecode(bytecode, length, (Sheep::IScript**)result);
 }
 
-int SHP_GetCompiledScriptSize(CompiledScript* script)
+void shp_ReleaseSheepScript(SheepScript* script)
 {
-    InternalCompiledScript* is = static_cast<InternalCompiledScript*>(script);
-    return is->Size;
-}
-
-void SHP_GetCompiledScript(CompiledScript* script, byte* buffer)
-{
-    InternalCompiledScript* is = static_cast<InternalCompiledScript*>(script);
-    memcpy(buffer, is->Buffer, is->Size);
+	((Sheep::IScript*)(script))->Release();
 }

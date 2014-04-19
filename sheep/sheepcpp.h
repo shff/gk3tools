@@ -112,6 +112,7 @@ extern "C"
 {
 	SHP_DECLSPEC Sheep::ICompiler* SHP_APIENTRY CreateSheepCompiler(Sheep::SheepLanguageVersion version);
 	SHP_DECLSPEC Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine();
+	SHP_DECLSPEC int SHP_APIENTRY CreateScriptFromBytecode(const char* bytecode, int length, Sheep::IScript** result);
 }
 
 #endif // SHEEP_SHEEPCPP_H

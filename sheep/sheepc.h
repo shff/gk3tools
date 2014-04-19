@@ -91,6 +91,7 @@ struct SHP_Version
 typedef struct {} SheepVM;
 typedef struct {} SheepVMContext;
 typedef struct {} SheepImportFunction;
+typedef struct {} SheepScript;
 
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
 DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
@@ -117,8 +118,7 @@ DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback ca
 
 DECLSPEC int LIB_CALL SHP_RunSnippet(SheepVM* vm, const char* script, int* result);
 DECLSPEC int LIB_CALL SHP_RunNounVerbSnippet(SheepVM* vm, const char* script, int noun, int verb, int* result);
-DECLSPEC int LIB_CALL SHP_RunScript(SheepVM* vm, const char* script, const char* function);
-DECLSPEC int LIB_CALL SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function);
+DECLSPEC int LIB_CALL SHP_RunScript(SheepVM* vm, SheepScript* script, const char* function);
 
 typedef void (CALLBACK *SHP_ImportCallback)(SheepVM* vm);
 DECLSPEC void LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters, SHP_ImportCallback callback);
@@ -202,11 +202,13 @@ DECLSPEC int SHP_GetDisassemblyLength(const SheepDisassembly* disassembly);
 DECLSPEC void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer);
 DECLSPEC void SHP_FreeDisassembly(const SheepDisassembly* disassembly);
 
-typedef struct {} CompiledScript;
-DECLSPEC CompiledScript* LIB_CALL SHP_CompileSheepScript(SheepVM* vm, const char* script);
-DECLSPEC void LIB_CALL SHP_FreeCompiledScript(CompiledScript* script);
-DECLSPEC int LIB_CALL SHP_GetCompiledScriptSize(CompiledScript* script);
-DECLSPEC void LIB_CALL SHP_GetCompiledScript(CompiledScript* script, byte* buffer);
+typedef struct {} SheepCompiler;
+DECLSPEC SheepCompiler* LIB_CALL shp_CreateNewCompiler(int languageVersion);
+DECLSPEC void LIB_CALL shp_DestroyCompiler(SheepCompiler* compiler);
+DECLSPEC int LIB_CALL shp_DefineImportFunction(SheepCompiler* compiler, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters);
+DECLSPEC int LIB_CALL shp_CompileScript(SheepCompiler* compiler, const char* script, SheepScript** result);
+DECLSPEC int LIB_CALL shp_LoadScriptFromBytecode(const char* bytecode, int length, SheepScript** result);
+DECLSPEC void LIB_CALL shp_ReleaseSheepScript(SheepScript* script);
 
 
 DECLSPEC SHP_Version SHP_GetVersion();
