@@ -121,8 +121,7 @@ DECLSPEC int LIB_CALL SHP_RunScript(SheepVM* vm, const char* script, const char*
 DECLSPEC int LIB_CALL SHP_RunCode(SheepVM* vm, const byte* code, int length, const char* function);
 
 typedef void (CALLBACK *SHP_ImportCallback)(SheepVM* vm);
-DECLSPEC SheepImportFunction* LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_ImportCallback callback);
-DECLSPEC void LIB_CALL SHP_AddImportParameter(SheepImportFunction* import, SHP_SymbolType parameterType);
+DECLSPEC void LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters, SHP_ImportCallback callback);
 
 DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm, int* result);
 DECLSPEC int LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);

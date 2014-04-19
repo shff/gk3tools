@@ -90,7 +90,7 @@ namespace Sheep
 
 	enum class SheepLanguageVersion
 	{
-		V100,
+		V100 = 0,
 		V200
 	};
 

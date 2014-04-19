@@ -8,6 +8,8 @@
 #include "sheepFileReader.h"
 #include "sheepFileWriter.h"
 #include "sheepDisassembler.h"
+#include "Internal/script.h"
+#include "Internal/compiler.h"
 
 #define SM(v) ((SheepMachine*)(v))
 
@@ -47,17 +49,10 @@ void SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback)
 	SM(vm)->SetCompileOutputCallback(callback);
 }
 
-SheepImportFunction* SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_ImportCallback callback)
+void SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters, SHP_ImportCallback callback)
 {
 	SM(vm)->SetImportCallback(name, (Sheep::ImportCallback)callback);
-	return SM(vm)->GetImports().NewImport(name, (SheepSymbolType)returnType);
-}
-
-void SHP_AddImportParameter(SheepImportFunction* import, SHP_SymbolType parameterType)
-{
-	assert(import != NULL);
-	
-	static_cast<SheepImport*>(import)->Parameters.push_back((SheepSymbolType)parameterType);
+	SM(vm)->GetCompiler()->DefineImportFunction(name, (Sheep::SymbolType)returnType, (Sheep::SymbolType*)parameters, numParameters);
 }
 
 int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
@@ -66,7 +61,8 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 	
 	try
 	{
-		IntermediateOutput* output = SM(vm)->Compile(script);
+		Sheep::Internal::Script* s = static_cast<Sheep::Internal::Script*>(SM(vm)->Compile(script));
+		IntermediateOutput* output = s->GetIntermediateOutput();
 		if (output->Errors.empty())
 		{
 			SM(vm)->Run(output, function);
@@ -76,7 +72,7 @@ int SHP_RunScript(SheepVM* vm, const char* script, const char* function)
 
 		// delete the output (there's no need to delete it if it runs since
 		// the VM will take care of it for us)
-		SHEEP_DELETE(output);
+		s->Release();
 
 		return SHEEP_GENERIC_COMPILER_ERROR;
 	}
@@ -201,7 +197,7 @@ int SHP_Resume(SheepVM* vm, SheepVMContext* context)
 
 	try
 	{
-		return SM(vm)->Resume((SheepContext*)context);
+		return SM(vm)->Execute((SheepContext*)context);
 	}
 	catch(SheepException& ex)
 	{
@@ -277,7 +273,7 @@ struct Disassembly : SheepDisassembly
 
 SheepDisassembly* SHP_GetDisassembly(const byte* data, int length)
 {
-    std::string disassembly = SheepCompiler::Disassembler::GetDisassembly(data, length);
+    std::string disassembly = Sheep::Disassembler::GetDisassembly(data, length);
 
     Disassembly* d = SHEEP_NEW(Disassembly);
     d->Text = disassembly;
@@ -311,7 +307,8 @@ CompiledScript* SHP_CompileSheepScript(SheepVM* vm, const char* script)
 	try
 	{
 		InternalCompiledScript* result = NULL;
-		IntermediateOutput* output = SM(vm)->Compile(script);
+		Sheep::Internal::Script* s = static_cast<Sheep::Internal::Script*>(SM(vm)->Compile(script));
+		IntermediateOutput* output = s->GetIntermediateOutput();
 		if (output->Errors.empty())
 		{
 			SheepFileWriter writer(output);
@@ -323,7 +320,7 @@ CompiledScript* SHP_CompileSheepScript(SheepVM* vm, const char* script)
 			memcpy(result->Buffer, buffer->GetData(), result->Size);
 		}
 
-		SHEEP_DELETE(output);
+		s->Release();
 
 		return result;
 	}

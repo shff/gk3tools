@@ -9,7 +9,7 @@
 #include "sheepFileReader.h"
 //#include "sheepfile.h"
 
-namespace SheepCompiler
+namespace Sheep
 {
 	struct Import
 	{

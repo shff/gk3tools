@@ -66,7 +66,7 @@ namespace Internal
 		result->SetStatus(ScriptStatus::Success);
 
 		auto& entries = log.GetEntries();
-		for (int i = 0; i < entries.size(); i++)
+		for (unsigned int i = 0; i < entries.size(); i++)
 		{
 			if (entries[i].Type == LOG_ERROR)
 				result->SetStatus(ScriptStatus::Error);
@@ -78,7 +78,7 @@ namespace Internal
 		{
 			result->SetStatus(ScriptStatus::Error);
 
-			for (int i = 0; i < output->Errors.size(); i++)
+			for (unsigned int i = 0; i < output->Errors.size(); i++)
 				result->AddMessage(output->Errors[i].LineNumber, output->Errors[i].Output.c_str());
 		}
 

@@ -2,6 +2,8 @@
 #include "sheepMachine.h"
 #include "sheepCodeBuffer.h"
 #include "sheepLog.h"
+#include "Internal/script.h"
+#include "Internal/compiler.h"
 
 
 SheepMachine::SheepMachine()
@@ -15,20 +17,21 @@ SheepMachine::SheepMachine()
 	m_executingDepth = 0;
 
 	// add Call() as an import
-	SheepImport* call = m_imports.NewImport("Call", SheepSymbolType::Void);
-	call->Parameters.push_back(SheepSymbolType::String);
-
 	SetImportCallback("Call", s_call);
 
 	m_contextTree = new SheepContextTree();
 
 	m_tag = NULL;
 	m_enhancementsEnabled = false;
+
+	m_compiler = SHEEP_NEW Sheep::Internal::Compiler(Sheep::SheepLanguageVersion::V200);
 }
 
 SheepMachine::~SheepMachine()
 {
 	delete m_contextTree;
+
+	m_compiler->Release();
 }
 
 void SheepMachine::SetOutputCallback(void (*callback)(const char *))
@@ -87,37 +90,9 @@ int SheepMachine::PopStringFromStack(const char** result)
 	return SHEEP_SUCCESS;
 }
 
-IntermediateOutput* SheepMachine::Compile(const std::string &script)
+Sheep::IScript* SheepMachine::Compile(const std::string &script)
 {
-	SheepCodeTree tree;
-	SheepLog log;
-	tree.Lock(script, &log);
-
-	SheepCodeGenerator generator(&tree, &m_imports, m_enhancementsEnabled);
-	IntermediateOutput* output = generator.BuildIntermediateOutput();
-
-	tree.Unlock();
-
-	// copy compiler errors into the output's output
-	std::vector<SheepLogEntry> entries = log.GetEntries();
-	for (unsigned int i = 0; i < entries.size(); i++)
-	{
-		CompilerOutput co;
-		co.LineNumber = entries[i].LineNumber;
-		co.Output = entries[i].Text;
-		output->Errors.push_back(co);
-	}
-
-	// report any errors
-	if (output->Errors.empty() == false && m_compilerCallback)
-	{
-		for (size_t i = 0; i < output->Errors.size(); i++)
-		{
-			m_compilerCallback(output->Errors[i].LineNumber, output->Errors[i].Output.c_str());
-		}
-	}
-
-	return output;
+	return m_compiler->CompileScript(script.c_str());
 }
 
 
@@ -177,13 +152,9 @@ int SheepMachine::RunSnippet(const std::string& snippet, int noun, int verb, int
 		ss << "symbols { int result$; int n$; int v$; } code { snippet$() { result$ = " << snippet << "; } }";
 
 
-	SheepCodeTree tree;
-	tree.Lock(ss.str(), NULL);
+		Sheep::Internal::Script* script = static_cast<Sheep::Internal::Script*>(m_compiler->CompileScript(ss.str().c_str()));
 
-	SheepCodeGenerator generator(&tree, &m_imports, m_enhancementsEnabled);
-	IntermediateOutput* code = generator.BuildIntermediateOutput();
-
-	tree.Unlock();
+	IntermediateOutput* code = script->GetIntermediateOutput();
 
 	if (code->Errors.empty() == false)
 	{
@@ -251,32 +222,35 @@ SheepContext* SheepMachine::Suspend()
 	return currentContext;
 }
 
-int SheepMachine::Resume(SheepContext* context)
+
+int SheepMachine::Execute(Sheep::IExecutionContext* context)
 {
-	assert(context != NULL);
-	if (context->Dead == true)
-	{
-		throw SheepMachineException("Cannot resume context because it's dead", SHEEP_ERR_CANT_RESUME);
-	}
+	SheepContext* ctx = static_cast<SheepContext*>(context);
 
-	context->UserSuspended = false;
+	if (context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	if (context->ChildSuspended == false ||
-		context->AreAnyChildrenSuspended() == false)
+	if (ctx->Dead == true)
+		return SHEEP_ERR_CANT_RESUME;
+
+	ctx->UserSuspended = false;
+
+	if (ctx->ChildSuspended == false ||
+		ctx->AreAnyChildrenSuspended() == false)
 	{
 		// children are obviously done
-		context->ChildSuspended = false;
+		ctx->ChildSuspended = false;
 
 		// not waiting on anything, so run some code
-		execute(context);
+		execute(ctx);
 
-		if (context->ChildSuspended == false &&
-			context->UserSuspended == false)
+		if (ctx->ChildSuspended == false &&
+			ctx->UserSuspended == false)
 		{
 			// before we can kill the context we need
 			// to check its ancestors, since one of them
 			// may have been waiting on this child to finish
-			SheepContext* parent = context->Parent;
+			SheepContext* parent = ctx->Parent;
 			while(parent != NULL)
 			{
 				if (parent->Dead == false &&
@@ -285,7 +259,7 @@ int SheepMachine::Resume(SheepContext* context)
 					parent->AreAnyChildrenSuspended() == false)
 				{
 					parent->ChildSuspended = false;
-					Resume(parent);
+					Execute(parent);
 
 					// no need to continue the loop, since the
 					// Resume() call we just made will handle the
@@ -297,8 +271,8 @@ int SheepMachine::Resume(SheepContext* context)
 			}
 
 			// now then, this context is all finished, so we can kill it
-			context->FullCode->Release();
-			m_contextTree->KillContext(context);
+			ctx->FullCode->Release();
+			m_contextTree->KillContext(ctx);
 
 			return SHEEP_SUCCESS;
 		}

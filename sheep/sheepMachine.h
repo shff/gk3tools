@@ -41,6 +41,7 @@ public:
 class SheepMachine : public Sheep::IVirtualMachine
 {
 	StringDictionary<Sheep::ImportCallback> m_importCallbacks;
+	Sheep::ICompiler* m_compiler;
 
 public:
 
@@ -58,7 +59,7 @@ public:
 	int SetEndWaitCallback(Sheep::EndWaitCallback callback) { m_endWaitCallback = callback; return SHEEP_SUCCESS; }
 	int SetImportCallback(const char* importName, Sheep::ImportCallback callback);
 
-	IntermediateOutput* Compile(const std::string& script);
+	Sheep::IScript* Compile(const std::string& script);
 
 	void Run(IntermediateOutput* code, const std::string& function);
 
@@ -77,17 +78,11 @@ public:
 		return SHEEP_ERROR;
 	}
 
-	int Execute(Sheep::IExecutionContext* context) override
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
+	int Execute(Sheep::IExecutionContext* context) override;
 
-	/// Resumes where the code left off.
-	int Resume(SheepContext* context);
 	SheepContext* Suspend();
 
-	int PopIntFromStack(int* result)
+	int PopIntFromStack(int* result) override
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
@@ -100,7 +95,7 @@ public:
 		return SHEEP_SUCCESS;
 	}
 
-	int PopFloatFromStack(float* result)
+	int PopFloatFromStack(float* result) override
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
@@ -119,9 +114,9 @@ public:
 		return SHEEP_SUCCESS;
 	}
 
-	int PopStringFromStack(const char** result);
+	int PopStringFromStack(const char** result) override;
 
-	int PushIntOntoStack(int i)
+	int PushIntOntoStack(int i) override
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
@@ -133,7 +128,7 @@ public:
 		return SHEEP_SUCCESS;
 	}
 	
-	int PushFloatOntoStack(float f)
+	int PushFloatOntoStack(float f) override
 	{
 		SheepContext* current = m_contextTree->GetCurrent();
 
@@ -144,8 +139,6 @@ public:
 
 		return SHEEP_SUCCESS;
 	}
-
-	SheepImportTable& GetImports() { return m_imports; }
 
 	bool IsInWaitSection()
 	{ 
@@ -177,6 +170,8 @@ public:
 	void SetTag(void* tag) { m_tag = tag; }
 	void* GetTag() { return m_tag; }
 
+	Sheep::ICompiler* GetCompiler() { return m_compiler; }
+
 private:
 
 	void prepareVariables(SheepContext* context);
@@ -188,8 +183,6 @@ private:
 
 	SheepContextTree* m_contextTree;
 	int m_executingDepth;
-
-	SheepImportTable m_imports;
 
 	Sheep::EndWaitCallback m_endWaitCallback;
 

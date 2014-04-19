@@ -10,7 +10,7 @@
 //#include "sheepfile.h"
 #include "sheepException.h"
 
-namespace SheepCompiler
+namespace Sheep
 {
 	#define READ4(p) file.read((char*)p, 4);
 	#define READ2(p) file.read((char*)p, 2);

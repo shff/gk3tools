@@ -38,6 +38,8 @@ namespace Internal
 		const char* GetMessage(int index) override;
 
 		void AddMessage(int lineNumber, const char* message);
+
+		IntermediateOutput* GetIntermediateOutput() { return m_output; }
 	};
 }
 }
