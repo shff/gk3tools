@@ -41,7 +41,6 @@ public:
 class SheepMachine : public Sheep::IVirtualMachine
 {
 	StringDictionary<Sheep::ImportCallback> m_importCallbacks;
-	Sheep::ICompiler* m_compiler;
 
 public:
 
@@ -59,24 +58,9 @@ public:
 	int SetEndWaitCallback(Sheep::EndWaitCallback callback) { m_endWaitCallback = callback; return SHEEP_SUCCESS; }
 	int SetImportCallback(const char* importName, Sheep::ImportCallback callback);
 
-	Sheep::IScript* Compile(const std::string& script);
-
 	void Run(Sheep::IScript* script, const std::string& function);
 
-	/// Runs a snippet. Returns SHEEP_SUCCESS on success, and the value
-	/// left on the stack (if any) is put into 'result'. Or returns
-	/// SHEEP_ERROR on error.
-	int RunSnippet(const std::string& snippet, int* result)
-    {
-        return RunSnippet(snippet, 0, 0, result);
-    }
-    int RunSnippet(const std::string& snippet, int noun, int verb, int* result);
-
-	int PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context) override
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
+	int PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context) override;
 
 	int Execute(Sheep::IExecutionContext* context) override;
 
@@ -169,8 +153,6 @@ public:
 
 	void SetTag(void* tag) { m_tag = tag; }
 	void* GetTag() { return m_tag; }
-
-	Sheep::ICompiler* GetCompiler() { return m_compiler; }
 
 private:
 

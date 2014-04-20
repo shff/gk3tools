@@ -116,12 +116,17 @@ DECLSPEC void LIB_CALL SHP_SetAllocator(SHP_Allocator* allocator);
 typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* message);
 DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
 
-DECLSPEC int LIB_CALL SHP_RunSnippet(SheepVM* vm, const char* script, int* result);
-DECLSPEC int LIB_CALL SHP_RunNounVerbSnippet(SheepVM* vm, const char* script, int noun, int verb, int* result);
-DECLSPEC int LIB_CALL SHP_RunScript(SheepVM* vm, SheepScript* script, const char* function);
+DECLSPEC int LIB_CALL shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context);
+DECLSPEC int LIB_CALL shp_Execute(SheepVM* vm, SheepVMContext* context);
+DECLSPEC int LIB_CALL shp_GetNumVariables(SheepVMContext* context);
+DECLSPEC int LIB_CALL shp_GetVariableName(SheepVMContext* context, int index, const char** name);
+DECLSPEC int LIB_CALL shp_GetVariableI(SheepVMContext* context, int index, int* value);
+DECLSPEC int LIB_CALL shp_GetVariableF(SheepVMContext* context, int index, float* value);
+DECLSPEC int LIB_CALL shp_SetVariableI(SheepVMContext* context, int index, int value);
+DECLSPEC int LIB_CALL shp_SetVariableF(SheepVMContext* context, int index, float value);
 
 typedef void (CALLBACK *SHP_ImportCallback)(SheepVM* vm);
-DECLSPEC void LIB_CALL SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters, SHP_ImportCallback callback);
+DECLSPEC void LIB_CALL SHP_SetImportCallback(SheepVM* vm, const char* name, SHP_ImportCallback callback);
 
 DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm, int* result);
 DECLSPEC int LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);
@@ -182,7 +187,6 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 
 DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
 DECLSPEC SheepVMContext* LIB_CALL SHP_Suspend(SheepVM* vm);
-DECLSPEC int LIB_CALL SHP_Resume(SheepVM* vm, SheepVMContext* context);
 typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);
 DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
 

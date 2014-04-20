@@ -49,10 +49,9 @@ void SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback)
 	SM(vm)->SetCompileOutputCallback(callback);
 }
 
-void SHP_AddImport(SheepVM* vm, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters, SHP_ImportCallback callback)
+void SHP_SetImportCallback(SheepVM* vm, const char* name, SHP_ImportCallback callback)
 {
 	SM(vm)->SetImportCallback(name, (Sheep::ImportCallback)callback);
-	SM(vm)->GetCompiler()->DefineImportFunction(name, (Sheep::SymbolType)returnType, (Sheep::SymbolType*)parameters, numParameters);
 }
 
 int SHP_RunScript(SheepVM* vm, SheepScript* script, const char* function)
@@ -80,32 +79,62 @@ int SHP_RunScript(SheepVM* vm, SheepScript* script, const char* function)
 	}
 }
 
-int SHP_RunSnippet(SheepVM* vm, const char* script, int* result)
+int shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context)
 {
-	assert(vm != NULL);
+	if (vm == nullptr || script == nullptr || function == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	try
-	{
-		return SM(vm)->RunSnippet(script, result);
-	}
-	catch(SheepException& ex)
-	{
-		return ex.GetErrorNum();
-	}
+	return SM(vm)->PrepareScriptForExecution((Sheep::IScript*)script, function, (Sheep::IExecutionContext**)context);
 }
 
-int SHP_RunNounVerbSnippet(SheepVM* vm, const char* script, int noun, int verb, int* result)
+int shp_GetNumVariables(SheepVMContext* context)
 {
-	assert(vm != NULL);
+	if (context == nullptr)
+		return 0;
 
-	try
-	{
-		return SM(vm)->RunSnippet(script, noun, verb, result);
-	}
-	catch(SheepException& ex)
-	{
-		return ex.GetErrorNum();
-	}
+	return ((Sheep::IExecutionContext*)context)->GetNumVariables();
+}
+
+int shp_GetVariableName(SheepVMContext* context, int index, const char** name)
+{
+	if (context == nullptr || name == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	*name = ((Sheep::IExecutionContext*)context)->GetVariableName(index);
+
+	return SHEEP_SUCCESS;
+}
+
+int shp_GetVariableI(SheepVMContext* context, int index, int* value)
+{
+	if (context == nullptr || value == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	return ((SheepContext*)context)->GetVariableInt(index, value);
+}
+
+int shp_GetVariableF(SheepVMContext* context, int index, float* value)
+{
+	if (context == nullptr || value == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	return ((Sheep::IExecutionContext*)context)->GetVariableFloat(index, value);
+}
+
+int shp_SetVariableI(SheepVMContext* context, int index, int value)
+{
+	if (context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	return ((Sheep::IExecutionContext*)context)->SetVariableInt(index, value);
+}
+
+int shp_SetVariableF(SheepVMContext* context, int index, float value)
+{
+	if (context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	return ((Sheep::IExecutionContext*)context)->SetVariableFloat(index, value);
 }
 
 int SHP_PopIntFromStack(SheepVM* vm, int* result)
@@ -162,9 +191,10 @@ SheepVMContext* SHP_Suspend(SheepVM* vm)
 	}
 }
 
-int SHP_Resume(SheepVM* vm, SheepVMContext* context)
+int shp_Execute(SheepVM* vm, SheepVMContext* context)
 {
-	assert(vm != NULL);
+	if (vm == nullptr || context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
 	try
 	{

@@ -23,15 +23,11 @@ SheepMachine::SheepMachine()
 
 	m_tag = NULL;
 	m_enhancementsEnabled = false;
-
-	m_compiler = SHEEP_NEW Sheep::Internal::Compiler(Sheep::SheepLanguageVersion::V200);
 }
 
 SheepMachine::~SheepMachine()
 {
 	delete m_contextTree;
-
-	m_compiler->Release();
 }
 
 void SheepMachine::SetOutputCallback(void (*callback)(const char *))
@@ -90,11 +86,6 @@ int SheepMachine::PopStringFromStack(const char** result)
 	return SHEEP_SUCCESS;
 }
 
-Sheep::IScript* SheepMachine::Compile(const std::string &script)
-{
-	return m_compiler->CompileScript(script.c_str());
-}
-
 
 void SheepMachine::prepareVariables(SheepContext* context)
 {
@@ -103,8 +94,28 @@ void SheepMachine::prepareVariables(SheepContext* context)
 
 void SheepMachine::Run(Sheep::IScript* script, const std::string &function)
 {
-	if (script == NULL)
-		throw SheepMachineException("No code to execute.");
+	Sheep::IExecutionContext* context;
+	if (PrepareScriptForExecution(script, function.c_str(), &context) != SHEEP_SUCCESS)
+		throw new SheepMachineException("Unable to execute.");
+
+	Execute(context);
+}
+
+SheepContext* SheepMachine::Suspend()
+{
+	SheepContext* currentContext = m_contextTree->GetCurrent();
+
+	if (currentContext == NULL)
+		throw SheepMachineException("No context available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
+
+	currentContext->UserSuspended = true;
+	return currentContext;
+}
+
+int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context)
+{
+	if (script == nullptr || function == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
 	IntermediateOutput* code = static_cast<Sheep::Internal::Script*>(script)->GetIntermediateOutput();
 
@@ -121,8 +132,7 @@ void SheepMachine::Run(Sheep::IScript* script, const std::string &function)
 	}
 
 	if (sheepfunction == NULL)
-		throw NoSuchFunctionException(function);
-
+		return SHEEP_ERR_NO_SUCH_FUNCTION;
 
 	SheepContext* c = SHEEP_NEW SheepContext();
 	c->FullCode = code;
@@ -134,96 +144,11 @@ void SheepMachine::Run(Sheep::IScript* script, const std::string &function)
 
 	m_contextTree->Add(c);
 
-	m_executingDepth++;
-	execute(c);
-	m_executingDepth--;
-
-	if (c->UserSuspended == false &&
-		c->ChildSuspended == false)
-	{
-		c->FullCode->Release();
-		m_contextTree->KillContext(c);
-	}
-}
- 
-int SheepMachine::RunSnippet(const std::string& snippet, int noun, int verb, int* result)
-{
-	try
-	{
-		std::stringstream ss;
-		ss << "symbols { int result$; int n$; int v$; } code { snippet$() { result$ = " << snippet << "; } }";
-
-
-		Sheep::Internal::Script* script = static_cast<Sheep::Internal::Script*>(m_compiler->CompileScript(ss.str().c_str()));
-
-	IntermediateOutput* code = script->GetIntermediateOutput();
-
-	if (code->Errors.empty() == false)
-	{
-		if (m_compilerCallback)
-		{
-			for (std::vector<CompilerOutput>::iterator itr = code->Errors.begin();
-				itr != code->Errors.end(); itr++)
-			{
-				m_compilerCallback((*itr).LineNumber, (*itr).Output.c_str());
-			}
-		}
-
-		return SHEEP_ERROR;
-	}
-
-	
-	if (code->Functions.empty())
-	{
-		return SHEEP_ERROR;
-	}
-
-	SheepContext* c = SHEEP_NEW SheepContext();
-	c->FullCode = code;
-	c->CodeBuffer = code->Functions[0].Code;
-	c->FunctionOffset = code->Functions[0].CodeOffset;
-	c->InstructionOffset = 0;
-	prepareVariables(c);
-	
-	c->SetVariableInt(1, noun);
-	c->SetVariableInt(2, verb);
-
-	m_contextTree->Add(c);
-	m_executingDepth++;
-	execute(c);
-	m_executingDepth--;
-
-	if (result != NULL)
-		c->GetVariableInt(0, result);
-
-	c->FullCode->Release();
-	m_contextTree->KillContext(c);
+	if (context != nullptr)
+		*context = c;
 
 	return SHEEP_SUCCESS;
-
-	}
-	catch(SheepException& ex)
-	{
-		if (m_compilerCallback)
-		{
-			m_compilerCallback(0, ex.GetMessage().c_str());
-		}
-
-		return -5;
-	}
 }
-
-SheepContext* SheepMachine::Suspend()
-{
-	SheepContext* currentContext = m_contextTree->GetCurrent();
-
-	if (currentContext == NULL)
-		throw SheepMachineException("No context available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
-
-	currentContext->UserSuspended = true;
-	return currentContext;
-}
-
 
 int SheepMachine::Execute(Sheep::IExecutionContext* context)
 {
@@ -271,10 +196,6 @@ int SheepMachine::Execute(Sheep::IExecutionContext* context)
 
 				parent = parent->Parent;
 			}
-
-			// now then, this context is all finished, so we can kill it
-			ctx->FullCode->Release();
-			m_contextTree->KillContext(ctx);
 
 			return SHEEP_SUCCESS;
 		}

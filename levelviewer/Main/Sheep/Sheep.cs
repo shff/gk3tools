@@ -76,7 +76,7 @@ namespace Gk3Main.Sheep
         {
             if (_vm != IntPtr.Zero)
             {
-                SHP_AddImport(_vm, name, returnType, parameters, parameters.Length, Marshal.GetFunctionPointerForDelegate(callback));
+                SHP_SetImportCallback(_vm, name, Marshal.GetFunctionPointerForDelegate(callback));
 
                 shp_DefineImportFunction(_compiler, name, returnType, parameters, parameters.Length);
             }
@@ -117,7 +117,12 @@ namespace Gk3Main.Sheep
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to load sheep bytecode");
 
-                        err = SHP_RunScript(_vm, script, function);
+                        IntPtr context;
+                        err = shp_PrepareScriptForExecution(_vm, script, function, out context);
+                        if (err != SHEEP_SUCCESS)
+                            throw new SheepException("Unable to execute Sheep script");
+
+                        err = shp_Execute(_vm, context);
                         if (err != SHEEP_SUCCESS && err != SHEEP_SUSPENDED)
                         {
                             SHP_PrintStackTrace(_vm);
@@ -140,7 +145,12 @@ namespace Gk3Main.Sheep
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to compile Sheep script");
 
-                        err = SHP_RunScript(_vm, result, function);
+                        IntPtr context;
+                        err = shp_PrepareScriptForExecution(_vm, result, function, out context);
+                        if (err != SHEEP_SUCCESS)
+                            throw new SheepException("Unable to execute Sheep script");
+
+                        err = shp_Execute(_vm, context);
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to execute Sheep script");
                     }
@@ -163,13 +173,31 @@ namespace Gk3Main.Sheep
                 _output.Clear();
 
                 Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Executing snippet: {0}", snippet);
-                int err = SHP_RunNounVerbSnippet(_vm, snippet, (int)noun, (int)verb, out result);
+
+                string script = string.Format("symbols {{ int result$; int n$; int v$; }} code {{ main$() {{ result$ = {0}; }} }}", snippet);
+
+                IntPtr compiledSnippet;
+                if (shp_CompileScript(_compiler, script, out compiledSnippet) != SHEEP_SUCCESS)
+                    throw new SheepException("Unable to compile snippet");
+
+                IntPtr context;
+                if (shp_PrepareScriptForExecution(_vm, compiledSnippet, "main$", out context) != SHEEP_SUCCESS)
+                    throw new SheepException("Unable to execute snippet");
+
+                if (shp_SetVariableI(context, 1, (int)noun) != SHEEP_SUCCESS ||
+                    shp_SetVariableI(context, 2, (int)verb) != SHEEP_SUCCESS)
+                    throw new SheepException("Unable to execute snippet");
+
+                int err = shp_Execute(_vm, context);
 
                 if (err != 0)
                 {
                     Logger.WriteError("Error ({0}) received when attempting to execute snippet: {1}", err, snippet);
                     throw new SheepException("Unable to execute snippet");
                 }
+
+                if (shp_GetVariableI(context, 0, out result) != SHEEP_SUCCESS)
+                    throw new SheepException("Unable to get result of snippet");
 
                 return result;
             }
@@ -181,27 +209,7 @@ namespace Gk3Main.Sheep
 
         public static int RunSnippet(string snippet)
         {
-            if (_vm != IntPtr.Zero)
-            {
-                int result;
-
-                _output.Clear();
-
-                Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Executing snippet: {0}", snippet);
-                int err = SHP_RunSnippet(_vm, snippet, out result);
-
-                if (err != 0)
-                {
-                    Logger.WriteError("Error ({0}) received when attempting to execute snippet: {1}", err, snippet);
-                    throw new SheepException("Unable to execute snippet");
-                }
-
-                return result;
-            }
-            else
-            {
-                throw new SheepException(SheepUnavailableError);
-            }
+            return RunSnippet(snippet, Game.Nouns.N_NONE, Game.Verbs.V_NONE);
         }
 
         public static void RunCommand(string command)
@@ -217,9 +225,14 @@ namespace Gk3Main.Sheep
                 if (err != SHEEP_SUCCESS)
                     throw new SheepException("Unable to compile sheep command: " + err.ToString());
 
-                err = SHP_RunScript(_vm, result, "main$");
+                IntPtr context;
+                err = shp_PrepareScriptForExecution(_vm, result, "main$", out context);
+                if (err != SHEEP_SUCCESS)
+                    throw new SheepException("Unable to execute command: " + err.ToString());
 
-                if (err != 0)
+                err = shp_Execute(_vm, context);
+
+                if (err != SHEEP_SUCCESS && err != SHEEP_SUSPENDED)
                 {
                     Logger.WriteError("Error ({0}) received when attempting to execute Sheep command: {1}", err, command);
                     throw new SheepException("Unable to execute command: " + err.ToString());
@@ -238,7 +251,12 @@ namespace Gk3Main.Sheep
             if (err != SHEEP_SUCCESS)
                 throw new SheepException("Unable to compile sheep script: " + err.ToString());
 
-            err = SHP_RunScript(_vm, result, function);
+            IntPtr context;
+            err = shp_PrepareScriptForExecution(_vm, result, function, out context);
+            if (err != SHEEP_SUCCESS)
+                throw new SheepException("Unable to execute Sheep script");
+
+            err = shp_Execute(_vm, context);
             if (err != SHEEP_SUCCESS)
                 throw new SheepException("Unable to execute Sheep script");
         }
@@ -337,7 +355,7 @@ namespace Gk3Main.Sheep
             foreach (IntPtr wait in deadWaits)
             {
                 // resume
-                int result = SHP_Resume(_vm, wait);
+                int result = shp_Execute(_vm, wait);
                 if (result != SHEEP_SUCCESS && result != SHEEP_SUSPENDED)
                     throw new SheepException("Unable to resume");
 
@@ -439,7 +457,7 @@ namespace Gk3Main.Sheep
         private static extern void SHP_DestroyVM(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern void SHP_AddImport(IntPtr vm, string name, SymbolType returnType, SymbolType[] parameters, int numParameters, IntPtr callback);
+        private static extern void SHP_SetImportCallback(IntPtr vm, string name, IntPtr callback);
 
         [DllImport("sheep")]
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
@@ -460,13 +478,31 @@ namespace Gk3Main.Sheep
         private static extern IntPtr SHP_GetCurrentContext(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern int SHP_RunScript(IntPtr vm, IntPtr script, string function);
-
-        [DllImport("sheep")]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
 
         [DllImport("sheep")]
         private static extern int SHP_RunNounVerbSnippet(IntPtr vm, string snippet, int noun, int verb, out int result);
+
+        [DllImport("sheep")]
+        private static extern int shp_PrepareScriptForExecution(IntPtr vm, IntPtr script, string function, out IntPtr context);
+
+        [DllImport("sheep")]
+        private static extern int shp_GetNumVariables(IntPtr context);
+
+        [DllImport("sheep")]
+        private static extern int shp_GetVariableName(IntPtr context, int index, out string name);
+
+        [DllImport("sheep")]
+        private static extern int shp_GetVariableI(IntPtr context, int index, out int value);
+
+        [DllImport("sheep")]
+        private static extern int shp_GetVariableF(IntPtr context, int index, out float value);
+
+        [DllImport("sheep")]
+        private static extern int shp_SetVariableI(IntPtr context, int index, int value);
+
+        [DllImport("sheep")]
+        private static extern int shp_SetVariableF(IntPtr context, int index, float value);
 
         [DllImport("sheep")]
         private static extern void SHP_SetOutputCallback(IntPtr vm, IntPtr callback);
@@ -478,7 +514,7 @@ namespace Gk3Main.Sheep
         private static extern IntPtr SHP_Suspend(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern int SHP_Resume(IntPtr vm, IntPtr context);
+        private static extern int shp_Execute(IntPtr vm, IntPtr context);
 
         [DllImport("sheep")]
         private static extern void SHP_SetEndWaitCallback(IntPtr vm, IntPtr callback);
