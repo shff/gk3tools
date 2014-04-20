@@ -40,6 +40,7 @@ public:
 
 class SheepMachine : public Sheep::IVirtualMachine
 {
+	int m_refCount;
 	StringDictionary<Sheep::ImportCallback> m_importCallbacks;
 
 public:
@@ -47,10 +48,7 @@ public:
 	SheepMachine();
 	virtual ~SheepMachine();
 
-	void Release() override
-	{
-		// TODO
-	}
+	void Release() override;
 
 	void SetOutputCallback(void (*callback)(const char* message));
 	void SetCompileOutputCallback(SHP_MessageCallback callback);

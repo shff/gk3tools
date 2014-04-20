@@ -20,10 +20,26 @@ void SheepContext::PrepareVariables()
 	}
 }
 
+void SheepContext::Release()
+{
+	m_refCount--;
+
+	if (m_refCount <= 0)
+	{
+		delete this;
+	}
+}
+
 const char* SheepContext::GetVariableName(int index)
 {
 	if (index < 0 || index >= FullCode->Symbols.size())
 		return nullptr;
 
 	FullCode->Symbols[index].Name.c_str();
+}
+
+SheepContextTree::~SheepContextTree()
+{
+	// delete ALL the child contexts, whether they've been released or not
+	deleteContextAndChildren(m_parentContext);
 }

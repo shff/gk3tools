@@ -8,6 +8,8 @@
 
 SheepMachine::SheepMachine()
 {
+	m_refCount = 0;
+
 	m_callback = NULL;
 	m_compilerCallback = NULL;
 	m_endWaitCallback = NULL;
@@ -28,6 +30,17 @@ SheepMachine::SheepMachine()
 SheepMachine::~SheepMachine()
 {
 	delete m_contextTree;
+}
+
+void SheepMachine::Release()
+{
+	m_refCount--;
+
+	if (m_refCount <= 0)
+	{
+		// delete this, the context tree, and all unreleased contexts
+		delete this;
+	}
 }
 
 void SheepMachine::SetOutputCallback(void (*callback)(const char *))
@@ -145,7 +158,10 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	m_contextTree->Add(c);
 
 	if (context != nullptr)
+	{
+		c->Aquire();
 		*context = c;
+	}
 
 	return SHEEP_SUCCESS;
 }

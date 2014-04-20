@@ -55,3 +55,24 @@ TEST(CreateNewVMTestCpp, TestCompiler)
 
 	compiler->Release();
 }
+
+TEST(CreateNewVMTestCpp, TestVM)
+{
+	Sheep::ICompiler* compiler = CreateSheepCompiler(Sheep::SheepLanguageVersion::V200);
+	ASSERT_NE(compiler, nullptr);
+
+	Sheep::IScript* script = compiler->CompileScript("code { main$() { } }");
+	ASSERT_NE(script, nullptr);
+	ASSERT_EQ(Sheep::ScriptStatus::Success, script->GetStatus());
+
+	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine();
+	ASSERT_NE(vm, nullptr);
+
+	ASSERT_EQ(SHEEP_ERR_INVALID_ARGUMENT, vm->Execute(nullptr));
+
+	Sheep::IExecutionContext* context;
+	ASSERT_EQ(SHEEP_SUCCESS, vm->PrepareScriptForExecution(script, "main$", &context));
+	context->Release();
+
+	vm->Release();
+}

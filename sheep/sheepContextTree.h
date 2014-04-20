@@ -42,11 +42,14 @@ class IntermediateOutput;
 
 class SheepContext : public Sheep::IExecutionContext
 {
+	int m_refCount;
 	std::vector<StackItem> m_variables;
 
 public:
 	SheepContext()
 	{
+		m_refCount = 0;
+
 		InWaitSection = false;
 		UserSuspended = false;
 		ChildSuspended = false;
@@ -93,10 +96,8 @@ public:
 
 	void PrepareVariables();
 
-	void Release() override
-	{
-		// TODO
-	}
+	void Aquire() { m_refCount++; }
+	void Release() override;
 
 	int GetNumVariables() override
 	{
@@ -237,6 +238,8 @@ public:
 		m_parentContext = NULL;
 	}
 
+	~SheepContextTree();
+
 	SheepContext* GetCurrent() { return m_currentContext; }
 	void SetCurrent(SheepContext* context)
 	{ 
@@ -249,6 +252,9 @@ public:
 		assert(context->Parent == NULL);
 		assert(context->FirstChild == NULL);
 		assert(context->Sibling == NULL);
+
+		// Aquire() a reference to the context so it won't be deleted until we Release() it
+		context->Aquire();
 
 		if (m_parentContext == NULL)
 		{
@@ -379,6 +385,20 @@ public:
 
 	
 private:
+
+	void deleteContextAndChildren(SheepContext* context)
+	{
+		if (context != nullptr)
+		{
+			SheepContext* sibling = context->Sibling;
+
+			deleteContextAndChildren(sibling);
+
+			deleteContextAndChildren(context->FirstChild);
+
+			delete context;
+		}
+	}
 
 	static void addAsSibling(SheepContext* child, SheepContext* toAdd)
 	{

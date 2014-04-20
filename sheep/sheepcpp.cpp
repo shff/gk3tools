@@ -1,6 +1,7 @@
 #include "sheepcpp.h"
 #include "sheepFileReader.h"
 #include "sheepException.h"
+#include "sheepMachine.h"
 #include "Internal/compiler.h"
 #include "Internal/virtualmachine.h"
 #include "Internal/script.h"
@@ -12,7 +13,7 @@ extern "C" Sheep::ICompiler* SHP_APIENTRY CreateSheepCompiler(Sheep::SheepLangua
 
 Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine()
 {
-	return SHEEP_NEW Sheep::Internal::VirtualMachine();
+	return SHEEP_NEW SheepMachine();
 }
 
 int SHP_APIENTRY CreateScriptFromBytecode(const char* bytecode, int length, Sheep::IScript** result)
