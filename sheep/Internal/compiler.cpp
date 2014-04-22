@@ -11,6 +11,7 @@ namespace Internal
 	Compiler::Compiler(SheepLanguageVersion version)
 	{
 		m_refCount = 0;
+		m_version = version;
 
 		// define the built-in "call" function
 		SymbolType params[] = { SymbolType::String };

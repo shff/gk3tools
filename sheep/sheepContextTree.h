@@ -245,7 +245,8 @@ public:
 
 	SheepContextTree()
 	{
-		m_parentContext = NULL;
+		m_parentContext = nullptr;
+		m_currentContext = nullptr;
 	}
 
 	~SheepContextTree();
