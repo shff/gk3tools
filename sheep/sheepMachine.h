@@ -56,13 +56,9 @@ public:
 	int SetEndWaitCallback(Sheep::EndWaitCallback callback) { m_endWaitCallback = callback; return SHEEP_SUCCESS; }
 	int SetImportCallback(const char* importName, Sheep::ImportCallback callback);
 
-	void Run(Sheep::IScript* script, const std::string& function);
-
 	int PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context) override;
 
-	int Execute(Sheep::IExecutionContext* context) override;
-
-	SheepContext* Suspend();
+	void Execute(SheepContext* context);
 
 	int PopIntFromStack(int* result) override
 	{
@@ -155,7 +151,6 @@ public:
 private:
 
 	void prepareVariables(SheepContext* context);
-	void execute(SheepContext* context);
 	void executeNextInstruction(SheepContext* context);
 
 	void (*m_callback)(const char* message);

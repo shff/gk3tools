@@ -30,6 +30,77 @@ void SheepContext::Release()
 	}
 }
 
+int SheepContext::Execute()
+{
+	if (Dead == true || 
+		(m_state != Sheep::ExecutionContextState::Prepared && m_state != Sheep::ExecutionContextState::Suspended))
+		return SHEEP_ERR_CANT_RESUME;
+
+	m_state = Sheep::ExecutionContextState::Executing;
+	UserSuspended = false;
+
+	if (ChildSuspended == false ||
+		AreAnyChildrenSuspended() == false)
+	{
+		// children are obviously done
+		ChildSuspended = false;
+
+		// not waiting on anything, so run some code
+		m_parentVM->Execute(this);
+
+		if (ChildSuspended == false &&
+			UserSuspended == false)
+		{
+			// before we can kill the context we need
+			// to check its ancestors, since one of them
+			// may have been waiting on this child to finish
+			SheepContext* parent = Parent;
+			while(parent != NULL)
+			{
+				if (parent->Dead == false &&
+					parent->ChildSuspended == true &&
+					parent->UserSuspended == false &&
+					parent->AreAnyChildrenSuspended() == false)
+				{
+					parent->ChildSuspended = false;
+					parent->Execute();
+
+					// no need to continue the loop, since the
+					// Resume() call we just made will handle the
+					// rest of the ancestors
+					break;
+				}
+
+				parent = parent->Parent;
+			}
+
+			m_state = Sheep::ExecutionContextState::Finished;
+			return SHEEP_SUCCESS;
+		}
+		else
+		{
+			m_state = Sheep::ExecutionContextState::Suspended;
+			return SHEEP_SUSPENDED;
+		}
+	}
+	else
+	{
+		m_state = Sheep::ExecutionContextState::Suspended;
+		return SHEEP_SUSPENDED;
+	}
+}
+
+int SheepContext::Suspend()
+{
+	if (m_state != Sheep::ExecutionContextState::Executing)
+		return SHEEP_ERROR; // TODO: use a more specific error code
+
+	UserSuspended = true;
+	m_state = Sheep::ExecutionContextState::Suspended;
+
+	return SHEEP_SUCCESS;
+}
+
 const char* SheepContext::GetVariableName(int index)
 {
 	if (index < 0 || index >= FullCode->Symbols.size())

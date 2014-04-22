@@ -39,6 +39,14 @@ namespace Sheep
 	class IScript;
 	class IVirtualMachine;
 
+	enum class ExecutionContextState
+	{
+		Prepared,
+		Executing,
+		Suspended,
+		Finished
+	};
+
 	class IExecutionContext
 	{
 	public:
@@ -46,6 +54,11 @@ namespace Sheep
 		///
 		/// Once the reference count reaches 0 the Context is destroyed.
 		virtual void Release() = 0;
+
+		virtual int Execute() = 0;
+		virtual int Suspend() = 0;
+
+		virtual ExecutionContextState GetState() = 0;
 
 		/// Gets the number of global variables within the script associated with the Context.
 		virtual int GetNumVariables() = 0;
@@ -85,7 +98,6 @@ namespace Sheep
 		virtual int SetImportCallback(const char* importName, ImportCallback callback) = 0;
 
 		virtual int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) = 0;
-		virtual int Execute(IExecutionContext* context) = 0;
 
 		virtual int PopIntFromStack(int* result) = 0;
 		virtual int PopFloatFromStack(float* result) = 0;

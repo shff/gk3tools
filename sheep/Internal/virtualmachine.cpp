@@ -41,12 +41,6 @@ namespace Internal
 		return SHEEP_ERROR;
 	}
 
-	int VirtualMachine::Execute(IExecutionContext* context)
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
-
 	int VirtualMachine::PopIntFromStack(int* result)
 	{
 		// TODO

@@ -54,31 +54,6 @@ void SHP_SetImportCallback(SheepVM* vm, const char* name, SHP_ImportCallback cal
 	SM(vm)->SetImportCallback(name, (Sheep::ImportCallback)callback);
 }
 
-int SHP_RunScript(SheepVM* vm, SheepScript* script, const char* function)
-{
-	assert(vm != NULL);
-	
-	try
-	{
-		Sheep::Internal::Script* s = (Sheep::Internal::Script*)script;
-		if (s->GetStatus() == Sheep::ScriptStatus::Success)
-		{
-			SM(vm)->Run(s, function);
-
-			return SHEEP_SUCCESS;
-		}
-
-		return SHEEP_GENERIC_COMPILER_ERROR;
-	}
-	catch(SheepException& ex)
-	{
-		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
-			printf("%s\n", ex.GetMessage().c_str());
-
-		return ex.GetErrorNum();
-	}
-}
-
 int shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context)
 {
 	if (vm == nullptr || script == nullptr || function == nullptr)
@@ -177,36 +152,20 @@ int SHP_IsInWaitSection(SheepVM* vm)
 	return SHEEP_FALSE;
 }
 
-SheepVMContext* SHP_Suspend(SheepVM* vm)
+int SHP_Suspend(SheepVMContext* context)
 {
-	assert(vm != NULL);
-
-	try
-	{
-		return (SheepVMContext*)SM(vm)->Suspend();
-	}
-	catch(SheepException& ex)
-	{
-		return NULL;
-	}
-}
-
-int shp_Execute(SheepVM* vm, SheepVMContext* context)
-{
-	if (vm == nullptr || context == nullptr)
+	if (context == nullptr)
 		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	try
-	{
-		return SM(vm)->Execute((SheepContext*)context);
-	}
-	catch(SheepException& ex)
-	{
-		if (SM(vm)->GetVerbosity() >= SheepMachine::Verbosity_Polite)
-			printf("%s\n", ex.GetMessage().c_str());
+	return ((SheepContext*)context)->Suspend();
+}
 
-		return ex.GetErrorNum();
-	}
+int shp_Execute(SheepVMContext* context)
+{
+	if (context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	return ((SheepContext*)context)->Execute();
 }
 
 void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)

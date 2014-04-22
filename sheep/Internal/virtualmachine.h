@@ -25,7 +25,6 @@ namespace Internal
 		int SetImportCallback(const char* importName, ImportCallback callback) override;
 
 		int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) override;
-		int Execute(IExecutionContext* context) override;
 
 		int PopIntFromStack(int* result) override;
 		int PopFloatFromStack(float* result) override;

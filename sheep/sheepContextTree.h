@@ -39,14 +39,17 @@ struct StackItem
 typedef std::stack<StackItem> SheepStack;
 
 class IntermediateOutput;
+class SheepMachine;
 
 class SheepContext : public Sheep::IExecutionContext
 {
 	int m_refCount;
 	std::vector<StackItem> m_variables;
+	Sheep::ExecutionContextState m_state;
+	SheepMachine* m_parentVM;
 
 public:
-	SheepContext()
+	SheepContext(SheepMachine* parentVM)
 	{
 		m_refCount = 0;
 
@@ -56,12 +59,14 @@ public:
 		FunctionOffset = 0;
 		InstructionOffset = 0;
 		CodeBuffer = NULL;
+		m_parentVM = parentVM;
 
 		Parent = NULL;
 		FirstChild = NULL;
 		Sibling = NULL;
 
 		Dead = false;
+		m_state = Sheep::ExecutionContextState::Prepared;
 	}
 
 	SheepStack Stack;
@@ -98,6 +103,11 @@ public:
 
 	void Aquire() { m_refCount++; }
 	void Release() override;
+
+	int Execute() override;
+	int Suspend() override;
+
+	Sheep::ExecutionContextState GetState() override { return m_state; }
 
 	int GetNumVariables() override
 	{

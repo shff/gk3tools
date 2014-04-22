@@ -105,26 +105,6 @@ void SheepMachine::prepareVariables(SheepContext* context)
 	context->PrepareVariables();
 }
 
-void SheepMachine::Run(Sheep::IScript* script, const std::string &function)
-{
-	Sheep::IExecutionContext* context;
-	if (PrepareScriptForExecution(script, function.c_str(), &context) != SHEEP_SUCCESS)
-		throw new SheepMachineException("Unable to execute.");
-
-	Execute(context);
-}
-
-SheepContext* SheepMachine::Suspend()
-{
-	SheepContext* currentContext = m_contextTree->GetCurrent();
-
-	if (currentContext == NULL)
-		throw SheepMachineException("No context available", SHEEP_ERR_NO_CONTEXT_AVAILABLE);
-
-	currentContext->UserSuspended = true;
-	return currentContext;
-}
-
 int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context)
 {
 	if (script == nullptr || function == nullptr)
@@ -147,7 +127,7 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	if (sheepfunction == NULL)
 		return SHEEP_ERR_NO_SUCH_FUNCTION;
 
-	SheepContext* c = SHEEP_NEW SheepContext();
+	SheepContext* c = SHEEP_NEW SheepContext(this);
 	c->FullCode = code;
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
@@ -164,66 +144,6 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	}
 
 	return SHEEP_SUCCESS;
-}
-
-int SheepMachine::Execute(Sheep::IExecutionContext* context)
-{
-	SheepContext* ctx = static_cast<SheepContext*>(context);
-
-	if (context == nullptr)
-		return SHEEP_ERR_INVALID_ARGUMENT;
-
-	if (ctx->Dead == true)
-		return SHEEP_ERR_CANT_RESUME;
-
-	ctx->UserSuspended = false;
-
-	if (ctx->ChildSuspended == false ||
-		ctx->AreAnyChildrenSuspended() == false)
-	{
-		// children are obviously done
-		ctx->ChildSuspended = false;
-
-		// not waiting on anything, so run some code
-		execute(ctx);
-
-		if (ctx->ChildSuspended == false &&
-			ctx->UserSuspended == false)
-		{
-			// before we can kill the context we need
-			// to check its ancestors, since one of them
-			// may have been waiting on this child to finish
-			SheepContext* parent = ctx->Parent;
-			while(parent != NULL)
-			{
-				if (parent->Dead == false &&
-					parent->ChildSuspended == true &&
-					parent->UserSuspended == false &&
-					parent->AreAnyChildrenSuspended() == false)
-				{
-					parent->ChildSuspended = false;
-					Execute(parent);
-
-					// no need to continue the loop, since the
-					// Resume() call we just made will handle the
-					// rest of the ancestors
-					break;
-				}
-
-				parent = parent->Parent;
-			}
-
-			return SHEEP_SUCCESS;
-		}
-		else
-		{
-			return SHEEP_SUSPENDED;
-		}
-	}
-	else
-	{
-		return SHEEP_SUSPENDED;
-	}
 }
 
 void SheepMachine::PrintStackTrace()
@@ -536,7 +456,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 	}
 }
 
-void SheepMachine::execute(SheepContext* context)
+void SheepMachine::Execute(SheepContext* context)
 {
 	std::vector<SheepImport> imports = context->FullCode->Imports;
 
@@ -576,7 +496,7 @@ void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
 	if (sheepfunction == NULL)
 		throw NoSuchFunctionException(function);
 
-	SheepContext* c = SHEEP_NEW(SheepContext);
+	SheepContext* c = SHEEP_NEW SheepContext(machine);
 	*c = *currentContext;
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
@@ -594,7 +514,7 @@ void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
 	machine->m_contextTree->Add(c);
 
 	machine->m_executingDepth++;
-	machine->execute(c);
+	machine->Execute(c);
 	machine->m_executingDepth--;
 
 	if (c->UserSuspended == false && c->ChildSuspended == false)

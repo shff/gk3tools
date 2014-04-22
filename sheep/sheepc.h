@@ -117,7 +117,7 @@ typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* messag
 DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
 
 DECLSPEC int LIB_CALL shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context);
-DECLSPEC int LIB_CALL shp_Execute(SheepVM* vm, SheepVMContext* context);
+DECLSPEC int LIB_CALL shp_Execute(SheepVMContext* context);
 DECLSPEC int LIB_CALL shp_GetNumVariables(SheepVMContext* context);
 DECLSPEC int LIB_CALL shp_GetVariableName(SheepVMContext* context, int index, const char** name);
 DECLSPEC int LIB_CALL shp_GetVariableI(SheepVMContext* context, int index, int* value);
@@ -186,7 +186,7 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 */
 
 DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
-DECLSPEC SheepVMContext* LIB_CALL SHP_Suspend(SheepVM* vm);
+DECLSPEC int LIB_CALL SHP_Suspend(SheepVMContext* context);
 typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);
 DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
 
