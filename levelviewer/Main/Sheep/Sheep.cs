@@ -122,7 +122,7 @@ namespace Gk3Main.Sheep
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to execute Sheep script");
 
-                        err = shp_Execute(_vm, context);
+                        err = shp_Execute(context);
                         if (err != SHEEP_SUCCESS && err != SHEEP_SUSPENDED)
                         {
                             SHP_PrintStackTrace(_vm);
@@ -150,7 +150,7 @@ namespace Gk3Main.Sheep
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to execute Sheep script");
 
-                        err = shp_Execute(_vm, context);
+                        err = shp_Execute(context);
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to execute Sheep script");
                     }
@@ -188,7 +188,7 @@ namespace Gk3Main.Sheep
                     shp_SetVariableI(context, 2, (int)verb) != SHEEP_SUCCESS)
                     throw new SheepException("Unable to execute snippet");
 
-                int err = shp_Execute(_vm, context);
+                int err = shp_Execute(context);
 
                 if (err != 0)
                 {
@@ -230,7 +230,7 @@ namespace Gk3Main.Sheep
                 if (err != SHEEP_SUCCESS)
                     throw new SheepException("Unable to execute command: " + err.ToString());
 
-                err = shp_Execute(_vm, context);
+                err = shp_Execute(context);
 
                 if (err != SHEEP_SUCCESS && err != SHEEP_SUSPENDED)
                 {
@@ -256,7 +256,7 @@ namespace Gk3Main.Sheep
             if (err != SHEEP_SUCCESS)
                 throw new SheepException("Unable to execute Sheep script");
 
-            err = shp_Execute(_vm, context);
+            err = shp_Execute(context);
             if (err != SHEEP_SUCCESS)
                 throw new SheepException("Unable to execute Sheep script");
         }
@@ -309,9 +309,9 @@ namespace Gk3Main.Sheep
             return SHP_IsInWaitSection(vm) != 0;
         }
 
-        public static void Suspend(IntPtr vm)
+        public static void Suspend(IntPtr context)
         {
-            SHP_Suspend(vm);
+            SHP_Suspend(context);
         }
 
         public static void AddWaitHandle(IntPtr vm, IntPtr context, WaitHandle handle)
@@ -355,7 +355,7 @@ namespace Gk3Main.Sheep
             foreach (IntPtr wait in deadWaits)
             {
                 // resume
-                int result = shp_Execute(_vm, wait);
+                int result = shp_Execute(wait);
                 if (result != SHEEP_SUCCESS && result != SHEEP_SUSPENDED)
                     throw new SheepException("Unable to resume");
 
@@ -424,7 +424,7 @@ namespace Gk3Main.Sheep
                     if (wait.Finished == false)
                     {
                         // still waiting on stuff to finish, so suspend the VM
-                        SHP_Suspend(vm);
+                        SHP_Suspend(context);
                         return;
                     }
                 }
@@ -511,10 +511,10 @@ namespace Gk3Main.Sheep
         private static extern int SHP_IsInWaitSection(IntPtr vm);
 
         [DllImport("sheep")]
-        private static extern IntPtr SHP_Suspend(IntPtr vm);
+        private static extern int SHP_Suspend(IntPtr context);
 
         [DllImport("sheep")]
-        private static extern int shp_Execute(IntPtr vm, IntPtr context);
+        private static extern int shp_Execute(IntPtr context);
 
         [DllImport("sheep")]
         private static extern void SHP_SetEndWaitCallback(IntPtr vm, IntPtr callback);
