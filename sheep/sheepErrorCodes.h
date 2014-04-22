@@ -30,9 +30,6 @@
 /// The variable on the top of the stack was not the expected type
 #define SHEEP_ERR_WRONG_TYPE_ON_STACK -103
 
-/// The VM cannot resume
-#define SHEEP_ERR_CANT_RESUME -104
-
 /// An invalid argument was passed
 #define SHEEP_ERR_INVALID_ARGUMENT -105
 
@@ -41,6 +38,9 @@
 
 /// The specified variable was found, but was not the expected type
 #define SHEEP_ERR_VARIABLE_INCORRECT_TYPE -107
+
+/// The object is not in a state that can perform the operation
+#define SHEEP_ERR_INVALID_OPERATION -108
 
 /// An unspecified VM error
 #define SHEEP_GENERIC_VM_ERROR -200

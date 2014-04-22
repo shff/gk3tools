@@ -68,8 +68,6 @@ TEST(CreateNewVMTestCpp, TestVM)
 	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine();
 	ASSERT_NE(vm, nullptr);
 
-	ASSERT_EQ(SHEEP_ERR_INVALID_ARGUMENT, vm->Execute(nullptr));
-
 	Sheep::IExecutionContext* context;
 	ASSERT_EQ(SHEEP_SUCCESS, vm->PrepareScriptForExecution(script, "main$", &context));
 	context->Release();

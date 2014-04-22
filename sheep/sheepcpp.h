@@ -17,7 +17,7 @@
 
 /** @file */
 
-/// test
+/// Namespace that contains the C++ Sheep API
 namespace Sheep
 {
 	/// Represents a Sheep symbol type
@@ -41,12 +41,23 @@ namespace Sheep
 
 	enum class ExecutionContextState
 	{
+		/// The context has been prepared for execution and is ready to execute
 		Prepared,
+
+		/// The context is currently executing
 		Executing,
+
+		/// The context has been suspended and is ready to resume
 		Suspended,
+
+		/// The context has finished execution
 		Finished
 	};
 
+	/// Represents a currently executing Sheep script.
+	///
+	/// It is created using Sheep::IVirtualMachine::PrepareScriptForExecution() and is executed or resumed
+	/// using Sheep::IExecutionContext::Execute().
 	class IExecutionContext
 	{
 	public:
@@ -55,9 +66,17 @@ namespace Sheep
 		/// Once the reference count reaches 0 the Context is destroyed.
 		virtual void Release() = 0;
 
+		/// Executes a prepared Sheep::IExecutionContext (see IVirtualMachine::PrepareScriptForExecution()), or resumes a suspended context.
+		/// @return #SHEEP_SUCCESS if the script completed successfully, #SHEEP_SUSPENDED if the script was
+		/// suspended (most likely by a "wait"), #SHEEP_ERR_INVALID_OPERATION if context is not in a valid state.
 		virtual int Execute() = 0;
+
+		/// Suspends the context
+		/// @return #SHEEP_SUCCESS if the context was successfully suspended, or #SHEEP_ERR_INVALID_OPERATION 
+		/// if the context is not in the ExecutionContextState::Executing state
 		virtual int Suspend() = 0;
 
+		/// Gets the current state of the context
 		virtual ExecutionContextState GetState() = 0;
 
 		/// Gets the number of global variables within the script associated with the Context.
@@ -65,12 +84,50 @@ namespace Sheep
 	
 		/// Gets the name of the given variable, or null if the index is invalid.
 		virtual const char* GetVariableName(int index) = 0;
+
+		/// Gets the type of variable at the specified index
 		virtual SymbolType GetVariableType(int index) = 0;
+
+		/// Sets the value of an integer variable
+		/// @param index The index of the variable
+		/// @param value The value to assign to the variable
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid, 
+		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not an integer
 		virtual int SetVariableInt(int index, int value) = 0;
+
+		/// Sets the value of a float variable
+		/// @param index The index of the variable
+		/// @param value The value to assign to the variable
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid, 
+		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not a float
 		virtual int SetVariableFloat(int index, float value) = 0;
+
+		/// Sets the value of a string variable
+		/// @param index The index of the variable
+		/// @param value The value to assign to the variable
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid, 
+		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not a string
 		virtual int SetVariableString(int index, const char* value) = 0;
+
+		/// Gets the value of an integer variable
+		/// @param index The index of the variable
+		/// @param result A pointer to an integer to where the value will be written
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid or result is null, 
+		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not an integer
 		virtual int GetVariableInt(int index, int* result) = 0;
+
+		/// Gets the value of a float variable
+		/// @param index The index of the variable
+		/// @param result A pointer to a float to where the value will be written
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid or result is null, 
+		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not a float
 		virtual int GetVariableFloat(int index, float* result) = 0;
+
+		/// Gets the value of a string variable
+		/// @param index The index of the variable
+		/// @param result A pointer to a character array to where the value will be written
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid or result is null, 
+		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not a string
 		virtual int GetVariableString(int index, const char** result) = 0;
 	};
 
@@ -94,15 +151,65 @@ namespace Sheep
 		/// Gets the tag that was set earlier, or null if no tag has been set.
 		virtual void* GetTag() = 0;
 
+		/// Sets the callback that will be called whenever Sheep encounters the end of a wait section
+		/// 
+		/// Generally, what you should do is check to see if there are any import functions still executing
+		/// that were called within this wait section. If so, suspend the context and wait until everything
+		/// has finished, then call Execute() to resume.
+		/// @param callback The callback to call when the end of a wait section is encountered (can be null, though this is not recommended)
+		/// @return #SHEEP_SUCCESS if successful
 		virtual int SetEndWaitCallback(EndWaitCallback callback) = 0;
+
+		/// Sets the callback for an import function.
+		///
+		/// Sheep will call the specified callback whenever it encounters the given import function.
+		/// @param importName The name of the import
+		/// @param callback A pointer to a function handler that will be called when a script calls the import function
+		/// (can be null, though this is not recommended)
+		/// @returns #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if importName is null
 		virtual int SetImportCallback(const char* importName, ImportCallback callback) = 0;
 
+		/// Creates a new Sheep::IExecutionContext ready to run the specified function.
+		///
+		/// You must call this method before calling Execute(). After you call this method you can read and modify
+		/// variable values before the script is executed. Be sure to call Sheep::IExecutionContext::Release()
+		/// when you're done with the context.
+		/// @param script A pointer to the script that should be executed
+		/// @param function The name of the function that should be executed
+		/// @param context A pointer to a pointer to a Sheep::IExecutionContext that will store the new context
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if any of the parameters are null,
+		/// or #SHEEP_ERR_NO_SUCH_FUNCTION if the function doesn't exist. 
 		virtual int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) = 0;
 
+		/// Pops an integer from the top of the stack
+		/// @param result A pointer to an integer where the value on top of the stack will be written. May be null.
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, #SHEEP_ERR_NO_CONTEXT_AVAILABLE if
+		/// there is not a currently executing Sheep::IExecutionContext, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
+		/// on top of the stack is not an integer.
 		virtual int PopIntFromStack(int* result) = 0;
+
+		/// Pops a float from the top of the stack
+		/// @param result A pointer to a float where the value on top of the stack will be written. May be null.
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, #SHEEP_ERR_NO_CONTEXT_AVAILABLE if
+		/// there is not a currently executing Sheep::IExecutionContext, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
+		/// on top of the stack is not a float.
 		virtual int PopFloatFromStack(float* result) = 0;
+
+		/// Pops a string from the top of the stack
+		/// @param result A pointer to an character array where the value on top of the stack will be written. May be null.
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, #SHEEP_ERR_NO_CONTEXT_AVAILABLE if
+		/// there is not a currently executing Sheep::IExecutionContext, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
+		/// on top of the stack is not a string.
 		virtual int PopStringFromStack(const char** result) = 0;
+
+		/// Pushes an integer onto the stack
+		/// @param value An integer that will be pushed onto the top of the stack
+		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
 		virtual int PushIntOntoStack(int value) = 0;
+
+		/// Pushes a float onto the stack
+		/// @param value An float that will be pushed onto the top of the stack
+		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
 		virtual int PushFloatOntoStack(float value) = 0;
 	};
 
@@ -192,13 +299,13 @@ extern "C"
 	///
 	/// Be sure to call Sheep::ICompiler::Release() when you're done with the compiler.
 	/// @param version The version of Sheep that the compiler should support
-	/// @return A new ICompiler instance
+	/// @return A new Sheep::ICompiler instance
 	SHP_DECLSPEC Sheep::ICompiler* SHP_APIENTRY CreateSheepCompiler(Sheep::SheepLanguageVersion version);
 	
 	/// Creates an IVirtualMachine object for running Sheep scripts
 	///
 	/// Be sure to call IVirtualMachine::Release() when you're done with the virtual machine.
-	/// @return A new IVirtualMachine instance
+	/// @return A new Sheep::IVirtualMachine instance
 	SHP_DECLSPEC Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine();
 	
 	/// Creates a new IScript object from Sheep bytecode

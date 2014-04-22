@@ -34,7 +34,7 @@ int SheepContext::Execute()
 {
 	if (Dead == true || 
 		(m_state != Sheep::ExecutionContextState::Prepared && m_state != Sheep::ExecutionContextState::Suspended))
-		return SHEEP_ERR_CANT_RESUME;
+		return SHEEP_ERR_INVALID_OPERATION;
 
 	m_state = Sheep::ExecutionContextState::Executing;
 	UserSuspended = false;
@@ -93,7 +93,7 @@ int SheepContext::Execute()
 int SheepContext::Suspend()
 {
 	if (m_state != Sheep::ExecutionContextState::Executing)
-		return SHEEP_ERROR; // TODO: use a more specific error code
+		return SHEEP_ERR_INVALID_OPERATION;
 
 	UserSuspended = true;
 	m_state = Sheep::ExecutionContextState::Suspended;

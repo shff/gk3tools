@@ -1,6 +1,8 @@
 #ifndef SHEEPC_H
 #define SHEEPC_H
 
+/// @file
+
 #ifdef __cplusplus
 #include <cstring>
 extern "C"
@@ -88,12 +90,21 @@ struct SHP_Version
 	byte Major, Minor, Revision;
 };
 
+/// Handle to a virtual machine object
 typedef struct {} SheepVM;
+
+/// Handle to a virtual machine context object
 typedef struct {} SheepVMContext;
+
 typedef struct {} SheepImportFunction;
+
+/// Handle to a Sheep script object
 typedef struct {} SheepScript;
 
+/// Creates a new virtual machine
 DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
+
+/// Destroys an existing virtual machine
 DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
 
 /// Sets the "tag" data. A tag can be a pointer whatever you want (including NULL).
