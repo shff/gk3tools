@@ -36,10 +36,15 @@ namespace Internal
 
 		int GetNumMessages() override;
 		const char* GetMessage(int index) override;
+		int GetMessageLineNumber(int index) override;
 
 		void AddMessage(int lineNumber, const char* message);
 
 		IntermediateOutput* GetIntermediateOutput() { return m_output; }
+
+		IDisassembly* GenerateDisassembly() override;
+
+		ICompiledScriptOutput* GenerateCompiledOutput() override;
 	};
 }
 }

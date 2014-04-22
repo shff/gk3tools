@@ -190,6 +190,7 @@
     <ClCompile Include="sheepScanner.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Internal\CompiledScriptOutput.h" />
     <ClInclude Include="Internal\compiler.h" />
     <ClInclude Include="Internal\ExecutionContext.h" />
     <ClInclude Include="Internal\script.h" />
@@ -200,10 +201,10 @@
     <ClInclude Include="sheepCodeBuffer.h" />
     <ClInclude Include="sheepCodeGenerator.h" />
     <ClInclude Include="sheepCodeTree.h" />
+    <ClInclude Include="sheepCommon.h" />
     <ClInclude Include="sheepContextTree.h" />
     <ClInclude Include="sheepcpp.h" />
     <ClInclude Include="sheepDisassembler.h" />
-    <ClInclude Include="sheepErrorCodes.h" />
     <ClInclude Include="sheepFileReader.h" />
     <ClInclude Include="sheepFileWriter.h" />
     <ClInclude Include="sheepImportTable.h" />

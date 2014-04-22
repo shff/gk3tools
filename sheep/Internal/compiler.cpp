@@ -1,6 +1,6 @@
 #include "compiler.h"
 #include "script.h"
-#include "../sheepErrorCodes.h"
+#include "../sheepCommon.h"
 #include "../sheepCodeGenerator.h"
 #include "../sheepLog.h"
 

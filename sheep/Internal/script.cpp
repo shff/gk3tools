@@ -1,5 +1,8 @@
 #include "script.h"
+#include "CompiledScriptOutput.h"
 #include "../sheepCodeGenerator.h"
+#include "../sheepDisassembler.h"
+#include "../sheepFileWriter.h"
 
 namespace Sheep
 {
@@ -46,12 +49,39 @@ namespace Internal
 		return m_messages[index].MessageText.c_str();
 	}
 
+	int Script::GetMessageLineNumber(int index)
+	{
+		if (index < 0 || index >= m_messages.size())
+			return 0;
+
+		return m_messages[index].LineNumber;
+	}
+
 	void Script::AddMessage(int lineNumber, const char* message)
 	{
 		Message m;
 		m.LineNumber = lineNumber;
 		m.MessageText = message;
 		m_messages.push_back(m);
+	}
+
+	IDisassembly* Script::GenerateDisassembly()
+	{
+		if (m_status != ScriptStatus::Success || m_output == nullptr)
+			return nullptr;
+
+		return Disassembler::GetDisassembly(m_output);
+	}
+
+	ICompiledScriptOutput* Script::GenerateCompiledOutput()
+	{
+		if (m_status != ScriptStatus::Success || m_output == nullptr)
+			return nullptr;
+
+		SheepFileWriter writer(m_output);
+		ResizableBuffer* buffer = writer.GetBuffer();
+
+		return new CompiledScriptOutput(buffer);
 	}
 }
 }

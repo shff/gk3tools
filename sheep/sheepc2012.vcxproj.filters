@@ -15,40 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sheepCodeGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepCodeTree.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepCompiler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepDisassembler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepFileReader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepFileWriter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepMachine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sheepMain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepMemoryAllocator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepScanner.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sheepContextTree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,52 +26,8 @@
     <ClInclude Include="sheepc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sheepCodeBuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepCodeGenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepCodeTree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepDisassembler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sheepException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sheepfile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepFileReader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepFileWriter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepImportTable.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepLog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepMachine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepScanner.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sheepTypes.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sheepParser.y">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="sheepScanner.l">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

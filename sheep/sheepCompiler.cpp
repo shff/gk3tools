@@ -180,7 +180,7 @@ SheepVMContext* SHP_GetCurrentContext(SheepVM* vm)
 	return (SheepVMContext*)SM(vm)->GetCurrentContext();
 }
 
-SHP_Version SHP_GetVersion()
+SHP_Version shp_GetVersion()
 {
 	SHP_Version v;
 	v.Major = SHEEP_VERSION_MAJOR;
@@ -231,29 +231,22 @@ struct Disassembly : SheepDisassembly
     std::string Text;
 };
 
-SheepDisassembly* SHP_GetDisassembly(const byte* data, int length)
+SheepDisassembly* SHP_GetDisassembly(SheepScript* script)
 {
-    std::string disassembly = Sheep::Disassembler::GetDisassembly(data, length);
-
-    Disassembly* d = SHEEP_NEW(Disassembly);
-    d->Text = disassembly;
-
-    return d;
+    return (SheepDisassembly*)((Sheep::IScript*)script)->GenerateDisassembly();
 }
 
-int SHP_GetDisassemblyLength(const SheepDisassembly* disassembly)
+const char* SHP_GetDisassemblyText(const SheepDisassembly* disassembly)
 {
-    return static_cast<const Disassembly*>(disassembly)->Text.length();
-}
+	if (disassembly == nullptr)
+		return nullptr;
 
-void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer)
-{
-    strcpy(buffer, static_cast<const Disassembly*>(disassembly)->Text.c_str());
+	return ((Sheep::IDisassembly*)disassembly)->GetDisassemblyText();
 }
 
 void SHP_FreeDisassembly(const SheepDisassembly* disassembly)
 {
-    SHEEP_DELETE(disassembly);
+    ((Sheep::IDisassembly*)disassembly)->Release();
 }
 
 

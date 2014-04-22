@@ -1,19 +1,7 @@
 #ifndef SHEEP_SHEEPCPP_H
 #define SHEEP_SHEEPCPP_H
 
-#ifdef _MSC_VER
-#define SHP_DECLSPEC __declspec(dllexport)
-#define SHP_LIB_CALL __cdecl
-#define SHP_CALLBACK __stdcall
-#define SHP_APIENTRY __stdcall
-#else
-#define SHP_DECLSPEC
-#define SHP_LIB_CALL
-#define SHP_CALLBACK __attribute__((stdcall))
-#define SHP_APIENTRY __attribute__((stdcall))
-#endif
-
-#include "sheepErrorCodes.h"
+#include "sheepCommon.h"
 
 /** @file */
 
@@ -212,6 +200,38 @@ namespace Sheep
 		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
 		virtual int PushFloatOntoStack(float value) = 0;
 	};
+	
+	/// Represents a disassembly of an IScript object
+	class IDisassembly
+	{
+	protected:
+		virtual ~IDisassembly() {}
+
+	public:
+		/// Releases the disassembly
+		virtual void Release() = 0;
+
+		/// Returns the text of the disassembly.
+		///
+		/// This string is freed when Release() is called.
+		virtual const char* GetDisassemblyText() = 0;
+	};
+
+	class ICompiledScriptOutput
+	{
+	protected:
+		virtual ~ICompiledScriptOutput() {}
+
+	public:
+		/// Releases the compiled script output object
+		virtual void Release() = 0;
+
+		/// Returns the size (in bytes) of the compiled output
+		virtual int GetSize() = 0;
+
+		/// Returns the raw compiled output data
+		virtual const char* GetData() = 0;
+	};
 
 	/// Represents the status of an IScript object
 	enum class ScriptStatus
@@ -247,7 +267,20 @@ namespace Sheep
 	
 		/// Gets the message text of the particular message generated during compilation
 		virtual const char* GetMessage(int index) = 0;
+
+		/// Gets the line number for which the particular message was generated
+		virtual int GetMessageLineNumber(int index) = 0;
+
+		/// Generates a disassembly
+		/// @return An IDisassemby object, or null if the script's is not ScriptStatus::Success
+		virtual IDisassembly* GenerateDisassembly() = 0;
+
+		/// Generates compiled bytecode that can be written to a file
+		/// and read later by CreateScriptFromBytecode()
+		virtual ICompiledScriptOutput* GenerateCompiledOutput() = 0;
 	};
+
+	
 
 	/// Represents a specific version of Sheep
 	enum class SheepLanguageVersion
@@ -311,6 +344,7 @@ extern "C"
 	/// Creates a new IScript object from Sheep bytecode
 	///
 	/// Be sure to call Sheep::IScript::Release() when you're done with the script.
+	/// The bytecode can be freed after this call. The Sheep::IScript doesn't need it anymore.
 	/// @param bytecode The bytecode for the script
 	/// @param length The length of the bytecode
 	/// @param result A pointer to a pointer that will hold the new IScript instance

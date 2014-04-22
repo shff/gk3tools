@@ -16,45 +16,20 @@ namespace Sheep
 	#define READ2(p) file.read((char*)p, 2);
 	#define READ1(p) file.read((char*)p, 1);
 
-    std::string Disassembler::GetDisassembly(const std::string& inputFile)
-    {
-		std::ifstream file(inputFile.c_str(), std::ios_base::binary);
-		if (!file)
-		{
-			throw SheepException("Unable to open input file", SHEEP_ERR_FILE_NOT_FOUND);
-		}
-
-		unsigned int fileSize = getFileSize(file);
-
-		//byte* buffer = new byte[fileSize];
-		byte* buffer = SHEEP_NEW_ARRAY(byte, fileSize);
-		file.read((char*)buffer, fileSize);
-		file.close();
-
-        std::string disassembly = GetDisassembly(buffer, fileSize);
-
-        SHEEP_DELETE_ARRAY(buffer);
-
-        return disassembly;
-    }
-
-	std::string Disassembler::GetDisassembly(const byte* data, int length)
+	Disassembly* Disassembler::GetDisassembly(IntermediateOutput* intermediateOutput)
 	{
         std::stringstream output;
 
-		SheepFileReader* reader = SHEEP_NEW SheepFileReader(data, length);
-		IntermediateOutput* io = reader->GetIntermediateOutput();
-		
 		// imports
 		output << std::endl << "SysImports: " << std::endl;
-		for (int i = 0; i < io->Imports.size(); i++)
+		for (unsigned int i = 0; i < intermediateOutput->Imports.size(); i++)
 		{
-			output << "\t" << i << "\t- " << io->Imports[i].Name << "(";
+			output << "\t" << i << "\t- " << intermediateOutput->Imports[i].Name << "(";
 
-			for (int j = 0; j < io->Imports[i].Parameters.size(); j++)
+			for (unsigned int j = 0; j < intermediateOutput->Imports[i].Parameters.size(); j++)
 			{
 				if (j > 0) output << ", ";
-				SheepSymbolType parameterType = io->Imports[i].Parameters[j];
+				SheepSymbolType parameterType = intermediateOutput->Imports[i].Parameters[j];
 
 				if (parameterType == SheepSymbolType::Void)
 					output << "void";
@@ -74,19 +49,19 @@ namespace Sheep
 		// string constants
 		output << std::endl << "StringConsts" << std::endl;
 
-		for (unsigned int i = 0; i < io->Constants.size(); i++)
+		for (unsigned int i = 0; i < intermediateOutput->Constants.size(); i++)
 		{
-			output << "\t" << i << "\t" << io->Constants[i].Offset
-				<< "\t-\"" << io->Constants[i].Value << "\"" << std::endl;
+			output << "\t" << i << "\t" << intermediateOutput->Constants[i].Offset
+				<< "\t-\"" << intermediateOutput->Constants[i].Value << "\"" << std::endl;
 		}
 
 		// symbols
 		output << std::endl << "Variables" << std::endl;
 		
-		for (unsigned int i = 0; i < io->Symbols.size(); i++)
+		for (unsigned int i = 0; i < intermediateOutput->Symbols.size(); i++)
 		{	
 			output << "\t" << i << "\t";
-			SheepSymbolType type = io->Symbols[i].Type;
+			SheepSymbolType type = intermediateOutput->Symbols[i].Type;
 			
 			if (type == SheepSymbolType::Void)
 				output << "void";
@@ -99,93 +74,40 @@ namespace Sheep
 			else
 				output << "??";
 			
-			output << " " << io->Symbols[i].Name << " = ??" << std::endl;
+			output << " " << intermediateOutput->Symbols[i].Name << " = ??" << std::endl;
 		}
 
 		// functions
 		output << std::endl << "Functions" << std::endl;
 
-		for (unsigned int i = 0; i < io->Functions.size(); i++)
+		for (unsigned int i = 0; i < intermediateOutput->Functions.size(); i++)
 		{
 
-			output << "\t" << i << "\t(" << io->Functions[i].CodeOffset << ")\t"
-				<< "\t-\"" << io->Functions[i].Name << "\"" << std::endl;
+			output << "\t" << i << "\t(" << intermediateOutput->Functions[i].CodeOffset << ")\t"
+				<< "\t-\"" << intermediateOutput->Functions[i].Name << "\"" << std::endl;
 		}
 
 		// code
 		output << std::endl << "Code" << std::endl;
-		for (unsigned int i = 0; i < io->Functions.size(); i++)
+		for (unsigned int i = 0; i < intermediateOutput->Functions.size(); i++)
 		{
-			output << "\t" << i << " - " << io->Functions[i].Name << std::endl;
+			output << "\t" << i << " - " << intermediateOutput->Functions[i].Name << std::endl;
 
 		
-			const byte* data = (byte*)io->Functions[i].Code->GetData();
+			const byte* data = (byte*)intermediateOutput->Functions[i].Code->GetData();
 
 			unsigned int currentCodeOffset = 0;
-			while(currentCodeOffset < io->Functions[i].Code->GetSize())
+			while(currentCodeOffset < intermediateOutput->Functions[i].Code->GetSize())
 			{	
-				output << "\t" << currentCodeOffset + io->Functions[i].CodeOffset << ":\t";
+				output << "\t" << currentCodeOffset + intermediateOutput->Functions[i].CodeOffset << ":\t";
 
-				currentCodeOffset += printNextInstruction(&data[currentCodeOffset], output, io->Imports, io->Constants);
+				currentCodeOffset += printNextInstruction(&data[currentCodeOffset], output, intermediateOutput->Imports, intermediateOutput->Constants);
 			}
 
 			output << std::endl;
 		}
 
-		SHEEP_DELETE(io);
-		SHEEP_DELETE(reader);
-
-		return output.str();
-	}
-
-	SectionHeader Disassembler::readSectionHeader(std::ifstream& file, const std::string& name)
-	{
-		SectionHeader header;
-		
-		strncpy(header.Label, name.c_str(), 12);
-		READ4(&header.ExtraOffset);
-		READ4(&header.DataOffset);
-		READ4(&header.DataSize);
-		READ4(&header.DataCount);
-
-		//header.OffsetArray = new unsigned int[header.DataCount];
-		header.OffsetArray = SHEEP_NEW_ARRAY(unsigned int, header.DataCount);
-
-		for (unsigned int i = 0; i < header.DataCount; i++)
-			READ4(&header.OffsetArray[i]);
-
-		return header;
-	}
-
-	std::string Disassembler::readString(std::ifstream& file)
-	{
-		char c;
-		std::string str;
-		
-		file.read(&c, 1);
-		while(c != 0)
-		{
-			str.push_back(c);
-			file.read(&c, 1);
-		}
-
-		return str;
-	}
-
-	std::string Disassembler::readString(std::ifstream& file, unsigned int length)
-	{
-		char c;
-		std::string str;
-
-		for (unsigned int i = 0; i < length; i++)
-		{
-			file.read(&c, 1);
-			if (c == 0) break;
-				
-			str.push_back(c);
-		}
-
-		return str;
+		return SHEEP_NEW Disassembly(output.str().c_str());
 	}
 
 	unsigned int Disassembler::printNextInstruction(const byte* code, std::ostream& output, std::vector<SheepImport>& imports, std::vector<SheepStringConstant>& constants)

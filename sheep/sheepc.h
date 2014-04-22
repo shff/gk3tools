@@ -11,17 +11,7 @@ extern "C"
 #include <string.h>	
 #endif
 
-#ifdef _MSC_VER
-#define DECLSPEC __declspec(dllexport)
-#define LIB_CALL __cdecl
-#define CALLBACK __stdcall
-#else
-#define DECLSPEC
-#define LIB_CALL
-#define CALLBACK __attribute__((stdcall))
-#endif
-
-#include "sheepErrorCodes.h"
+#include "sheepCommon.h"
 
 #define SHEEP_TRUE 1
 #define SHEEP_FALSE 0
@@ -85,11 +75,6 @@ struct SHP_CompilerOutput
 	int LineNumber;
 };
 
-struct SHP_Version
-{
-	byte Major, Minor, Revision;
-};
-
 /// Handle to a virtual machine object
 typedef struct {} SheepVM;
 
@@ -102,65 +87,65 @@ typedef struct {} SheepImportFunction;
 typedef struct {} SheepScript;
 
 /// Creates a new virtual machine
-DECLSPEC SheepVM* LIB_CALL SHP_CreateNewVM();
+SHP_DECLSPEC SheepVM* SHP_LIB_CALL SHP_CreateNewVM();
 
 /// Destroys an existing virtual machine
-DECLSPEC void LIB_CALL SHP_DestroyVM(SheepVM* vm);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_DestroyVM(SheepVM* vm);
 
 /// Sets the "tag" data. A tag can be a pointer whatever you want (including NULL).
 /// The VM doesn't use it for anything; it's only for your convenience.
-DECLSPEC void LIB_CALL SHP_SetVMTag(SheepVM* vm, void* tag);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_SetVMTag(SheepVM* vm, void* tag);
 /// Gets the "tag" data.
-DECLSPEC void* LIB_CALL SHP_GetVMTag(SheepVM* vm);
+SHP_DECLSPEC void* SHP_LIB_CALL SHP_GetVMTag(SheepVM* vm);
 
 typedef struct SHP_Allocator
 {
-	void* (CALLBACK *Allocator)(size_t);
-	void (CALLBACK *Deallocator)(void*);
+	void* (SHP_CALLBACK *Allocator)(size_t);
+	void (SHP_CALLBACK *Deallocator)(void*);
 } SHP_Allocator;
 
 /* Sets the allocator. This is optional, but if you want to set the allocator
 then this MUST Be called before any calls to SHP_CreateNewVM(). */
-DECLSPEC void LIB_CALL SHP_SetAllocator(SHP_Allocator* allocator);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_SetAllocator(SHP_Allocator* allocator);
 
 
-typedef  void (CALLBACK *SHP_MessageCallback)(int linenumber, const char* message);
-DECLSPEC void LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
+typedef  void (SHP_CALLBACK *SHP_MessageCallback)(int linenumber, const char* message);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
 
-DECLSPEC int LIB_CALL shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context);
-DECLSPEC int LIB_CALL shp_Execute(SheepVMContext* context);
-DECLSPEC int LIB_CALL shp_GetNumVariables(SheepVMContext* context);
-DECLSPEC int LIB_CALL shp_GetVariableName(SheepVMContext* context, int index, const char** name);
-DECLSPEC int LIB_CALL shp_GetVariableI(SheepVMContext* context, int index, int* value);
-DECLSPEC int LIB_CALL shp_GetVariableF(SheepVMContext* context, int index, float* value);
-DECLSPEC int LIB_CALL shp_SetVariableI(SheepVMContext* context, int index, int value);
-DECLSPEC int LIB_CALL shp_SetVariableF(SheepVMContext* context, int index, float value);
+SHP_DECLSPEC int SHP_LIB_CALL shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context);
+SHP_DECLSPEC int SHP_LIB_CALL shp_Execute(SheepVMContext* context);
+SHP_DECLSPEC int SHP_LIB_CALL shp_GetNumVariables(SheepVMContext* context);
+SHP_DECLSPEC int SHP_LIB_CALL shp_GetVariableName(SheepVMContext* context, int index, const char** name);
+SHP_DECLSPEC int SHP_LIB_CALL shp_GetVariableI(SheepVMContext* context, int index, int* value);
+SHP_DECLSPEC int SHP_LIB_CALL shp_GetVariableF(SheepVMContext* context, int index, float* value);
+SHP_DECLSPEC int SHP_LIB_CALL shp_SetVariableI(SheepVMContext* context, int index, int value);
+SHP_DECLSPEC int SHP_LIB_CALL shp_SetVariableF(SheepVMContext* context, int index, float value);
 
-typedef void (CALLBACK *SHP_ImportCallback)(SheepVM* vm);
-DECLSPEC void LIB_CALL SHP_SetImportCallback(SheepVM* vm, const char* name, SHP_ImportCallback callback);
+typedef void (SHP_CALLBACK *SHP_ImportCallback)(SheepVM* vm);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_SetImportCallback(SheepVM* vm, const char* name, SHP_ImportCallback callback);
 
-DECLSPEC int LIB_CALL SHP_PopIntFromStack(SheepVM* vm, int* result);
-DECLSPEC int LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);
-DECLSPEC int LIB_CALL SHP_PopStringFromStack(SheepVM* vm, const char** result);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PopIntFromStack(SheepVM* vm, int* result);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PopStringFromStack(SheepVM* vm, const char** result);
 
-DECLSPEC void LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
 
-DECLSPEC SheepVMContext* LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
+SHP_DECLSPEC SheepVMContext* SHP_LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
 
 /* these next few functions are just for debugging the Compiler and VM. They shouldn't
 be used for anything else. */
-DECLSPEC int LIB_CALL SHP_GetNumContexts(SheepVM* vm);
-DECLSPEC int LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
-DECLSPEC void LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
-DECLSPEC void LIB_CALL SHP_PrintMemoryUsage();
-DECLSPEC void LIB_CALL SHP_PrintStackTrace(SheepVM* vm);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_GetNumContexts(SheepVM* vm);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_PrintMemoryUsage();
+SHP_DECLSPEC void SHP_LIB_CALL SHP_PrintStackTrace(SheepVM* vm);
 
 
 /* There are two versions of Sheep, the vanilla version that shipped with GK3,
 and an "enhanced" version with our own extras. By default the Sheep compiler and VM
 only support GK3's vanilla version of sheep, so if you want the extras you have to explicitly
 as for them, using the following function. */
-DECLSPEC void LIB_CALL SHP_EnableLanguageEnhancements(SheepVM* vm, bool enabled);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_EnableLanguageEnhancements(SheepVM* vm, bool enabled);
 
 /* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.
 
@@ -196,10 +181,10 @@ NOTE: Though the VM itself doesn't really care, asynchronous import functions sh
 
 */
 
-DECLSPEC int LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
-DECLSPEC int LIB_CALL SHP_Suspend(SheepVMContext* context);
-typedef  void (CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);
-DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_IsInWaitSection(SheepVM* vm);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_Suspend(SheepVMContext* context);
+typedef  void (SHP_CALLBACK *SHP_EndWaitCallback)(SheepVM* vm, SheepVMContext* context);
+SHP_DECLSPEC void SHP_LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback);
 
 
 /* To get the disassembly of a sheep file, do this:
@@ -212,21 +197,18 @@ DECLSPEC void LIB_CALL SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback c
 (since you allocated the buffer yourself you can keep using it even after
 the SHP_FreeDisassembly() call) */
 typedef struct {} SheepDisassembly;
-DECLSPEC SheepDisassembly* SHP_GetDisassembly(const byte* data, int length);
-DECLSPEC int SHP_GetDisassemblyLength(const SheepDisassembly* disassembly);
-DECLSPEC void SHP_GetDisassemblyText(const SheepDisassembly* disassembly, char* buffer);
-DECLSPEC void SHP_FreeDisassembly(const SheepDisassembly* disassembly);
+SHP_DECLSPEC SheepDisassembly* SHP_GetDisassembly(SheepScript* script);
+SHP_DECLSPEC const char* SHP_GetDisassemblyText(const SheepDisassembly* disassembly);
+SHP_DECLSPEC void SHP_FreeDisassembly(const SheepDisassembly* disassembly);
 
 typedef struct {} SheepCompiler;
-DECLSPEC SheepCompiler* LIB_CALL shp_CreateNewCompiler(int languageVersion);
-DECLSPEC void LIB_CALL shp_DestroyCompiler(SheepCompiler* compiler);
-DECLSPEC int LIB_CALL shp_DefineImportFunction(SheepCompiler* compiler, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters);
-DECLSPEC int LIB_CALL shp_CompileScript(SheepCompiler* compiler, const char* script, SheepScript** result);
-DECLSPEC int LIB_CALL shp_LoadScriptFromBytecode(const char* bytecode, int length, SheepScript** result);
-DECLSPEC void LIB_CALL shp_ReleaseSheepScript(SheepScript* script);
+SHP_DECLSPEC SheepCompiler* SHP_LIB_CALL shp_CreateNewCompiler(int languageVersion);
+SHP_DECLSPEC void SHP_LIB_CALL shp_DestroyCompiler(SheepCompiler* compiler);
+SHP_DECLSPEC int SHP_LIB_CALL shp_DefineImportFunction(SheepCompiler* compiler, const char* name, SHP_SymbolType returnType, SHP_SymbolType parameters[], int numParameters);
+SHP_DECLSPEC int SHP_LIB_CALL shp_CompileScript(SheepCompiler* compiler, const char* script, SheepScript** result);
+SHP_DECLSPEC int SHP_LIB_CALL shp_LoadScriptFromBytecode(const char* bytecode, int length, SheepScript** result);
+SHP_DECLSPEC void SHP_LIB_CALL shp_ReleaseSheepScript(SheepScript* script);
 
-
-DECLSPEC SHP_Version SHP_GetVersion();
 
 #ifdef __cplusplus
 }

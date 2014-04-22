@@ -15,12 +15,12 @@ void SHP_SetAllocator(SHP_Allocator* allocator)
 	g_allocator.Deallocator = allocator->Deallocator;
 }
 
-void* (CALLBACK defaultAllocator)(size_t size)
+void* (SHP_CALLBACK defaultAllocator)(size_t size)
 {
 	return malloc(size);
 }
 
-void CALLBACK defaultDeallocator(void* ptr)
+void SHP_CALLBACK defaultDeallocator(void* ptr)
 {
 	free(ptr);
 }

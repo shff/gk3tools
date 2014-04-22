@@ -20,7 +20,6 @@ SheepFileWriter::SheepFileWriter(IntermediateOutput* output)
 
 SheepFileWriter::~SheepFileWriter()
 {
-	SHEEP_DELETE(m_buffer);
 }
 
 void SheepFileWriter::Write(const std::string &filename)

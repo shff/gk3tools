@@ -45,7 +45,6 @@
       <Filter>Internal</Filter>
     </ClInclude>
     <ClInclude Include="sheepStringDictionary.h" />
-    <ClInclude Include="sheepErrorCodes.h" />
     <ClInclude Include="Internal\script.h">
       <Filter>Internal</Filter>
     </ClInclude>
@@ -55,6 +54,10 @@
     <ClInclude Include="Internal\ExecutionContext.h">
       <Filter>Internal</Filter>
     </ClInclude>
+    <ClInclude Include="Internal\CompiledScriptOutput.h">
+      <Filter>Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="sheepCommon.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Internal">

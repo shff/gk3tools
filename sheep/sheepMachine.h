@@ -168,7 +168,7 @@ private:
 
 	// we consider Call() a built-in function and not technically an import,
 	// mostly for performance reasons
-	static void CALLBACK s_call(Sheep::IVirtualMachine* vm);
+	static void SHP_CALLBACK s_call(Sheep::IVirtualMachine* vm);
 
 	static int getInt(SheepStack& stack, bool string = false)
 	{

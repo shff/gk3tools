@@ -33,23 +33,35 @@ namespace Sheep
 		unsigned int Offset;
 	};
 
-    struct Disassembly : SheepDisassembly
+    class Disassembly : public Sheep::IDisassembly
     {
-        std::string Text;
+        std::string m_text;
+
+	public:
+
+		Disassembly(const char* text)
+		{
+			m_text = text;
+		}
+
+		void Release() override
+		{
+			// don't bother with ref counting.
+			delete this;
+		}
+
+		const char* GetDisassemblyText() override
+		{
+			return m_text.c_str();
+		}
     };
 
 	class Disassembler
 	{
 	public:
-		static std::string GetDisassembly(const std::string& inputFile);
-        static std::string GetDisassembly(const byte* code, int length);
+		static Disassembly* GetDisassembly(IntermediateOutput* intermediateOutput);
 	
 	private:
-
-		static SectionHeader readSectionHeader(std::ifstream& file, const std::string& name);
-
-		static std::string readString(std::ifstream& file);
-		static std::string readString(std::ifstream& file, unsigned int length);
 
 		static unsigned int printNextInstruction(const byte* code, std::ostream& output, std::vector<SheepImport>& imports, std::vector<SheepStringConstant>& constants);
 		
@@ -67,17 +79,6 @@ namespace Sheep
 		static unsigned int convertBytesToInt(int byte1, int byte2, int byte3, int byte4)
 		{
 			return (byte4 << 24) | (byte3 << 16) | (byte2 << 8) | byte1;
-		}
-
-		static unsigned int getFileSize(std::ifstream& file)
-		{
-			std::ifstream::pos_type pos = file.tellg();
-			file.seekg(0, std::ios_base::end);
-
-			std::ifstream::pos_type end = file.tellg();
-			file.seekg(pos, std::ios_base::beg);
-
-			return end;
 		}
 	};
 }

@@ -1,7 +1,20 @@
-#ifndef SHEEPERRORCODES_H
-#define SHEEPERRORCODES_H
+#ifndef SHEEPCOMMON_H
+#define SHEEPCOMMON_H
 
 /// @file
+
+#ifdef _MSC_VER
+#define SHP_DECLSPEC __declspec(dllexport)
+#define SHP_LIB_CALL __cdecl
+#define SHP_CALLBACK __stdcall
+#define SHP_APIENTRY __stdcall
+#else
+#define SHP_DECLSPEC
+#define SHP_LIB_CALL
+#define SHP_CALLBACK __attribute__((stdcall))
+#define SHP_APIENTRY __attribute__((stdcall))
+#endif
+
 
 /// Success, no errors
 #define SHEEP_SUCCESS 0
@@ -51,4 +64,15 @@
 /// The virtual machine has been suspended by a wait command
 #define SHEEP_SUSPENDED 2
 
-#endif // SHEEPERRORCODES_H
+
+extern "C"
+{
+	struct SHP_Version
+	{
+		unsigned char Major, Minor, Revision;
+	};
+
+	SHP_DECLSPEC SHP_Version shp_GetVersion();
+}
+
+#endif // SHEEPCOMMON_H
