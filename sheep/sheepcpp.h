@@ -80,6 +80,9 @@ namespace Sheep
 		/// Gets the parent Sheep::IVirtualMachine that owns this context
 		virtual IVirtualMachine* GetParentVirtualMachine() = 0;
 
+		/// Gets whether the context is in a wait section
+		virtual bool IsInWaitSection() = 0;
+
 		/// Gets the number of global variables within the script associated with the Context.
 		virtual int GetNumVariables() = 0;
 	

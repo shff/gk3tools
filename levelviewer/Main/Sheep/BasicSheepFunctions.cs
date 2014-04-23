@@ -264,9 +264,9 @@ namespace Gk3Main.Sheep
                 SymbolType.Integer, SymbolType.String);
         }
 
-        private static void sheep_PrintString(IntPtr vm)
+        private static void sheep_PrintString(IntPtr context)
         {
-            Console.CurrentConsole.WriteLine(SheepMachine.PopStringOffStack(vm));
+            Console.CurrentConsole.WriteLine(SheepMachine.PopStringOffStack(context));
         }
 
         private static void sheep_CallSceneFunction(IntPtr vm)
@@ -294,26 +294,26 @@ namespace Gk3Main.Sheep
             // TODO!
         }
 
-        private static void sheep_ContinueDialogue(IntPtr vm)
+        private static void sheep_ContinueDialogue(IntPtr context)
         {
-            int numLines = SheepMachine.PopIntOffStack(vm);
+            int numLines = SheepMachine.PopIntOffStack(context);
 
-            bool waiting = SheepMachine.IsInWaitSection(vm);
+            bool waiting = SheepMachine.IsInWaitSection(context);
             WaitHandle handle = Game.DialogManager.ContinueDialogue(numLines, waiting);
 
             if (waiting && handle != null)
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
+                SheepMachine.AddWaitHandle(context, handle);
         }
 
-        private static void sheep_ContinueDialogueNoFidgets(IntPtr vm)
+        private static void sheep_ContinueDialogueNoFidgets(IntPtr context)
         {
-            int numLines = SheepMachine.PopIntOffStack(vm);
+            int numLines = SheepMachine.PopIntOffStack(context);
 
-            bool waiting = SheepMachine.IsInWaitSection(vm);
+            bool waiting = SheepMachine.IsInWaitSection(context);
             WaitHandle handle = Game.DialogManager.ContinueDialogue(numLines, waiting);
 
             if (waiting && handle != null)
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
+                SheepMachine.AddWaitHandle(context, handle);
         }
 
         private static void sheep_CutToCameraAngle(IntPtr vm)
@@ -690,15 +690,15 @@ namespace Gk3Main.Sheep
             Logger.WriteDebug("FIXME: SetListenGas() sheep function not implemented");
         }
 
-        private static void sheep_StartMom(IntPtr vm)
+        private static void sheep_StartMom(IntPtr context)
         {
-            string mom = SheepMachine.PopStringOffStack(vm);
+            string mom = SheepMachine.PopStringOffStack(context);
 
-            bool isInWaitSection = SheepMachine.IsInWaitSection(vm);
+            bool isInWaitSection = SheepMachine.IsInWaitSection(context);
             if (isInWaitSection)
             {
                 WaitHandle wait = Game.DialogManager.PlayMom(mom, true);
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), wait);
+                SheepMachine.AddWaitHandle(context, wait);
             }
             else
             {
@@ -755,12 +755,12 @@ namespace Gk3Main.Sheep
             // TODO
         }
 
-        private static void sheep_SetTimerSeconds(IntPtr vm)
+        private static void sheep_SetTimerSeconds(IntPtr context)
         {
-            float seconds = SheepMachine.PopFloatOffStack(vm);
+            float seconds = SheepMachine.PopFloatOffStack(context);
 
-            if (SheepMachine.IsInWaitSection(vm))
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), new Game.TimedWaitHandle((int)(seconds * 1000))); 
+            if (SheepMachine.IsInWaitSection(context))
+                SheepMachine.AddWaitHandle(context, new Game.TimedWaitHandle((int)(seconds * 1000))); 
         }
 
         private static void sheep_ShowSceneModel(IntPtr vm)
@@ -770,18 +770,18 @@ namespace Gk3Main.Sheep
             // TODO
         }
 
-        private static void sheep_StartAnimation(IntPtr vm)
+        private static void sheep_StartAnimation(IntPtr context)
         {
-            string animation = SheepMachine.PopStringOffStack(vm);
+            string animation = SheepMachine.PopStringOffStack(context);
             if (animation.EndsWith(".ANM", StringComparison.OrdinalIgnoreCase) == false)
                 animation += ".ANM";
 
             Game.MomResource anm = SceneManager.SceneContentManager.Load<Game.MomResource>(animation);
             
-            if (SheepMachine.IsInWaitSection(vm))
+            if (SheepMachine.IsInWaitSection(context))
             {
                 WaitHandle wait = Game.Animator.Add(anm, true);
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), wait); 
+                SheepMachine.AddWaitHandle(context, wait); 
             }
             else
             {
@@ -789,28 +789,28 @@ namespace Gk3Main.Sheep
             }
         }
 
-        private static void sheep_StartDialogue(IntPtr vm)
+        private static void sheep_StartDialogue(IntPtr context)
         {
-            int numLines = SheepMachine.PopIntOffStack(vm);
-            string licensePlate = SheepMachine.PopStringOffStack(vm);
+            int numLines = SheepMachine.PopIntOffStack(context);
+            string licensePlate = SheepMachine.PopStringOffStack(context);
 
-            bool waiting = SheepMachine.IsInWaitSection(vm);
+            bool waiting = SheepMachine.IsInWaitSection(context);
             WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, false, waiting);
 
             if (waiting && handle != null)
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
+                SheepMachine.AddWaitHandle(context, handle);
         }
 
-        private static void sheep_StartDialogueNoFidgets(IntPtr vm)
+        private static void sheep_StartDialogueNoFidgets(IntPtr context)
         {
-            int numLines = SheepMachine.PopIntOffStack(vm);
-            string licensePlate = SheepMachine.PopStringOffStack(vm);
+            int numLines = SheepMachine.PopIntOffStack(context);
+            string licensePlate = SheepMachine.PopStringOffStack(context);
 
-            bool waiting = SheepMachine.IsInWaitSection(vm);
+            bool waiting = SheepMachine.IsInWaitSection(context);
             WaitHandle handle = Game.DialogManager.PlayDialogue(licensePlate, numLines, false, waiting);
 
             if (waiting && handle != null)
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), handle);
+                SheepMachine.AddWaitHandle(context, handle);
         }
 
         private static void sheep_StartMoveAnimation(IntPtr vm)
@@ -820,18 +820,18 @@ namespace Gk3Main.Sheep
             // TODO
         }
 
-        private static void sheep_StartVoiceOver(IntPtr vm)
+        private static void sheep_StartVoiceOver(IntPtr context)
         {
-            int count = SheepMachine.PopIntOffStack(vm);
-            string id = SheepMachine.PopStringOffStack(vm);
+            int count = SheepMachine.PopIntOffStack(context);
+            string id = SheepMachine.PopStringOffStack(context);
 
             // TODO!
             Game.YakResource yak = SceneManager.SceneContentManager.Load<Game.YakResource>("E" + id);
 
-            if (SheepMachine.IsInWaitSection(vm))
+            if (SheepMachine.IsInWaitSection(context))
             {
                 WaitHandle wait = yak.PlayAndWait();
-                SheepMachine.AddWaitHandle(vm, SheepMachine.GetCurrentContext(vm), wait);
+                SheepMachine.AddWaitHandle(context, wait);
             }
             else
             {

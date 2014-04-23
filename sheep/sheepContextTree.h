@@ -111,6 +111,8 @@ public:
 
 	Sheep::IVirtualMachine* GetParentVirtualMachine() override;
 
+	bool IsInWaitSection() override { return InWaitSection; }
+
 	int GetNumVariables() override
 	{
 		return (int)m_variables.size();

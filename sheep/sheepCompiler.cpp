@@ -145,12 +145,12 @@ int SHP_PushIntOntoStack(SheepVMContext* context, int i)
 	return ((Sheep::IExecutionContext*)context)->PushIntOntoStack(i);
 }
 
-int SHP_IsInWaitSection(SheepVM* vm)
+int SHP_IsInWaitSection(SheepVMContext* context)
 {
-	if (SM(vm)->IsInWaitSection())
-		return SHEEP_TRUE;
+	if (context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	return SHEEP_FALSE;
+	return ((Sheep::IExecutionContext*)context)->IsInWaitSection() ? 1 : 0;
 }
 
 int SHP_Suspend(SheepVMContext* context)

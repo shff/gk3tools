@@ -43,7 +43,7 @@ namespace Gk3Main.Sheep
             {
                 try
                 {
-                    _vm = SHP_CreateNewVM();
+                    _vm = SHP_CreateNewVM(1);
                     SHP_SetVerbosity(_vm, 1);
 
                     _compilerOutputDelegate = new CompilerOutputDelegate(compilerOutputCallback);
@@ -304,9 +304,9 @@ namespace Gk3Main.Sheep
             SHP_PushIntOntoStack(vm, i);
         }
 
-        public static bool IsInWaitSection(IntPtr vm)
+        public static bool IsInWaitSection(IntPtr context)
         {
-            return SHP_IsInWaitSection(vm) != 0;
+            return SHP_IsInWaitSection(context) != 0;
         }
 
         public static void Suspend(IntPtr context)
@@ -314,7 +314,7 @@ namespace Gk3Main.Sheep
             SHP_Suspend(context);
         }
 
-        public static void AddWaitHandle(IntPtr vm, IntPtr context, WaitHandle handle)
+        public static void AddWaitHandle(IntPtr context, WaitHandle handle)
         {
             if (handle == null)
                 throw new ArgumentNullException("handle");
@@ -378,7 +378,7 @@ namespace Gk3Main.Sheep
 
         public static void GetVersion(out int major, out int minor, out int rev)
         {
-            SHP_Version v = SHP_GetVersion();
+            SHP_Version v = shp_GetVersion();
 
             major = v.Major;
             minor = v.Minor;
@@ -445,13 +445,13 @@ namespace Gk3Main.Sheep
 
         private struct SHP_Version
         {
-            public byte Major;
-            public byte Minor;
-            public byte Revision;
+            public short Major;
+            public short Minor;
+            public short Revision;
         }
 
         [DllImport("sheep")]
-        private static extern IntPtr SHP_CreateNewVM();
+        private static extern IntPtr SHP_CreateNewVM(int languageVersion);
 
         [DllImport("sheep")]
         private static extern void SHP_DestroyVM(IntPtr vm);
@@ -463,16 +463,16 @@ namespace Gk3Main.Sheep
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
 
         [DllImport("sheep")]
-        private static extern int SHP_PopIntFromStack(IntPtr vm, out int result);
+        private static extern int SHP_PopIntFromStack(IntPtr context, out int result);
 
         [DllImport("sheep")]
-        private static extern int SHP_PopFloatFromStack(IntPtr vm, out float result);
+        private static extern int SHP_PopFloatFromStack(IntPtr context, out float result);
         
         [DllImport("sheep")]
-        private static extern int SHP_PopStringFromStack(IntPtr vm, out IntPtr result);
+        private static extern int SHP_PopStringFromStack(IntPtr context, out IntPtr result);
 
         [DllImport("sheep")]
-        private static extern void SHP_PushIntOntoStack(IntPtr vm, int i);
+        private static extern void SHP_PushIntOntoStack(IntPtr context, int i);
 
         [DllImport("sheep")]
         private static extern IntPtr SHP_GetCurrentContext(IntPtr vm);
@@ -545,7 +545,7 @@ namespace Gk3Main.Sheep
 
 
         [DllImport("sheep")]
-        private static extern SHP_Version SHP_GetVersion();
+        private static extern SHP_Version shp_GetVersion();
 
         #endregion Interops
     }

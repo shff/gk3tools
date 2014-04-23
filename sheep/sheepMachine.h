@@ -62,12 +62,6 @@ public:
 
 	void Execute(SheepContext* context);
 
-	bool IsInWaitSection()
-	{ 
-		SheepContext* current = m_contextTree->GetCurrent();
-		return current != NULL && current->InWaitSection; 
-	}
-
 	int GetNumContexts() { return 0; }
 	int GetCurrentContextStackSize()
 	{ 
