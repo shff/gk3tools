@@ -31,6 +31,8 @@ namespace Internal
 
 		void Release() override;
 
+		Sheep::SheepLanguageVersion GetLanguageVersion() override;
+
 		ScriptStatus GetStatus() override;
 		void SetStatus(ScriptStatus status);
 

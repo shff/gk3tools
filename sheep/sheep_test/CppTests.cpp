@@ -15,14 +15,14 @@ TEST(CreateNewVMTestCpp, CanCreateAndDestroyCompiler)
 
 TEST(CreateNewVMTestCpp, CanCreateAndDestroyVM)
 {
-	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine();
+	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine(Sheep::SheepLanguageVersion::V200);
 	ASSERT_NE(vm, nullptr);
 	vm->Release();
 }
 
 TEST(CreateNewVMTestCpp, TestVMTags)
 {
-	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine();
+	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine(Sheep::SheepLanguageVersion::V200);
 	ASSERT_NE(vm, nullptr);
 
 	vm->SetTag((void*)12345);
@@ -65,7 +65,7 @@ TEST(CreateNewVMTestCpp, TestVM)
 	ASSERT_NE(script, nullptr);
 	ASSERT_EQ(Sheep::ScriptStatus::Success, script->GetStatus());
 
-	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine();
+	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine(Sheep::SheepLanguageVersion::V200);
 	ASSERT_NE(vm, nullptr);
 
 	Sheep::IExecutionContext* context;
@@ -73,4 +73,28 @@ TEST(CreateNewVMTestCpp, TestVM)
 	context->Release();
 
 	vm->Release();
+}
+
+TEST(CreateNewVMTestCpp, TestFunctionParameters)
+{
+	Sheep::ICompiler* compilerV1 = CreateSheepCompiler(Sheep::SheepLanguageVersion::V100);
+	Sheep::ICompiler* compilerV2 = CreateSheepCompiler(Sheep::SheepLanguageVersion::V200);
+	ASSERT_NE(compilerV1, nullptr);
+	ASSERT_NE(compilerV2, nullptr);
+
+	const char* script = "symbols { int result$; } code { main$(int x$){ result$ = x$; } }";
+	Sheep::IScript* script1 = compilerV1->CompileScript(script);
+	Sheep::IScript* script2 = compilerV2->CompileScript(script);
+	ASSERT_NE(script1, nullptr);
+	ASSERT_EQ(Sheep::ScriptStatus::Error, script1->GetStatus());
+
+	ASSERT_NE(script2, nullptr);
+	ASSERT_EQ(Sheep::ScriptStatus::Success, script2->GetStatus());
+
+	Sheep::IVirtualMachine* vm = CreateSheepVirtualMachine(Sheep::SheepLanguageVersion::V200);
+
+	Sheep::IExecutionContext* context;
+	ASSERT_EQ(SHEEP_SUCCESS, vm->PrepareScriptForExecution(script2, "main$", &context));
+	ASSERT_EQ(SHEEP_SUCCESS, context->PushIntOntoStack(100));
+	ASSERT_EQ(SHEEP_SUCCESS, context->Execute());
 }

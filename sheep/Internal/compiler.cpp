@@ -58,7 +58,7 @@ namespace Internal
 		SheepLog log;
 		tree.Lock(script, &log);
 
-		SheepCodeGenerator generator(&tree, &m_imports, m_version != SheepLanguageVersion::V100);
+		SheepCodeGenerator generator(&tree, &m_imports, m_version);
 		IntermediateOutput* output = generator.BuildIntermediateOutput();
 
 		tree.Unlock();

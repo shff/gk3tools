@@ -3,6 +3,7 @@
 
 /// @file
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #ifdef _MSC_VER
 #define SHP_DECLSPEC __declspec(dllexport)
 #define SHP_LIB_CALL __cdecl
@@ -14,6 +15,7 @@
 #define SHP_CALLBACK __attribute__((stdcall))
 #define SHP_APIENTRY __attribute__((stdcall))
 #endif
+#endif // DOXYGEN_SHOULD_SKIP_THIS
 
 
 /// Success, no errors
@@ -69,9 +71,17 @@ extern "C"
 {
 	struct SHP_Version
 	{
-		unsigned char Major, Minor, Revision;
+		/// The major version
+		unsigned short Major;
+		
+		/// The minor version
+		unsigned short Minor;
+		
+		/// The revision number
+		unsigned short Revision;
 	};
 
+	/// Gets the version of the Sheep library
 	SHP_DECLSPEC SHP_Version shp_GetVersion();
 }
 

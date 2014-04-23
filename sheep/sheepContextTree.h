@@ -109,6 +109,8 @@ public:
 
 	Sheep::ExecutionContextState GetState() override { return m_state; }
 
+	Sheep::IVirtualMachine* GetParentVirtualMachine() override;
+
 	int GetNumVariables() override
 	{
 		return (int)m_variables.size();
@@ -233,6 +235,56 @@ public:
 
 		// TODO
 		return SHEEP_ERROR;
+	}
+
+	int PopIntFromStack(int* result) override
+	{
+		if (Stack.empty())
+			return SHEEP_ERR_EMPTY_STACK;
+
+		StackItem item = Stack.top();
+		Stack.pop();
+
+		if (item.Type != SheepSymbolType::Int)
+			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
+
+		if (result != nullptr)
+			*result = item.FValue;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int PopFloatFromStack(float* result) override
+	{
+		if (Stack.empty())
+			return SHEEP_ERR_EMPTY_STACK;
+
+		StackItem item = Stack.top();
+		Stack.pop();
+
+		if (item.Type != SheepSymbolType::Float)
+			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
+
+		if (result != nullptr)
+			*result = item.FValue;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int PopStringFromStack(const char** result) override;
+
+	int PushIntOntoStack(int i) override
+	{
+		Stack.push(StackItem(SheepSymbolType::Int, i));
+
+		return SHEEP_SUCCESS;
+	}
+	
+	int PushFloatOntoStack(float f) override
+	{
+		Stack.push(StackItem(SheepSymbolType::Float, f));
+
+		return SHEEP_SUCCESS;
 	}
 };
 

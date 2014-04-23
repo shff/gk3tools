@@ -30,6 +30,8 @@ namespace Internal
 
 		void Release() override;
 
+		Sheep::SheepLanguageVersion GetLanguageVersion() override { return m_version; }
+
 		int DefineImportFunction(const char* name, SymbolType returnType, SymbolType parameters[], int numParameters) override;
 
 		IScript* CompileScript(const char* script) override;

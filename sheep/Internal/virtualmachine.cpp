@@ -40,35 +40,5 @@ namespace Internal
 		// TODO
 		return SHEEP_ERROR;
 	}
-
-	int VirtualMachine::PopIntFromStack(int* result)
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
-
-	int VirtualMachine::PopFloatFromStack(float* result)
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
-
-	int VirtualMachine::PopStringFromStack(const char** result)
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
-
-	int VirtualMachine::PushIntOntoStack(int value)
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
-
-	int VirtualMachine::PushFloatOntoStack(float value)
-	{
-		// TODO
-		return SHEEP_ERROR;
-	}
 }
 }

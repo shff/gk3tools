@@ -45,10 +45,12 @@ class SheepMachine : public Sheep::IVirtualMachine
 
 public:
 
-	SheepMachine();
+	SheepMachine(Sheep::SheepLanguageVersion version);
 	virtual ~SheepMachine();
 
 	void Release() override;
+
+	Sheep::SheepLanguageVersion GetLanguageVersion() override { return m_version; }
 
 	void SetOutputCallback(void (*callback)(const char* message));
 	void SetCompileOutputCallback(SHP_MessageCallback callback);
@@ -59,64 +61,6 @@ public:
 	int PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context) override;
 
 	void Execute(SheepContext* context);
-
-	int PopIntFromStack(int* result) override
-	{
-		SheepContext* current = m_contextTree->GetCurrent();
-
-		if (current == NULL)
-			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
-
-		if (result != nullptr)
-			*result = getInt(current->Stack);
-
-		return SHEEP_SUCCESS;
-	}
-
-	int PopFloatFromStack(float* result) override
-	{
-		SheepContext* current = m_contextTree->GetCurrent();
-
-		if (current == NULL)
-			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
-
-		StackItem item = current->Stack.top();
-		current->Stack.pop();
-
-		if (item.Type != SheepSymbolType::Float)
-			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
-
-		if (result != nullptr)
-			*result = item.FValue;
-
-		return SHEEP_SUCCESS;
-	}
-
-	int PopStringFromStack(const char** result) override;
-
-	int PushIntOntoStack(int i) override
-	{
-		SheepContext* current = m_contextTree->GetCurrent();
-
-		if (current == NULL)
-			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
-
-		current->Stack.push(StackItem(SheepSymbolType::Int, i));
-
-		return SHEEP_SUCCESS;
-	}
-	
-	int PushFloatOntoStack(float f) override
-	{
-		SheepContext* current = m_contextTree->GetCurrent();
-
-		if (current == NULL)
-			return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
-
-		current->Stack.push(StackItem(SheepSymbolType::Float, f));
-
-		return SHEEP_SUCCESS;
-	}
 
 	bool IsInWaitSection()
 	{ 
@@ -131,8 +75,6 @@ public:
 	}
 	SheepContext* GetCurrentContext() { return m_contextTree->GetCurrent(); }
 	void PrintStackTrace();
-
-	void SetLanguageEnhancementsEnabled(bool enabled);
 
 	enum Verbosity
 	{
@@ -150,7 +92,6 @@ public:
 
 private:
 
-	void prepareVariables(SheepContext* context);
 	void executeNextInstruction(SheepContext* context);
 
 	void (*m_callback)(const char* message);
@@ -164,11 +105,11 @@ private:
 	Verbosity m_verbosityLevel;
 
 	void* m_tag;
-	bool m_enhancementsEnabled;
+	Sheep::SheepLanguageVersion m_version;
 
 	// we consider Call() a built-in function and not technically an import,
 	// mostly for performance reasons
-	static void SHP_CALLBACK s_call(Sheep::IVirtualMachine* vm);
+	static void SHP_CALLBACK s_call(Sheep::IExecutionContext* vm);
 
 	static int getInt(SheepStack& stack, bool string = false)
 	{
@@ -490,7 +431,7 @@ private:
 			
 		Sheep::ImportCallback callback;
 		if (m_importCallbacks.TryGetValue(context->FullCode->Imports[index].Name.c_str(), callback) && callback != nullptr)
-			callback(this);
+			callback(context);
 
 		int paramsLeftOver = numParams - (int)(numItemsOnStack - context->Stack.size());
 		if (paramsLeftOver > numExpectedReturns)

@@ -13,31 +13,31 @@
 #include "sheepDisassembler.h"*/
 
 
-void SHP_CALLBACK s_printString(Sheep::IVirtualMachine* vm)
+void SHP_CALLBACK s_printString(Sheep::IExecutionContext* context)
 {
 	const char* result;
-	vm->PopStringFromStack(&result);
+	context->PopStringFromStack(&result);
 	std::cout << result << std::endl;
 }
 
-void SHP_CALLBACK s_printFloat(Sheep::IVirtualMachine* vm)
+void SHP_CALLBACK s_printFloat(Sheep::IExecutionContext* context)
 {
 	float result;
-	vm->PopFloatFromStack(&result);
+	context->PopFloatFromStack(&result);
 	std::cout << result << std::endl;
 }
 
-void SHP_CALLBACK s_printInt(Sheep::IVirtualMachine* vm)
+void SHP_CALLBACK s_printInt(Sheep::IExecutionContext* context)
 {
 	int result;
-	vm->PopIntFromStack(&result);
+	context->PopIntFromStack(&result);
 	std::cout << result << std::endl;
 }
 
-void SHP_CALLBACK s_isCurrentTime(Sheep::IVirtualMachine* vm)
+void SHP_CALLBACK s_isCurrentTime(Sheep::IExecutionContext* context)
 {
-	vm->PopStringFromStack(nullptr);
-	vm->PushIntOntoStack(0);
+	context->PopStringFromStack(nullptr);
+	context->PushIntOntoStack(0);
 }
 
 enum class CompilerMode
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
 			}
 			else
 			{
-				std::unique_ptr<Sheep::IVirtualMachine, SheepReleaser<Sheep::IVirtualMachine>> vm(CreateSheepVirtualMachine());
+				std::unique_ptr<Sheep::IVirtualMachine, SheepReleaser<Sheep::IVirtualMachine>> vm(CreateSheepVirtualMachine(enhancementsEnabled ? Sheep::SheepLanguageVersion::V200 : Sheep::SheepLanguageVersion::V100));
 
 				vm->SetImportCallback("PrintString", s_printString);
 				vm->SetImportCallback("PrintFloat", s_printFloat);

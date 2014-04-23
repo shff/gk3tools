@@ -6,7 +6,7 @@
 #include "Internal/compiler.h"
 
 
-SheepMachine::SheepMachine()
+SheepMachine::SheepMachine(Sheep::SheepLanguageVersion version)
 {
 	m_refCount = 0;
 
@@ -24,7 +24,7 @@ SheepMachine::SheepMachine()
 	m_contextTree = new SheepContextTree();
 
 	m_tag = NULL;
-	m_enhancementsEnabled = false;
+	m_version = version;
 }
 
 SheepMachine::~SheepMachine()
@@ -65,46 +65,6 @@ int SheepMachine::SetImportCallback(const char* importName, Sheep::ImportCallbac
 	return SHEEP_SUCCESS;
 }
 
-int SheepMachine::PopStringFromStack(const char** result)
-{
-	SheepContext* current = m_contextTree->GetCurrent();
-
-	if (current == NULL)
-		return SHEEP_ERR_NO_CONTEXT_AVAILABLE;
-	if (current->Stack.empty())
-		return SHEEP_ERR_EMPTY_STACK;
-
-	StackItem item = current->Stack.top();
-	current->Stack.pop();
-
-	if (item.Type != SheepSymbolType::String)
-		return SHEEP_ERR_WRONG_TYPE_ON_STACK;
-
-	if (result != nullptr)
-	{
-		IntermediateOutput* code = current->FullCode;
-		for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
-			itr != code->Constants.end(); itr++)
-		{
-			if ((*itr).Offset == item.IValue)
-			{
-				*result = (*itr).Value.c_str();
-				return SHEEP_SUCCESS;
-			}
-		}
-
-		throw SheepMachineException("Invalid string offset found on stack");
-	}
-
-	return SHEEP_SUCCESS;
-}
-
-
-void SheepMachine::prepareVariables(SheepContext* context)
-{
-	context->PrepareVariables();
-}
-
 int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context)
 {
 	if (script == nullptr || function == nullptr)
@@ -133,7 +93,7 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	c->FunctionOffset = sheepfunction->CodeOffset;
 	c->InstructionOffset = 0;
 	
-	prepareVariables(c);
+	c->PrepareVariables();
 
 	m_contextTree->Add(c);
 
@@ -170,11 +130,6 @@ void SheepMachine::PrintStackTrace()
 
 		context = context->Parent;
 	}
-}
-
-void SheepMachine::SetLanguageEnhancementsEnabled(bool enabled)
-{
-	m_enhancementsEnabled = enabled;
 }
 
 void SheepMachine::executeNextInstruction(SheepContext* context)
@@ -467,12 +422,12 @@ void SheepMachine::Execute(SheepContext* context)
 	}
 }
 
-void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
+void SheepMachine::s_call(Sheep::IExecutionContext* context)
 {
-	SheepMachine* machine = static_cast<SheepMachine*>(vm);
+	SheepContext* sheepContext = static_cast<SheepContext*>(context);
 
 	const char* f;
-	machine->PopStringFromStack(&f);
+	context->PopStringFromStack(&f);
 	std::string function = f;
 
 	// make sure there's a '$' at the end
@@ -481,10 +436,9 @@ void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
 
 
 	// find the requsted function
-	SheepContext* currentContext = machine->m_contextTree->GetCurrent();
 	SheepFunction* sheepfunction = NULL;
-	for (std::vector<SheepFunction>::iterator itr = currentContext->FullCode->Functions.begin();
-		itr != currentContext->FullCode->Functions.end(); itr++)
+	for (std::vector<SheepFunction>::iterator itr = sheepContext->FullCode->Functions.begin();
+		itr != sheepContext->FullCode->Functions.end(); itr++)
 	{
 		if ((*itr).Name == function)
 		{
@@ -496,8 +450,9 @@ void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
 	if (sheepfunction == NULL)
 		throw NoSuchFunctionException(function);
 
+	SheepMachine* machine = static_cast<SheepMachine*>(sheepContext->GetParentVirtualMachine());
 	SheepContext* c = SHEEP_NEW SheepContext(machine);
-	*c = *currentContext;
+	*c = *sheepContext;
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
 	c->InstructionOffset = 0;
@@ -510,7 +465,7 @@ void SheepMachine::s_call(Sheep::IVirtualMachine* vm)
 	// so that the functions within the same scripts can modify the same global variables
 	
 
-	machine->prepareVariables(c);
+	c->PrepareVariables();
 	machine->m_contextTree->Add(c);
 
 	machine->m_executingDepth++;

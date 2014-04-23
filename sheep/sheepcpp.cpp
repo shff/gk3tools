@@ -11,9 +11,9 @@ extern "C" Sheep::ICompiler* SHP_APIENTRY CreateSheepCompiler(Sheep::SheepLangua
 	return SHEEP_NEW Sheep::Internal::Compiler(version);
 }
 
-Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine()
+Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine(Sheep::SheepLanguageVersion version)
 {
-	return SHEEP_NEW SheepMachine();
+	return SHEEP_NEW SheepMachine(version);
 }
 
 int SHP_APIENTRY CreateScriptFromBytecode(const char* bytecode, int length, Sheep::IScript** result)

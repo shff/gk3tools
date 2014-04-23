@@ -56,7 +56,8 @@ SheepFileReader::SheepFileReader(const byte* data, int length)
 
 void SheepFileReader::read(const byte* data, unsigned int length)
 {
-	m_intermediateOutput = SHEEP_NEW IntermediateOutput();
+	// TODO: set the version based on the file, not hardcoded
+	m_intermediateOutput = SHEEP_NEW IntermediateOutput(Sheep::SheepLanguageVersion::V200);
 
 	// read the header
 	SheepHeader header;

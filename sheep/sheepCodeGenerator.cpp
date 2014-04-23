@@ -37,19 +37,19 @@ void IntermediateOutput::Print()
 	std::cout << "------------" << std::endl;
 }
 
-SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, bool allowEnhancements)
+SheepCodeGenerator::SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, Sheep::SheepLanguageVersion languageVersion)
 {
 	assert(tree != NULL);
 	assert(imports != NULL);
 
-	m_allowEnhancements = allowEnhancements;
+	m_languageVersion = languageVersion;
 	m_tree = tree;
 	m_imports = imports;
 }
 
 IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 {
-	shp_auto_ptr<IntermediateOutput> output(SHEEP_NEW IntermediateOutput());
+	shp_auto_ptr<IntermediateOutput> output(SHEEP_NEW IntermediateOutput(m_languageVersion));
 
 	//std::map<std::string, SheepImport> usedImports;
 
@@ -487,12 +487,12 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclaration
 	SheepCodeTreeIdentifierReferenceNode* ref = function->Name;
 	SheepCodeTreeVariableListNode* params = function->Parameters;
 
-	if (type != nullptr && m_allowEnhancements == false)
+	if (type != nullptr && m_languageVersion < Sheep::SheepLanguageVersion::V200)
 	{
 		declarationErrorsFound = true;
 		context.Output.push_back(CompilerOutput(type->GetLineNumber(), "Function return types are not allowed."));
 	}
-	if (params != nullptr && m_allowEnhancements == false)
+	if (params != nullptr && m_languageVersion < Sheep::SheepLanguageVersion::V200)
 	{
 		declarationErrorsFound = true;
 		context.Output.push_back(CompilerOutput(params->GetLineNumber(), "Function parameters are not allowed."));

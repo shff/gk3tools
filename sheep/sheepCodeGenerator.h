@@ -14,13 +14,17 @@
 class IntermediateOutput
 {
 	int m_numRefs;
+	Sheep::SheepLanguageVersion m_languageVersion;
+
 public:
 
-	IntermediateOutput() { m_numRefs = 1; }
+	IntermediateOutput(Sheep::SheepLanguageVersion version) { m_numRefs = 1; m_languageVersion = version; }
 	~IntermediateOutput();
 
 	void AddRef() { m_numRefs++; }
 	void Release() { m_numRefs--; if (m_numRefs <= 0) SHEEP_DELETE(this); }
+
+	Sheep::SheepLanguageVersion GetLanguageVersion() { return m_languageVersion; }
 
 	std::vector<SheepSymbol> Symbols;
 	std::vector<SheepStringConstant> Constants;
@@ -49,7 +53,7 @@ class SheepCodeGenerator
 {
 public:
 
-	SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, bool allowEnhancements);
+	SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, Sheep::SheepLanguageVersion languageVersion);
 
 	IntermediateOutput* BuildIntermediateOutput();
 
@@ -68,7 +72,7 @@ private:
 
 	static CodeTreeExpressionValueType convertToExpressionValueType(SheepSymbolType type);
 
-	bool m_allowEnhancements;
+	Sheep::SheepLanguageVersion m_languageVersion;
 	SheepCodeTree* m_tree;
 	SheepImportTable* m_imports;
 

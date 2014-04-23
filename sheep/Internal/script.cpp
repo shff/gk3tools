@@ -26,6 +26,11 @@ namespace Internal
 			delete this;
 	}
 
+	SheepLanguageVersion Script::GetLanguageVersion()
+	{
+		return m_output->GetLanguageVersion();
+	}
+
 	ScriptStatus Script::GetStatus()
 	{
 		return m_status;

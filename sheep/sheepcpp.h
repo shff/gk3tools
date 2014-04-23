@@ -24,6 +24,16 @@ namespace Sheep
 		String = 3
 	};
 
+	/// Represents a specific version of Sheep
+	enum class SheepLanguageVersion
+	{
+		/// Vanilla version of Sheep with no enhancements (Gabriel Knight 3-level features only)
+		V100 = 0,
+		
+		/// New enhancements
+		V200
+	};
+
 	class IScript;
 	class IVirtualMachine;
 
@@ -66,6 +76,9 @@ namespace Sheep
 
 		/// Gets the current state of the context
 		virtual ExecutionContextState GetState() = 0;
+
+		/// Gets the parent Sheep::IVirtualMachine that owns this context
+		virtual IVirtualMachine* GetParentVirtualMachine() = 0;
 
 		/// Gets the number of global variables within the script associated with the Context.
 		virtual int GetNumVariables() = 0;
@@ -117,9 +130,37 @@ namespace Sheep
 		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if index is invalid or result is null, 
 		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not a string
 		virtual int GetVariableString(int index, const char** result) = 0;
+
+		/// Pops an integer from the top of the stack
+		/// @param result A pointer to an integer where the value on top of the stack will be written. May be null.
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
+		/// on top of the stack is not an integer.
+		virtual int PopIntFromStack(int* result) = 0;
+
+		/// Pops a float from the top of the stack
+		/// @param result A pointer to a float where the value on top of the stack will be written. May be null.
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
+		/// on top of the stack is not a float.
+		virtual int PopFloatFromStack(float* result) = 0;
+
+		/// Pops a string from the top of the stack
+		/// @param result A pointer to an character array where the value on top of the stack will be written. May be null.
+		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
+		/// on top of the stack is not a string.
+		virtual int PopStringFromStack(const char** result) = 0;
+
+		/// Pushes an integer onto the stack
+		/// @param value An integer that will be pushed onto the top of the stack
+		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
+		virtual int PushIntOntoStack(int value) = 0;
+
+		/// Pushes a float onto the stack
+		/// @param value An float that will be pushed onto the top of the stack
+		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
+		virtual int PushFloatOntoStack(float value) = 0;
 	};
 
-	typedef void (SHP_CALLBACK *ImportCallback)(IVirtualMachine* vm);
+	typedef void (SHP_CALLBACK *ImportCallback)(IExecutionContext* context);
 	typedef void (SHP_CALLBACK* EndWaitCallback)(IVirtualMachine* vm, IExecutionContext* context);
 
 	/// Represents a Sheep Virtual Machine which executes compiled Sheep scripts
@@ -132,6 +173,9 @@ namespace Sheep
 		/// belong to it are destroyed. Be very careful when accessing IExecutionContext after the 
 		/// parent IVirtualMachine has been released. If you don't know what you're doing you could easily cause a crash.
 		virtual void Release() = 0;
+
+		/// Gets the language version with which this virtual machine was created
+		virtual SheepLanguageVersion GetLanguageVersion() = 0;
 
 		/// Sets a "tag," which is just a pointer to whatever you want. The Virtual Machine doesn't use it.
 		/// It's just for convenience.
@@ -168,37 +212,6 @@ namespace Sheep
 		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if any of the parameters are null,
 		/// or #SHEEP_ERR_NO_SUCH_FUNCTION if the function doesn't exist. 
 		virtual int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) = 0;
-
-		/// Pops an integer from the top of the stack
-		/// @param result A pointer to an integer where the value on top of the stack will be written. May be null.
-		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, #SHEEP_ERR_NO_CONTEXT_AVAILABLE if
-		/// there is not a currently executing Sheep::IExecutionContext, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
-		/// on top of the stack is not an integer.
-		virtual int PopIntFromStack(int* result) = 0;
-
-		/// Pops a float from the top of the stack
-		/// @param result A pointer to a float where the value on top of the stack will be written. May be null.
-		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, #SHEEP_ERR_NO_CONTEXT_AVAILABLE if
-		/// there is not a currently executing Sheep::IExecutionContext, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
-		/// on top of the stack is not a float.
-		virtual int PopFloatFromStack(float* result) = 0;
-
-		/// Pops a string from the top of the stack
-		/// @param result A pointer to an character array where the value on top of the stack will be written. May be null.
-		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, #SHEEP_ERR_NO_CONTEXT_AVAILABLE if
-		/// there is not a currently executing Sheep::IExecutionContext, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
-		/// on top of the stack is not a string.
-		virtual int PopStringFromStack(const char** result) = 0;
-
-		/// Pushes an integer onto the stack
-		/// @param value An integer that will be pushed onto the top of the stack
-		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
-		virtual int PushIntOntoStack(int value) = 0;
-
-		/// Pushes a float onto the stack
-		/// @param value An float that will be pushed onto the top of the stack
-		/// @return #SHEEP_SUCCESS if successful, or #SHEEP_ERR_NO_CONTEXT_AVAILABLE if there is not a currently executing Sheep::IExecutionContext
-		virtual int PushFloatOntoStack(float value) = 0;
 	};
 	
 	/// Represents a disassembly of an IScript object
@@ -259,6 +272,9 @@ namespace Sheep
 		/// a particular IScript holds its own reference to the IScript.
 		virtual void Release() = 0;
 
+		/// Gets the language version with which this script was created
+		virtual SheepLanguageVersion GetLanguageVersion() = 0;
+
 		/// Gets the status of the script.
 		virtual ScriptStatus GetStatus() = 0;
 	
@@ -280,18 +296,6 @@ namespace Sheep
 		virtual ICompiledScriptOutput* GenerateCompiledOutput() = 0;
 	};
 
-	
-
-	/// Represents a specific version of Sheep
-	enum class SheepLanguageVersion
-	{
-		/// Vanilla version of Sheep with no enhancements (Gabriel Knight 3-level features only)
-		V100 = 0,
-		
-		/// New enhancements
-		V200
-	};
-
 	/// Interface to a Compiler object that compiles sheep scripts
 	class ICompiler
 	{
@@ -305,6 +309,9 @@ namespace Sheep
 		/// is deleted. Any active instances of IScript that have been created by this compiler
 		/// are still alive.
 		virtual void Release() = 0;
+
+		/// Gets the language version with which this compiler was created
+		virtual SheepLanguageVersion GetLanguageVersion() = 0;
 
 		/// Defines an import function.
 		/// @param name The name of the import function to define
@@ -338,8 +345,9 @@ extern "C"
 	/// Creates an IVirtualMachine object for running Sheep scripts
 	///
 	/// Be sure to call IVirtualMachine::Release() when you're done with the virtual machine.
+	/// @param 
 	/// @return A new Sheep::IVirtualMachine instance
-	SHP_DECLSPEC Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine();
+	SHP_DECLSPEC Sheep::IVirtualMachine* SHP_APIENTRY CreateSheepVirtualMachine(Sheep::SheepLanguageVersion version);
 	
 	/// Creates a new IScript object from Sheep bytecode
 	///

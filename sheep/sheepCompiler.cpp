@@ -16,9 +16,9 @@
 SHP_Allocator g_allocator;
 
 
-SheepVM* SHP_CreateNewVM()
+SheepVM* SHP_CreateNewVM(int languageVersion)
 {
-	return (SheepVM*)(SHEEP_NEW SheepMachine());
+	return (SheepVM*)(SHEEP_NEW SheepMachine((Sheep::SheepLanguageVersion)languageVersion));
 }
 
 void SHP_DestroyVM(SheepVM* vm)
@@ -112,36 +112,37 @@ int shp_SetVariableF(SheepVMContext* context, int index, float value)
 	return ((Sheep::IExecutionContext*)context)->SetVariableFloat(index, value);
 }
 
-int SHP_PopIntFromStack(SheepVM* vm, int* result)
+int SHP_PopIntFromStack(SheepVMContext* context, int* result)
 {
-	if (vm == nullptr)
+	if (context == nullptr)
 		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	return SM(vm)->PopIntFromStack(result);
+	return ((Sheep::IExecutionContext*)context)->PopIntFromStack(result);
 }
 
-int SHP_PopFloatFromStack(SheepVM* vm, float* result)
+int SHP_PopFloatFromStack(SheepVMContext* context, float* result)
 {
-	if (vm == nullptr)
+	if (context == nullptr)
 		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	return SM(vm)->PopFloatFromStack(result);
+	return ((Sheep::IExecutionContext*)context)->PopFloatFromStack(result);
 }
 
-int SHP_PopStringFromStack(SheepVM* vm, const char** result)
+int SHP_PopStringFromStack(SheepVMContext* context, const char** result)
 {
-	if (vm == nullptr)
+	if (context == nullptr)
 		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	return SM(vm)->PopStringFromStack(result);
+	return ((Sheep::IExecutionContext*)context)->PopStringFromStack(result);
 }
 
 
-void SHP_PushIntOntoStack(SheepVM* vm, int i)
+int SHP_PushIntOntoStack(SheepVMContext* context, int i)
 {
-	assert(vm != NULL);
+	if (context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	SM(vm)->PushIntOntoStack(i);
+	return ((Sheep::IExecutionContext*)context)->PushIntOntoStack(i);
 }
 
 int SHP_IsInWaitSection(SheepVM* vm)
@@ -196,13 +197,6 @@ void SHP_PrintStackTrace(SheepVM* vm)
 	assert(vm != NULL);
 
 	return SM(vm)->PrintStackTrace();
-}
-
-void SHP_EnableLanguageEnhancements(SheepVM* vm, bool enabled)
-{
-	assert(vm != NULL);
-
-	SM(vm)->SetLanguageEnhancementsEnabled(enabled);
 }
 
 int SHP_GetNumContexts(SheepVM* vm)

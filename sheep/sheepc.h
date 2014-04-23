@@ -17,8 +17,8 @@ extern "C"
 #define SHEEP_FALSE 0
 
 #define SHEEP_VERSION_MAJOR 0
-#define SHEEP_VERSION_MINOR 3
-#define SHEEP_VERSION_REVISION 9
+#define SHEEP_VERSION_MINOR 4
+#define SHEEP_VERSION_REVISION 0
 
 #define SHEEP_VERBOSITY_SILENT 0
 #define SHEEP_VERBOSITY_POLITE 1
@@ -87,7 +87,7 @@ typedef struct {} SheepImportFunction;
 typedef struct {} SheepScript;
 
 /// Creates a new virtual machine
-SHP_DECLSPEC SheepVM* SHP_LIB_CALL SHP_CreateNewVM();
+SHP_DECLSPEC SheepVM* SHP_LIB_CALL SHP_CreateNewVM(int languageVersion);
 
 /// Destroys an existing virtual machine
 SHP_DECLSPEC void SHP_LIB_CALL SHP_DestroyVM(SheepVM* vm);
@@ -124,11 +124,11 @@ SHP_DECLSPEC int SHP_LIB_CALL shp_SetVariableF(SheepVMContext* context, int inde
 typedef void (SHP_CALLBACK *SHP_ImportCallback)(SheepVM* vm);
 SHP_DECLSPEC void SHP_LIB_CALL SHP_SetImportCallback(SheepVM* vm, const char* name, SHP_ImportCallback callback);
 
-SHP_DECLSPEC int SHP_LIB_CALL SHP_PopIntFromStack(SheepVM* vm, int* result);
-SHP_DECLSPEC int SHP_LIB_CALL SHP_PopFloatFromStack(SheepVM* vm, float* result);
-SHP_DECLSPEC int SHP_LIB_CALL SHP_PopStringFromStack(SheepVM* vm, const char** result);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PopIntFromStack(SheepVMContext* vm, int* result);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PopFloatFromStack(SheepVMContext* vm, float* result);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PopStringFromStack(SheepVMContext* vm, const char** result);
 
-SHP_DECLSPEC void SHP_LIB_CALL SHP_PushIntOntoStack(SheepVM* vm, int i);
+SHP_DECLSPEC int SHP_LIB_CALL SHP_PushIntOntoStack(SheepVMContext* vm, int i);
 
 SHP_DECLSPEC SheepVMContext* SHP_LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
 
@@ -139,13 +139,6 @@ SHP_DECLSPEC int SHP_LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
 SHP_DECLSPEC void SHP_LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
 SHP_DECLSPEC void SHP_LIB_CALL SHP_PrintMemoryUsage();
 SHP_DECLSPEC void SHP_LIB_CALL SHP_PrintStackTrace(SheepVM* vm);
-
-
-/* There are two versions of Sheep, the vanilla version that shipped with GK3,
-and an "enhanced" version with our own extras. By default the Sheep compiler and VM
-only support GK3's vanilla version of sheep, so if you want the extras you have to explicitly
-as for them, using the following function. */
-SHP_DECLSPEC void SHP_LIB_CALL SHP_EnableLanguageEnhancements(SheepVM* vm, bool enabled);
 
 /* You can read more about Waiting in Sheep Engine.doc, which is embedded in the GK3 barns.
 

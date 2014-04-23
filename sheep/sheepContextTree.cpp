@@ -101,12 +101,47 @@ int SheepContext::Suspend()
 	return SHEEP_SUCCESS;
 }
 
+Sheep::IVirtualMachine* SheepContext::GetParentVirtualMachine()
+{
+	return m_parentVM;
+}
+
 const char* SheepContext::GetVariableName(int index)
 {
 	if (index < 0 || index >= FullCode->Symbols.size())
 		return nullptr;
 
 	FullCode->Symbols[index].Name.c_str();
+}
+
+int SheepContext::PopStringFromStack(const char** result)
+{
+	if (Stack.empty())
+		return SHEEP_ERR_EMPTY_STACK;
+
+	StackItem item = Stack.top();
+	Stack.pop();
+
+	if (item.Type != SheepSymbolType::String)
+		return SHEEP_ERR_WRONG_TYPE_ON_STACK;
+
+	if (result != nullptr)
+	{
+		IntermediateOutput* code = FullCode;
+		for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
+			itr != code->Constants.end(); itr++)
+		{
+			if ((*itr).Offset == item.IValue)
+			{
+				*result = (*itr).Value.c_str();
+				return SHEEP_SUCCESS;
+			}
+		}
+
+		throw SheepMachineException("Invalid string offset found on stack");
+	}
+
+	return SHEEP_SUCCESS;
 }
 
 SheepContextTree::~SheepContextTree()
