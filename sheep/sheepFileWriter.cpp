@@ -1,7 +1,9 @@
 #include "sheepFileWriter.h"
+#include "sheepFileReader.h"
 #include "sheepCodeGenerator.h"
 #include "sheepCodeBuffer.h"
 #include "rbuffer.h"
+#include <ctime>
 
 #ifdef _MSC_VER
 #pragma warning(error:4267)
@@ -36,8 +38,7 @@ void SheepFileWriter::writeToBuffer()
 	if (m_intermediateOutput->Imports.empty() == false) dataCount++;
 
 	// write the main header
-	int headerSize = DataSectionHeaderSize + dataCount * 4;
-	writeSectionHeader("GK3Sheep", headerSize, dataCount);
+	writeFileHeader(dataCount);
 
 	int offsetAfterHeader = (int)m_buffer->Tell();
 
@@ -46,7 +47,7 @@ void SheepFileWriter::writeToBuffer()
 	// write the variables
 	if (m_intermediateOutput->Symbols.empty() == false)
 	{
-		m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+		m_buffer->WriteUIntAt((int)m_buffer->Tell() - offsetAfterHeader, DataSectionHeaderSize + currentSection * 4);
 		writeVariablesSection();
 		currentSection++;
 	}
@@ -54,27 +55,70 @@ void SheepFileWriter::writeToBuffer()
 	// write the imports section
 	if (m_intermediateOutput->Imports.empty() == false)
 	{
-		m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+		m_buffer->WriteUIntAt((int)m_buffer->Tell() - offsetAfterHeader, DataSectionHeaderSize + currentSection * 4);
 		writeImportsSection();
 		currentSection++;
 	}
 
 	// write the constants section
-	m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+	m_buffer->WriteUIntAt((int)m_buffer->Tell() - offsetAfterHeader, DataSectionHeaderSize + currentSection * 4);
 	writeConstantsSection();
 	currentSection++;
 
 	// write the function section
-	m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+	m_buffer->WriteUIntAt((int)m_buffer->Tell() - offsetAfterHeader, DataSectionHeaderSize + currentSection * 4);
 	writeFunctionsSection();
 	currentSection++;
 
 	// write the code section
-	m_buffer->WriteUIntAt((int)m_buffer->Tell() - headerSize, DataSectionHeaderSize + currentSection * 4);
+	m_buffer->WriteUIntAt((int)m_buffer->Tell() - offsetAfterHeader, DataSectionHeaderSize + currentSection * 4);
 	writeCodeSection();
 
 	// write the total size
 	m_buffer->WriteUIntAt((int)m_buffer->GetSize() - offsetAfterHeader, 20); 
+}
+
+void SheepFileWriter::writeFileHeader(int sectionCount)
+{
+	int headerSize = DataSectionHeaderSize + sectionCount * 4;
+	writeSectionHeader("GK3Sheep", headerSize, sectionCount);
+
+	// write the "extra" section
+	Sheep::SheepLanguageVersion version = m_intermediateOutput->GetLanguageVersion();
+	if (version == Sheep::SheepLanguageVersion::V100)
+	{
+		m_buffer->WriteUShort(1);
+		m_buffer->WriteUShort(0);
+	}
+	else
+	{
+		m_buffer->WriteUShort(2);
+		m_buffer->WriteUShort(0);
+	}
+
+	// checksum
+	m_buffer->WriteInt(0);
+
+	// SYSTEMTIME
+	time_t currentTime;
+	time(&currentTime);
+	tm* t =	gmtime(&currentTime);
+	m_buffer->WriteUShort(1900 + t->tm_year);
+	m_buffer->WriteUShort(1 + t->tm_mon);
+	m_buffer->WriteUShort(t->tm_wday);
+	m_buffer->WriteUShort(t->tm_mday);
+	m_buffer->WriteUShort(t->tm_hour);
+	m_buffer->WriteUShort(t->tm_min);
+	m_buffer->WriteUShort(t->tm_sec);
+	m_buffer->WriteUShort(0);
+
+	// copyright
+	const char* copyright = "Built by sheepc";
+	m_buffer->Write(copyright, strlen(copyright) + 1);
+
+	// now go back and update the data offset
+	size_t position = m_buffer->Tell();
+	m_buffer->WriteAt((const char*)&position, 4, 16);
 }
 
 void SheepFileWriter::writeSectionHeader(const std::string& label, int dataOffset, int dataCount)

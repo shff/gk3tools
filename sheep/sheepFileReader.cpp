@@ -56,21 +56,20 @@ SheepFileReader::SheepFileReader(const byte* data, int length)
 
 void SheepFileReader::read(const byte* data, unsigned int length)
 {
-	// TODO: set the version based on the file, not hardcoded
-	m_intermediateOutput = SHEEP_NEW IntermediateOutput(Sheep::SheepLanguageVersion::V200);
+	Sheep::SheepLanguageVersion languageVersion = Sheep::SheepLanguageVersion::V100;
 
 	// read the header
 	SheepHeader header;
 	unsigned int offset = 0;
 	READ4(&header.Magic1, offset);
 	READ4(&header.Magic2, offset);
+	READ4(&header.Magic3, offset);
 
-	if (header.Magic1 != SheepHeader::Magic1Value || header.Magic2 != SheepHeader::Magic2Value)
+	if (header.Magic1 != SheepHeader::Magic1Value || header.Magic2 != SheepHeader::Magic2Value || header.Magic3 != 0)
 	{
 		throw SheepException("Input file is not a valid sheep file", SHEEP_ERR_INVALID_FILE_FORMAT);
 	}
 
-	READ4(&header.Unknown, offset);
 	READ4(&header.ExtraOffset, offset);
 	READ4(&header.DataOffset, offset);
 	READ4(&header.DataSize, offset);
@@ -82,8 +81,44 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 	for (unsigned int i = 0; i < header.DataCount; i++)
 		READ4(&header.OffsetArray[i], offset);
 
-	SectionHeader importHeader, constantsHeader, functionsHeader, variablesHeader, codeHeader;
+	if (header.ExtraOffset != header.DataOffset)
+	{
+		// read the "extra" header info
+		SheepHeaderExtra extra;
+		READ2(&extra.VersionMajor, offset);
+		READ2(&extra.VersionMinor, offset);
+		READ4(&extra.Checksum, offset);
+		READ2(&extra.Year, offset);
+		READ2(&extra.Month, offset);
+		READ2(&extra.DayOfWeek, offset);
+		READ2(&extra.Day, offset);
+		READ2(&extra.Hour, offset);
+		READ2(&extra.Minute, offset);
+		READ2(&extra.Second, offset);
+		READ2(&extra.Milliseconds, offset);
+		
+		// we don't care what the copyright info says, so just read until we find the end
+		char c;
+		do 
+		{
+			READ1(&c, offset);
+		} while (c != 0);
 
+		// update the version
+		if (extra.VersionMajor == 1 && extra.VersionMinor == 0)
+			languageVersion = Sheep::SheepLanguageVersion::V100;
+		else if (extra.VersionMajor == 2 && extra.VersionMinor == 0)
+			languageVersion = Sheep::SheepLanguageVersion::V200;
+		else
+		{
+			// unknown version! we don't support it!
+			throw SheepException("Input file is not a supported version of Sheep", SHEEP_ERR_INVALID_FILE_FORMAT);
+		}
+	}
+
+	m_intermediateOutput = SHEEP_NEW IntermediateOutput(languageVersion);
+
+	SectionHeader importHeader, constantsHeader, functionsHeader, variablesHeader, codeHeader;
 
 	for (unsigned int i = 0; i < header.DataCount; i++)
 	{

@@ -11,7 +11,7 @@ struct SheepHeader
 {
 	unsigned int Magic1;
 	unsigned int Magic2;
-	unsigned int Unknown;
+	unsigned int Magic3;
 	unsigned int ExtraOffset;
 	unsigned int DataOffset;
 	unsigned int DataSize;
@@ -22,6 +22,26 @@ struct SheepHeader
 	static const unsigned int SheepHeaderSize = 28;
 	static const unsigned int Magic1Value = 0x53334b47;
 	static const unsigned int Magic2Value = 0x70656568;
+};
+
+struct SheepHeaderExtra
+{
+	short VersionMajor;
+	short VersionMinor;
+
+	int Checksum;
+	
+	// the next few fields make up a Win32 SYSTEMTIME struct
+	short Year;
+	short Month;
+	short DayOfWeek;
+	short Day;
+	short Hour;
+	short Minute;
+	short Second;
+	short Milliseconds;
+
+	const char* Copyright;
 };
 
 struct SectionHeader

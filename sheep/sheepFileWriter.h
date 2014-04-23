@@ -21,6 +21,7 @@ private:
 
 	void writeToBuffer();
 
+	void writeFileHeader(int sectionCount);
 	void writeSectionHeader(const std::string& label, int dataOffset, int dataCount);
 	void writeVariablesSection();
 	void writeImportsSection();

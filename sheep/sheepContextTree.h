@@ -249,7 +249,7 @@ public:
 			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
 
 		if (result != nullptr)
-			*result = item.FValue;
+			*result = item.IValue;
 
 		return SHEEP_SUCCESS;
 	}
