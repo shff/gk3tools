@@ -134,22 +134,22 @@ namespace Sheep
 		/// or #SHEEP_ERR_VARIABLE_INCORRECT_TYPE if the specified variable is not a string
 		virtual int GetVariableString(int index, const char** result) = 0;
 
-		/// Pops an integer from the top of the stack
+		/// Pops an integer from the top of the stack.
 		/// @param result A pointer to an integer where the value on top of the stack will be written. May be null.
 		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
-		/// on top of the stack is not an integer.
+		/// on top of the stack is not an integer. If anything other than #SHEEP_SUCCESS is returned then the stack is not modified.
 		virtual int PopIntFromStack(int* result) = 0;
 
 		/// Pops a float from the top of the stack
 		/// @param result A pointer to a float where the value on top of the stack will be written. May be null.
 		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
-		/// on top of the stack is not a float.
+		/// on top of the stack is not a float. If anything other than #SHEEP_SUCCESS is returned then the stack is not modified.
 		virtual int PopFloatFromStack(float* result) = 0;
 
 		/// Pops a string from the top of the stack
 		/// @param result A pointer to an character array where the value on top of the stack will be written. May be null.
 		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_EMPTY_STACK if the stack is empty, or #SHEEP_ERR_WRONG_TYPE_ON_STACK if the item
-		/// on top of the stack is not a string.
+		/// on top of the stack is not a string. If anything other than #SHEEP_SUCCESS is returned then the stack is not modified.
 		virtual int PopStringFromStack(const char** result) = 0;
 
 		/// Pushes an integer onto the stack

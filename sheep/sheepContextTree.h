@@ -245,10 +245,11 @@ public:
 			return SHEEP_ERR_EMPTY_STACK;
 
 		StackItem item = Stack.top();
-		Stack.pop();
-
+		
 		if (item.Type != SheepSymbolType::Int)
 			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
+
+		Stack.pop();
 
 		if (result != nullptr)
 			*result = item.IValue;
@@ -262,10 +263,11 @@ public:
 			return SHEEP_ERR_EMPTY_STACK;
 
 		StackItem item = Stack.top();
-		Stack.pop();
 
 		if (item.Type != SheepSymbolType::Float)
 			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
+		
+		Stack.pop();
 
 		if (result != nullptr)
 			*result = item.FValue;

@@ -120,10 +120,11 @@ int SheepContext::PopStringFromStack(const char** result)
 		return SHEEP_ERR_EMPTY_STACK;
 
 	StackItem item = Stack.top();
-	Stack.pop();
-
+	
 	if (item.Type != SheepSymbolType::String)
 		return SHEEP_ERR_WRONG_TYPE_ON_STACK;
+
+	Stack.pop();
 
 	if (result != nullptr)
 	{
