@@ -8,7 +8,8 @@
 #include "sheepcpp.h"
 #include "sheepConfig.h"
 
-SHEEP_ENUM(SheepSymbolType)
+enum class SheepSymbolType
+{
 	Void = 0,
 	Int,
 	Float,
@@ -16,7 +17,7 @@ SHEEP_ENUM(SheepSymbolType)
 	LocalFunction,
 	Import,
 	Label
-END_SHEEP_ENUM(SheepSymbolType)
+};
 
 static const char* SheepSymbolTypeNames[] =
 {

@@ -158,7 +158,7 @@ void* operator new[](size_t size, const char* filename, int lineNumber)
 	return p->Data;
 }
 
-void operator delete(void* p)
+void operator delete(void* p) NOEXCEPT
 {
 	SheepAllocInfo* info = (SheepAllocInfo*)((byte*)p - sizeof(SheepAllocInfo));
 	removeAllocInfo(info);
@@ -166,7 +166,7 @@ void operator delete(void* p)
 	g_allocator.Deallocator(info);
 }
 
-void operator delete[](void* p)
+void operator delete[](void* p) NOEXCEPT
 {
 	SheepAllocInfo* info = (SheepAllocInfo*)((byte*)p - sizeof(SheepAllocInfo));
 	removeAllocInfo(info);
@@ -174,7 +174,7 @@ void operator delete[](void* p)
 	g_allocator.Deallocator(info);
 }
 
-void operator delete(void* p, const char*, int)
+void operator delete(void* p, const char*, int) NOEXCEPT
 {
 	SheepAllocInfo* info = (SheepAllocInfo*)((byte*)p - sizeof(SheepAllocInfo));
 	removeAllocInfo(info);
@@ -182,7 +182,7 @@ void operator delete(void* p, const char*, int)
 	g_allocator.Deallocator(info);
 }
 
-void operator delete[](void* p, const char*, int)
+void operator delete[](void* p, const char*, int) NOEXCEPT
 {
 	SheepAllocInfo* info = (SheepAllocInfo*)((byte*)p - sizeof(SheepAllocInfo));
 	removeAllocInfo(info);

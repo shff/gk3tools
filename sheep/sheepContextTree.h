@@ -125,7 +125,7 @@ public:
 		if (index < 0 || index >= m_variables.size())
 			return Sheep::SymbolType::Void;
 
-		return (Sheep::SymbolType)m_variables[index].Type;
+		return static_cast<Sheep::SymbolType>(m_variables[index].Type);
 	}
 
 	int SetVariableInt(int index, int value) override

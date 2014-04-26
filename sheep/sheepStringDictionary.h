@@ -14,7 +14,7 @@ class StringDictionary
 
 	struct comparer
 	{
-		bool operator()(std::pair<std::string, T>& a, std::pair<std::string, T>& b)
+		bool operator()(const std::pair<std::string, T>& a, const std::pair<std::string, T>& b)
 		{
 			return ci_less::areEqual(a.first, b.first);
 		}
@@ -105,6 +105,8 @@ private:
 	{
 #ifdef WIN32
 		return stricmp(str1, str2);
+#else
+		return strcasecmp(str1, str2);
 #endif
 	}
 };
