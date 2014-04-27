@@ -135,7 +135,6 @@ SHP_DECLSPEC SheepVMContext* SHP_LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
 /* these next few functions are just for debugging the Compiler and VM. They shouldn't
 be used for anything else. */
 SHP_DECLSPEC int SHP_LIB_CALL SHP_GetNumContexts(SheepVM* vm);
-SHP_DECLSPEC int SHP_LIB_CALL SHP_GetCurrentContextStackSize(SheepVM* vm);
 SHP_DECLSPEC void SHP_LIB_CALL SHP_SetVerbosity(SheepVM* vm, int verbosity);
 SHP_DECLSPEC void SHP_LIB_CALL SHP_PrintMemoryUsage();
 SHP_DECLSPEC void SHP_LIB_CALL SHP_PrintStackTrace(SheepVM* vm);

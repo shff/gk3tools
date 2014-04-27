@@ -142,30 +142,31 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 	m_contextTree->SetCurrent(context);
 
 	std::vector<SheepImport>& imports = context->FullCode->Imports;
+	SheepStack* stack = context->GetStack();
 
 	if (m_verbosityLevel > Verbosity_Annoying)
 	{
-		printf("stack size: %d:", context->Stack.size());
+		printf("stack size: %d:", context->GetStack()->size());
 		
 		SheepStack tmp;
-		while(context->Stack.empty() == false)
+		while(stack->empty() == false)
 		{
-			printf("%d, ", context->Stack.top().Type);
+			printf("%d, ",  stack->top().Type);
 
-			tmp.push(context->Stack.top());
-			context->Stack.pop();
+			tmp.push(stack->top());
+			stack->pop();
 		}
 
 		printf("\n");
 
 		while(tmp.empty() == false)
 		{
-			context->Stack.push(tmp.top());
+			stack->push(tmp.top());
 			tmp.pop();
 		}
 	}
 	else if (m_verbosityLevel > Verbosity_Polite)
-		printf("stack size: %d\n", context->Stack.size());
+		printf("stack size: %d\n", context->GetStack()->size());
 
 	if (context->InstructionOffset != context->CodeBuffer->Tell())
 		context->CodeBuffer->SeekFromStart(context->InstructionOffset);
@@ -189,7 +190,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case CallSysFunctionI:
 			context->InstructionOffset += 4;
 			callIntFunction(context, context->CodeBuffer->ReadInt());
-			if (context->Stack.top().Type != SheepSymbolType::Int)
+			if (context->GetStack()->top().Type != SheepSymbolType::Int)
 			{
 				throw SheepMachineException("CallSysFunctionI instruction requires integer on stack afterwards", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 			}
@@ -202,16 +203,16 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
 			break;
 		case BranchIfZero:
-			if (context->Stack.top().Type == SheepSymbolType::Int)
+			if (stack->top().Type == SheepSymbolType::Int)
 			{
-				if (context->Stack.top().IValue == 0)
+				if (stack->top().IValue == 0)
 					context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
 				else
 				{
 					context->CodeBuffer->ReadInt(); // throw it away
 					context->InstructionOffset += 4;
 				}
-				context->Stack.pop();
+				stack->pop();
 			}
 			else
 			{
@@ -231,177 +232,177 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case ReturnV:
 			return;
 		case StoreI:
-			storeI(context->Stack, context, context->CodeBuffer->ReadInt());
+			storeI(context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case StoreF:
-			storeF(context->Stack, context, context->CodeBuffer->ReadInt());
+			storeF(context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case StoreS:
-			storeS(context->Stack, context, context->CodeBuffer->ReadInt());
+			storeS(context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadI:
-			loadI(context->Stack, context, context->CodeBuffer->ReadInt());
+			loadI(context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadF:
-			loadF(context->Stack, context, context->CodeBuffer->ReadInt());
+			loadF(context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadS:
-			loadS(context->Stack, context, context->CodeBuffer->ReadInt());
+			loadS(context, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case PushI:
-			context->Stack.push(StackItem(SheepSymbolType::Int, context->CodeBuffer->ReadInt()));
+			stack->push(StackItem(SheepSymbolType::Int, context->CodeBuffer->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
 		case PushF:
-			context->Stack.push(StackItem(SheepSymbolType::Float, context->CodeBuffer->ReadFloat()));
+			stack->push(StackItem(SheepSymbolType::Float, context->CodeBuffer->ReadFloat()));
 			context->InstructionOffset += 4;
 			break;
 		case PushS:
-			context->Stack.push(StackItem(SheepSymbolType::String, context->CodeBuffer->ReadInt()));
+			stack->push(StackItem(SheepSymbolType::String, context->CodeBuffer->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
 		case Pop:
-			context->Stack.pop();
+			stack->pop();
 			break;
 		case AddI:
-			addI(context->Stack);
+			addI(stack);
 			break;
 		case AddF:
-			addF(context->Stack);
+			addF(stack);
 			break;
 		case SubtractI:
-			subI(context->Stack);
+			subI(stack);
 			break;
 		case SubtractF:
-			subF(context->Stack);
+			subF(stack);
 			break;
 		case MultiplyI:
-			mulI(context->Stack);
+			mulI(stack);
 			break;
 		case MultiplyF:
-			mulF(context->Stack);
+			mulF(stack);
 			break;
 		case DivideI:
-			divI(context->Stack);
+			divI(stack);
 			break;
 		case DivideF:
-			divF(context->Stack);
+			divF(stack);
 			break;
 		case NegateI:
-			negI(context->Stack);
+			negI(stack);
 			break;
 		case NegateF:
-			negF(context->Stack);
+			negF(stack);
 			break;
 		case IsEqualI:
-			get2Ints(context->Stack, iparam1, iparam2, IsEqualI);
+			get2Ints(stack, iparam1, iparam2, IsEqualI);
 			if (iparam1 == iparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsEqualF:
-			get2Floats(context->Stack, fparam1, fparam2);
+			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 == fparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case NotEqualI:
-			get2Ints(context->Stack, iparam1, iparam2, NotEqualI);
+			get2Ints(stack, iparam1, iparam2, NotEqualI);
 			if (iparam1 != iparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case NotEqualF:
-			get2Floats(context->Stack, fparam1, fparam2);
+			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 != fparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterI:
-			get2Ints(context->Stack, iparam1, iparam2, IsGreaterI);
+			get2Ints(stack, iparam1, iparam2, IsGreaterI);
 			if (iparam1 > iparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterF:
-			get2Floats(context->Stack, fparam1, fparam2);
+			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 > fparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessI:
-			get2Ints(context->Stack, iparam1, iparam2, IsLessI);
+			get2Ints(stack, iparam1, iparam2, IsLessI);
 			if (iparam1 < iparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessF:
-			get2Floats(context->Stack, fparam1, fparam2);
+			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 < fparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterEqualI:
-			get2Ints(context->Stack, iparam1, iparam2, IsGreaterEqualI);
+			get2Ints(stack, iparam1, iparam2, IsGreaterEqualI);
 			if (iparam1 >= iparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsGreaterEqualF:
-			get2Floats(context->Stack, fparam1, fparam2);
+			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 >= fparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessEqualI:
-			get2Ints(context->Stack, iparam1, iparam2, IsLessEqualI);
+			get2Ints(stack, iparam1, iparam2, IsLessEqualI);
 			if (iparam1 <= iparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IsLessEqualF:
-			get2Floats(context->Stack, fparam1, fparam2);
+			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 <= fparam2)
-				context->Stack.push(StackItem(SheepSymbolType::Int, 1));
+				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
-				context->Stack.push(StackItem(SheepSymbolType::Int, 0));
+				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IToF:
-			itof(context->Stack, context->CodeBuffer->ReadInt());
+			itof(stack, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case FToI:
-			ftoi(context->Stack, context->CodeBuffer->ReadInt());
+			ftoi(stack, context->CodeBuffer->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case And:
-			andi(context->Stack);
+			andi(stack);
 			break;
 		case Or:
-			ori(context->Stack);
+			ori(stack);
 			break;
 		case Not:
-			noti(context->Stack);
+			noti(stack);
 			break;
 		case GetString:
-			if (context->Stack.top().Type != SheepSymbolType::String)
+			if (stack->top().Type != SheepSymbolType::String)
 				throw SheepMachineException("Expected string on stack");
 			break;
 		case DebugBreakpoint:
@@ -451,16 +452,10 @@ void SheepMachine::s_call(Sheep::IExecutionContext* context)
 		throw NoSuchFunctionException(function);
 
 	SheepMachine* machine = static_cast<SheepMachine*>(sheepContext->GetParentVirtualMachine());
-	SheepContext* c = SHEEP_NEW SheepContext(machine);
-	*c = *sheepContext;
+	SheepContext* c = SHEEP_NEW SheepContext(sheepContext);
 	c->CodeBuffer = sheepfunction->Code;
 	c->FunctionOffset = sheepfunction->CodeOffset;
-	c->InstructionOffset = 0;
 	c->FullCode->AddRef();
-	c->Sibling = NULL;
-	c->FirstChild = NULL;
-	c->Parent = NULL;
-	c->InWaitSection = false;
 	// TODO: this context should share variables with the previous context
 	// so that the functions within the same scripts can modify the same global variables
 	

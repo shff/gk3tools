@@ -58,6 +58,8 @@ namespace Sheep
 	/// using Sheep::IExecutionContext::Execute().
 	class IExecutionContext
 	{
+	protected:
+		virtual ~IExecutionContext() {}
 	public:
 		/// Releases the Execution Context, decreasing its reference count by 1.
 		///

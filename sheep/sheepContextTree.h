@@ -44,7 +44,9 @@ class SheepMachine;
 class SheepContext : public Sheep::IExecutionContext
 {
 	int m_refCount;
-	std::vector<StackItem> m_variables;
+	std::vector<StackItem>* m_variables;
+	SheepStack* m_stack;
+	bool m_ownStackAndVariables;
 	Sheep::ExecutionContextState m_state;
 	SheepMachine* m_parentVM;
 
@@ -52,6 +54,9 @@ public:
 	SheepContext(SheepMachine* parentVM)
 	{
 		m_refCount = 0;
+		m_variables = new std::vector<StackItem>();
+		m_stack = new SheepStack();
+		m_ownStackAndVariables = true;
 
 		InWaitSection = false;
 		UserSuspended = false;
@@ -60,6 +65,7 @@ public:
 		InstructionOffset = 0;
 		CodeBuffer = NULL;
 		m_parentVM = parentVM;
+		FullCode = nullptr;
 
 		Parent = NULL;
 		FirstChild = NULL;
@@ -69,7 +75,40 @@ public:
 		m_state = Sheep::ExecutionContextState::Prepared;
 	}
 
-	SheepStack Stack;
+	SheepContext(SheepContext* parent)
+	{
+		m_refCount = 0;
+		m_variables = parent->m_variables;
+		m_stack = parent->m_stack;
+		m_ownStackAndVariables = false;
+
+		InWaitSection = false;
+		UserSuspended = false;
+		ChildSuspended = false;
+		FunctionOffset = 0;
+		InstructionOffset = 0;
+		CodeBuffer = NULL;
+		m_parentVM = parent->m_parentVM;
+		FullCode = parent->FullCode;
+
+		Parent = NULL;
+		FirstChild = NULL;
+		Sibling = NULL;
+
+		Dead = false;
+		m_state = Sheep::ExecutionContextState::Prepared;
+	}
+
+	virtual ~SheepContext()
+	{
+		if (m_ownStackAndVariables)
+		{
+			delete m_variables;
+			delete m_stack;
+		}
+	}
+
+	SheepStack* GetStack() { return m_stack; }
 	
 	bool InWaitSection;
 	bool UserSuspended;
@@ -115,51 +154,59 @@ public:
 
 	int GetNumVariables() override
 	{
-		return (int)m_variables.size();
+		return (int)m_variables->size();
 	}
 
 	const char* GetVariableName(int index) override;
 
 	Sheep::SymbolType GetVariableType(int index) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return Sheep::SymbolType::Void;
 
-		return static_cast<Sheep::SymbolType>(m_variables[index].Type);
+		StackItem& item = (*m_variables)[index];
+
+		return static_cast<Sheep::SymbolType>(item.Type);
 	}
 
 	int SetVariableInt(int index, int value) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::Int)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::Int)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
-		m_variables[index].IValue = value;
+		item.IValue = value;
 
 		return SHEEP_SUCCESS;
 	}
 
 	int SetVariableFloat(int index, float value) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::Float)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::Float)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
-		m_variables[index].FValue = value;
+		item.FValue = value;
 
 		return SHEEP_SUCCESS;
 	}
 
 	int SetVariableString(int index, const char* value) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::String)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::String)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
 		// TODO
@@ -168,55 +215,63 @@ public:
 
 	int SetVariableStringIndex(int index, int value)
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::String)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::String)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
-		m_variables[index].IValue = value;
+		item.IValue = value;
 
 		return SHEEP_SUCCESS;
 	}
 
 	int GetVariableInt(int index, int* result) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 		if (result == nullptr)
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::Int)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::Int)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
-		*result = m_variables[index].IValue;
+		*result = item.IValue;
 
 		return SHEEP_SUCCESS;
 	}
 
 	int GetVariableFloat(int index, float* result) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 		if (result == nullptr)
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::Float)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::Float)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
-		*result = m_variables[index].FValue;
+		*result = item.FValue;
 
 		return SHEEP_SUCCESS;
 	}
 
 	int GetVariableString(int index, const char** result) override
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 		if (result == nullptr)
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::String)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::String)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
 		// TODO
@@ -225,15 +280,17 @@ public:
 
 	int GetVariableStringIndex(int index, int* result)
 	{
-		if (index < 0 || index >= m_variables.size())
+		if (index < 0 || index >= m_variables->size())
 			return SHEEP_ERR_INVALID_ARGUMENT;
 		if (result == nullptr)
 			return SHEEP_ERR_INVALID_ARGUMENT;
 
-		if (m_variables[index].Type != SheepSymbolType::String)
+		StackItem& item = (*m_variables)[index];
+
+		if (item.Type != SheepSymbolType::String)
 			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
 
-		*result = m_variables[index].IValue;
+		*result = item.IValue;
 
 		// TODO
 		return SHEEP_ERROR;
@@ -241,15 +298,15 @@ public:
 
 	int PopIntFromStack(int* result) override
 	{
-		if (Stack.empty())
+		if (m_stack->empty())
 			return SHEEP_ERR_EMPTY_STACK;
 
-		StackItem item = Stack.top();
+		StackItem item = m_stack->top();
 		
 		if (item.Type != SheepSymbolType::Int)
 			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
 
-		Stack.pop();
+		m_stack->pop();
 
 		if (result != nullptr)
 			*result = item.IValue;
@@ -259,15 +316,15 @@ public:
 
 	int PopFloatFromStack(float* result) override
 	{
-		if (Stack.empty())
+		if (m_stack->empty())
 			return SHEEP_ERR_EMPTY_STACK;
 
-		StackItem item = Stack.top();
+		StackItem item = m_stack->top();
 
 		if (item.Type != SheepSymbolType::Float)
 			return SHEEP_ERR_WRONG_TYPE_ON_STACK;
 		
-		Stack.pop();
+		m_stack->pop();
 
 		if (result != nullptr)
 			*result = item.FValue;
@@ -279,14 +336,21 @@ public:
 
 	int PushIntOntoStack(int i) override
 	{
-		Stack.push(StackItem(SheepSymbolType::Int, i));
+		m_stack->push(StackItem(SheepSymbolType::Int, i));
 
 		return SHEEP_SUCCESS;
 	}
 	
 	int PushFloatOntoStack(float f) override
 	{
-		Stack.push(StackItem(SheepSymbolType::Float, f));
+		m_stack->push(StackItem(SheepSymbolType::Float, f));
+
+		return SHEEP_SUCCESS;
+	}
+
+	int PushStringOntoStack(int value)
+	{
+		m_stack->push(StackItem(SheepSymbolType::String, value));
 
 		return SHEEP_SUCCESS;
 	}

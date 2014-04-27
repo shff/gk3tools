@@ -206,13 +206,6 @@ int SHP_GetNumContexts(SheepVM* vm)
 	return SM(vm)->GetNumContexts();
 }
 
-int SHP_GetCurrentContextStackSize(SheepVM* vm)
-{
-	assert(vm != NULL);
-
-	return SM(vm)->GetCurrentContextStackSize();
-}
-
 void SHP_SetVerbosity(SheepVM* vm, int verbosity)
 {
 	assert(vm != NULL);

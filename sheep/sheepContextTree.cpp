@@ -10,11 +10,11 @@ void SheepContext::PrepareVariables()
 		itr != FullCode->Symbols.end(); itr++)
 	{
 		if ((*itr).Type == SheepSymbolType::Int)
-			m_variables.push_back(StackItem(SheepSymbolType::Int, (*itr).InitialIntValue));
+			m_variables->push_back(StackItem(SheepSymbolType::Int, (*itr).InitialIntValue));
 		else if ((*itr).Type == SheepSymbolType::Float)
-			m_variables.push_back(StackItem(SheepSymbolType::Float, (*itr).InitialFloatValue));
+			m_variables->push_back(StackItem(SheepSymbolType::Float, (*itr).InitialFloatValue));
 		else if ((*itr).Type == SheepSymbolType::String)
-			m_variables.push_back(StackItem(SheepSymbolType::String, (*itr).InitialStringValue));
+			m_variables->push_back(StackItem(SheepSymbolType::String, (*itr).InitialStringValue));
 		else
 			throw SheepMachineException("Unsupported variable type");
 	}
@@ -116,15 +116,15 @@ const char* SheepContext::GetVariableName(int index)
 
 int SheepContext::PopStringFromStack(const char** result)
 {
-	if (Stack.empty())
+	if (m_stack->empty())
 		return SHEEP_ERR_EMPTY_STACK;
 
-	StackItem item = Stack.top();
+	StackItem item = m_stack->top();
 	
 	if (item.Type != SheepSymbolType::String)
 		return SHEEP_ERR_WRONG_TYPE_ON_STACK;
 
-	Stack.pop();
+	m_stack->pop();
 
 	if (result != nullptr)
 	{
