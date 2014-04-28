@@ -584,13 +584,13 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclaration
 	for (int i = func.Parameters.size() - 1; i >= 0; i--)
 	{
 		if (func.Parameters[i].Type == SheepSymbolType::Int)
-			func.Code->WriteSheepInstruction(StoreI);
+			func.Code->WriteSheepInstruction(StoreArgI);
 		else if (func.Parameters[i].Type == SheepSymbolType::Float)
-			func.Code->WriteSheepInstruction(StoreF);
+			func.Code->WriteSheepInstruction(StoreArgF);
 		else if (func.Parameters[i].Type == SheepSymbolType::String)
-			func.Code->WriteSheepInstruction(StoreS);
+			func.Code->WriteSheepInstruction(StoreArgS);
 
-		func.Code->WriteInt(i + m_variables.size());
+		func.Code->WriteInt(i);
 	}
 
 	writeCode(func, child);
@@ -788,6 +788,8 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		assert(reference->IsGlobal() == false);
 		SheepSymbol variable;
 		int symbolIndex;
+		bool isGlobalVariable = false;
+		bool variableFound = false;
 
 		SymbolMap::iterator symbol = m_symbolMap.find(reference->GetName());
 		if (symbol != m_symbolMap.end())
@@ -796,6 +798,8 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 
 			// expression is just a regular ol' identifier, so get its index
 			symbolIndex = getIndexOfVariable(variable);
+			isGlobalVariable = true;
+			variableFound = true;
 		}
 		else
 		{
@@ -805,27 +809,44 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 				if (CIEqual(reference->GetName(), function.Parameters[i].Name))
 				{
 					variable = function.Parameters[i];
-					symbolIndex = m_variables.size() + i;
+					symbolIndex = i;
+					isGlobalVariable = false;
+					variableFound = true;
 					break;
 				}
 			}
 		}
+
+		if (variableFound == false)
+			throw SheepCompilerException(reference->GetLineNumber(), "Unrecognized variable");
 		
 		if (child1->GetValueType() == CodeTreeExpressionValueType::Int)
 		{
-			function.Code->WriteSheepInstruction(StoreI);
+			if (isGlobalVariable)
+				function.Code->WriteSheepInstruction(StoreI);
+			else
+				function.Code->WriteSheepInstruction(StoreArgI);
 			function.Code->WriteInt(symbolIndex);
 		}
 		else if (child1->GetValueType() == CodeTreeExpressionValueType::Float)
 		{
-			function.Code->WriteSheepInstruction(StoreF);
+			if (isGlobalVariable)
+				function.Code->WriteSheepInstruction(StoreF);
+			else
+				function.Code->WriteSheepInstruction(StoreArgF);
 			function.Code->WriteInt(symbolIndex);
 		}
 		else
 		{
 			assert(child1->GetValueType() == CodeTreeExpressionValueType::String);
 
-			function.Code->WriteSheepInstruction(StoreS);
+			if (isGlobalVariable)
+				function.Code->WriteSheepInstruction(StoreS);
+			else
+			{
+				// TODO: support string parameters
+				throw SheepCompilerException(reference->GetLineNumber(), "String parameters are not supported yet");
+			}
 			function.Code->WriteInt(symbolIndex);
 		}
 	}
@@ -944,6 +965,8 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 		{
 			SheepSymbol variable;
 			int symbolIndex;
+			bool isGlobalVariable;
+			bool variableExists = false;
 
 			SymbolMap::iterator symbol = m_symbolMap.find(identifier->GetName());
 			if (symbol != m_symbolMap.end())
@@ -952,6 +975,8 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 
 				// expression is just a regular ol' identifier, so get its index
 				symbolIndex = getIndexOfVariable(variable);
+				isGlobalVariable = true;
+				variableExists = true;
 			}
 			else
 			{
@@ -961,27 +986,44 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 					if (CIEqual(identifier->GetName(), function.Parameters[i].Name))
 					{
 						variable = function.Parameters[i];
-						symbolIndex = m_variables.size() + i;
+						symbolIndex = i;
+						isGlobalVariable = false;
+						variableExists = true;
 						break;
 					}
 				}
 			}
 
+			if (variableExists == false)
+				throw SheepCompilerException(identifier->GetLineNumber(), "Unknown identifier");
+
 			itemsOnStack++;
 			if (variable.Type == SheepSymbolType::Int)
 			{
-				function.Code->WriteSheepInstruction(LoadI);
+				if (isGlobalVariable)
+					function.Code->WriteSheepInstruction(LoadI);
+				else
+					function.Code->WriteSheepInstruction(LoadArgI);
 				function.Code->WriteInt(symbolIndex);
 			}
 			else if (variable.Type == SheepSymbolType::Float)
 			{
-				function.Code->WriteSheepInstruction(LoadF);
+				if (isGlobalVariable)
+					function.Code->WriteSheepInstruction(LoadF);
+				else
+					function.Code->WriteSheepInstruction(LoadArgF);
 				function.Code->WriteInt(symbolIndex);
 			}
 			else
 			{
 				assert(variable.Type == SheepSymbolType::String);
-				function.Code->WriteSheepInstruction(LoadS);
+				if (isGlobalVariable)
+					function.Code->WriteSheepInstruction(LoadS);
+				else
+				{
+					// TODO: support string parameters
+					throw SheepCompilerException(identifier->GetLineNumber(), "String parameters are not supported yet");
+				}
 				function.Code->WriteInt(symbolIndex);
 				function.Code->WriteSheepInstruction(GetString);
 			}

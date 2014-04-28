@@ -201,6 +201,28 @@ private:
 			throw SheepMachineException("Invalid variable");
 	}
 
+	static void storeArgI(SheepContext* context, int variable)
+	{
+		int value;
+		int r = context->PopIntFromStack(&value);
+		if (r != SHEEP_SUCCESS)
+			throw SheepMachineException("Unable to get integer from stack", r);
+
+		if (context->SetParamVariableInt(variable, value) != SHEEP_SUCCESS)
+			throw SheepMachineException("Invalid variable");
+	}
+
+	static void storeArgF(SheepContext* context, int variable)
+	{
+		float value;
+		int r = context->PopFloatFromStack(&value);
+		if (r != SHEEP_SUCCESS)
+			throw SheepMachineException("Unable to get float from stack", r);
+
+		if (context->SetParamVariableFloat(variable, value) != SHEEP_SUCCESS)
+			throw SheepMachineException("Invalid variable");
+	}
+
 	static void loadI(SheepContext* context, int variable)
 	{
 		int value;
@@ -232,6 +254,28 @@ private:
 		int r = context->PushStringOntoStack(value);
 		if (r != SHEEP_SUCCESS)
 			throw SheepMachineException("Unable to push string onto stack", r);
+	}
+
+	static void loadArgI(SheepContext* context, int variable)
+	{
+		int value;
+		if (context->GetParamVariableInt(variable, &value) != SHEEP_SUCCESS)
+			throw SheepMachineException("Invalid variable");
+
+		int r = context->PushIntOntoStack(value);
+		if (r != SHEEP_SUCCESS)
+			throw SheepMachineException("Unable to push int onto stack", r);
+	}
+
+	static void loadArgF(SheepContext* context, int variable)
+	{
+		float value;
+		if (context->GetParamVariableFloat(variable, &value) != SHEEP_SUCCESS)
+			throw SheepMachineException("Invalid variable");
+
+		int r = context->PushFloatOntoStack(value);
+		if (r != SHEEP_SUCCESS)
+			throw SheepMachineException("Unable to push float onto stack", r);
 	}
 
 	static void addI(SheepStack* stack)

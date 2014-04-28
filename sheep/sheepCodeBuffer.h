@@ -70,7 +70,27 @@ enum SheepInstruction
 	// are part of our own "enhanced" instruction set.
 	ReturnI              = 0xA0,
 	ReturnF              = 0xA1,
-	ReturnS              = 0xA2
+	ReturnS              = 0xA2,
+
+	// pops the value on top of the stack into the specified local variable
+	StoreLocalI          = 0xA3, 
+	StoreLocalF          = 0xA4,
+	StoreLocalS          = 0xA5,
+
+	// pushes the value in the specified local variable onto the stack
+	LoadLocalI           = 0xA6,
+	LoadLocalF           = 0xA7,
+	LoadLocalS           = 0xA8,
+	
+	// pops the value on the top of the stack into the specified function parameter
+	StoreArgI            = 0xA9,
+	StoreArgF            = 0xAA,
+	StoreArgS            = 0xAB,
+
+	// pushes the value in the specified function parameter onto the stack
+	LoadArgI             = 0xAC,
+	LoadArgF             = 0xAD,
+	LoadArgS             = 0xAE
 };
 
 class SheepCodeBuffer : public ResizableBuffer

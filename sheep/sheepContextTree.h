@@ -264,6 +264,70 @@ public:
 		return SHEEP_ERROR;
 	}
 
+	int SetParamVariableInt(int index, int value)
+	{
+		if (index < 0 || index >= m_parameterVariables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		StackItem& item = m_parameterVariables[index];
+
+		if (item.Type != SheepSymbolType::Int)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		item.IValue = value;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int SetParamVariableFloat(int index, int value)
+	{
+		if (index < 0 || index >= m_parameterVariables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		StackItem& item = m_parameterVariables[index];
+
+		if (item.Type != SheepSymbolType::Float)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		item.FValue = value;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int GetParamVariableInt(int index, int* result)
+	{
+		if (index < 0 || index >= m_parameterVariables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+		if (result == nullptr)
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		StackItem& item = m_parameterVariables[index];
+
+		if (item.Type != SheepSymbolType::Int)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		*result = item.IValue;
+
+		return SHEEP_SUCCESS;
+	}
+
+	int GetParamVariableFloat(int index, float* result)
+	{
+		if (index < 0 || index >= m_parameterVariables.size())
+			return SHEEP_ERR_INVALID_ARGUMENT;
+		if (result == nullptr)
+			return SHEEP_ERR_INVALID_ARGUMENT;
+
+		StackItem& item = m_parameterVariables[index];
+
+		if (item.Type != SheepSymbolType::Float)
+			return SHEEP_ERR_VARIABLE_INCORRECT_TYPE;
+
+		*result = item.FValue;
+
+		return SHEEP_SUCCESS;
+	}
+
 	int PopIntFromStack(int* result) override
 	{
 		if (m_stack->empty())

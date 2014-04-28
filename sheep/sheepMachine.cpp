@@ -217,6 +217,16 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			storeS(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
+		case StoreArgI:
+			storeArgI(context, code->ReadInt());
+			context->InstructionOffset += 4;
+			break;
+		case StoreArgF:
+			storeArgF(context, code->ReadInt());
+			context->InstructionOffset += 4;
+			break;
+		case StoreArgS:
+			throw SheepMachineInstructionException("String parameters not supported yet.");
 		case LoadI:
 			loadI(context, code->ReadInt());
 			context->InstructionOffset += 4;
@@ -228,6 +238,17 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case LoadS:
 			loadS(context, code->ReadInt());
 			context->InstructionOffset += 4;
+			break;
+		case LoadArgI:
+			loadArgI(context, code->ReadInt());
+			context->InstructionOffset += 4;
+			break;
+		case LoadArgF:
+			loadArgF(context, code->ReadInt());
+			context->InstructionOffset += 4;
+			break;
+		case LoadArgS:
+			throw SheepMachineInstructionException("String parameters not supported yet.");
 			break;
 		case PushI:
 			stack->push(StackItem(SheepSymbolType::Int, code->ReadInt()));

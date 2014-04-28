@@ -186,6 +186,23 @@ void SheepContext::init(SheepFunction* function)
 
 	Dead = false;
 	m_state = Sheep::ExecutionContextState::Prepared;
+
+	// set up the parameter variables
+	for (auto itr = function->Parameters.begin(); itr != function->Parameters.end(); itr++)
+	{
+		StackItem param;
+		param.Type = (*itr).Type;
+		if (param.Type == SheepSymbolType::Int)
+			param.IValue = (*itr).InitialIntValue;
+		else if (param.Type == SheepSymbolType::Float)
+			param.FValue = (*itr).InitialFloatValue;
+		else
+		{
+			// TODO: Handle initial string values
+		}
+
+		m_parameterVariables.push_back(param);
+	}
 }
 
 SheepContextTree::~SheepContextTree()
