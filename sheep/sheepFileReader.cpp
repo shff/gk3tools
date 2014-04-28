@@ -273,6 +273,7 @@ void SheepFileReader::read(const byte* data, unsigned int length)
 				
 				READ4(&func.CodeOffset, offset);
 
+				func.ParentCode = m_intermediateOutput;
 				m_intermediateOutput->Functions.push_back(func);
 			}
 		}

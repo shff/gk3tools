@@ -81,6 +81,7 @@ IntermediateOutput* SheepCodeGenerator::BuildIntermediateOutput()
 				for (int i = 0; i < functions->Functions.size(); i++)
 				{
 					SheepFunction func = writeFunction(functions->Functions[i], functionCodeOffset, context);
+					func.ParentCode = output.get();
 					output->Functions.push_back(func);
 					functionCodeOffset += (int)func.Code->GetSize();
 

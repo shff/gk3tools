@@ -420,10 +420,12 @@ private:
 
 		size_t numItemsOnStack = context->GetStack()->size();
 
+		IntermediateOutput* fullCode = context->GetFunction()->ParentCode;
+
 		// find the function
-		if (index < 0 || index >= context->FullCode->Imports.size())
+		if (index < 0 || index >= fullCode->Imports.size())
 			throw SheepMachineException("Invalid import function");
-		if (context->FullCode->Imports[index].Parameters.size() != numParams)
+		if (fullCode->Imports[index].Parameters.size() != numParams)
 			throw SheepMachineException("Invalid number of parameters to import function");
 		if (numParams > context->GetStack()->size())
 		{
@@ -433,7 +435,7 @@ private:
 		}
 			
 		Sheep::ImportCallback callback;
-		if (m_importCallbacks.TryGetValue(context->FullCode->Imports[index].Name.c_str(), callback) && callback != nullptr)
+		if (m_importCallbacks.TryGetValue(fullCode->Imports[index].Name.c_str(), callback) && callback != nullptr)
 			callback(context);
 
 		int paramsLeftOver = numParams - (int)(numItemsOnStack - context->GetStack()->size());

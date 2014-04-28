@@ -47,76 +47,44 @@ class SheepContext : public Sheep::IExecutionContext
 	std::vector<StackItem>* m_variables;
 	SheepStack* m_stack;
 	bool m_ownStackAndVariables;
+	std::vector<StackItem> m_parameterVariables;
+	std::vector<StackItem> m_localVariables;
 	Sheep::ExecutionContextState m_state;
 	SheepMachine* m_parentVM;
+	SheepFunction* m_function;
 
 public:
-	SheepContext(SheepMachine* parentVM)
+	SheepContext(SheepMachine* parentVM, SheepFunction* function)
 	{
-		m_refCount = 0;
+		init(function);
+
 		m_variables = new std::vector<StackItem>();
 		m_stack = new SheepStack();
 		m_ownStackAndVariables = true;
 
-		InWaitSection = false;
-		UserSuspended = false;
-		ChildSuspended = false;
-		FunctionOffset = 0;
-		InstructionOffset = 0;
-		CodeBuffer = NULL;
 		m_parentVM = parentVM;
-		FullCode = nullptr;
-
-		Parent = NULL;
-		FirstChild = NULL;
-		Sibling = NULL;
-
-		Dead = false;
-		m_state = Sheep::ExecutionContextState::Prepared;
 	}
 
-	SheepContext(SheepContext* parent)
+	SheepContext(SheepContext* parent, SheepFunction* function)
 	{
-		m_refCount = 0;
+		init(function);
+
 		m_variables = parent->m_variables;
 		m_stack = parent->m_stack;
 		m_ownStackAndVariables = false;
 
-		InWaitSection = false;
-		UserSuspended = false;
-		ChildSuspended = false;
-		FunctionOffset = 0;
-		InstructionOffset = 0;
-		CodeBuffer = NULL;
 		m_parentVM = parent->m_parentVM;
-		FullCode = parent->FullCode;
-
-		Parent = NULL;
-		FirstChild = NULL;
-		Sibling = NULL;
-
-		Dead = false;
-		m_state = Sheep::ExecutionContextState::Prepared;
 	}
 
-	virtual ~SheepContext()
-	{
-		if (m_ownStackAndVariables)
-		{
-			delete m_variables;
-			delete m_stack;
-		}
-	}
+	virtual ~SheepContext();
 
 	SheepStack* GetStack() { return m_stack; }
+	SheepFunction* GetFunction() { return m_function; }
 	
 	bool InWaitSection;
 	bool UserSuspended;
 	bool ChildSuspended;
-	unsigned int FunctionOffset;
 	unsigned int InstructionOffset;
-	SheepCodeBuffer* CodeBuffer;
-	IntermediateOutput* FullCode;
 
 	SheepContext* Parent;
 	SheepContext* FirstChild;
@@ -354,6 +322,9 @@ public:
 
 		return SHEEP_SUCCESS;
 	}
+
+private:
+	void init(SheepFunction* function);
 };
 
 class SheepContextTree

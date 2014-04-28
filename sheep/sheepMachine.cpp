@@ -67,7 +67,7 @@ int SheepMachine::SetImportCallback(const char* importName, Sheep::ImportCallbac
 
 int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context)
 {
-	if (script == nullptr || function == nullptr)
+	if (script == nullptr || function == nullptr || context == nullptr)
 		return SHEEP_ERR_INVALID_ARGUMENT;
 
 	IntermediateOutput* code = static_cast<Sheep::Internal::Script*>(script)->GetIntermediateOutput();
@@ -87,49 +87,21 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	if (sheepfunction == NULL)
 		return SHEEP_ERR_NO_SUCH_FUNCTION;
 
-	SheepContext* c = SHEEP_NEW SheepContext(this);
-	c->FullCode = code;
-	c->CodeBuffer = sheepfunction->Code;
-	c->FunctionOffset = sheepfunction->CodeOffset;
-	c->InstructionOffset = 0;
+	SheepContext* c = SHEEP_NEW SheepContext(this, sheepfunction);
 	
 	c->PrepareVariables();
 
 	m_contextTree->Add(c);
 
-	if (context != nullptr)
-	{
-		c->Aquire();
-		*context = c;
-	}
+	c->Aquire();
+	*context = c;
 
 	return SHEEP_SUCCESS;
 }
 
 void SheepMachine::PrintStackTrace()
 {
-	SheepContext* context = m_contextTree->GetCurrent();
-	while(context != NULL)
-	{
-		// find the function
-		SheepFunction* sheepfunction = NULL;
-		for (std::vector<SheepFunction>::iterator itr = context->FullCode->Functions.begin();
-			itr != context->FullCode->Functions.end(); itr++)
-		{
-			if ((*itr).CodeOffset == context->FunctionOffset)
-			{
-				sheepfunction = &(*itr);
-				break;
-			}
-		}
-
-		if (sheepfunction != NULL)
-		{
-			printf("%s:%x,%x\n", sheepfunction->Name.c_str(), context->FunctionOffset + context->InstructionOffset, context->InstructionOffset);
-		}
-
-		context = context->Parent;
-	}
+	// TODO
 }
 
 void SheepMachine::executeNextInstruction(SheepContext* context)
@@ -141,7 +113,7 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 	// be the right one
 	m_contextTree->SetCurrent(context);
 
-	std::vector<SheepImport>& imports = context->FullCode->Imports;
+	std::vector<SheepImport>& imports = context->GetFunction()->ParentCode->Imports;
 	SheepStack* stack = context->GetStack();
 
 	if (m_verbosityLevel > Verbosity_Annoying)
@@ -168,10 +140,12 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 	else if (m_verbosityLevel > Verbosity_Polite)
 		printf("stack size: %d\n", context->GetStack()->size());
 
-	if (context->InstructionOffset != context->CodeBuffer->Tell())
-		context->CodeBuffer->SeekFromStart(context->InstructionOffset);
+	SheepCodeBuffer* code = context->GetFunction()->Code;
 
-	unsigned char instruction = context->CodeBuffer->ReadByte();
+	if (context->InstructionOffset != code->Tell())
+		code->SeekFromStart(context->InstructionOffset);
+
+	unsigned char instruction = code->ReadByte();
 	context->InstructionOffset++;
 
 	int iparam1, iparam2;
@@ -185,11 +159,11 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			throw SheepMachineInstructionException("Yield instruction not supported yet.");
 		case CallSysFunctionV:
 			context->InstructionOffset += 4;
-			callVoidFunction(context, context->CodeBuffer->ReadInt());
+			callVoidFunction(context, code->ReadInt());
 			break;
 		case CallSysFunctionI:
 			context->InstructionOffset += 4;
-			callIntFunction(context, context->CodeBuffer->ReadInt());
+			callIntFunction(context, code->ReadInt());
 			if (context->GetStack()->top().Type != SheepSymbolType::Int)
 			{
 				throw SheepMachineException("CallSysFunctionI instruction requires integer on stack afterwards", SHEEP_ERR_WRONG_TYPE_ON_STACK);
@@ -200,16 +174,16 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 			throw SheepMachineInstructionException("Function calling not supported yet.");
 		case Branch:
 		case BranchGoto:
-			context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
+			context->InstructionOffset = code->ReadInt() - context->GetFunction()->CodeOffset;
 			break;
 		case BranchIfZero:
 			if (stack->top().Type == SheepSymbolType::Int)
 			{
 				if (stack->top().IValue == 0)
-					context->InstructionOffset = context->CodeBuffer->ReadInt() - context->FunctionOffset;
+					context->InstructionOffset = code->ReadInt() - context->GetFunction()->CodeOffset;
 				else
 				{
-					context->CodeBuffer->ReadInt(); // throw it away
+					code->ReadInt(); // throw it away
 					context->InstructionOffset += 4;
 				}
 				stack->pop();
@@ -232,39 +206,39 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 		case ReturnV:
 			return;
 		case StoreI:
-			storeI(context, context->CodeBuffer->ReadInt());
+			storeI(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case StoreF:
-			storeF(context, context->CodeBuffer->ReadInt());
+			storeF(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case StoreS:
-			storeS(context, context->CodeBuffer->ReadInt());
+			storeS(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadI:
-			loadI(context, context->CodeBuffer->ReadInt());
+			loadI(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadF:
-			loadF(context, context->CodeBuffer->ReadInt());
+			loadF(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case LoadS:
-			loadS(context, context->CodeBuffer->ReadInt());
+			loadS(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case PushI:
-			stack->push(StackItem(SheepSymbolType::Int, context->CodeBuffer->ReadInt()));
+			stack->push(StackItem(SheepSymbolType::Int, code->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
 		case PushF:
-			stack->push(StackItem(SheepSymbolType::Float, context->CodeBuffer->ReadFloat()));
+			stack->push(StackItem(SheepSymbolType::Float, code->ReadFloat()));
 			context->InstructionOffset += 4;
 			break;
 		case PushS:
-			stack->push(StackItem(SheepSymbolType::String, context->CodeBuffer->ReadInt()));
+			stack->push(StackItem(SheepSymbolType::String, code->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
 		case Pop:
@@ -385,11 +359,11 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
 		case IToF:
-			itof(stack, context->CodeBuffer->ReadInt());
+			itof(stack, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case FToI:
-			ftoi(stack, context->CodeBuffer->ReadInt());
+			ftoi(stack, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
 		case And:
@@ -414,10 +388,12 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 
 void SheepMachine::Execute(SheepContext* context)
 {
-	std::vector<SheepImport> imports = context->FullCode->Imports;
+	std::vector<SheepImport> imports = context->GetFunction()->ParentCode->Imports;
 
-	context->CodeBuffer->SeekFromStart(context->InstructionOffset);
-	while(!context->UserSuspended && !context->ChildSuspended && context->CodeBuffer->Tell() < context->CodeBuffer->GetSize())
+	SheepCodeBuffer* code = context->GetFunction()->Code;
+
+	code->SeekFromStart(context->InstructionOffset);
+	while(!context->UserSuspended && !context->ChildSuspended && code->Tell() < code->GetSize())
 	{
 		executeNextInstruction(context);
 	}
@@ -435,11 +411,12 @@ void SheepMachine::s_call(Sheep::IExecutionContext* context)
 	if (function[function.length()-1] != '$')
 		function += '$';
 
+	IntermediateOutput* fullCode = sheepContext->GetFunction()->ParentCode;
 
 	// find the requsted function
 	SheepFunction* sheepfunction = NULL;
-	for (std::vector<SheepFunction>::iterator itr = sheepContext->FullCode->Functions.begin();
-		itr != sheepContext->FullCode->Functions.end(); itr++)
+	for (std::vector<SheepFunction>::iterator itr = fullCode->Functions.begin();
+		itr != fullCode->Functions.end(); itr++)
 	{
 		if ((*itr).Name == function)
 		{
@@ -452,13 +429,7 @@ void SheepMachine::s_call(Sheep::IExecutionContext* context)
 		throw NoSuchFunctionException(function);
 
 	SheepMachine* machine = static_cast<SheepMachine*>(sheepContext->GetParentVirtualMachine());
-	SheepContext* c = SHEEP_NEW SheepContext(sheepContext);
-	c->CodeBuffer = sheepfunction->Code;
-	c->FunctionOffset = sheepfunction->CodeOffset;
-	c->FullCode->AddRef();
-	// TODO: this context should share variables with the previous context
-	// so that the functions within the same scripts can modify the same global variables
-	
+	SheepContext* c = SHEEP_NEW SheepContext(sheepContext, sheepfunction);
 
 	c->PrepareVariables();
 	machine->m_contextTree->Add(c);
@@ -467,9 +438,5 @@ void SheepMachine::s_call(Sheep::IExecutionContext* context)
 	machine->Execute(c);
 	machine->m_executingDepth--;
 
-	if (c->UserSuspended == false && c->ChildSuspended == false)
-	{
-		c->FullCode->Release();
-		machine->m_contextTree->KillContext(c);
-	}
+	// TODO: what if we're waiting on the call to complete? We should handle a suspended context.
 }

@@ -2,12 +2,26 @@
 #include "sheepCodeGenerator.h"
 #include "sheepMachine.h"
 
+SheepContext::~SheepContext()
+{
+	m_function->ParentCode->Release();
+
+	if (m_ownStackAndVariables)
+	{
+		delete m_variables;
+		delete m_stack;
+	}
+}
+
 void SheepContext::PrepareVariables()
 {
-	assert(FullCode != NULL);
+	assert(m_function != nullptr);
+	assert(m_function->ParentCode != nullptr);
 
-	for (std::vector<SheepSymbol>::iterator itr = FullCode->Symbols.begin();
-		itr != FullCode->Symbols.end(); itr++)
+	IntermediateOutput* fullCode = m_function->ParentCode;
+
+	for (std::vector<SheepSymbol>::iterator itr = fullCode->Symbols.begin();
+		itr != fullCode->Symbols.end(); itr++)
 	{
 		if ((*itr).Type == SheepSymbolType::Int)
 			m_variables->push_back(StackItem(SheepSymbolType::Int, (*itr).InitialIntValue));
@@ -18,6 +32,8 @@ void SheepContext::PrepareVariables()
 		else
 			throw SheepMachineException("Unsupported variable type");
 	}
+
+
 }
 
 void SheepContext::Release()
@@ -108,10 +124,10 @@ Sheep::IVirtualMachine* SheepContext::GetParentVirtualMachine()
 
 const char* SheepContext::GetVariableName(int index)
 {
-	if (index < 0 || index >= FullCode->Symbols.size())
+	if (index < 0 || index >= m_function->ParentCode->Symbols.size())
 		return nullptr;
 
-	FullCode->Symbols[index].Name.c_str();
+	m_function->ParentCode->Symbols[index].Name.c_str();
 }
 
 int SheepContext::PopStringFromStack(const char** result)
@@ -128,7 +144,7 @@ int SheepContext::PopStringFromStack(const char** result)
 
 	if (result != nullptr)
 	{
-		IntermediateOutput* code = FullCode;
+		IntermediateOutput* code = m_function->ParentCode;
 		for (std::vector<SheepStringConstant>::iterator itr = code->Constants.begin();
 			itr != code->Constants.end(); itr++)
 		{
@@ -143,6 +159,33 @@ int SheepContext::PopStringFromStack(const char** result)
 	}
 
 	return SHEEP_SUCCESS;
+}
+
+void SheepContext::init(SheepFunction* function)
+{
+	assert(function != nullptr);
+
+	m_refCount = 0;
+	m_variables = nullptr;
+	m_stack = nullptr;
+	m_ownStackAndVariables = false;
+
+	assert(function->ParentCode != nullptr);
+	m_function = function;
+	m_function->ParentCode->AddRef();
+
+	InWaitSection = false;
+	UserSuspended = false;
+	ChildSuspended = false;
+	InstructionOffset = 0;
+	m_parentVM = nullptr;
+
+	Parent = NULL;
+	FirstChild = NULL;
+	Sibling = NULL;
+
+	Dead = false;
+	m_state = Sheep::ExecutionContextState::Prepared;
 }
 
 SheepContextTree::~SheepContextTree()

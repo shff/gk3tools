@@ -50,10 +50,11 @@ struct SheepSymbol
 
 class SheepCodeBuffer;
 class SheepCodeTreeDeclarationNode;
+class IntermediateOutput;
 
 struct SheepFunction
 {
-	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = NULL; Declaration = declaration; ReturnType = SheepSymbolType::Void; }
+	SheepFunction(SheepCodeTreeDeclarationNode* declaration) { Code = nullptr; ParentCode = nullptr; Declaration = declaration; ReturnType = SheepSymbolType::Void; }
 
 	SheepCodeTreeDeclarationNode* Declaration;
 	SheepSymbolType ReturnType;
@@ -61,6 +62,7 @@ struct SheepFunction
 	std::string Name;
 	SheepCodeBuffer* Code;
 	int CodeOffset;
+	IntermediateOutput* ParentCode;
 
 	std::vector<std::string> ImportList;
 	std::vector<std::pair<size_t, size_t&> > Gotos; // first = offset of the offset, second = ref to the offset of the label
