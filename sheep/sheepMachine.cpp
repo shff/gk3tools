@@ -87,11 +87,41 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	if (sheepfunction == NULL)
 		return SHEEP_ERR_NO_SUCH_FUNCTION;
 
-	SheepContext* c = SHEEP_NEW SheepContext(this, sheepfunction);
+	SheepContext* c = m_contextTree->Create(this, sheepfunction);
 	
 	c->PrepareVariables();
 
-	m_contextTree->Add(c);
+	c->Aquire();
+	*context = c;
+
+	return SHEEP_SUCCESS;
+}
+
+int SheepMachine::PrepareScriptForExecutionWithParent(Sheep::IScript* script, const char* function, Sheep::IExecutionContext* parent, Sheep::IExecutionContext** context)
+{
+	if (script == nullptr || function == nullptr || context == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	IntermediateOutput* code = static_cast<Sheep::Internal::Script*>(script)->GetIntermediateOutput();
+
+	// find the requsted function
+	SheepFunction* sheepfunction = NULL;
+	for (std::vector<SheepFunction>::iterator itr = code->Functions.begin();
+		itr != code->Functions.end(); itr++)
+	{
+		if (CIEqual((*itr).Name, function))
+		{
+			sheepfunction = &(*itr);
+			break;
+		}
+	}
+
+	if (sheepfunction == NULL)
+		return SHEEP_ERR_NO_SUCH_FUNCTION;
+
+	SheepContext* c = m_contextTree->Create(static_cast<SheepContext*>(parent), sheepfunction);
+	
+	c->PrepareVariables();
 
 	c->Aquire();
 	*context = c;
@@ -106,12 +136,7 @@ void SheepMachine::PrintStackTrace()
 
 void SheepMachine::executeNextInstruction(SheepContext* context)
 {
-	assert(context->Dead == false);
-
-	// make sure the current context is the one we're working on
-	// so that when the user tries to push/pop the stack it will
-	// be the right one
-	m_contextTree->SetCurrent(context);
+	assert(context->IsDead() == false);
 
 	std::vector<SheepImport>& imports = context->GetFunction()->ParentCode->Imports;
 	SheepStack* stack = context->GetStack();
@@ -450,10 +475,9 @@ void SheepMachine::s_call(Sheep::IExecutionContext* context)
 		throw NoSuchFunctionException(function);
 
 	SheepMachine* machine = static_cast<SheepMachine*>(sheepContext->GetParentVirtualMachine());
-	SheepContext* c = SHEEP_NEW SheepContext(sheepContext, sheepfunction);
+	SheepContext* c = machine->GetContextTree()->Create(sheepContext, sheepfunction);
 
 	c->PrepareVariables();
-	machine->m_contextTree->Add(c);
 
 	machine->m_executingDepth++;
 	machine->Execute(c);

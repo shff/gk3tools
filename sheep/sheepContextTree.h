@@ -40,10 +40,13 @@ typedef std::stack<StackItem> SheepStack;
 
 class IntermediateOutput;
 class SheepMachine;
+class SheepContextTree;
 
 class SheepContext : public Sheep::IExecutionContext
 {
 	int m_refCount;
+	bool m_dead;
+
 	std::vector<StackItem>* m_variables;
 	SheepStack* m_stack;
 	bool m_ownStackAndVariables;
@@ -52,11 +55,12 @@ class SheepContext : public Sheep::IExecutionContext
 	Sheep::ExecutionContextState m_state;
 	SheepMachine* m_parentVM;
 	SheepFunction* m_function;
+	SheepContextTree* m_parentTree;
 
 public:
-	SheepContext(SheepMachine* parentVM, SheepFunction* function)
+	SheepContext(SheepContextTree* parentTree, SheepMachine* parentVM, SheepFunction* function)
 	{
-		init(function);
+		init(parentTree, function);
 
 		m_variables = new std::vector<StackItem>();
 		m_stack = new SheepStack();
@@ -65,9 +69,9 @@ public:
 		m_parentVM = parentVM;
 	}
 
-	SheepContext(SheepContext* parent, SheepFunction* function)
+	SheepContext(SheepContextTree* parentTree, SheepContext* parent, SheepFunction* function)
 	{
-		init(function);
+		init(parentTree, function);
 
 		m_variables = parent->m_variables;
 		m_stack = parent->m_stack;
@@ -80,6 +84,7 @@ public:
 
 	SheepStack* GetStack() { return m_stack; }
 	SheepFunction* GetFunction() { return m_function; }
+	bool IsDead() { return m_dead; }
 	
 	bool InWaitSection;
 	bool UserSuspended;
@@ -89,8 +94,6 @@ public:
 	SheepContext* Parent;
 	SheepContext* FirstChild;
 	SheepContext* Sibling;
-
-	bool Dead;
 
 	bool AreAnyChildrenSuspended()
 	{
@@ -387,168 +390,120 @@ public:
 		return SHEEP_SUCCESS;
 	}
 
+	void AddAsSibling(SheepContext* newSibling)
+	{
+		SheepContext* toAdd = this;
+
+		while(toAdd->Sibling != nullptr)
+			toAdd = toAdd->Sibling;
+
+		toAdd->Sibling = newSibling;
+		newSibling->Parent = toAdd->Parent;
+	}
+
+	void AddAsChild(SheepContext* context)
+	{
+		if (FirstChild == nullptr)
+		{
+			FirstChild = context;
+			context->Parent = this;
+		}
+		else
+			FirstChild->AddAsSibling(context);
+	}
+
 private:
-	void init(SheepFunction* function);
+	void init(SheepContextTree* parentTree, SheepFunction* function);
 };
 
 class SheepContextTree
 {
 	SheepContext* m_parentContext;
-	SheepContext* m_currentContext;
 
 public:
 
 	SheepContextTree()
 	{
 		m_parentContext = nullptr;
-		m_currentContext = nullptr;
 	}
 
 	~SheepContextTree();
 
-	SheepContext* GetCurrent() { return m_currentContext; }
-	void SetCurrent(SheepContext* context)
-	{ 
-		assert(isContextInTree(context, m_parentContext)); 
-		m_currentContext = context; 
-	}
-
-	void Add(SheepContext* context)
+	SheepContext* Create(SheepContext* parent, SheepFunction* function)
 	{
-		assert(context->Parent == NULL);
-		assert(context->FirstChild == NULL);
-		assert(context->Sibling == NULL);
+		SheepContext* newContext = SHEEP_NEW SheepContext(this, parent, function);
+		newContext->Aquire();
 
-		// Aquire() a reference to the context so it won't be deleted until we Release() it
-		context->Aquire();
-
-		if (m_parentContext == NULL)
+		if (parent == nullptr)
 		{
-			// tree doesn't exist yet, so make this context the root
-			m_parentContext = context;
-		}
-		else if (m_currentContext == NULL)
-		{
-			addAsSibling(m_parentContext, context);
+			if (m_parentContext == nullptr)
+				m_parentContext = newContext;
+			else
+				m_parentContext->AddAsSibling(newContext);
 		}
 		else
 		{
-			if (m_currentContext->FirstChild == NULL)
-			{
-				m_currentContext->FirstChild = context;
-				context->Parent = m_currentContext;
-			}
-			else
-			{
-				addAsSibling(m_currentContext->FirstChild, context);
-			}
+			parent->AddAsChild(newContext);
 		}
 
-	#ifndef NDEBUG
-		if (m_parentContext)
+#ifndef NDEBUG
 			validateContextTree(m_parentContext);
-	#endif
+#endif
+
+		return newContext;
 	}
 
-	void KillContext(SheepContext* context)
+	SheepContext* Create(SheepMachine* parentVM, SheepFunction* function)
 	{
-		assert(context != NULL);
-		assert(context->Dead == false);
+		SheepContext* newContext = SHEEP_NEW SheepContext(this, parentVM, function);
+		newContext->Aquire();
 
-		// mark the context as dead
-		context->Dead = true;
-
-		// current context should never point to a dead context
-		if (m_currentContext == context)
-			m_currentContext = NULL;
-
-		// work the way up the tree, removing all dead contexts
-		// and their descendants
-		// (this context could have been the last alive descendant
-		// in a whole family of dead contexts)
-		SheepContext* itr = context;
-		while(itr != NULL)
-		{
-			SheepContext* parent = itr->Parent;
-
-			// check the context's descendant to see if they're all dead
-			if (itr->Dead && areAllContextDecendantsDead(itr))
-			{
-				// all descendant are dead, so this context (and its children)
-				// are safe to remove
-				Remove(itr);
-			}
-			else
-			{
-				// found an ancestor with alive descendants,
-				// which cannot be removed, so we can stop now
-				break;
-			}
-
-			itr = parent;
-		}
-	}
-
-	void Remove(SheepContext* context)
-	{
-		assert(context != NULL);
-		assert(m_parentContext != NULL);
-
-		// find the context's prior sibling
-		SheepContext* priorSibling = NULL;
-		if (context->Parent == NULL)
-			priorSibling = m_parentContext;
+		if (m_parentContext == nullptr)
+			m_parentContext = newContext;
 		else
-			priorSibling = context->Parent->FirstChild;
+			m_parentContext->AddAsSibling(newContext);
+		
+#ifndef NDEBUG
+			validateContextTree(m_parentContext);
+#endif
 
-		// loop until we find the context's prior sibling
-		SheepContext* itr = priorSibling, *prev = NULL;
-		while(itr != NULL)
-		{
-			// have we found what we're looking for?
-			if (itr == context)
-			{
-				if (prev == NULL)
-				{
-					if (context->Parent == NULL)
-					{
-						// this is the root
-						assert(m_parentContext == context);
-						m_parentContext = context->Sibling;
-					}
-					else
-					{
-						// this was the parent's first child
-						assert(context->Parent != NULL);
-						assert(context->Parent->FirstChild == context);
-						context->Parent->FirstChild = context->Sibling;
-					}
-				}
-				else
-				{
-					// just an ordinary sibling
-					prev->Sibling = context->Sibling;
-				}
-
-				// context has now been removed from the tree,
-				// so we can delete it and all its children
-				SHEEP_DELETE(context);
-				
-				// mission accomplished!
-				return;
-			}
-			else
-			{
-				// we haven't found the context's prior sibling, so keep looking
-				prev = itr;
-				itr = itr->Sibling;
-			}
-		}
-
-		// we should NEVER end up here!
-		assert(false);
+		return newContext;
 	}
 
+	void TrimTree()
+	{
+		// trimming the tree means starting at the top of the tree
+		// and working down to the leafs. Delete dead leaves. Then
+		// back up to the parents. Are they now dead leaves? Delete them.
+		// Repeat.
+
+		TrimTree(m_parentContext);
+	}
+
+	void TrimTree(SheepContext* context)
+	{
+		SheepContext* prev = nullptr;
+		while(context != nullptr)
+		{
+			TrimTree(context->FirstChild);
+
+			if (context->IsDead() && context->FirstChild == nullptr)
+			{
+				if (m_parentContext == context)
+					m_parentContext = context->Sibling;
+
+				if (prev != nullptr)
+					prev->Sibling = context->Sibling;
+				if (context->Parent != nullptr && context->Parent->FirstChild == context)
+					context->Parent->FirstChild = context->Sibling;
+
+				SHEEP_DELETE(context);
+			}
+
+			prev = context;
+			context = context->Sibling;
+		}
+	}
 	
 private:
 
@@ -608,23 +563,6 @@ private:
 		}
 	}
 
-	static bool areAllContextDecendantsDead(SheepContext* context)
-	{
-		SheepContext* itr = context->FirstChild;
-
-		while(itr != NULL)
-		{
-			if (itr->Dead == false)
-				return false;
-
-			if (areAllContextDecendantsDead(itr) == false)
-				return false;
-
-			itr = itr->Sibling;
-		}
-
-		return true;
-	}
 	static bool isContextInTree(SheepContext* context, SheepContext* root)
 	{
 		SheepContext* itr = root;

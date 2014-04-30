@@ -62,6 +62,14 @@ int shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* 
 	return SM(vm)->PrepareScriptForExecution((Sheep::IScript*)script, function, (Sheep::IExecutionContext**)context);
 }
 
+int shp_PrepareScriptForExecutionWithParent(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext* parent, SheepVMContext** context)
+{
+	if (vm == nullptr || script == nullptr || parent == nullptr || function == nullptr)
+		return SHEEP_ERR_INVALID_ARGUMENT;
+
+	return SM(vm)->PrepareScriptForExecutionWithParent((Sheep::IScript*)script, function, (Sheep::IExecutionContext*)parent, (Sheep::IExecutionContext**)context);
+}
+
 int shp_GetNumVariables(SheepVMContext* context)
 {
 	if (context == nullptr)
@@ -169,16 +177,25 @@ int shp_Execute(SheepVMContext* context)
 	return ((SheepContext*)context)->Execute();
 }
 
+void shp_ReleaseVMContext(SheepVMContext* context)
+{
+	if (context != nullptr)
+		((SheepContext*)context)->Release();
+}
+
+int shp_GetVMContextState(SheepVMContext* context)
+{
+	if (context != nullptr)
+		return (int)((SheepContext*)context)->GetState();
+
+	return 0;
+}
+
 void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)
 {
 	assert(vm != NULL);
 
 	SM(vm)->SetEndWaitCallback((Sheep::EndWaitCallback)callback);
-}
-
-SheepVMContext* SHP_GetCurrentContext(SheepVM* vm)
-{
-	return (SheepVMContext*)SM(vm)->GetCurrentContext();
 }
 
 SHP_Version shp_GetVersion()

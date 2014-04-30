@@ -25,6 +25,12 @@ extern "C"
 #define SHEEP_VERBOSITY_ANNOYING 2
 #define SHEEP_VERBOSITY_EXTREME 3
 
+#define SHEEP_CONTEXT_STATE_PREPARED 0
+#define SHEEP_CONTEXT_STATE_EXECUTING 1
+#define SHEEP_CONTEXT_STATE_SUSPENDED 2
+#define SHEEP_CONTEXT_STATE_FINISHED 3
+
+
 typedef unsigned char byte;
 
 enum SHP_SymbolType
@@ -113,8 +119,11 @@ typedef  void (SHP_CALLBACK *SHP_MessageCallback)(int linenumber, const char* me
 SHP_DECLSPEC void SHP_LIB_CALL SHP_SetOutputCallback(SheepVM* vm, SHP_MessageCallback callback);
 
 SHP_DECLSPEC int SHP_LIB_CALL shp_PrepareScriptForExecution(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext** context);
+SHP_DECLSPEC int SHP_LIB_CALL shp_PrepareScriptForExecutionWithParent(SheepVM* vm, SheepScript* script, const char* function, SheepVMContext* parent, SheepVMContext** context);
 SHP_DECLSPEC int SHP_LIB_CALL shp_Execute(SheepVMContext* context);
+SHP_DECLSPEC void SHP_LIB_CALL shp_ReleaseVMContext(SheepVMContext* context);
 SHP_DECLSPEC int SHP_LIB_CALL shp_GetNumVariables(SheepVMContext* context);
+SHP_DECLSPEC int SHP_LIB_CALL shp_GetVMContextState(SheepVMContext* context);
 SHP_DECLSPEC int SHP_LIB_CALL shp_GetVariableName(SheepVMContext* context, int index, const char** name);
 SHP_DECLSPEC int SHP_LIB_CALL shp_GetVariableI(SheepVMContext* context, int index, int* value);
 SHP_DECLSPEC int SHP_LIB_CALL shp_GetVariableF(SheepVMContext* context, int index, float* value);
@@ -129,8 +138,6 @@ SHP_DECLSPEC int SHP_LIB_CALL SHP_PopFloatFromStack(SheepVMContext* vm, float* r
 SHP_DECLSPEC int SHP_LIB_CALL SHP_PopStringFromStack(SheepVMContext* vm, const char** result);
 
 SHP_DECLSPEC int SHP_LIB_CALL SHP_PushIntOntoStack(SheepVMContext* vm, int i);
-
-SHP_DECLSPEC SheepVMContext* SHP_LIB_CALL SHP_GetCurrentContext(SheepVM* vm);
 
 /* these next few functions are just for debugging the Compiler and VM. They shouldn't
 be used for anything else. */

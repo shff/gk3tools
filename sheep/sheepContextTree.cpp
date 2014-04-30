@@ -11,6 +11,8 @@ SheepContext::~SheepContext()
 		delete m_variables;
 		delete m_stack;
 	}
+
+
 }
 
 void SheepContext::PrepareVariables()
@@ -38,17 +40,22 @@ void SheepContext::PrepareVariables()
 
 void SheepContext::Release()
 {
+	assert(m_dead == false && "An attempt was made to release an IExecutionContext that was already dead");
+
 	m_refCount--;
 
 	if (m_refCount <= 0)
 	{
-		delete this;
+		m_dead = true;
+
+		// find the top of the tree and tell it to trim the tree
+		m_parentTree->TrimTree();
 	}
 }
 
 int SheepContext::Execute()
 {
-	if (Dead == true || 
+	if (m_dead == true || 
 		(m_state != Sheep::ExecutionContextState::Prepared && m_state != Sheep::ExecutionContextState::Suspended))
 		return SHEEP_ERR_INVALID_OPERATION;
 
@@ -73,7 +80,7 @@ int SheepContext::Execute()
 			SheepContext* parent = Parent;
 			while(parent != NULL)
 			{
-				if (parent->Dead == false &&
+				if (parent->m_dead == false &&
 					parent->ChildSuspended == true &&
 					parent->UserSuspended == false &&
 					parent->AreAnyChildrenSuspended() == false)
@@ -161,9 +168,10 @@ int SheepContext::PopStringFromStack(const char** result)
 	return SHEEP_SUCCESS;
 }
 
-void SheepContext::init(SheepFunction* function)
+void SheepContext::init(SheepContextTree* parentTree, SheepFunction* function)
 {
 	assert(function != nullptr);
+	assert(parentTree != nullptr);
 
 	m_refCount = 0;
 	m_variables = nullptr;
@@ -179,12 +187,13 @@ void SheepContext::init(SheepFunction* function)
 	ChildSuspended = false;
 	InstructionOffset = 0;
 	m_parentVM = nullptr;
+	m_parentTree = parentTree;
 
 	Parent = NULL;
 	FirstChild = NULL;
 	Sibling = NULL;
 
-	Dead = false;
+	m_dead = false;
 	m_state = Sheep::ExecutionContextState::Prepared;
 
 	// set up the parameter variables

@@ -217,6 +217,8 @@ namespace Sheep
 		/// @return #SHEEP_SUCCESS if successful, #SHEEP_ERR_INVALID_ARGUMENT if any of the parameters are null,
 		/// or #SHEEP_ERR_NO_SUCH_FUNCTION if the function doesn't exist. 
 		virtual int PrepareScriptForExecution(IScript* script, const char* function, IExecutionContext** context) = 0;
+
+		virtual int PrepareScriptForExecutionWithParent(IScript* script, const char* function, IExecutionContext* parent, IExecutionContext** context) = 0;
 	};
 	
 	/// Represents a disassembly of an IScript object

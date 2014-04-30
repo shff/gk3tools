@@ -59,12 +59,13 @@ public:
 	int SetImportCallback(const char* importName, Sheep::ImportCallback callback);
 
 	int PrepareScriptForExecution(Sheep::IScript* script, const char* function, Sheep::IExecutionContext** context) override;
+	int PrepareScriptForExecutionWithParent(Sheep::IScript* script, const char* function, Sheep::IExecutionContext* parent, Sheep::IExecutionContext** context) override;
 
 	void Execute(SheepContext* context);
 
 	int GetNumContexts() { return 0; }
+	SheepContextTree* GetContextTree() { return m_contextTree; }
 
-	SheepContext* GetCurrentContext() { return m_contextTree->GetCurrent(); }
 	void PrintStackTrace();
 
 	enum Verbosity
