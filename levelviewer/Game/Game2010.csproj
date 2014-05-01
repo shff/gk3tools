@@ -83,8 +83,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Console.cs" />
     <Compile Include="Direct3D9RenderWindow.cs" />
     <Compile Include="Input.cs" />
+    <Compile Include="Input\Keyboard.cs" />
     <Compile Include="MonoMain.cs" />
     <Compile Include="OpenGLRenderWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
