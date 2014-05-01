@@ -50,6 +50,21 @@ namespace Gk3Main
                 dumpCommands();
                 return;
             }
+            else if (args[0].Equals("sheep", StringComparison.OrdinalIgnoreCase))
+            {
+                if (args.Length == 1)
+                    WriteLine("No statement found.");
+                else
+                    runSheep(command.Substring(5));
+
+                return;
+            }
+            else if (args[0].Equals("printsearchpath", StringComparison.OrdinalIgnoreCase))
+            {
+                printSearchPath();
+
+                return;
+            }
 
             ConsoleCommand callback;
             if (_commands.TryGetValue(args[0], out callback) == false)
@@ -66,7 +81,7 @@ namespace Gk3Main
             get { return _verbosity; }
             set { _verbosity = value; }
         }
-
+        
         public string PreviousCommand
         {
             get { return _previousCommand; }
@@ -80,6 +95,30 @@ namespace Gk3Main
                 WriteLine("\t{0}", command.Key);
             }
             WriteLine("\tDumpCommands");
+            WriteLine("\tPrintSearchPath");
+            WriteLine("\tSheep - executes a sheep statement");
+        }
+
+        private void runSheep(string statement)
+        {
+            WriteLine("Executing command: " + statement);
+
+            try
+            {
+                Sheep.SheepMachine.RunCommand(statement);
+            }
+            catch (Sheep.SheepException ex)
+            {
+                WriteLine("Error: " + ex.Message);
+            }
+        }
+
+        private void printSearchPath()
+        {
+            foreach (var item in FileSystem.SearchPath)
+            {
+                WriteLine("\t" + item.Name);
+            }
         }
 
         protected Dictionary<string, ConsoleCommand> _commands = new Dictionary<string, ConsoleCommand>(StringComparer.OrdinalIgnoreCase);

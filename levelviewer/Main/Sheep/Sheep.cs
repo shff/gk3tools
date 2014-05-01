@@ -86,7 +86,7 @@ namespace Gk3Main.Sheep
             }
         }
 
-        public static void RunSheep(string filename, string function)
+        public static void RunSheep(IntPtr parentContext, string filename, string function)
         {
             if (_vm != IntPtr.Zero)
             {
@@ -118,7 +118,10 @@ namespace Gk3Main.Sheep
                             throw new SheepException("Unable to load sheep bytecode");
 
                         IntPtr context;
-                        err = shp_PrepareScriptForExecution(_vm, script, function, out context);
+                        if (parentContext == IntPtr.Zero)
+                            err = shp_PrepareScriptForExecution(_vm, script, function, out context);
+                        else
+                            err = shp_PrepareScriptForExecutionWithParent(_vm, script, function, parentContext, out context);
                         if (err != SHEEP_SUCCESS)
                             throw new SheepException("Unable to execute Sheep script");
 
@@ -261,6 +264,16 @@ namespace Gk3Main.Sheep
                 throw new SheepException("Unable to execute Sheep script");
         }
 
+        public static void ReleaseVMContext(IntPtr context)
+        {
+            shp_ReleaseVMContext(context);
+        }
+
+        public static int GetVMContextState(IntPtr context)
+        {
+            return shp_GetVMContextState(context);
+        }
+
         public static int PopIntOffStack(IntPtr vm)
         {
             if (vm == IntPtr.Zero)
@@ -371,11 +384,6 @@ namespace Gk3Main.Sheep
             // TODO
         }
 
-        public static IntPtr GetCurrentContext(IntPtr vm)
-        {
-            return SHP_GetCurrentContext(vm);
-        }
-
         public static void GetVersion(out int major, out int minor, out int rev)
         {
             SHP_Version v = shp_GetVersion();
@@ -463,6 +471,12 @@ namespace Gk3Main.Sheep
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
 
         [DllImport("sheep")]
+        private static extern int shp_GetVMContextState(IntPtr context);
+
+        [DllImport("sheep")]
+        private static extern void shp_ReleaseVMContext(IntPtr context);
+
+        [DllImport("sheep")]
         private static extern int SHP_PopIntFromStack(IntPtr context, out int result);
 
         [DllImport("sheep")]
@@ -475,9 +489,6 @@ namespace Gk3Main.Sheep
         private static extern void SHP_PushIntOntoStack(IntPtr context, int i);
 
         [DllImport("sheep")]
-        private static extern IntPtr SHP_GetCurrentContext(IntPtr vm);
-
-        [DllImport("sheep")]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
 
         [DllImport("sheep")]
@@ -485,6 +496,9 @@ namespace Gk3Main.Sheep
 
         [DllImport("sheep")]
         private static extern int shp_PrepareScriptForExecution(IntPtr vm, IntPtr script, string function, out IntPtr context);
+
+        [DllImport("sheep")]
+        private static extern int shp_PrepareScriptForExecutionWithParent(IntPtr vm, IntPtr script, string function, IntPtr parent, out IntPtr context);
 
         [DllImport("sheep")]
         private static extern int shp_GetNumVariables(IntPtr context);

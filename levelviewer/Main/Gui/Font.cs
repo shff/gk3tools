@@ -88,9 +88,12 @@ namespace Gk3Main.Gui
             {
                 int index = mapUnicodeToFontCharacter(c);
 
-                sb.Draw(_texture, cursor, _characterInfo[index].SourceRect);
+                if (index >= 0)
+                {
+                    sb.Draw(_texture, cursor, _characterInfo[index].SourceRect);
 
-                cursor.X += _characterInfo[index].SourceRect.Width;
+                    cursor.X += _characterInfo[index].SourceRect.Width;
+                }
             }
         }
 
@@ -116,7 +119,27 @@ namespace Gk3Main.Gui
             {
                 int index = mapUnicodeToFontCharacter(c);
 
-                cursorX += _characterInfo[index].SourceRect.Width;
+                if (index >= 0)
+                    cursorX += _characterInfo[index].SourceRect.Width;
+            }
+
+            Math.Vector2 size;
+            size.X = cursorX;
+            size.Y = _height;
+
+            return size;
+        }
+
+        public Math.Vector2 MeasureString(StringBuilder text)
+        {
+            float cursorX = 0;
+
+            for (int i = 0; i < text.Length; i++)
+            {
+                int index = mapUnicodeToFontCharacter(text[i]);
+
+                if (index >= 0)
+                    cursorX += _characterInfo[index].SourceRect.Width;
             }
 
             Math.Vector2 size;
@@ -198,6 +221,9 @@ namespace Gk3Main.Gui
 
         private int mapUnicodeToFontCharacter(char c)
         {
+            if (c == '\r' || c == '\n')
+                return -1;
+
             for (int i = 0; i < _characters.Length; i++)
             {
                 if (_characters[i] == c) return i;

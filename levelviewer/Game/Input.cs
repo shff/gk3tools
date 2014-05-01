@@ -4,6 +4,72 @@ using System.Text;
 
 namespace Game
 {
+    enum Keys
+    {
+        None,
+        Back,
+        Tab,
+        Enter,
+
+        Space = 32,
+
+        Left = 37,
+        Up = 38,
+        Right = 39,
+        Down = 40,
+
+        D0 = 48,
+        D1 = 49,
+        D2 = 50,
+        D3 = 51,
+        D4 = 52,
+        D5 = 53,
+        D6 = 54,
+        D7 = 55,
+        D8 = 56,
+        D9 = 57,
+
+        A = 65,
+        B = 66,
+        C = 67,
+        D = 68,
+        E = 69,
+        F = 70,
+        G = 71,
+        H = 72,
+        I = 73,
+        J = 74,
+        K = 75,
+        L = 76,
+        M = 77,
+        N = 78,
+        O = 79,
+        P = 80,
+        Q = 81,
+        R = 82,
+        S = 83,
+        T = 84,
+        U = 85,
+        V = 86,
+        W = 87,
+        X = 88,
+        Y = 89,
+        Z = 90,
+
+        LeftShift = 160,
+        RightShift = 161,
+
+        OemSemicolon = 186,
+        OemPlus = 187,
+        OemComma = 188,
+        OemMinus = 189,
+        OemPeriod = 190,
+        OemQuestion = 191,
+        OemTilde = 192,
+        OemPipe = 220,
+        OemQuotes = 222
+    }
+
     static class Input
     {
         private static int _mouseX;
@@ -21,7 +87,8 @@ namespace Game
         private static bool _oldMiddleMousePressed;
         private static bool _oldRightMousePressed;
 
-        private static byte[] _keys;
+        private static KeyboardState _oldKeys;
+        private static KeyboardState _currentKeys;
 
         public static int MouseX
         {
@@ -73,10 +140,13 @@ namespace Game
             get { return !_rightMousePressed && _oldRightMousePressed; }
         }
 
-        public static byte[] Keys
+        public static bool KeyboardButtonPressedFirstTime(Keys key)
         {
-            get { return _keys; }
+            return _currentKeys.IsKeyDown(key) && _oldKeys.IsKeyUp(key);
         }
+
+        public static KeyboardState CurrentKeys { get { return _currentKeys; } }
+        public static KeyboardState PreviousKeys { get { return _oldKeys; } }
 
         public static void Refresh(int mouseX, int mouseY, bool leftMousePressed, bool middleMousePressed, bool rightMousePressed, byte[] keys)
         {
@@ -95,7 +165,9 @@ namespace Game
             _middleMousePressed = middleMousePressed;
             _rightMousePressed = rightMousePressed;
 
-            _keys = keys;
+            _oldKeys = _currentKeys;
+            Keyboard.UpdateFromSDLKeys(keys);
+            _currentKeys = Keyboard.GetState();
         }
     }
 }

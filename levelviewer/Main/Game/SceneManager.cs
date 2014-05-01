@@ -837,7 +837,7 @@ namespace Gk3Main
                         _currentRoom.SetSurfaceVisibility(model.Name, false);
                 }
 
-                if (string.IsNullOrEmpty(model.Noun) == false)
+                if (string.IsNullOrEmpty(model.Noun) == false && _modelNounMap.ContainsKey(model.Name) == false)
                 {
                     Nouns n = NounUtils.ConvertStringToNoun(model.Noun);
                     _modelNounMap.Add(model.Name, n);

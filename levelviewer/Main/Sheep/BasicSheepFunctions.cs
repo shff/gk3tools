@@ -152,8 +152,14 @@ namespace Gk3Main.Sheep
             SheepMachine.AddImport("LookitSceneModel", _lookitSceneModel,
                 SymbolType.Void, SymbolType.String, SymbolType.String, SymbolType.String, SymbolType.Integer);
 
+            SheepMachine.AddImport("PlaySound", _playSound,
+                SymbolType.Void, SymbolType.String);
+
             SheepMachine.AddImport("PlaySoundTrack", _playSoundTrack,
                 SymbolType.Void, SymbolType.String);
+
+            SheepMachine.AddImport("PrintInt", _printInt,
+                SymbolType.Void, SymbolType.Integer);
 
             SheepMachine.AddImport("SetActorLocation", _setActorLocation,
                 SymbolType.Void, SymbolType.String, SymbolType.String);
@@ -284,7 +290,7 @@ namespace Gk3Main.Sheep
             if (function.EndsWith("$") == false)
                 function += "$";
 
-            SheepMachine.RunSheep(string.Format("{0}.shp", file), function);
+            SheepMachine.RunSheep(vm, string.Format("{0}.shp", file), function);
         }
 
         private static void sheep_clearFlag(IntPtr vm)
@@ -626,11 +632,30 @@ namespace Gk3Main.Sheep
             // TODO
         }
 
+        private static void sheep_PlaySound(IntPtr context)
+        {
+            bool isInWaitSection = SheepMachine.IsInWaitSection(context);
+            string sound = SheepMachine.PopStringOffStack(context);
+
+            Sound.Sound s = SceneManager.SceneContentManager.Load<Sound.Sound>(sound);
+            Sound.PlayingSound ps = Sound.SoundManager.PlaySound2DToChannel(s, Sound.SoundTrackChannel.SFX, false, isInWaitSection);
+
+            if (isInWaitSection)
+                SheepMachine.AddWaitHandle(context, ps.WaitHandle);
+        }
+
         private static void sheep_PlaySoundTrack(IntPtr vm)
         {
             string stk = SheepMachine.PopStringOffStack(vm);
 
             SceneManager.PlaySoundTrack(Utils.MakeEndsWith(stk, ".stk"));
+        }
+
+        private static void sheep_PrintInt(IntPtr vm)
+        {
+            int val = SheepMachine.PopIntOffStack(vm);
+
+            Console.CurrentConsole.WriteLine(val.ToString());
         }
 
         private static void sheep_SetActorLocation(IntPtr vm)
@@ -960,7 +985,9 @@ namespace Gk3Main.Sheep
         private static SheepFunctionDelegate _isWalkingActorNear = new SheepFunctionDelegate(sheep_IsWalkingActorNear);
         private static SheepFunctionDelegate _lookitCancel = new SheepFunctionDelegate(sheep_LookitCancel);
         private static SheepFunctionDelegate _lookitSceneModel = new SheepFunctionDelegate(sheep_LookitSceneModel);
+        private static SheepFunctionDelegate _playSound = new SheepFunctionDelegate(sheep_PlaySound);
         private static SheepFunctionDelegate _playSoundTrack = new SheepFunctionDelegate(sheep_PlaySoundTrack);
+        private static SheepFunctionDelegate _printInt = new SheepFunctionDelegate(sheep_PrintInt);
         private static SheepFunctionDelegate _setActorLocation = new SheepFunctionDelegate(sheep_SetActorLocation);
         private static SheepFunctionDelegate _setActorPosition = new SheepFunctionDelegate(sheep_SetActorPosition);
         private static SheepFunctionDelegate _setCameraAngleType = new SheepFunctionDelegate(sheep_SetCameraAngleType);

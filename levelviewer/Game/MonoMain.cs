@@ -142,7 +142,7 @@ class MonoMain
 
     private static Gk3Main.Graphics.RenderWindow init(string[] args)
     {
-        Gk3Main.Console.CurrentConsole = new MyConsole();
+        Gk3Main.Console.CurrentConsole = Game.Console.Instance;
 
         //Gk3Main.DebugFlagManager.SetDebugFlag(Gk3Main.DebugFlag.ShowStats, true);
 
@@ -205,6 +205,7 @@ class MonoMain
         Gk3Main.SceneManager.LightmapsEnabled = true;
         Gk3Main.SceneManager.CurrentShadeMode = Gk3Main.ShadeMode.Textured;
         Gk3Main.SceneManager.DoubleLightmapValues = true;
+        Gk3Main.SceneManager.RenderHelperIcons = true;
 
         parseArgs(args);
         Gk3Main.Game.GameManager.CurrentTime = Gk3Main.Game.Timeblock.Day2_12PM;
@@ -222,6 +223,10 @@ class MonoMain
             Gk3Main.Console.CurrentConsole.ReportError(ex.Message);
             return null;
         }
+
+        Game.Console.Load(_globalContent);
+        Game.Console.Wrap = true;
+        Game.Console.WrapWidth = Gk3Main.Settings.ScreenWidth;
 
         Gk3Main.Graphics.BspResource.Init(_globalContent);
         Gk3Main.Graphics.SpriteBatch.Init(_globalContent);
@@ -303,6 +308,8 @@ class MonoMain
         //if (Gk3Main.DebugFlagManager.GetDebugFlag(Gk3Main.DebugFlag.ShowStats))
             renderStats();
 
+        Game.Console.Render(_spriteBatch);
+
         Gk3Main.Graphics.RendererManager.CurrentRenderer.EndScene();
     }
 
@@ -323,6 +330,16 @@ class MonoMain
 
         if (Game.Input.RelMouseX != 0 || Game.Input.RelMouseY != 0)
             onMouseMove(Game.Input.MouseX, Game.Input.MouseY);
+
+        if (Game.Input.KeyboardButtonPressedFirstTime(Game.Keys.OemTilde))
+            Game.Console.Visible = !Game.Console.Visible;
+
+        var pressed = Game.Input.CurrentKeys.GetPressedKeys();
+        for (int i = 0; i < pressed.Length; i++)
+        {
+            if (Game.Input.PreviousKeys.IsKeyUp(pressed[i]))
+                onKeyPress(pressed[i]);
+        }
 
 
         Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
@@ -543,8 +560,8 @@ class MonoMain
                 {
                     if (Game.VerbPickerManager.VerbButtonsVisible == false)
                     {
-                        if (Game.Input.Keys[Sdl.SDLK_LSHIFT] != 0 ||
-                            Game.Input.Keys[Sdl.SDLK_RSHIFT] != 0)
+                        if (Game.Input.CurrentKeys.IsKeyDown(Game.Keys.LeftShift) ||
+                            Game.Input.CurrentKeys.IsKeyDown(Game.Keys.RightShift))
                         {
                             camera.AdjustYaw(Game.Input.RelMouseX * 0.01f);
                             camera.AdjustPitch(Game.Input.RelMouseY * 0.01f);
@@ -560,6 +577,11 @@ class MonoMain
         }
 
         Gk3Main.Gui.GuiMaster.OnMouseMove(Gk3Main.Game.GameManager.TickCount, mx, my);
+    }
+
+    private static void onKeyPress(Game.Keys key)
+    {
+        Game.Console.KeyPress(key);
     }
 
 	private static void parseArgs(string[] args)
