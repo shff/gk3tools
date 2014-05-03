@@ -109,7 +109,7 @@ namespace Viewer
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader(), typeof(Gk3Main.Graphics.ActResource));
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader(), typeof(Gk3Main.Graphics.Effect));
             Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader(), typeof(Gk3Main.Sound.SoundTrackResource));
-            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.Sound));
+            Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.AudioEngine.SoundEffect));
 
             try
             {
@@ -177,7 +177,7 @@ namespace Viewer
             if (args.Length != 3)
                 return false;
 
-            Gk3Main.Sheep.SheepMachine.RunSheep(args[1], args[2]);
+          //  Gk3Main.Sheep.SheepMachine.RunSheep(args[1], args[2]);
 
             return true;
         }

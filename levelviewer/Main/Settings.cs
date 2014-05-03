@@ -16,7 +16,7 @@ namespace Gk3Main
         private static bool _fullscreen;
         private static int _soundVolume;
         private static bool _showBoundingBoxes;
-
+        
         private struct LineInfo
         {
             public string RawString;

@@ -171,7 +171,11 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Sheep\BasicSheepFunctions.cs" />
     <Compile Include="Sheep\Sheep.cs" />
+    <Compile Include="Sound\AudioEngine\AudioManager.cs" />
+    <Compile Include="Sound\AudioEngine\SoundEffect.cs" />
+    <Compile Include="Sound\AudioEngine\SoundEffectInstance.cs" />
     <Compile Include="Sound\Mp3Decoder.cs" />
+    <Compile Include="Sound\AudioEngine\OpenALWrapper.cs" />
     <Compile Include="Sound\Sound.cs" />
     <Compile Include="Sound\SoundManager.cs" />
     <Compile Include="Sound\SoundTrackResource.cs" />

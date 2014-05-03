@@ -637,11 +637,8 @@ namespace Gk3Main.Sheep
             bool isInWaitSection = SheepMachine.IsInWaitSection(context);
             string sound = SheepMachine.PopStringOffStack(context);
 
-            Sound.Sound s = SceneManager.SceneContentManager.Load<Sound.Sound>(sound);
-            Sound.PlayingSound ps = Sound.SoundManager.PlaySound2DToChannel(s, Sound.SoundTrackChannel.SFX, false, isInWaitSection);
-
-            if (isInWaitSection)
-                SheepMachine.AddWaitHandle(context, ps.WaitHandle);
+            Sound.AudioEngine.SoundEffect s = SceneManager.SceneContentManager.Load<Sound.AudioEngine.SoundEffect>(sound);
+            Sound.PlayingSound ps = Sound.SoundManager.PlaySound2DToChannel(s, Sound.SoundTrackChannel.SFX);
         }
 
         private static void sheep_PlaySoundTrack(IntPtr vm)

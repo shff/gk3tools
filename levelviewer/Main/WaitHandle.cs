@@ -11,7 +11,7 @@ namespace Gk3Main
         public virtual bool Finished
         {
             get { return _finished; }
-            set { _finished = false; }
+            set { _finished = value; }
         }
 
         public override string ToString()

@@ -8,7 +8,7 @@ namespace Gk3Main.Gui
     {
         private Gk3Main.Graphics.TextureResource _background;
         private List<Gk3Main.Graphics.TextureResource> _title;
-        private Gk3Main.Sound.Sound _ticktock;
+        private Gk3Main.Sound.AudioEngine.SoundEffect _ticktock;
         private bool _isActive;
         private int _timeAtStart;
         private EventHandler _onFinished;
@@ -37,8 +37,8 @@ namespace Gk3Main.Gui
                 counter++;
             }
 
-            _ticktock = globalContent.Load<Gk3Main.Sound.Sound>("CLOCKTIMEBLOCK");
-            _ticktock.Play2D(Gk3Main.Sound.SoundTrackChannel.UI);
+            _ticktock = globalContent.Load<Gk3Main.Sound.AudioEngine.SoundEffect>("CLOCKTIMEBLOCK");
+            Sound.SoundManager.PlaySound2DToChannel(_ticktock, Gk3Main.Sound.SoundTrackChannel.UI);
         }
 
         public void Dismiss()

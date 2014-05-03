@@ -8,8 +8,8 @@ namespace Gk3Main.Game
     {
         private string _speaker;
         private AnimationResourceSection _gk3Section;
-        private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
-        private Sound.PlayingSound? _playingSound;
+        private List<Sound.AudioEngine.SoundEffect> _sounds = new List<Gk3Main.Sound.AudioEngine.SoundEffect>();
+        private Sound.PlayingSound _playingSound;
         private int _timeAtPlayStart;
         private int _cueTime = -1;
 
@@ -23,7 +23,7 @@ namespace Gk3Main.Game
                     foreach (AnimationResourceSectionLine line in section.Lines)
                     {
                         string soundName = line.Params[0].StringValue;
-                        _sounds.Add(content.Load<Sound.Sound>(soundName, true));
+                        _sounds.Add(content.Load<Sound.AudioEngine.SoundEffect>(soundName, true));
                     }
                 }
                 else if (section.SectionName.Equals("GK3", StringComparison.OrdinalIgnoreCase))
@@ -55,13 +55,25 @@ namespace Gk3Main.Game
         {
             if (_sounds.Count > 0)
             {
-                if (_playingSound.HasValue == true)
+                if (_playingSound != null)
                 {
-                    Sound.SoundManager.Stop(_playingSound.Value);
+                    _playingSound.Stop();
+                    _playingSound.Release();
+                    _playingSound = null;
                 }
 
                 _timeAtPlayStart = GameManager.TickCount;
-                _playingSound = _sounds[0].Play2D(Sound.SoundTrackChannel.Dialog);
+
+                if (_speaker != null)
+                {
+                    Actor actor = SceneManager.GetActor(_speaker);
+                    if (actor != null)
+                        _playingSound = Sound.SoundManager.PlaySound3DToChannel(_sounds[0], actor.Position.X, actor.Position.Y, actor.Position.Z, Sound.SoundTrackChannel.Dialog);
+                }
+
+                // if we weren't able to play in 3D then try 2D
+                if (_playingSound == null)
+                    _playingSound = Sound.SoundManager.PlaySound2DToChannel(_sounds[0], Sound.SoundTrackChannel.Dialog);
             }
         }
 
@@ -69,15 +81,27 @@ namespace Gk3Main.Game
         {
             if (_sounds.Count > 0)
             {
-                if (_playingSound.HasValue == true)
+                if (_playingSound != null)
                 {
-                    Sound.SoundManager.Stop(_playingSound.Value);
+                    _playingSound.Stop();
+                    _playingSound.Release();
+                    _playingSound = null;
                 }
 
                 _timeAtPlayStart = GameManager.TickCount;
-                _playingSound = _sounds[0].Play2D(Sound.SoundTrackChannel.Dialog, true);
 
-                return _playingSound.Value.WaitHandle;
+                if (_speaker != null)
+                {
+                    Actor actor = SceneManager.GetActor(_speaker);
+                    if (actor != null)
+                        _playingSound = Sound.SoundManager.PlaySound3DToChannel(_sounds[0], actor.Position.X, actor.Position.Y, actor.Position.Z, Sound.SoundTrackChannel.Dialog, new WaitHandle());
+                }
+
+                // if we weren't able to play in 3D then try 2D
+                if (_playingSound == null)
+                    _playingSound = Sound.SoundManager.PlaySound2DToChannel(_sounds[0], Sound.SoundTrackChannel.Dialog, new WaitHandle());
+
+                return _playingSound.Wait;
             }
 
             return null;
@@ -85,9 +109,10 @@ namespace Gk3Main.Game
 
         public void Stop()
         {
-            if (_playingSound.HasValue)
+            if (_playingSound != null)
             {
-                Sound.SoundManager.Stop(_playingSound.Value);
+                _playingSound.Stop();
+                _playingSound.Release();
                 _playingSound = null;
             }
         }
@@ -102,7 +127,7 @@ namespace Gk3Main.Game
                 int duration = NumFrames * MillisecondsPerFrame;
 
                 // the sound must be finished AND we must have covered all the frames
-                return (_playingSound.HasValue == false || _playingSound.Value.Finished == false) && 
+                return (_playingSound == null || _playingSound.Instance.State != Sound.AudioEngine.SoundState.Stopped) && 
                     GameManager.TickCount <= _timeAtPlayStart + duration;
             }
         }

@@ -16,7 +16,7 @@ namespace Gk3Main.Gui
                 _disabledImage = content.Load<Graphics.TextureResource>(disabledImage);
 
             if (string.IsNullOrEmpty(clickedSound) == false)
-                _clickedSound = content.Load<Sound.Sound>(clickedSound);
+                _clickedSound = content.Load<Sound.AudioEngine.SoundEffect>(clickedSound);
 
             _container = container;
             _enabled = true;
@@ -32,7 +32,7 @@ namespace Gk3Main.Gui
                 _disabledImage = content.Load<Graphics.TextureResource>(disabledImage);
 
             if (string.IsNullOrEmpty(clickedSound) == false)
-                _clickedSound = content.Load<Sound.Sound>(clickedSound);
+                _clickedSound = content.Load<Sound.AudioEngine.SoundEffect>(clickedSound);
 
             _tooltip = tooltip;
             if (tooltip != null)
@@ -62,7 +62,7 @@ namespace Gk3Main.Gui
                 if (_enabled && _mouseDown && IsMouseOverButton(_mouseX, _mouseY))
                 {
                     if (_clickedSound != null)
-                        _clickedSound.Play2D(Sound.SoundTrackChannel.UI);
+                        Sound.SoundManager.PlaySound2DToChannel(_clickedSound, Sound.SoundTrackChannel.UI);
                     
                     // clicked!
                     if (_onButtonClicked != null)
@@ -178,7 +178,7 @@ namespace Gk3Main.Gui
         private Graphics.TextureResource _hoverImage;
         private Graphics.TextureResource _upImage;
         private Graphics.TextureResource _disabledImage;
-        private Sound.Sound _clickedSound;
+        private Sound.AudioEngine.SoundEffect _clickedSound;
         private string _tooltip;
         private int _timeAtLastMouseMove;
         private bool _tooltipVisible;

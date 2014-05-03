@@ -161,7 +161,7 @@ class MonoMain
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader(), typeof(Gk3Main.Graphics.Effect));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader(), typeof(Gk3Main.Gui.Font));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader(), typeof(Gk3Main.Gui.CursorResource));
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.Sound));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.AudioEngine.SoundEffect));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader(), typeof(Gk3Main.Sound.SoundTrackResource));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.YakLoader(), typeof(Gk3Main.Game.YakResource));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Game.MomLoader(), typeof(Gk3Main.Game.MomResource));
@@ -404,8 +404,7 @@ class MonoMain
         Gk3Main.Game.GameManager.InjectTickCount(elapsed);
 
 
-        if (camera != null)
-            Gk3Main.Sound.SoundManager.UpdateListener(camera);
+        Gk3Main.Sound.SoundManager.Update(camera);
 
         Gk3Main.Game.Animator.Advance(Gk3Main.Game.GameManager.ElapsedTickCount);
         Gk3Main.Game.DialogManager.Step();

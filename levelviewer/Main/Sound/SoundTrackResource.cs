@@ -93,7 +93,7 @@ namespace Gk3Main.Sound
         protected string _follow;
         protected bool _enabled = true;
 
-        protected Sound _sound;
+        protected AudioEngine.SoundEffect _sound;
         protected PlayingSound _playingSound;
 
         public SoundTrackSoundNode(Resource.InfoSection soundSection, Resource.ResourceManager content)
@@ -148,11 +148,11 @@ namespace Gk3Main.Sound
 
                 try
                 {
-                    _sound = content.Load<Sound>(fileToLoad);
+                    _sound = content.Load<AudioEngine.SoundEffect>(fileToLoad);
 
-                    _sound.DefaultMinDistance = _minDist;
-                    _sound.DefaultMaxDistance = _maxDist;
-                    _sound.DefaultVolume = _volume;
+                   // _sound.DefaultMinDistance = _minDist;
+                   // _sound.DefaultMaxDistance = _maxDist;
+                   // _sound.DefaultVolume = _volume;
                 }
                 catch
                 {
@@ -177,7 +177,7 @@ namespace Gk3Main.Sound
         public float Y { get { return _y; } }
         public float Z { get { return _z; } }
 
-        public Sound Sound { get { return _sound; } }
+        public AudioEngine.SoundEffect Sound { get { return _sound; } }
         public PlayingSound PlayingSound { get { return _playingSound; } }
     }
 
@@ -215,7 +215,7 @@ namespace Gk3Main.Sound
         private int _timeAtStart;
         private bool _waiting;
         private int _timeToFinishWait;
-        private PlayingSound? _playingSound;
+        private PlayingSound _playingSound;
         private bool _playing;
 
         public SoundTrackResource(string name, System.IO.Stream stream, Resource.ResourceManager content)
@@ -286,10 +286,11 @@ namespace Gk3Main.Sound
                     _currentNodeIndex++;
                 }
             }
-            else if (_playingSound.HasValue)
+            else if (_playingSound != null)
             {
-                if (_playingSound.Value.Finished)
+                if (_playingSound.Instance.State == AudioEngine.SoundState.Stopped)
                 {
+                    _playingSound.Release();
                     _playingSound = null;
                 }
             }
@@ -331,9 +332,9 @@ namespace Gk3Main.Sound
                         if (node.Sound != null)
                         {
                             if (node.Is3D)
-                                _playingSound = node.Sound.Play3D(_channel, node.Z, node.Y, node.X);
+                                _playingSound = SoundManager.PlaySound3DToChannel(node.Sound, node.Z, node.Y, node.X, _channel);
                             else
-                                _playingSound = node.Sound.Play2D(_channel);
+                                _playingSound = SoundManager.PlaySound2DToChannel(node.Sound, _channel);
                         }
                     }
                     else if (_nodes[_currentNodeIndex].Type == SoundTrackNodeType.Prs)
@@ -348,9 +349,9 @@ namespace Gk3Main.Sound
                         if (node.Sound != null)
                         {
                             if (node.Is3D)
-                                _playingSound = node.Sound.Play3D(_channel, node.X, node.Y, node.Z);
+                                _playingSound = SoundManager.PlaySound3DToChannel(node.Sound, node.X, node.Y, node.Z, _channel);
                             else
-                                _playingSound = node.Sound.Play2D(_channel);
+                                _playingSound = SoundManager.PlaySound2DToChannel(node.Sound, _channel);
                         }
 
                         // move to the last PRS node

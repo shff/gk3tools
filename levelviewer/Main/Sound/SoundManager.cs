@@ -26,34 +26,16 @@ namespace Gk3Main.Sound
 #if !SOUND_DISABLED
     public class SoundManager
     {
-        private const int _maxSources = 16;
-        private static IntPtr _device;
-        private static IntPtr _context;
-        private static int[] _sources = new int[_maxSources];
+        private static List<PlayingSound> _playingSounds = new List<PlayingSound>();
 
         public static void Init()
         {
-            _device = Tao.OpenAl.Alc.alcOpenDevice(null);
-            _context = Tao.OpenAl.Alc.alcCreateContext(_device, IntPtr.Zero);
-            Alc.alcMakeContextCurrent(_context);
-            Al.alDistanceModel(Al.AL_INVERSE_DISTANCE_CLAMPED);
-
-            // TODO: set the main volume
-
-            _channelSounds.Add(SoundTrackChannel.Ambient, new List<int>());
-            _channelSounds.Add(SoundTrackChannel.Dialog, new List<int>());
-            _channelSounds.Add(SoundTrackChannel.Music, new List<int>());
-            _channelSounds.Add(SoundTrackChannel.SFX, new List<int>());
-            _channelSounds.Add(SoundTrackChannel.UI, new List<int>());
-
-            Al.alGenSources(_maxSources, _sources);
+            AudioEngine.AudioManager.Init();
         }
 
         public static void Shutdown()
         {
-            Al.alDeleteSources(_maxSources, _sources);
-            Alc.alcDestroyContext(_context);
-            Alc.alcCloseDevice(_device);
+            AudioEngine.AudioManager.Shutdown();
         }
 
         public static int CreateBufferFromFile(string file)
@@ -87,42 +69,31 @@ namespace Gk3Main.Sound
             }
         }
 
-        public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel, bool clearChannel)
+        public static PlayingSound PlaySound2DToChannel(AudioEngine.SoundEffect sound, SoundTrackChannel channel, WaitHandle waitHandle = null)
         {
-            return PlaySound2DToChannel(sound, channel, clearChannel, false);
+            PlayingSound s = new PlayingSound(sound.CreateInstance(), channel, waitHandle);
+            s.Instance.SetPosition(true, Math.Vector3.Zero);
+            s.Play();
+            _playingSounds.Add(s);
+
+            return s;
         }
 
-        public static PlayingSound PlaySound2DToChannel(Sound sound, SoundTrackChannel channel, bool clearChannel, bool wait)
+        public static PlayingSound PlaySound3DToChannel(AudioEngine.SoundEffect sound, float x, float y, float z, SoundTrackChannel channel, WaitHandle waitHandle = null)
         {
-            if (clearChannel)
-                StopChannel(channel);
+            PlayingSound s = new PlayingSound(sound.CreateInstance(), channel, waitHandle);
 
-            int source = getFreeSource();
-            if (source >= 0)
+            s.Instance.SetPosition(false, new Math.Vector3(x, y, z));
+            s.Play();
+            _playingSounds.Add(s);
+
+            return s;
+
+            /*AudioSource source = getFreeSource(null);
+            if (source != null)
             {
-                Al.alSourcei(source, Al.AL_BUFFER, sound.Buffer);
-                Al.alSource3f(source, Al.AL_POSITION, 0, 0, 0);
-                Al.alSourcei(source, Al.AL_SOURCE_RELATIVE, Al.AL_TRUE);
-                Al.alSourcef(source, Al.AL_MAX_DISTANCE, sound.DefaultMaxDistance);
-                Al.alSourcef(source, Al.AL_REFERENCE_DISTANCE, sound.DefaultMinDistance);
-                Al.alSourcePlay(source);
+                source.IsLooping
 
-                _channelSounds[channel].Add(source);
-
-                return new PlayingSound(source, wait);
-            }
-
-            return new PlayingSound();
-        }
-
-        public static PlayingSound PlaySound3DToChannel(Sound sound, float x, float y, float z, SoundTrackChannel channel, bool clearChannel)
-        {
-            if (clearChannel)
-                StopChannel(channel);
-
-            int source = getFreeSource();
-            if (source >= 0)
-            {
                 Al.alSourcei(source, Al.AL_BUFFER, sound.Buffer);
                 Al.alSource3f(source, Al.AL_POSITION, x, y, z);
                 Al.alSourcei(source, Al.AL_SOURCE_RELATIVE, Al.AL_FALSE);
@@ -135,68 +106,65 @@ namespace Gk3Main.Sound
                 return new PlayingSound(source, false);
             }
 
-            return new PlayingSound();
+            return new PlayingSound();*/
         }
 
         public static void StopChannel(SoundTrackChannel channel)
         {
-            List<int> sounds;
-            if (_channelSounds.TryGetValue(channel, out sounds))
+            for (int i = 0; i < _playingSounds.Count; i++)
             {
-                foreach (int sound in sounds)
+                if (_playingSounds[i].Channel == channel)
                 {
-                    Al.alSourceStop(sound);
+                    _playingSounds[i].Stop();
                 }
-
-                _channelSounds[channel].Clear();
             }
-        }
-
-        public static void Stop(PlayingSound sound)
-        {
-            Al.alSourceStop(sound._Source);
-
-            // BUG: remove the source from the channel
         }
 
         private static float[] _listenerOrientation = new float[6];
-        public static void UpdateListener(Graphics.Camera camera)
+        public static void Update(Graphics.Camera camera)
         {
-            if (camera == null)
-                throw new ArgumentNullException("camera");
-
-            Math.Vector3 position = camera.Position;
-            Math.Vector3 forward =  camera.Orientation * -Math.Vector3.Forward;
-            Math.Vector3 up = camera.Orientation * Math.Vector3.Up;
-
-            Al.alListener3f(Al.AL_POSITION, position.X, position.Y, position.Z);
-
-            _listenerOrientation[0] = forward.X;
-            _listenerOrientation[1] = forward.Y;
-            _listenerOrientation[2] = forward.Z;
-            _listenerOrientation[3] = up.X;
-            _listenerOrientation[4] = up.Y;
-            _listenerOrientation[5] = up.Z;
-            Al.alListenerfv(Al.AL_ORIENTATION, _listenerOrientation);
-        }
-
-        private static int getFreeSource()
-        {
-            for (int i = 0; i < _sources.Length; i++)
+            for (int i = 0; i < _playingSounds.Count; )
             {
-                int state;
-                Al.alGetSourcei(_sources[i], Al.AL_SOURCE_STATE, out state);
-                if (state == Al.AL_STOPPED || state == Al.AL_INITIAL)
+                if (_playingSounds[i].Instance.State == AudioEngine.SoundState.Stopped)
                 {
-                    return _sources[i];
+                    // the sound is stopped, so update the wait handle
+                    if (_playingSounds[i].Wait != null)
+                        _playingSounds[i].Wait.Finished = true;
+
+                    // remove sounds ready to die
+                    if (_playingSounds[i].Released)
+                    {
+                        _playingSounds[i].Dispose();
+                        _playingSounds.RemoveAt(i);
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+                else
+                {
+                    i++;
                 }
             }
 
-            return -1;
-        }
+            if (camera != null)
+            {
+                Math.Vector3 position = camera.Position;
+                Math.Vector3 forward = camera.Orientation * -Math.Vector3.Forward;
+                Math.Vector3 up = camera.Orientation * Math.Vector3.Up;
 
-        private static Dictionary<SoundTrackChannel, List<int>> _channelSounds 
-            = new Dictionary<SoundTrackChannel, List<int>>();
+                Al.alListener3f(Al.AL_POSITION, position.X, position.Y, position.Z);
+
+                _listenerOrientation[0] = forward.X;
+                _listenerOrientation[1] = forward.Y;
+                _listenerOrientation[2] = forward.Z;
+                _listenerOrientation[3] = up.X;
+                _listenerOrientation[4] = up.Y;
+                _listenerOrientation[5] = up.Z;
+                Al.alListenerfv(Al.AL_ORIENTATION, _listenerOrientation);
+            }
+        }
     }
 
 #else

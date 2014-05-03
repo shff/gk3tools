@@ -9,7 +9,7 @@ namespace Gk3Main.Gui
         public MainMenu(Resource.ResourceManager globalContent)
         {
             _isActive = true;
-            _theme = globalContent.Load<Gk3Main.Sound.Sound>("THEME.WAV");
+            _theme = globalContent.Load<Gk3Main.Sound.AudioEngine.SoundEffect>("THEME.WAV");
             _background = globalContent.Load<Gk3Main.Graphics.TextureResource>("TITLE.BMP");
             _introButton = new Gk3Main.Gui.Button(null, globalContent, "TITLE_INTRO_D.BMP", "TITLE_INTRO_H.BMP", "TITLE_INTRO_U.BMP", "TITLE_INTRO_X.BMP", "SIDBUTN-1.WAV");
             _playButton = new Gk3Main.Gui.Button(null, globalContent, "TITLE_PLAY_D.BMP", "TITLE_PLAY_H.BMP", "TITLE_PLAY_U.BMP", "TITLE_PLAY_X.BMP", "SIDBUTN-1.WAV");
@@ -31,7 +31,7 @@ namespace Gk3Main.Gui
             _introButton.Enabled = false;
             _restoreButton.Enabled = false;
 
-            _theme.Play2D(Gk3Main.Sound.SoundTrackChannel.Music);
+            Sound.SoundManager.PlaySound2DToChannel(_theme, Gk3Main.Sound.SoundTrackChannel.Music);
         }
 
         public void Dismiss()
@@ -113,7 +113,7 @@ namespace Gk3Main.Gui
 
         private bool _isActive;
         int _mouseX, _mouseY;
-        private Gk3Main.Sound.Sound _theme;
+        private Gk3Main.Sound.AudioEngine.SoundEffect _theme;
         private Gk3Main.Graphics.TextureResource _background;
         private Gk3Main.Gui.Button _introButton;
         private Gk3Main.Gui.Button _playButton;

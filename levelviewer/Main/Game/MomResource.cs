@@ -20,7 +20,7 @@ namespace Gk3Main.Game
         private AnimationResourceSection _modelTexturesSection;
         private AnimationResourceSection _soundSection;
         private AnimationResourceSection _gk3Section;
-        private List<Sound.Sound> _sounds = new List<Gk3Main.Sound.Sound>();
+        private List<Sound.AudioEngine.SoundEffect> _sounds = new List<Gk3Main.Sound.AudioEngine.SoundEffect>();
         private List<MomAct?> _acts = new List<MomAct?>();
         private int _timeElapsedSinceStart;
         private bool _playingFirstFrame;
@@ -49,7 +49,7 @@ namespace Gk3Main.Game
                     foreach (AnimationResourceSectionLine line in section.Lines)
                     {
                         string soundName = line.Params[0].StringValue;
-                        Sound.Sound sound = content.Load<Sound.Sound>(soundName);
+                        Sound.AudioEngine.SoundEffect sound = content.Load<Sound.AudioEngine.SoundEffect>(soundName);
                         _sounds.Add(sound);
                     }
                 }
@@ -151,7 +151,7 @@ namespace Gk3Main.Game
                 for (int i = startIndex; i < startIndex + count; i++)
                 {
                     // the indices in the little sound list *should* match "i"
-                    _sounds[i].Play2D(Sound.SoundTrackChannel.SFX);
+                    Sound.SoundManager.PlaySound2DToChannel(_sounds[i], Sound.SoundTrackChannel.SFX);
                 }
             }
 

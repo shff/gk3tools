@@ -37,59 +37,56 @@ namespace Gk3Main.Sound
 #endif
     }
 
-    public struct PlayingSound
+    public class PlayingSound : IDisposable
     {
-        private SoundWaitHandle _waitHandle;
+        private AudioEngine.SoundEffectInstance _instance;
+        private WaitHandle _waitHandle;
+        private SoundTrackChannel _channel;
+        private bool _released;
 
-#if !SOUND_DISABLED
-
-        internal int _Source;
-
-        public PlayingSound(int source, bool wait)
+        public PlayingSound(AudioEngine.SoundEffectInstance instance, SoundTrackChannel channel, WaitHandle waitHandle)
         {
-            if (source == 0)
-                throw new ArgumentException("source");
-
-            _Source = source;
-
-            if (wait)
-                _waitHandle = new SoundWaitHandle(source);
-            else
-                _waitHandle = null;
+            _instance = instance;
+            _channel = channel;
+            _waitHandle = waitHandle;
+            _released = false;
         }
 
-        public bool Finished
+        public void Dispose()
         {
-            get 
-            {
-                int state;
-                Tao.OpenAl.Al.alGetSourcei(_Source, Tao.OpenAl.Al.AL_SOURCE_STATE, out state);
-
-                return state == Tao.OpenAl.Al.AL_STOPPED || state == Tao.OpenAl.Al.AL_INITIAL;
-            }
-        }
-#else
-
-        public PlayingSound(bool wait)
-        {
-            if (wait) _waitHandle = new SoundWaitHandle();
-            else _waitHandle = null;
+            _instance.Dispose();
+            _instance = null;
         }
 
-        public bool Finished
+        public void Release()
         {
-            get { return true; }
+            _released = true;
         }
-#endif
 
-        public SoundWaitHandle WaitHandle
+        public void Play()
         {
-            get { return _waitHandle; }
+            _instance.Play();
         }
+
+        public void Stop()
+        {
+            _instance.Stop();
+
+            if (_waitHandle != null)
+                _waitHandle.Finished = true;
+        }
+
+        internal bool Released { get { return _released; } }
+        internal AudioEngine.SoundEffectInstance Instance { get { return _instance; } }
+        internal WaitHandle Wait { get { return _waitHandle; } }
+        public SoundTrackChannel Channel { get { return _channel; } }
     }
 
 
 #if !SOUND_DISABLED
+
+    /*
+    [Obsolete]
     public class Sound : Resource.Resource
     {
         private bool _disposed = false;
@@ -161,7 +158,7 @@ namespace Gk3Main.Sound
                 return _buffer;
             }
         }
-    }
+    }*/
 
     public class SoundLoader : Resource.IResourceLoader
     {
@@ -182,7 +179,7 @@ namespace Gk3Main.Sound
 
             System.IO.Stream stream = FileSystem.Open(filename);
 
-            Sound sound = new Sound(filename, stream);
+            AudioEngine.SoundEffect sound = new AudioEngine.SoundEffect(filename, stream);
 
             stream.Close();
 
