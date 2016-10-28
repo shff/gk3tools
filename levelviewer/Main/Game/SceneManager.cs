@@ -807,7 +807,7 @@ namespace Gk3Main
         private static void setupCustomScenes(string location)
         {
            // not sure if hardcoding is the best way to do this...
-           if (location.Equals(Game.LocationCodes.ChateauDeSerrasLibrary, StringComparison.OrdinalIgnoreCase))
+           if (location != null && location.Equals(Game.LocationCodes.ChateauDeSerrasLibrary, StringComparison.OrdinalIgnoreCase))
               _sceneCustomizer = new LaserSceneCustomizer();
            else
               _sceneCustomizer = null;
