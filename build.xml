@@ -1,7 +1,7 @@
 <Project DefaultTargets="LzoAndZLib" ToolsVersion="4.0"
     xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
-		<LzoFile>lzo-2.05</LzoFile>
+		<LzoFile>lzo-2.09</LzoFile>
 		<LzoUrl>http://www.oberhumer.com/opensource/lzo/download/$(LzoFile).tar.gz</LzoUrl>
 		<ZLibFile>zlib-1.2.8</ZLibFile>
 		<ZLibUrl>http://zlib.net/$(ZLibFile).tar.gz</ZLibUrl>
@@ -60,6 +60,14 @@
 			WorkingDirectory="Lib\$(LzoFile)"
 		/>
 		
+		<CallTarget Name="BuildZLib" />
+		
+		<!-- Copy the output -->
+		<CallTarget Name="CopyLZOAndZLib" />
+		
+		<Message Text="All done!" />
+	</Target>
+	<Target Name="BuildZLib">
 		<!-- Building ZLib -->
 		<Message Text="Building ZLib..." />
 		<Exec
@@ -70,15 +78,13 @@
 			Command="msbuild zlibstat.vcxproj /p:Configuration=Release"
 			WorkingDirectory="Lib\$(ZLibFile)/contrib/vstudio/vc11"
 		/>
-		
-		<!-- Copy the output -->
+	</Target>
+	<Target Name="CopyLZOAndZLib">
 		<Message Text="Copying output..." />
 		<Copy
 			SourceFiles="Lib\$(LzoFile)\lzo2.lib;Lib\$(LzoFile)\lzo2.dll;Lib\$(ZLibFile)\contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib"
 			DestinationFolder="Lib"
 		/>
-		
-		<Message Text="All done!" />
 	</Target>
 	<Target Name="LibBarn">
 		<MSBuild
