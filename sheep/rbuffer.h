@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <fstream>
+#include <algorithm>
 #include <memory.h>
 #include "sheepMemoryAllocator.h"
 
