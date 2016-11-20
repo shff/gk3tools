@@ -1,3 +1,5 @@
+#if !D3D_DISABLED
+
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -91,3 +93,5 @@ namespace Gk3Main.Graphics.Direct3D9
         }
     }
 }
+
+#endif

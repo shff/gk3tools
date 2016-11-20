@@ -92,6 +92,10 @@ class MonoMain
         Gk3Main.Graphics.RenderWindow window;
         try
         {
+#if D3D_DISABLED
+            Gk3Main.Logger.WriteInfo("Using OpenGL renderer");
+            window = setupOpenGL(width, height, depth, fullscreen);
+#else
             if (string.IsNullOrEmpty(Gk3Main.Settings.Renderer))
             {
                 Gk3Main.Logger.WriteInfo("No renderer specified. Defaulting to Direct3D 9.");
@@ -106,6 +110,7 @@ class MonoMain
                 Gk3Main.Logger.WriteError("Unknown renderer specified! Defaulting to Direct3D 9.");
                 window = setupDirect3D9(width, height, depth, fullscreen);
             }
+#endif
 
             Gk3Main.Graphics.RendererManager.CurrentRenderer = window.CreateRenderer();
         }
@@ -494,10 +499,12 @@ class MonoMain
         return new Game.OpenGLRenderWindow(width, height, depth, fullscreen);
     }
 
+#if !D3D_DISABLED
     private static Gk3Main.Graphics.RenderWindow setupDirect3D9(int width, int height, int depth, bool fullscreen)
     {
         return new Game.Direct3D9RenderWindow(width, height, depth, fullscreen);
     }
+#endif
 
     private static void onMouseLeftDown(int mx, int my)
     {

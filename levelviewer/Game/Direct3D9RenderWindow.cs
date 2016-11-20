@@ -4,6 +4,7 @@ using Tao.Sdl;
 
 namespace Game
 {
+#if !D3D_DISABLED
     class Direct3D9RenderWindow : Gk3Main.Graphics.Direct3D9RenderWindow
     {
         int _width, _height, _depth;
@@ -76,4 +77,5 @@ namespace Game
         [System.Runtime.InteropServices.DllImport("SDL")]
         private extern static int SDL_GetWMInfo(out SDL_SysWMinfo info);
     }
+#endif
 }

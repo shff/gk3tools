@@ -23,6 +23,7 @@ namespace Viewer
 
             InitializeComponent();
 
+#if !D3D_DISABLED
             if (Settings.Default.Renderer.Equals("Direct3D 9", StringComparison.OrdinalIgnoreCase))
             {
                 direct3D9ToolStripMenuItem.Checked = true;
@@ -30,6 +31,7 @@ namespace Viewer
                 _window = new Direct3D9RenderWindow(pbRenderWindow);
             }
             else
+#endif
             {
                 direct3D9ToolStripMenuItem.Checked = false;
                 openGLToolStripMenuItem.Checked = true;
@@ -208,7 +210,7 @@ namespace Viewer
             return true;
         }
 
-        #region Event handlers
+#region Event handlers
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Gk3Main.Sheep.SheepMachine.Shutdown();
@@ -635,7 +637,7 @@ namespace Viewer
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        #endregion
+#endregion
 
         private Gk3Main.Graphics.RenderWindow _window;
         private Gk3Main.Resource.ResourceManager _globalContent;

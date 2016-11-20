@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 
 namespace Viewer
 {
+#if !D3D_DISABLED
     class Direct3D9RenderWindow : Gk3Main.Graphics.RenderWindow
     {
         private Direct3D9RenderControl _renderWindow;
@@ -53,7 +54,7 @@ namespace Viewer
             //_renderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
         }
     }
-
+#endif
     class Direct3D9RenderControl : Control
     {
         protected override void OnPaintBackground(PaintEventArgs pevent)
@@ -61,6 +62,7 @@ namespace Viewer
             // nothing
         }
     }
+
 
     class OpenGLRenderWindow : Gk3Main.Graphics.RenderWindow
     {
