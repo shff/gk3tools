@@ -26,7 +26,7 @@
 
 
 #ifndef DISABLE_LZO
-#include <lzo1x.h>
+#include "lzo/minilzo.h"
 #endif
 #ifndef DISABLE_ZLIB
 #define ZLIB_WINAPI 

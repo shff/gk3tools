@@ -10,6 +10,13 @@
 		<CSFile 
 			Include="Builder\*.cs; Builder\Tar\*.cs" />
 	</ItemGroup>
+	<Target Name="All">
+		<CallTarget Targets="LzoAndZLib" />
+		<CallTarget Targets="LibBarn" />
+		<CallTarget Targets="Sheep" />
+		<CallTarget Targets="Browser" />
+		<CallTarget Targets="LevelViewer" />
+	</Target>
 	<Target Name="LzoAndZLib">
 	
 		<MakeDir
@@ -22,12 +29,6 @@
 			OutputAssembly="Builder.exe"
 		/>
 		
-		<!-- downloading LZO -->
-		<Message Text="Downloading LZO..." />
-		<Exec
-			Command="Builder.exe -d $(LzoUrl)"
-		/>
-		
 		<!-- downloading ZLib -->
 		<Message Text="Downloading ZLib..." />
 		<Exec
@@ -35,15 +36,8 @@
 		/>
 		
 		<Move
-			SourceFiles="$(LzoFile).tar.gz;$(ZLibFile).tar.gz"
+			SourceFiles="$(ZLibFile).tar.gz"
 			DestinationFolder="Lib"
-		/>
-		
-		<!-- Extract LZO -->
-		<Message Text="Extracting LZO..." />
-		<Exec
-			Command="..\Builder.exe -x $(LzoFile).tar.gz"
-			WorkingDirectory="Lib"
 		/>
 		
 		<!-- Extract ZLib -->
@@ -53,17 +47,10 @@
 			WorkingDirectory="Lib"
 		/>
 		
-		<!-- Building LZO -->
-		<Message Text="Building LZO..." />
-		<Exec
-			Command="b\win32\vc_dll.bat"
-			WorkingDirectory="Lib\$(LzoFile)"
-		/>
-		
-		<CallTarget Name="BuildZLib" />
+		<CallTarget Targets="BuildZLib" />
 		
 		<!-- Copy the output -->
-		<CallTarget Name="CopyLZOAndZLib" />
+		<CallTarget Targets="CopyLZOAndZLib" />
 		
 		<Message Text="All done!" />
 	</Target>
@@ -82,19 +69,19 @@
 	<Target Name="CopyLZOAndZLib">
 		<Message Text="Copying output..." />
 		<Copy
-			SourceFiles="Lib\$(LzoFile)\lzo2.lib;Lib\$(LzoFile)\lzo2.dll;Lib\$(ZLibFile)\contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib"
+			SourceFiles="Lib\$(ZLibFile)\contrib\vstudio\vc11\x86\ZlibStatRelease\zlibstat.lib"
 			DestinationFolder="Lib"
 		/>
 	</Target>
 	<Target Name="LibBarn">
 		<MSBuild
-			Projects="libbarn/libbarn2010.vcxproj"
+			Projects="libbarn/libbarn2015.vcxproj"
 			Properties="Configuration=Release"
 		/>
 	</Target>
 	<Target Name="Sheep">
 		<MSBuild
-			Projects="sheep/sheep2010.vcxproj"
+			Projects="sheep/sheep2015.vcxproj"
 			Properties="Configuration=Release"
 		/>
 	</Target>
@@ -105,8 +92,32 @@
 			Properties="Configuration=Release;Platform=x86"
 		/>
 		<Copy
-			SourceFiles="Lib/lzo2.dll;Lib/zlibwapi.dll;libbarn/Release/barn.dll;sheep/Release/sheep.dll"
+			SourceFiles="libbarn/Release/barn.dll;sheep/Release/sheep.dll"
 			DestinationFolder="browser/bin/x86/Release"
+		/>
+	</Target>
+	<Target Name="LevelViewer">
+		<MSBuild
+			Projects="levelviewer/Main/Main2015.csproj"
+			Properties="Configuration=Release;Platform=x86"
+		/>
+		<MSBuild
+			Projects="levelviewer/Viewer/Viewer2015.csproj"
+			Properties="Configuration=Release;Platform=x86"
+		/>
+		<MSBuild
+			Projects="levelviewer/Game/Game2015.csproj"
+			Properties="Configuration=Release;Platform=x86"
+		/>
+		
+		<!-- copy sheep and barn dlls into the output directories -->
+		<Copy
+			SourceFiles="sheep\Release\sheep.dll;libbarn\Release\barn.dll"
+			DestinationFolder="levelviewer\Game\bin\x86\Release"
+		/>
+		<Copy
+			SourceFiles="sheep\Release\sheep.dll;libbarn\Release\barn.dll"
+			DestinationFolder="levelviewer\Viewer\bin\x86\Release"
 		/>
 	</Target>
 </Project>
