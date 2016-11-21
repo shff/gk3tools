@@ -80,6 +80,13 @@
 		/>
 	</Target>
 	<Target Name="Sheep">
+	
+		<Copy
+			Condition="!Exists('sheep/sheepParser.cpp')"
+			SourceFiles="sheep/extra/sheepParser.cpp;sheep/extra/sheepParser.hpp;sheep/extra/sheepScanner.cpp"
+			DestinationFolder="sheep"
+		/>
+	
 		<MSBuild
 			Projects="sheep/sheep2015.vcxproj"
 			Properties="Configuration=Release"

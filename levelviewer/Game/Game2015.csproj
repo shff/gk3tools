@@ -121,7 +121,7 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <Copy SourceFiles="..\$(ConfigurationName)\sheep.dll;..\$(ConfigurationName)\barn.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\sheep\$(ConfigurationName)\sheep.dll;$(ProjectDir)..\..\libbarn\$(ConfigurationName)\barn.dll" DestinationFolder="$(OutDir)" />
   </Target>
   <PropertyGroup>
     <PostBuildEvent>
