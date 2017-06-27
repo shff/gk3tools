@@ -1,5 +1,5 @@
 using System;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -14,39 +14,39 @@ namespace Gk3Main.Graphics.OpenGl
         {
             _renderer = renderer;
 
-            Gl.glGenTextures(1, out _glTexture);
-            Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
+            GL.GenTextures(1, out _glTexture);
+            GL.BindTexture(TextureTarget.TextureCubeMap, _glTexture);
 
-            const int format = Gl.GL_RGBA;
-            Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, Gl.GL_RGBA, front.Width, front.Height, 0, format, Gl.GL_UNSIGNED_BYTE, front.Pixels);
-            Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, Gl.GL_RGBA, back.Width, back.Height, 0, format, Gl.GL_UNSIGNED_BYTE, back.Pixels);
-            Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, Gl.GL_RGBA, right.Width, right.Height, 0, format, Gl.GL_UNSIGNED_BYTE, right.Pixels);
-            Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, Gl.GL_RGBA, left.Width, left.Height, 0, format, Gl.GL_UNSIGNED_BYTE, left.Pixels);
-            Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, Gl.GL_RGBA, up.Width, up.Height, 0, format, Gl.GL_UNSIGNED_BYTE, up.Pixels);
+            const PixelFormat format = PixelFormat.Rgba;
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveX, 0, PixelInternalFormat.Rgba, front.Width, front.Height, 0, format, PixelType.UnsignedByte, front.Pixels);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeX, 0, PixelInternalFormat.Rgba, back.Width, back.Height, 0, format, PixelType.UnsignedByte, back.Pixels);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveZ, 0, PixelInternalFormat.Rgba, right.Width, right.Height, 0, format, PixelType.UnsignedByte, right.Pixels);
+            GL.TexImage2D(TextureTarget.TextureCubeMapNegativeZ, 0, PixelInternalFormat.Rgba, left.Width, left.Height, 0, format, PixelType.UnsignedByte, left.Pixels);
+            GL.TexImage2D(TextureTarget.TextureCubeMapPositiveY, 0, PixelInternalFormat.Rgba, up.Width, up.Height, 0, format, PixelType.UnsignedByte, up.Pixels);
 
             if (down != null)
             {
-                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, Gl.GL_RGBA, down.Width, down.Height, 0, format, Gl.GL_UNSIGNED_BYTE, down.Pixels);
+                GL.TexImage2D(TextureTarget.TextureCubeMapNegativeY, 0, PixelInternalFormat.Rgba, down.Width, down.Height, 0, format, PixelType.UnsignedByte, down.Pixels);
             }
             else
             {
                 // apparently the "down" face isn't needed. we'll just reuse the top.
-                Gl.glTexImage2D(Gl.GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, Gl.GL_RGBA, up.Width, up.Height, 0, format, Gl.GL_UNSIGNED_BYTE, up.Pixels);
+                GL.TexImage2D(TextureTarget.TextureCubeMapNegativeY, 0, PixelInternalFormat.Rgba, up.Width, up.Height, 0, format, PixelType.UnsignedByte, up.Pixels);
             }
 
-            Gl.glTexParameterf(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
-            Gl.glTexParameterf(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter, (int)All.Linear);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter, (int)All.Linear);
+                             
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS, (int)All.ClampToEdge);
+            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT, (int)All.ClampToEdge);
 
-            Gl.glTexParameteri(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
-            Gl.glTexParameteri(Gl.GL_TEXTURE_CUBE_MAP, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
-
-            if (Gl.glGetError() != Gl.GL_NO_ERROR)
+            if (GL.GetError() != ErrorCode.NoError)
                 throw new InvalidOperationException();
         }
 
         public void Bind(int index)
         {
-            Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, _glTexture);
+            GL.BindTexture(TextureTarget.TextureCubeMap, _glTexture);
             //Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP, 0);
 
             SamplerState current = _renderer.SamplerStates[index];
@@ -55,7 +55,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public override void Unbind()
         {
-            Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP);
+            GL.Disable(EnableCap.TextureCubeMap);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }

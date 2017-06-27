@@ -1,5 +1,5 @@
 using System;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -15,30 +15,30 @@ namespace Gk3Main.Graphics.OpenGl
             buffer._numVertices = numVertices;
             buffer._usage = usage;
 
-            Gl.glGenBuffers(1, out buffer._buffer);
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, buffer._buffer);
-            Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(numVertices * vertexElements.Stride), data, convertUsage(usage));
+            GL.GenBuffers(1, out buffer._buffer);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, buffer._buffer);
+            GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(numVertices * vertexElements.Stride), data, (BufferUsageHint)convertUsage(usage));
 
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, 0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
             return buffer;
         }
 
         public override void Dispose()
         {
-            Gl.glDeleteBuffers(1, ref _buffer);
+            GL.DeleteBuffers(1, ref _buffer);
         }
 
         public void Bind()
         {
-            Gl.glGetError();
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, _buffer);
+            GL.GetError();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _buffer);
             GlException.ThrowExceptionIfErrorExists();
         }
 
         public void Unbind()
         {
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, 0);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         }
 
         public override int NumVertices
@@ -51,8 +51,8 @@ namespace Gk3Main.Graphics.OpenGl
             if (_usage == VertexBufferUsage.Static)
                 throw new Exception("Can't update a vertex buffer created as Static");
 
-            Gl.glGetError();
-            Gl.glBindBuffer(Gl.GL_ARRAY_BUFFER, _buffer);
+            GL.GetError();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _buffer);
 
             System.Runtime.InteropServices.GCHandle handle = System.Runtime.InteropServices.GCHandle.Alloc(data, System.Runtime.InteropServices.GCHandleType.Pinned);
             try
@@ -60,7 +60,7 @@ namespace Gk3Main.Graphics.OpenGl
                 IntPtr pointer = handle.AddrOfPinnedObject();
                 int size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
 
-                Gl.glBufferData(Gl.GL_ARRAY_BUFFER, (IntPtr)(elementCount * size), Gk3Main.Utils.IncrementIntPtr(pointer, size * startIndex), convertUsage(_usage));
+                GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(elementCount * size), Gk3Main.Utils.IncrementIntPtr(pointer, size * startIndex), (BufferUsageHint)convertUsage(_usage));
             }
             finally
             {
@@ -75,11 +75,11 @@ namespace Gk3Main.Graphics.OpenGl
 
         private static int convertUsage(VertexBufferUsage usage)
         {
-            int glUsage = Gl.GL_STATIC_DRAW;
+            int glUsage = (int)BufferUsageHint.StaticDraw;
             if (usage == VertexBufferUsage.Stream)
-                glUsage = Gl.GL_STREAM_DRAW;
+                glUsage = (int)BufferUsageHint.StreamDraw;
             else if (usage == VertexBufferUsage.Dynamic)
-                glUsage = Gl.GL_DYNAMIC_DRAW;
+                glUsage = (int)BufferUsageHint.DynamicDraw;
 
             return glUsage;
         }

@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 using System.Text;
 
 namespace Gk3Main.Graphics.OpenGl
@@ -46,9 +46,9 @@ namespace Gk3Main.Graphics.OpenGl
 
         public override void Bind()
         {
-            Gl.glGetError();
-            Gl.glUseProgram(_program);
-            if (Gl.glGetError() != Gl.GL_NO_ERROR)
+            GL.GetError();
+            GL.UseProgram(_program);
+            if (GL.GetError() != ErrorCode.NoError)
                 throw new Exception("Unable to bind GLSL shader");
 
             ((OpenGLRenderer)RendererManager.CurrentRenderer).VertexPointersNeedSetup = true;
@@ -62,7 +62,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public override void End()
         {
-            Gl.glUseProgram(0);
+            GL.UseProgram(0);
         }
 
         public override void CommitParams()
@@ -72,65 +72,65 @@ namespace Gk3Main.Graphics.OpenGl
 
         public override void SetParameter(string name, float parameter)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             Uniform u = getUniform(name);
             if (u.GlHandle == -1) return;
 
-            Gl.glUniform1f(u.GlHandle, parameter);
+            GL.Uniform1(u.GlHandle, parameter);
 
-            int r = Gl.glGetError();
-            if (r != Gl.GL_NO_ERROR)
+            ErrorCode r = GL.GetError();
+            if (r != ErrorCode.NoError)
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
         public override void SetParameter(string name, Gk3Main.Math.Vector4 parameter)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             Uniform u = getUniform(name);
             if (u.GlHandle == -1) return;
 
-            Gl.glUniform4f(u.GlHandle, parameter.X, parameter.Y, parameter.Z, parameter.W);
+            GL.Uniform4(u.GlHandle, parameter.X, parameter.Y, parameter.Z, parameter.W);
 
-            int r = Gl.glGetError();
-            if (r != Gl.GL_NO_ERROR)
+            ErrorCode r = GL.GetError();
+            if (r != ErrorCode.NoError)
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
         public override void SetParameter(string name, Gk3Main.Math.Matrix parameter)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             Uniform u = getUniform(name);
             if (u.GlHandle == -1) return;
 
-            Gl.glUniformMatrix4fv(u.GlHandle, 1, 0, ref parameter.M11);
+            GL.UniformMatrix4(u.GlHandle, 1, false, ref parameter.M11);
 
-            int r = Gl.glGetError();
-            if (r != Gl.GL_NO_ERROR)
+            ErrorCode r = GL.GetError();
+            if (r != ErrorCode.NoError)
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
         public override void SetParameter(string name, Color parameter)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             Uniform u = getUniform(name);
             if (u.GlHandle == -1) return;
 
-            Gl.glUniform4f(u.GlHandle, parameter.R / 255.0f, parameter.G / 255.0f, parameter.B / 255.0f, parameter.A / 255.0f);
+            GL.Uniform4(u.GlHandle, parameter.R / 255.0f, parameter.G / 255.0f, parameter.B / 255.0f, parameter.A / 255.0f);
 
-            int r = Gl.glGetError();
-            if (r != Gl.GL_NO_ERROR)
+            ErrorCode r = GL.GetError();
+            if (r != ErrorCode.NoError)
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
         public override void SetParameter(string name, TextureResource parameter, int index)
         {
-            Gl.glGetError();
+            GL.GetError();
 
-            Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
+            GL.ActiveTexture(TextureUnit.Texture0 + index);
 
             if (parameter is GlUpdatableTexture)
                 ((GlUpdatableTexture)parameter).Bind(index);
@@ -140,28 +140,28 @@ namespace Gk3Main.Graphics.OpenGl
             Uniform u = getUniform(name);
             if (u.GlHandle == -1) return;
 
-            Gl.glUniform1i(u.GlHandle, index);
+            GL.Uniform1(u.GlHandle, index);
 
-            int r = Gl.glGetError();
-            if (r != Gl.GL_NO_ERROR)
+            ErrorCode r = GL.GetError();
+            if (r != ErrorCode.NoError)
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
         public override void SetParameter(string name, CubeMapResource parameter, int index)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             GlCubeMap texture = (GlCubeMap)parameter;
 
             Uniform u = getUniform(name);
             if (u.GlHandle == -1) return;
 
-            Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
+            GL.ActiveTexture(TextureUnit.Texture0 + index);
             texture.Bind(index);
-            Gl.glUniform1i(u.GlHandle, index);
+            GL.Uniform1(u.GlHandle, index);
 
-            int r = Gl.glGetError();
-            if (r != Gl.GL_NO_ERROR)
+            ErrorCode r = GL.GetError();
+            if (r != ErrorCode.NoError)
                 throw new Exception("Unable to set shader parameter: " + name);
         }
 
@@ -194,31 +194,32 @@ namespace Gk3Main.Graphics.OpenGl
             int vertexShader = compileShader(vertexSource, true);
             int fragShader = (fragSource == null ? 0 : compileShader(fragSource, false));
 
-            _program = Gl.glCreateProgram();
+            _program = GL.CreateProgram();
 
-            Gl.glAttachShader(_program, vertexShader);
-            if (fragSource != null) Gl.glAttachShader(_program, fragShader);
+            GL.AttachShader(_program, vertexShader);
+            if (fragSource != null) GL.AttachShader(_program, fragShader);
 
-            Gl.glLinkProgram(_program);
+            GL.LinkProgram(_program);
 
             int result;
-            Gl.glGetProgramiv(_program, Gl.GL_LINK_STATUS, out result);
-            if (result != Gl.GL_TRUE)
+            GL.GetProgram(_program, GetProgramParameterName.LinkStatus, out result);
+            if (result != (int)All.True)
                 throw new Exception("Unable to link GLSL program");
 
             // now load the attribute info
             int numAttribs;
-            Gl.glGetProgramiv(_program, Gl.GL_ACTIVE_ATTRIBUTES, out numAttribs);
+            GL.GetProgram(_program, GetProgramParameterName.ActiveAttributes, out numAttribs);
 
             int attribMaxLength;
-            Gl.glGetProgramiv(_program, Gl.GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, out attribMaxLength);
+            GL.GetProgram(_program, GetProgramParameterName.ActiveAttributeMaxLength, out attribMaxLength);
 
             System.Text.StringBuilder buffer = new System.Text.StringBuilder(attribMaxLength);
 
             for (int i = 0; i < numAttribs; i++)
             {
-                int length, size, type;
-                Gl.glGetActiveAttrib(_program, i, attribMaxLength, out length, out size, out type, buffer);
+                int length, size;
+                ActiveAttribType type;
+                GL.GetActiveAttrib(_program, i, attribMaxLength, out length, out size, out type, buffer);
                 string name = buffer.ToString();
 
                 for (int j = 0; j < _attributes.Count; j++)
@@ -226,7 +227,7 @@ namespace Gk3Main.Graphics.OpenGl
                     if (_attributes[j].Name.Equals(name, StringComparison.OrdinalIgnoreCase))
                     {
                         Attribute a = _attributes[j];
-                        a.GlHandle = Gl.glGetAttribLocation(_program, name);
+                        a.GlHandle = GL.GetAttribLocation(_program, name);
                         _attributes[j] = a;
 
                         break;
@@ -246,29 +247,29 @@ namespace Gk3Main.Graphics.OpenGl
             int shader;
             if (vertex)
             {
-                shader = Gl.glCreateShader(Gl.GL_VERTEX_SHADER);
+                shader = GL.CreateShader(ShaderType.VertexShader);
                 
                 if (vertex)
                     source = extractAttribInfo(source);
             }
             else
-                shader = Gl.glCreateShader(Gl.GL_FRAGMENT_SHADER);
+                shader = GL.CreateShader(ShaderType.FragmentShader);
 
-            Gl.glShaderSource(shader, 1, new string[] { source }, new int[] { source.Length });
+            GL.ShaderSource(shader, 1, new string[] { source }, new int[] { source.Length });
 
-            Gl.glCompileShader(shader);
+            GL.CompileShader(shader);
 
             int logLength;
-            Gl.glGetShaderiv(shader, Gl.GL_INFO_LOG_LENGTH, out logLength);
+            GL.GetShader(shader, ShaderParameter.InfoLogLength, out logLength);
             System.Text.StringBuilder log = new System.Text.StringBuilder(logLength);
-            Gl.glGetShaderInfoLog(shader, logLength, out logLength, log);
+            GL.GetShaderInfoLog(shader, logLength, out logLength, log);
 
             if (log.Length > 0)
                 Console.CurrentConsole.WriteLine(log.ToString());
 
             int result;
-            Gl.glGetShaderiv(shader, Gl.GL_COMPILE_STATUS, out result);
-            if (result != Gl.GL_TRUE)
+            GL.GetShader(shader, ShaderParameter.CompileStatus, out result);
+            if (result != (int)All.True)
                 throw new Exception("Unable to compile shader");
 
             return shader;
@@ -290,7 +291,7 @@ namespace Gk3Main.Graphics.OpenGl
 
                     Uniform u;
                     u.Name = shaderSource.Substring(nameStart, nameEnd - nameStart + 1);
-                    u.GlHandle = Gl.glGetUniformLocation(_program, u.Name);
+                    u.GlHandle = GL.GetUniformLocation(_program, u.Name);
 
                     _uniforms.Add(u.Name, u);
                 }

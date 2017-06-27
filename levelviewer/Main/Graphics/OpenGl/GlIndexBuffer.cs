@@ -1,5 +1,5 @@
 using System;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -12,26 +12,26 @@ namespace Gk3Main.Graphics.OpenGl
         {
             _length = data.Length;
 
-            Gl.glGenBuffers(1, out _buffer);
-            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, _buffer);
-            Gl.glBufferData(Gl.GL_ELEMENT_ARRAY_BUFFER, (IntPtr)(data.Length * sizeof(uint)), data, Gl.GL_STATIC_DRAW);
+            GL.GenBuffers(1, out _buffer);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _buffer);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, (IntPtr)(data.Length * sizeof(uint)), data, BufferUsageHint.StaticDraw);
 
-            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, 0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
         }
 
         public override void Dispose()
         {
-            Gl.glDeleteBuffers(1, ref _buffer);
+            GL.DeleteBuffers(1, ref _buffer);
         }
 
         public void Bind()
         {
-            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, _buffer);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, _buffer);
         }
 
         public void Unbind()
         {
-            Gl.glBindBuffer(Gl.GL_ELEMENT_ARRAY_BUFFER, 0);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
         }
 
         public override int Length

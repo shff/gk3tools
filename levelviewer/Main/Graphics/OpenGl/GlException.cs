@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -15,14 +15,14 @@ namespace Gk3Main.Graphics.OpenGl
 
         public static void ThrowExceptionIfErrorExists()
         {
-            int error = Gl.glGetError();
+            int error = (int)GL.GetError();
             if (error != 0)
                 throw new GlException(error);
         }
 
         private static string convertError(int error)
         {
-            if (error == Gl.GL_INVALID_OPERATION)
+            if (error == (int)ErrorCode.InvalidOperation)
                 return "Invalid Operation";
             else
                 return error.ToString();

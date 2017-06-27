@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using Tao.OpenGl;
 using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
@@ -54,7 +53,8 @@ namespace Gk3Main.Graphics.OpenGl
             _renderToTextureSupported = false;
             _samplerObjectsSupported = true;// GL..arb.IsExtensionSupported("GL_ARB_sampler_objects");
             _debugOutputSupported = true;// Gl.IsExtensionSupported("GL_ARB_debug_output");
-            if (Gl.IsExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+            _maxAnisotropy = 0;
+           /* if (Gl.IsExtensionSupported("GL_EXT_texture_filter_anisotropic"))
             {
                 float max;
                 Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out max);
@@ -68,35 +68,25 @@ namespace Gk3Main.Graphics.OpenGl
             else
             {
                 _maxAnisotropy = 0;
-            }
+            }*/
 
             // set default render states
             BlendState = BlendState.Opaque;
 
             if (_debugOutputSupported)
             {
-                glDebugMessageCallback = (glDebugMessageCallbackDelegate)Gl.GetDelegate("glDebugMessageCallback", typeof(glDebugMessageCallbackDelegate));
-                glDebugMessageCallback(glDebugLog, IntPtr.Zero);
+               // GL.DebugMessageCallback(glDebugLog, IntPtr.Zero);
 
-                GL.Enable(EnableCap.DebugOutputSynchronous);
+                //GL.Enable(EnableCap.DebugOutputSynchronous);
             }
-
-            // according to the GL3 spec we need a VAO bound... for some reason...
-            glGenVertexArrays = (glGenVertexArraysDelegate)Gl.GetDelegate("glGenVertexArrays", typeof(glGenVertexArraysDelegate));
-            glBindVertexArray = (glBindVertexArrayDelegate)Gl.GetDelegate("glBindVertexArray", typeof(glBindVertexArrayDelegate));
-
-            glGenSamplers = (glGenSamplersDelegate)Gl.GetDelegate("glGenSamplers", typeof(glGenSamplersDelegate));
-            glSamplerParameteri = (glSamplerParameteriDelegate)Gl.GetDelegate("glSamplerParameteri", typeof(glSamplerParameteriDelegate));
-            glBindSampler = (glBindSamplerDelegate)Gl.GetDelegate("glBindSampler", typeof(glBindSamplerDelegate));
-            glDeleteSamplers = (glDeleteSamplersDelegate)Gl.GetDelegate("glDeleteSamplers", typeof(glDeleteSamplersDelegate));
 
             _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
             SamplerStates[0] = SamplerState.LinearWrap;
             SamplerStates[1] = SamplerState.LinearClamp;
 
             uint vao;
-            glGenVertexArrays(1, out vao);
-            glBindVertexArray(vao);
+            GL.GenVertexArrays(1, out vao);
+            GL.BindVertexArray(vao);
 
             _parentWindow = parentWindow;
         }
@@ -104,34 +94,34 @@ namespace Gk3Main.Graphics.OpenGl
         #region Render states
         public bool BlendEnabled
         {
-            get { return Gl.glIsEnabled(Gl.GL_BLEND) == Gl.GL_TRUE; }
-            set { if (value) Gl.glEnable(Gl.GL_BLEND); else Gl.glDisable(Gl.GL_BLEND); }
+            get { return GL.IsEnabled(EnableCap.Blend) == true; }
+            set { if (value) GL.Enable(EnableCap.Blend); else GL.Disable(EnableCap.Blend); }
         }
 
         public bool DepthTestEnabled
         {
-            get { return Gl.glIsEnabled(Gl.GL_DEPTH_TEST) == Gl.GL_TRUE; }
-            set { if (value) Gl.glEnable(Gl.GL_DEPTH_TEST); else Gl.glDisable(Gl.GL_DEPTH_TEST); }
+            get { return GL.IsEnabled(EnableCap.DepthTest) == true; }
+            set { if (value) GL.Enable(EnableCap.DepthTest); else GL.Disable(EnableCap.DepthTest); }
         }
 
         public bool DepthWriteEnabled
         {
-            get { int enabled; Gl.glGetIntegerv(Gl.GL_DEPTH_WRITEMASK, out enabled); return enabled != 0; }
-            set { Gl.glDepthMask(value ? 1 : 0); }
+            get { int enabled; GL.GetInteger(GetPName.DepthWritemask, out enabled); return enabled != 0; }
+            set { GL.DepthMask(value); }
         }
 
         public CullMode CullMode
         {
             get
             {
-                if (Gl.glIsEnabled(Gl.GL_CULL_FACE) == Gl.GL_FALSE)
+                if (GL.IsEnabled(EnableCap.CullFace) == false)
                     return CullMode.None;
 
                 int param;
-                Gl.glGetIntegerv(Gl.GL_FRONT_FACE, out param);
+                GL.GetInteger(GetPName.FrontFace, out param);
 
                 // OpenGL stores what NOT to cull, so we need to reverse it
-                if (param == Gl.GL_CW)
+                if (param == (int)All.Cw)
                     return CullMode.CounterClockwise;
                 else
                     return CullMode.Clockwise;
@@ -139,15 +129,15 @@ namespace Gk3Main.Graphics.OpenGl
             set
             {
                 if (value == CullMode.None)
-                    Gl.glDisable(Gl.GL_CULL_FACE);
+                    GL.Disable(EnableCap.CullFace);
                 else
                 {
-                    Gl.glEnable(Gl.GL_CULL_FACE);
+                    GL.Enable(EnableCap.CullFace);
 
                     if (value == CullMode.Clockwise)
-                        Gl.glFrontFace(Gl.GL_CCW);
+                        GL.FrontFace(FrontFaceDirection.Ccw);
                     else
-                        Gl.glFrontFace(Gl.GL_CW);
+                        GL.FrontFace(FrontFaceDirection.Cw);
                 }
             }
         }
@@ -165,9 +155,9 @@ namespace Gk3Main.Graphics.OpenGl
                 int alphaSrc = convertBlendMode(value.AlphaSourceBlend);
                 int alphaDest = convertBlendMode(value.AlphaDestinationBlend);
 
-                Gl.glBlendFuncSeparate(colorSrc, colorDest, alphaSrc, alphaDest);
+                GL.BlendFuncSeparate((BlendingFactorSrc)colorSrc, (BlendingFactorDest)colorDest, (BlendingFactorSrc)alphaSrc, (BlendingFactorDest)alphaDest);
 
-                Gl.glBlendEquationSeparate(convertBlendFunc(value.ColorBlendFunction),
+                GL.BlendEquationSeparate(convertBlendFunc(value.ColorBlendFunction),
                     convertBlendFunc(value.AlphaBlendFunction));
             }
         }
@@ -180,10 +170,10 @@ namespace Gk3Main.Graphics.OpenGl
         private void samplerStateChanged(SamplerState newSampler, SamplerState oldSampler, int index)
         {
            // TODO: only modify the changed states
-            Gl.glActiveTexture(Gl.GL_TEXTURE0 + index);
-            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, convertTextureAddressMode(newSampler.AddressU));
-            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, convertTextureAddressMode(newSampler.AddressV));
-            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_R, convertTextureAddressMode(newSampler.AddressW));
+            GL.ActiveTexture(TextureUnit.Texture0 + index);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, convertTextureAddressMode(newSampler.AddressU));
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, convertTextureAddressMode(newSampler.AddressV));
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapR, convertTextureAddressMode(newSampler.AddressW));
         }
 
         #endregion Render states
@@ -193,7 +183,7 @@ namespace Gk3Main.Graphics.OpenGl
             get
             {
                 int[] viewport = new int[4];
-                Gl.glGetIntegerv(Gl.GL_VIEWPORT, viewport);
+                GL.GetInteger(GetPName.Viewport, viewport);
 
                 Viewport v = new Viewport();
                 v.X = viewport[0];
@@ -205,7 +195,7 @@ namespace Gk3Main.Graphics.OpenGl
             }
             set
             {
-                Gl.glViewport(value.X, value.Y, value.Width, value.Height);
+                GL.Viewport(value.X, value.Y, value.Width, value.Height);
             }
         }
 
@@ -349,7 +339,7 @@ namespace Gk3Main.Graphics.OpenGl
                         if (GlslEffect.Attribute.IsValidAttribute(attrib) == false)
                             continue;
 
-                        Gl.glEnableVertexAttribArray(i);
+                        GL.EnableVertexAttribArray(i);
                         GL.VertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, VertexAttribPointerType.Float, false, _vertexDeclaration.Stride,
                             Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
                     }
@@ -449,7 +439,7 @@ namespace Gk3Main.Graphics.OpenGl
                 throw new NotSupportedException();
 
             if (renderTarget == null)
-                Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, 0);
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
             else
             {
                 GlRenderTarget rt = (GlRenderTarget)renderTarget;
@@ -483,9 +473,9 @@ namespace Gk3Main.Graphics.OpenGl
                 if (GlslEffect.Attribute.IsValidAttribute(attrib) == false)
                     continue;
 
-                Gl.glEnableVertexAttribArray(attrib.GlHandle);
+                GL.EnableVertexAttribArray(attrib.GlHandle);
                 GlException.ThrowExceptionIfErrorExists();
-                Gl.glVertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                GL.VertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, VertexAttribPointerType.Float, false, _vertexDeclaration.Stride,
                     Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, _vertexDeclaration.Elements[i].Offset));
                 GlException.ThrowExceptionIfErrorExists();
             }
@@ -504,43 +494,43 @@ namespace Gk3Main.Graphics.OpenGl
         private static int convertBlendMode(BlendMode mode)
         {
             if (mode == BlendMode.One)
-                return Gl.GL_ONE;
+                return (int)BlendingFactorSrc.One;
             if (mode == BlendMode.Zero)
-                return Gl.GL_ZERO;
+                return (int)BlendingFactorSrc.Zero;
             if (mode == BlendMode.SourceAlpha)
-                return Gl.GL_SRC_ALPHA;
+                return (int)BlendingFactorSrc.SrcAlpha;
             if (mode == BlendMode.DestinationAlpha)
-                return Gl.GL_DST_ALPHA;
+                return (int)BlendingFactorSrc.DstAlpha;
             if (mode == BlendMode.InverseSourceAlpha)
-                return Gl.GL_ONE_MINUS_SRC_ALPHA;
+                return (int)BlendingFactorSrc.OneMinusSrcAlpha;
             if (mode == BlendMode.InverseDestinationAlpha)
-                return Gl.GL_ONE_MINUS_DST_ALPHA;
+                return (int)BlendingFactorSrc.OneMinusDstAlpha;
 
-            return Gl.GL_ZERO;
+            return (int)BlendingFactorSrc.Zero;
         }
 
-        private static int convertBlendFunc(BlendFunction func)
+        private static BlendEquationMode convertBlendFunc(BlendFunction func)
         {
             if (func == BlendFunction.Add)
-                return Gl.GL_FUNC_ADD;
+                return BlendEquationMode.FuncAdd;
             else if (func == BlendFunction.Subtract)
-                return Gl.GL_FUNC_SUBTRACT;
+                return BlendEquationMode.FuncSubtract;
             else if (func == BlendFunction.ReverseSubtract)
-                return Gl.GL_FUNC_REVERSE_SUBTRACT;
+                return BlendEquationMode.FuncReverseSubtract;
             else if (func == BlendFunction.Min)
-                return Gl.GL_MIN;
+                return BlendEquationMode.Min;
             else
-                return Gl.GL_MAX;
+                return BlendEquationMode.Max;
         }
 
         private static int convertTextureAddressMode(TextureAddressMode mode)
         {
             if (mode == TextureAddressMode.Clamp)
-                return Gl.GL_CLAMP_TO_EDGE;
+                return (int)All.ClampToEdge;
             else if (mode == TextureAddressMode.Mirror)
-                return Gl.GL_MIRRORED_REPEAT;
+                return (int)All.MirroredRepeat;
             else
-                return Gl.GL_REPEAT;
+                return (int)All.Repeat;
         }
 
         private static void glDebugLog(int source, int type, uint id, int severity, int length, string message, IntPtr userParam)
@@ -561,12 +551,12 @@ namespace Gk3Main.Graphics.OpenGl
         internal delegate void glDeleteSamplersDelegate(int count, out uint samplers);
 
         internal static glDebugMessageCallbackDelegate glDebugMessageCallback;
-        internal static glGenVertexArraysDelegate glGenVertexArrays;
-        internal static glBindVertexArrayDelegate glBindVertexArray;
-        internal static glGenSamplersDelegate glGenSamplers;
-        internal static glSamplerParameteriDelegate glSamplerParameteri;
-        internal static glBindSamplerDelegate glBindSampler;
-        internal static glDeleteSamplersDelegate glDeleteSamplers;
+        //internal static glGenVertexArraysDelegate glGenVertexArrays;
+       // internal static glBindVertexArrayDelegate glBindVertexArray;
+       // internal static glGenSamplersDelegate glGenSamplers;
+       // internal static glSamplerParameteriDelegate glSamplerParameteri;
+       // internal static glBindSamplerDelegate glBindSampler;
+       // internal static glDeleteSamplersDelegate glDeleteSamplers;
 
         private const int GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB = 0x8242;
 

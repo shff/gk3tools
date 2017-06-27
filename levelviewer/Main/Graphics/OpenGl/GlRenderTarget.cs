@@ -1,5 +1,5 @@
 using System;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -15,29 +15,29 @@ namespace Gk3Main.Graphics.OpenGl
         public GlRenderTarget(OpenGLRenderer renderer, int width, int height)
         {
             // generate the FBO
-            Gl.glGenFramebuffersEXT(1, out _fbo);
-            Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, _fbo);
+            GL.GenFramebuffers(1, out _fbo);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
 
             // generate a depth buffer
-            Gl.glGenRenderbuffersEXT(1, out _depthBuffer);
-            Gl.glBindRenderbufferEXT(Gl.GL_RENDERBUFFER_EXT, _depthBuffer);
-            Gl.glRenderbufferStorageEXT(Gl.GL_RENDERBUFFER_EXT, Gl.GL_DEPTH_COMPONENT16, width, height);
-            Gl.glFramebufferRenderbufferEXT(Gl.GL_FRAMEBUFFER_EXT, Gl.GL_DEPTH_ATTACHMENT_EXT, Gl.GL_RENDERBUFFER_EXT, _depthBuffer);
+            GL.GenRenderbuffers(1, out _depthBuffer);
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthBuffer);
+            GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, RenderbufferStorage.DepthComponent16, width, height);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthBuffer);
 
             // generate a color buffer
-            Gl.glGenTextures(1, out _colorBuffer);
-            Gl.glBindTexture(Gl.GL_TEXTURE_2D, _colorBuffer);
-            Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, Gl.GL_RGBA8, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, IntPtr.Zero);
-            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST);
-            Gl.glTexParameteri(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
-            Gl.glFramebufferTexture2DEXT(Gl.GL_FRAMEBUFFER_EXT, Gl.GL_COLOR_ATTACHMENT0_EXT, Gl.GL_TEXTURE_2D, _colorBuffer, 0);
+            GL.GenTextures(1, out _colorBuffer);
+            GL.BindTexture(TextureTarget.Texture2D, _colorBuffer);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba8, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Nearest);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.ColorAttachment0, TextureTarget.Texture2D, _colorBuffer, 0);
 
             // all done... or are we...?
-            int status = Gl.glCheckFramebufferStatusEXT(Gl.GL_FRAMEBUFFER_EXT);
-            if (status != Gl.GL_FRAMEBUFFER_COMPLETE_EXT)
+            FramebufferErrorCode status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+            if (status != FramebufferErrorCode.FramebufferComplete)
                 throw new Exception("Unable to create RenderTarget: " + status.ToString());
 
-            Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, 0);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
 
             _width = width;
             _height = height;
@@ -45,7 +45,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void Bind()
         {
-            Gl.glBindFramebufferEXT(Gl.GL_FRAMEBUFFER_EXT, _fbo);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _fbo);
         }
 
         public override TextureResource Texture
