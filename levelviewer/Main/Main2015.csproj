@@ -73,6 +73,10 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.2.0.0\lib\net20\OpenTK.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="SlimDX, Version=2.0.13.43, Culture=neutral, PublicKeyToken=b1b0c32fd1ffe4f9, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -139,6 +143,7 @@
     <Compile Include="Graphics\OpenGl\GlslEffect.cs" />
     <Compile Include="Graphics\OpenGl\GlTexture.cs" />
     <Compile Include="Graphics\OpenGl\GlVertexBuffer.cs" />
+    <Compile Include="Graphics\OpenGl\OpenGLInterop.cs" />
     <Compile Include="Graphics\OpenGl\OpenGLRenderer.cs" />
     <Compile Include="Graphics\RenderWindow.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
@@ -192,6 +197,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="Shaders\2d.fx.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

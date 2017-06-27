@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Tao.OpenGl;
-
+using OpenTK.Graphics.OpenGL;
 
 namespace Gk3Main.Graphics.OpenGl
 {
@@ -35,13 +35,25 @@ namespace Gk3Main.Graphics.OpenGl
             set { _currentEffect = value; }
         }
 
+        [System.Runtime.InteropServices.DllImport("OpenGL32")]
+        private static extern IntPtr wglGetCurrentContext();
+
+        [System.Runtime.InteropServices.DllImport("opengl32.dll")]
+        private static extern IntPtr wglGetProcAddress(string name);
+
         public OpenGLRenderer(RenderWindow parentWindow)
         {
+            GL.GetError();
+          //  OpenTK.Toolkit.Init();
+          //  var ctx = wglGetCurrentContext();
+          //  var c = new OpenTK.Graphics.GraphicsContext(new OpenTK.ContextHandle(ctx), (name) => wglGetProcAddress(name), () => new OpenTK.ContextHandle(wglGetCurrentContext()));
+           // c.MakeCurrent(new OpenTK.wparentWindow.Handle);
+
             // load extensions
             //_renderToTextureSupported = Gl.IsExtensionSupported("GL_ARB_framebuffer_object");
             _renderToTextureSupported = false;
-            _samplerObjectsSupported = Gl.IsExtensionSupported("GL_ARB_sampler_objects");
-            _debugOutputSupported = Gl.IsExtensionSupported("GL_ARB_debug_output");
+            _samplerObjectsSupported = true;// GL..arb.IsExtensionSupported("GL_ARB_sampler_objects");
+            _debugOutputSupported = true;// Gl.IsExtensionSupported("GL_ARB_debug_output");
             if (Gl.IsExtensionSupported("GL_EXT_texture_filter_anisotropic"))
             {
                 float max;
@@ -66,7 +78,7 @@ namespace Gk3Main.Graphics.OpenGl
                 glDebugMessageCallback = (glDebugMessageCallbackDelegate)Gl.GetDelegate("glDebugMessageCallback", typeof(glDebugMessageCallbackDelegate));
                 glDebugMessageCallback(glDebugLog, IntPtr.Zero);
 
-                Gl.glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+                GL.Enable(EnableCap.DebugOutputSynchronous);
             }
 
             // according to the GL3 spec we need a VAO bound... for some reason...
@@ -274,7 +286,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void SetVertexBuffer(VertexBuffer buffer)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             _vertexPointersNeedSetup = true;
             _vertexDeclaration = buffer.VertexElements;
@@ -289,24 +301,24 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void RenderPrimitives(int firstVertex, int vertexCount)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             if (_vertexPointersNeedSetup)
                 setupVertexBufferPointers();
 
-            Gl.glDrawArrays(Gl.GL_TRIANGLES, firstVertex, vertexCount);
+            GL.DrawArrays(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, firstVertex, vertexCount);
             GlException.ThrowExceptionIfErrorExists();
         }
 
         public void RenderIndexedPrimitives(int firstIndex, int primitiveCount)
         {
-            Gl.glGetError();
+            GL.GetError();
 
             if (_vertexPointersNeedSetup)
                 setupVertexBufferPointers();
 
-            Gl.glDrawElements(Gl.GL_TRIANGLES, primitiveCount * 3, Gl.GL_UNSIGNED_INT, 
-                 Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, firstIndex * sizeof(int)));
+            GL.DrawElements(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, primitiveCount * 3, DrawElementsType.UnsignedInt,
+                Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, firstIndex * sizeof(int)));
 
             GlException.ThrowExceptionIfErrorExists();
         }
@@ -338,7 +350,7 @@ namespace Gk3Main.Graphics.OpenGl
                             continue;
 
                         Gl.glEnableVertexAttribArray(i);
-                        Gl.glVertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, Gl.GL_FLOAT, 0, _vertexDeclaration.Stride,
+                        GL.VertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, VertexAttribPointerType.Float, false, _vertexDeclaration.Stride,
                             Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
                     }
                 }
@@ -348,38 +360,39 @@ namespace Gk3Main.Graphics.OpenGl
                 }
             }
 
-            int glType;
+            OpenTK.Graphics.OpenGL.PrimitiveType glType;
             if (type == PrimitiveType.LineStrip)
             {
-                glType = Gl.GL_LINE_STRIP;
+                glType = OpenTK.Graphics.OpenGL.PrimitiveType.LineStrip;
             }
             else
             {
-                glType = Gl.GL_TRIANGLES;
+                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
             }
 
-            Gl.glDrawArrays(glType, startIndex, vertexCount);
+
+            GL.DrawArrays(glType, startIndex, vertexCount);
 
             for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
             {
-                Gl.glDisableVertexAttribArray(i);
+                GL.DisableVertexAttribArray(i);
             }
         }
 
         public void RenderIndices(PrimitiveType type, int startIndex, int vertexCount, int[] indices)
         {
-            int glType;
+            OpenTK.Graphics.OpenGL.PrimitiveType glType;
             if (type == PrimitiveType.Triangles)
             {
-                glType = Gl.GL_TRIANGLES;
+                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
             }
             else if (type == PrimitiveType.Lines)
             {
-                glType = Gl.GL_LINES;
+                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Lines;
             }
             else
             {
-                glType = Gl.GL_POINT;
+                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Points;
             }
 
             unsafe
@@ -392,7 +405,7 @@ namespace Gk3Main.Graphics.OpenGl
 
                 try
                 {
-                    Gl.glDrawElements(glType, indices.Length - startIndex, Gl.GL_UNSIGNED_INT,
+                    GL.DrawElements(glType, indices.Length - startIndex, DrawElementsType.UnsignedInt,
                         Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
                 }
                 finally
@@ -419,7 +432,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public void Clear()
         {
-            Gl.glClear(Gl.GL_COLOR_BUFFER_BIT | Gl.GL_DEPTH_BUFFER_BIT);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         }
 
         public RenderTarget CreateRenderTarget(int width, int height)

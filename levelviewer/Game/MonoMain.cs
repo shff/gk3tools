@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Tao.Sdl;
+//using Tao.Sdl;
 
 class MyConsole : Gk3Main.Console
 {
@@ -48,6 +48,7 @@ class MonoMain
 
     const string DefaultRenderer = "d3d9";
 
+    private static Gk3Main.Graphics.RenderWindow _window;
     private static Gk3Main.Gui.CursorResource _pointCursor;
     private static Gk3Main.Gui.CursorResource _zoom1Cursor;
     private static int _timeAtLastStateChange;
@@ -57,17 +58,20 @@ class MonoMain
     private static bool _isDemo;
     private static Gk3Main.Graphics.SpriteBatch _spriteBatch;
     private static Gk3Main.Resource.ResourceManager _globalContent;
+    private static System.Diagnostics.Stopwatch _clock = new System.Diagnostics.Stopwatch();
 
 	public static void Main(string[] args)
 	{
         Gk3Main.Settings.Renderer = DefaultRenderer;
         Gk3Main.Settings.Load("settings.txt");
 
-        Gk3Main.Graphics.RenderWindow renderWindow = init(args);
-        if (renderWindow == null) return; // something bad happened
+        _window = init(args);
+        if (_window == null) return; // something bad happened
 
-        int dummy1, dummy2;
-		Sdl.SDL_GetMouseState(out dummy1, out dummy2);
+       // int dummy1, dummy2;
+		//Sdl.SDL_GetMouseState(out dummy1, out dummy2);
+
+        _clock.Start();
 
 		while(MainLoop())
 		{
@@ -79,7 +83,7 @@ class MonoMain
 
             render(camera, Game.Input.MouseX, Game.Input.MouseY);
 
-            renderWindow.Present();
+            _window.Present();
 		}
 
         shutdown();
@@ -87,7 +91,7 @@ class MonoMain
 	
 	public static Gk3Main.Graphics.RenderWindow SetupGraphics(int width, int height, int depth, bool fullscreen)
 	{
-        Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
+        //Sdl.SDL_Init(Sdl.SDL_INIT_VIDEO | Sdl.SDL_INIT_NOPARACHUTE);
 
         Gk3Main.Graphics.RenderWindow window;
         try
@@ -132,17 +136,7 @@ class MonoMain
 	
 	public static bool MainLoop()
 	{
-		Sdl.SDL_Event e;
-		while(Sdl.SDL_PollEvent(out e) != 0)
-		{
-			switch(e.type)
-			{
-				case Sdl.SDL_QUIT:
-					return false;
-			}
-		}
-		
-		return true;
+        return _window.ProcessEvents();
 	}
 
     private static Gk3Main.Graphics.RenderWindow init(string[] args)
@@ -242,7 +236,8 @@ class MonoMain
 
         _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
 
-        Sdl.SDL_ShowCursor(0);
+        // TODO: hide cursor
+        //Sdl.SDL_ShowCursor(0);
 
         _state = GameState.MainMenu;
 
@@ -403,7 +398,10 @@ class MonoMain
                 
         }*/
 
-        int ticks = Sdl.SDL_GetTicks();
+
+        int ticks = (int)_clock.ElapsedMilliseconds;
+
+       // int ticks = Sdl.SDL_GetTicks();
         int elapsed = Math.Min(ticks - _lastTickCount, 1000);
         _lastTickCount = ticks;
         Gk3Main.Game.GameManager.InjectTickCount(elapsed);
@@ -460,16 +458,9 @@ class MonoMain
 
     private static void refreshInput()
     {
-        int mx, my;
-        byte buttons = Sdl.SDL_GetMouseState(out mx, out my);
-
-        int numkeys;
-        byte[] keys = Sdl.SDL_GetKeyState(out numkeys);
-
-        bool lmb = ((buttons & Sdl.SDL_BUTTON_LMASK) != 0);
-        bool rmb = ((buttons & Sdl.SDL_BUTTON_RMASK) != 0);
-
-        Game.Input.Refresh(mx, my, lmb, false, rmb, keys);
+        var mouse = _window.GetMouseState();
+        var keyboard = OpenTK.Input.Keyboard.GetState();
+        Game.Input.Refresh(mouse.X, mouse.Y, mouse.LeftButton, false, mouse.RightButton, keyboard);
     }
 
     static void menu_OnPlayClicked(object sender, EventArgs e)
@@ -488,10 +479,7 @@ class MonoMain
 
     static void menu_OnQuitClicked(object sender, EventArgs e)
     {
-        Sdl.SDL_Event quitEvent = new Sdl.SDL_Event();
-        quitEvent.type = Sdl.SDL_QUIT;
-
-        Sdl.SDL_PushEvent(out quitEvent);
+        _window.Close();
     }
 
     private static Gk3Main.Graphics.RenderWindow setupOpenGL(int width, int height, int depth, bool fullscreen)

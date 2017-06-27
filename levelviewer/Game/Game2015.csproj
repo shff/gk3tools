@@ -58,7 +58,7 @@
     <DebugType>full</DebugType>
     <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
@@ -72,15 +72,14 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\packages\OpenTK.2.0.0\lib\net20\OpenTK.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
-    <Reference Include="Tao.OpenGl">
-      <HintPath>..\..\..\..\..\..\code\taoframework-2.1.0\bin\Tao.OpenGl.dll</HintPath>
-    </Reference>
-    <Reference Include="Tao.Sdl">
-      <HintPath>..\..\..\..\..\..\code\taoframework-2.1.0\bin\Tao.Sdl.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Console.cs" />
@@ -115,13 +114,16 @@
       <Install>true</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <Copy SourceFiles="$(ProjectDir)..\..\sheep\$(ConfigurationName)\sheep.dll;$(ProjectDir)..\..\libbarn\$(ConfigurationName)\barn.dll" DestinationFolder="$(OutDir)" />
+    <!-- <Copy SourceFiles="$(ProjectDir)..\..\sheep\$(ConfigurationName)\sheep.dll;$(ProjectDir)..\..\libbarn\$(ConfigurationName)\barn.dll" DestinationFolder="$(OutDir)" /> -->
   </Target>
   <PropertyGroup>
     <PostBuildEvent>

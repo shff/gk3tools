@@ -16,6 +16,12 @@ namespace Gk3Main.Graphics
         public int Height;
     }
 
+    public struct MouseState
+    {
+        public int X, Y, Wheel;
+        public bool LeftButton, MiddleButton, RightButton;
+    }
+
     public abstract class RenderWindow
     {
         public abstract IRenderer CreateRenderer();
@@ -24,6 +30,16 @@ namespace Gk3Main.Graphics
 
         public abstract List<DisplayMode> GetSupportedDisplayModes();
         public abstract IRenderer Renderer { get; }
+
+        public abstract bool ProcessEvents();
+        public abstract void Close();
+
+        public abstract IntPtr Handle { get; }
+
+        public abstract void GetPosition(out int x, out int y);
+        public abstract MouseState GetMouseState(); 
+
+        public event EventHandler<EventArgs> Closed;
     }
 
     public abstract class Direct3D9RenderWindow : RenderWindow

@@ -148,7 +148,7 @@ namespace Game
         public static KeyboardState CurrentKeys { get { return _currentKeys; } }
         public static KeyboardState PreviousKeys { get { return _oldKeys; } }
 
-        public static void Refresh(int mouseX, int mouseY, bool leftMousePressed, bool middleMousePressed, bool rightMousePressed, byte[] keys)
+        public static void Refresh(int mouseX, int mouseY, bool leftMousePressed, bool middleMousePressed, bool rightMousePressed, OpenTK.Input.KeyboardState keyboard)
         {
             _oldMouseX = _mouseX;
             _oldMouseY = _mouseY;
@@ -166,7 +166,7 @@ namespace Game
             _rightMousePressed = rightMousePressed;
 
             _oldKeys = _currentKeys;
-            Keyboard.UpdateFromSDLKeys(keys);
+            Keyboard.UpdateFromOpenTK(keyboard);
             _currentKeys = Keyboard.GetState();
         }
     }

@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using Tao.Sdl;
+using Gk3Main.Graphics;
 
 namespace Game
 {
 #if !D3D_DISABLED
     class Direct3D9RenderWindow : Gk3Main.Graphics.Direct3D9RenderWindow
     {
+        OpenTK.NativeWindow _window;
         int _width, _height, _depth;
         bool _fullscreen;
+        bool _closed;
         
         Gk3Main.Graphics.Direct3D9.Direct3D9Renderer _renderer;
 
@@ -26,13 +28,20 @@ namespace Game
             if (_renderer != null)
                 throw new InvalidOperationException("A renderer has already been created");
 
-            Sdl.SDL_SetVideoMode(_width, _height, _depth, (_fullscreen ? Sdl.SDL_FULLSCREEN : 0));
-            Sdl.SDL_WM_SetCaption("FreeGeeKayThree - Direct3D 9 Renderer", "FreeGK3");
+            OpenTK.Graphics.GraphicsMode mode = new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(32), _depth, 0, 0);
+            _window = new OpenTK.NativeWindow(_width, _height, "FreeGeeKayThree - Direct3D 9 renderer", _fullscreen ? OpenTK.GameWindowFlags.Fullscreen : OpenTK.GameWindowFlags.FixedWindow, mode, OpenTK.DisplayDevice.Default);
+            _window.Visible = true;
+            _window.Closed += (x, y) => _closed = true;
 
-            SDL_SysWMinfo wmInfo;
-            SDL_GetWMInfo(out wmInfo);
+           // _window = SDL2.SDL.SDL_CreateWindow("FreeGeeKayThree - Direct3D 9 Renderer", SDL2.SDL.SDL_WINDOWPOS_CENTERED, SDL2.SDL.SDL_WINDOWPOS_CENTERED, _width, _height, _fullscreen ? SDL2.SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN : 0);
 
-            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(this, wmInfo.window, _width, _height, false);
+            //Sdl.SDL_SetVideoMode(_width, _height, _depth, (_fullscreen ? Sdl.SDL_FULLSCREEN : 0));
+            // Sdl.SDL_WM_SetCaption("FreeGeeKayThree - Direct3D 9 Renderer", "FreeGK3");
+
+            // SDL_SysWMinfo wmInfo;
+            // SDL_GetWMInfo(out wmInfo);
+
+            _renderer = new Gk3Main.Graphics.Direct3D9.Direct3D9Renderer(this, Handle, _width, _height, false);
 
             return _renderer;
         }
@@ -52,21 +61,69 @@ namespace Game
             throw new NotImplementedException();
         }
 
+        public override void Close()
+        {
+            _window.Close();
+        }
+
         public override List<Gk3Main.Graphics.DisplayMode> GetSupportedDisplayModes()
         {
             List<Gk3Main.Graphics.DisplayMode> results = new List<Gk3Main.Graphics.DisplayMode>();
 
-            // we're relying on SDL for this instead of directly asking Direct3D.
-            // not sure if that will always work in every case...
-            Sdl.SDL_Rect[] modes = Sdl.SDL_ListModes(IntPtr.Zero, Sdl.SDL_HWSURFACE | Sdl.SDL_FULLSCREEN);
-            foreach (Sdl.SDL_Rect r in modes)
+            foreach (var res in OpenTK.DisplayDevice.Default.AvailableResolutions)
             {
-                results.Add(new Gk3Main.Graphics.DisplayMode(r.w, r.h));
+                if (results.Exists(x => x.Width == res.Width && x.Height == res.Height) == false)
+                    results.Add(new Gk3Main.Graphics.DisplayMode(res.Width, res.Height));
             }
 
             return results;
         }
 
+        public override bool ProcessEvents()
+        {
+            _window.ProcessEvents();
+
+            return !_closed;
+        }
+
+        public override void GetPosition(out int x, out int y)
+        {
+            x = _window.X;
+            y = _window.Y;
+        }
+
+        public override Gk3Main.Graphics.MouseState GetMouseState()
+        {
+            Gk3Main.Graphics.MouseState ms;
+
+            var m = OpenTK.Input.Mouse.GetCursorState();
+
+            var p = _window.PointToClient(new System.Drawing.Point(m.X, m.Y));
+
+            ms.X = p.X;
+            ms.Y = p.Y;
+            ms.Wheel = m.ScrollWheelValue;
+
+            ms.LeftButton = m.LeftButton == OpenTK.Input.ButtonState.Pressed;
+            ms.MiddleButton = m.MiddleButton == OpenTK.Input.ButtonState.Pressed;
+            ms.RightButton = m.RightButton == OpenTK.Input.ButtonState.Pressed;
+
+            return ms;
+        }
+
+        public override IntPtr Handle
+        {
+            get
+            {
+                return _window.WindowInfo.Handle;
+                //SDL2.SDL.SDL_SysWMinfo wmInfo = new SDL2.SDL.SDL_SysWMinfo();
+               // SDL2.SDL.SDL_VERSION(out wmInfo.version);
+               // SDL2.SDL.SDL_GetWindowWMInfo(_window, ref wmInfo);
+
+                //return wmInfo.info.win.window;
+            }
+        }
+/* 
         private struct SDL_SysWMinfo
         {
             public Sdl.SDL_version version;
@@ -75,7 +132,7 @@ namespace Game
         }
 
         [System.Runtime.InteropServices.DllImport("SDL")]
-        private extern static int SDL_GetWMInfo(out SDL_SysWMinfo info);
+        private extern static int SDL_GetWMInfo(out SDL_SysWMinfo info);*/
     }
 #endif
 }

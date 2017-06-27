@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using Tao.Sdl;
+
 
 namespace Game
 {
     class OpenGLRenderWindow : Gk3Main.Graphics.OpenGLRenderWindow
     {
+        bool _closed;
         int _width, _height, _depth;
         bool _fullscreen;
         bool _screenshotRequested;
         string _screenshotName;
         Gk3Main.Graphics.OpenGl.OpenGLRenderer _renderer;
+        OpenTK.NativeWindow _window;
+        OpenTK.Graphics.GraphicsContext _context;
 
         public OpenGLRenderWindow(int width, int height, int depth, bool fullscreen)
         {
@@ -25,49 +28,14 @@ namespace Game
             if (_renderer != null)
                 throw new InvalidOperationException("A renderer has already been created");
 
-            if (_depth == 16)
-            {
-                Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 5);
-                Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 6);
-                Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 5);
-            }
-            else
-            {
-                Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_RED_SIZE, 8);
-                Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_GREEN_SIZE, 8);
-                Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_BLUE_SIZE, 8);
-            }
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DEPTH_SIZE, 24);
-            Sdl.SDL_GL_SetAttribute(Sdl.SDL_GL_DOUBLEBUFFER, 1);
+            OpenTK.Graphics.GraphicsMode mode = new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(32), _depth, 0, 0);
+            _window = new OpenTK.NativeWindow(_width, _height, "FreeGeeKayThree - OpenGL 3.0 renderer", _fullscreen ? OpenTK.GameWindowFlags.Fullscreen : OpenTK.GameWindowFlags.FixedWindow, mode, OpenTK.DisplayDevice.Default);
+            _window.Visible = true;
+            _window.Closed += (x,y) => _closed = true;
 
-            Sdl.SDL_SetVideoMode(_width, _height, _depth, Sdl.SDL_OPENGL | (_fullscreen ? Sdl.SDL_FULLSCREEN : 0));
-            Sdl.SDL_WM_SetCaption("FreeGeeKayThree - OpenGL 3.0 renderer", "FreeGK3");
-
-            SDL_SysWMInfo info;
-            SDL_GetWMInfo(out info);
-            IntPtr hdc = GetDC(info.window);
-
-            PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)Tao.OpenGl.Gl.GetDelegate("wglCreateContextAttribsARB", typeof(PFNWGLCREATECONTEXTATTRIBSARBPROC));
-            if (wglCreateContextAttribsARB == null)
-                throw new InvalidOperationException("OpenGL 3.x doesn't seem to be supported");
-
-            int[] attribsList = new int[] {
-                WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-                WGL_CONTEXT_MINOR_VERSION_ARB, 0,
-                WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-                //WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-                0
-            };
-
-            IntPtr oldContext = wglGetCurrentContext();
-            IntPtr context = wglCreateContextAttribsARB(hdc, IntPtr.Zero, attribsList);
-
-            if (wglMakeCurrent(hdc, IntPtr.Zero) == 0)
-                throw new InvalidOperationException("Unable to switch to the OpenGL 3.x context");
-            if (wglDeleteContext(oldContext) == 0)
-                throw new InvalidOperationException("Unable to delete the original OpenGL context");
-            if (wglMakeCurrent(hdc, context) == 0)
-                throw new InvalidOperationException("Unable to switch to the OpenGL 3.x context");
+            _context = new OpenTK.Graphics.GraphicsContext(mode, _window.WindowInfo, 3, 0, OpenTK.Graphics.GraphicsContextFlags.Default);
+            _context.MakeCurrent(_window.WindowInfo);
+            _context.LoadAll();
 
             _renderer = new Gk3Main.Graphics.OpenGl.OpenGLRenderer(this);
 
@@ -81,7 +49,7 @@ namespace Game
 
         public override void Present()
         {
-            Sdl.SDL_GL_SwapBuffers();
+            _context.SwapBuffers();
         }
 
         public override void Resize(int width, int height)
@@ -97,13 +65,58 @@ namespace Game
         {
             List<Gk3Main.Graphics.DisplayMode> results = new List<Gk3Main.Graphics.DisplayMode>();
 
-            Sdl.SDL_Rect[] modes = Sdl.SDL_ListModes(IntPtr.Zero, Sdl.SDL_HWSURFACE | Sdl.SDL_FULLSCREEN);
-            foreach (Sdl.SDL_Rect r in modes)
+            foreach(var res in OpenTK.DisplayDevice.Default.AvailableResolutions)
             {
-                results.Add(new Gk3Main.Graphics.DisplayMode(r.w, r.h));
+                if (results.Exists(x => x.Width == res.Width && x.Height == res.Height) == false)
+                    results.Add(new Gk3Main.Graphics.DisplayMode(res.Width, res.Height));
             }
 
             return results;
+        }
+
+        public override bool ProcessEvents()
+        {
+            _window.ProcessEvents();
+
+            return !_closed;
+        }
+
+        public override void Close()
+        {
+            _window.Close();
+        }
+
+        public override void GetPosition(out int x, out int y)
+        {
+            x = _window.X;
+            y = _window.Y;
+        }
+
+        public override Gk3Main.Graphics.MouseState GetMouseState()
+        {
+            Gk3Main.Graphics.MouseState ms;
+
+            var m = OpenTK.Input.Mouse.GetCursorState();
+
+            var p = _window.PointToClient(new System.Drawing.Point(m.X, m.Y));
+
+            ms.X = p.X;
+            ms.Y = p.Y;
+            ms.Wheel = m.ScrollWheelValue;
+
+            ms.LeftButton = m.LeftButton == OpenTK.Input.ButtonState.Pressed;
+            ms.MiddleButton = m.MiddleButton == OpenTK.Input.ButtonState.Pressed;
+            ms.RightButton = m.RightButton == OpenTK.Input.ButtonState.Pressed;
+           
+            return ms;
+        }
+
+        public override IntPtr Handle
+        {
+            get
+            {
+                return _window.WindowInfo.Handle;
+            }
         }
 
 
@@ -111,7 +124,7 @@ namespace Game
 
         // TODO: make this interop stuff support platforms besides Windows
 
-        private struct SDL_SysWMInfo
+       /* private struct SDL_SysWMInfo
         {
             public Sdl.SDL_version version;
             public IntPtr window;
@@ -119,10 +132,13 @@ namespace Game
         }
 
         [System.Runtime.InteropServices.DllImport("sdl")]
-        private static extern int SDL_GetWMInfo(out SDL_SysWMInfo info);
+        private static extern int SDL_GetWMInfo(out SDL_SysWMInfo info);*/
 
         [System.Runtime.InteropServices.DllImport("user32")]
         private static extern IntPtr GetDC(IntPtr hwnd);
+
+        [System.Runtime.InteropServices.DllImport("opengl32.dll")]
+        public static extern IntPtr wglGetProcAddress(string name);
 
         [System.Runtime.InteropServices.DllImport("OpenGL32")]
         private static extern IntPtr wglGetCurrentContext();

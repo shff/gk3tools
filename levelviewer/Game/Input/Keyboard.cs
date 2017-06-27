@@ -119,56 +119,97 @@ namespace Game
 
         public static KeyboardState GetState() { return _current; }
 
-        public static void UpdateFromSDLKeys(byte[] sdlkeys)
+        public static void UpdateFromOpenTK(OpenTK.Input.KeyboardState keyboard)
         {
-            for (int i = 0; i < sdlkeys.Length; i++)
-                _current.SetState(translateSDLK(i), sdlkeys[i] == 0 ? KeyState.Up : KeyState.Down); 
+            for (int i = 0; i < (int)OpenTK.Input.Key.LastKey; i++)
+            {
+                var key = (OpenTK.Input.Key)i;
+                _current.SetState(translateOpenTKKey(key), keyboard.IsKeyDown(key) ? KeyState.Down : KeyState.Up);
+            }
         }
 
-        private static Keys translateSDLK(int sdlk)
+        /*public static void UpdateFromSDLKeys(byte[] sdlkeys)
         {
-            if (sdlk == Tao.Sdl.Sdl.SDLK_BACKQUOTE)
+            for (int i = 0; i < sdlkeys.Length; i++)
+                _current.SetState(translateSDLK((SDL2.SDL.SDL_Keycode)i), sdlkeys[i] == 0 ? KeyState.Up : KeyState.Down); 
+        }*/
+
+        private static Keys translateOpenTKKey(OpenTK.Input.Key key)
+        {
+            switch(key)
+            {
+                case OpenTK.Input.Key.Tilde: return Keys.OemTilde;
+                case OpenTK.Input.Key.Left: return Keys.Left;
+                case OpenTK.Input.Key.Up: return Keys.Up;
+                case OpenTK.Input.Key.Right: return Keys.Right;
+                case OpenTK.Input.Key.Down: return Keys.Down;
+                case OpenTK.Input.Key.LShift: return Keys.LeftShift;
+                case OpenTK.Input.Key.RShift: return Keys.RightShift;
+                case OpenTK.Input.Key.Space: return Keys.Space;
+                case OpenTK.Input.Key.BackSpace: return Keys.Back;
+                case OpenTK.Input.Key.Enter: return Keys.Enter;
+                case OpenTK.Input.Key.Semicolon: return Keys.OemSemicolon;
+                case OpenTK.Input.Key.Plus: return Keys.OemPlus;
+                case OpenTK.Input.Key.Minus: return Keys.OemMinus;
+                case OpenTK.Input.Key.Comma: return Keys.OemComma;
+                case OpenTK.Input.Key.Period: return Keys.OemPeriod;
+                case OpenTK.Input.Key.Slash: return Keys.OemQuestion;
+                case OpenTK.Input.Key.BackSlash: return Keys.OemPipe;
+                case OpenTK.Input.Key.Quote: return Keys.OemQuotes;
+                default:
+                    if ((int)key >= (int)OpenTK.Input.Key.A && (int)key <= (int)OpenTK.Input.Key.Z)
+                        return Keys.A + (int)key - (int)OpenTK.Input.Key.A;
+                    if ((int)key >= (int)OpenTK.Input.Key.Number0 && (int)key <= (int)OpenTK.Input.Key.Number9)
+                        return Keys.D0 + (int)key - (int)OpenTK.Input.Key.Number0;
+
+                    return Keys.X;
+            }
+        }
+
+        /*private static Keys translateSDLK(SDL2.SDL.SDL_Keycode sdlk)
+        {
+            if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_BACKQUOTE)
                 return Keys.OemTilde;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_LEFT)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_LEFT)
                 return Keys.Left;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_UP)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_UP)
                 return Keys.Up;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_RIGHT)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_RIGHT)
                 return Keys.Right;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_DOWN)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_DOWN)
                 return Keys.Down;
-            else if (sdlk >= Tao.Sdl.Sdl.SDLK_a && sdlk <= Tao.Sdl.Sdl.SDLK_z)
-                return Keys.A + (sdlk - Tao.Sdl.Sdl.SDLK_a);
-            else if (sdlk >= Tao.Sdl.Sdl.SDLK_0 && sdlk <= Tao.Sdl.Sdl.SDLK_9)
-                return Keys.D0 + (sdlk - Tao.Sdl.Sdl.SDLK_0);
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_LSHIFT)
+            else if (sdlk >= SDL2.SDL.SDL_Keycode.SDLK_a && sdlk <= SDL2.SDL.SDL_Keycode.SDLK_z)
+                return Keys.A + (sdlk - SDL2.SDL.SDL_Keycode.SDLK_a);
+            else if (sdlk >= SDL2.SDL.SDL_Keycode.SDLK_0 && sdlk <= SDL2.SDL.SDL_Keycode.SDLK_9)
+                return Keys.D0 + (sdlk - SDL2.SDL.SDL_Keycode.SDLK_0);
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_LSHIFT)
                 return Keys.LeftShift;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_RSHIFT)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_RSHIFT)
                 return Keys.RightShift;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_SPACE)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_SPACE)
                 return Keys.Space;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_BACKSPACE)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_BACKSPACE)
                 return Keys.Back;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_RETURN)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_RETURN)
                 return Keys.Enter;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_SEMICOLON)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_SEMICOLON)
                 return Keys.OemSemicolon;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_PLUS)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_PLUS)
                 return Keys.OemPlus;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_COMMA)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_COMMA)
                 return Keys.OemComma;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_MINUS)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_MINUS)
                 return Keys.OemMinus;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_PERIOD)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_PERIOD)
                 return Keys.OemPeriod;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_SLASH)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_SLASH)
                 return Keys.OemQuestion;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_BACKSLASH)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_BACKSLASH)
                 return Keys.OemPipe;
-            else if (sdlk == Tao.Sdl.Sdl.SDLK_QUOTE)
+            else if (sdlk == SDL2.SDL.SDL_Keycode.SDLK_QUOTE)
                 return Keys.OemQuotes;
 
             return Keys.X;
-        }
+        }*/
     }
 }

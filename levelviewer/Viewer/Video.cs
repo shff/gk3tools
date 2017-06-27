@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using Gk3Main.Graphics;
 
 namespace Viewer
 {
@@ -52,6 +53,34 @@ namespace Viewer
             height = Math.Min(height, _maxHeight);
 
             //_renderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
+        }
+
+        public override IntPtr Handle
+        {
+            get
+            {
+                return _renderWindow.Handle;
+            }
+        }
+
+        public override MouseState GetMouseState()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void GetPosition(out int x, out int y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ProcessEvents()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Close()
+        {
+            throw new NotImplementedException();
         }
     }
 #endif
@@ -104,6 +133,34 @@ namespace Viewer
         public override void Resize(int width, int height)
         {
             //_renderer.Viewport = new Gk3Main.Graphics.Viewport(0, 0, width, height);
+        }
+
+        public override IntPtr Handle
+        {
+            get
+            {
+                return _renderWindow.Handle;
+            }
+        }
+
+        public override MouseState GetMouseState()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void GetPosition(out int x, out int y)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override bool ProcessEvents()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Close()
+        {
+            throw new NotImplementedException();
         }
 
         private static void setPixelFormat(IntPtr hdc)
