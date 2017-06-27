@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Tao.OpenAl;
+using OpenTK.Audio.OpenAL;
 
 namespace Gk3Main.Sound.AudioEngine
 {
@@ -22,22 +22,22 @@ namespace Gk3Main.Sound.AudioEngine
 
         public AudioSource()
         {
-            Tao.OpenAl.Al.alGenSources(1, out _source);
+            AL.GenSources(1, out _source);
 
-            Al.alSourcef(_source, Al.AL_REFERENCE_DISTANCE, 100.0f);
+            AL.Source(_source, ALSourcef.ReferenceDistance, 100.0f);
         }
 
         public void Dispose()
         {
-            Al.alDeleteSources(1, ref _source);
+            AL.DeleteSources(1, ref _source);
             _source = 0;
         }
 
         public bool IsAvailable()
         {
             int state;
-            Tao.OpenAl.Al.alGetSourcei(_source, Tao.OpenAl.Al.AL_SOURCE_STATE, out state);
-            return state == Tao.OpenAl.Al.AL_STOPPED || state == Tao.OpenAl.Al.AL_INITIAL;
+            AL.GetSource(_source, ALGetSourcei.SourceState, out state);
+            return state == (int)ALSourceState.Stopped || state == (int)ALSourceState.Initial;
         }
 
         public void SetBuffer(int buffer)
@@ -47,25 +47,25 @@ namespace Gk3Main.Sound.AudioEngine
 
         public void Play(float volume)
         {
-            Al.alSourcei(_source, Al.AL_SOURCE_RELATIVE, _positionRelative ? 1 : 0);
-            Al.alSource3f(_source, Al.AL_POSITION, _position.X, _position.Y, _position.Z);
-            Al.alSourcei(_source, Al.AL_LOOPING, _isLooping ? Al.AL_TRUE : Al.AL_FALSE);
-            Al.alSourcei(_source, Al.AL_BUFFER, _buffer);
-            Al.alSourcef(_source, Al.AL_GAIN, volume);
+            AL.Source(_source, ALSourceb.SourceRelative, _positionRelative);
+            AL.Source(_source, ALSource3f.Position, _position.X, _position.Y, _position.Z);
+            AL.Source(_source, ALSourceb.Looping, _isLooping);
+            AL.Source(_source, ALSourcei.Buffer, _buffer);
+            AL.Source(_source, ALSourcef.Gain, volume);
             //Al.alSourcef(_source, Al.AL_REFERENCE_DISTANCE, AudioManager::m_distanceScale);
-               
-            Al.alSourcePlay(_source);
+
+            AL.SourcePlay(_source);
         }
 
 
         public void Pause()
         {
-            Al.alSourcePause(_source);
+            AL.SourcePause(_source);
         }
 
         public void Stop()
         {
-            Al.alSourceStop(_source);
+            AL.SourceStop(_source);
         }
 
         public bool IsLooping
@@ -78,7 +78,7 @@ namespace Gk3Main.Sound.AudioEngine
             {
                 _isLooping = value;
 
-                Al.alSourcei(_source, Al.AL_LOOPING, value ? 1 : 0);
+                AL.Source(_source, ALSourceb.Looping, value);
             }
         }
 
@@ -87,8 +87,8 @@ namespace Gk3Main.Sound.AudioEngine
             _positionRelative = relative;
             _position = position;
 
-            Al.alSourcei(_source, Al.AL_SOURCE_RELATIVE, relative ? 1 : 0);
-            Al.alSource3f(_source, Al.AL_POSITION, position.X, position.Y, position.Z);
+            AL.Source(_source, ALSourceb.SourceRelative, relative);
+            AL.Source(_source, ALSource3f.Position, position.X, position.Y, position.Z);
         }
 
         public SoundState State
@@ -96,11 +96,11 @@ namespace Gk3Main.Sound.AudioEngine
             get
             {
                 int val;
-                Al.alGetSourcei(_source, Al.AL_SOURCE_STATE, out val);
+                AL.GetSource(_source, ALGetSourcei.SourceState, out val);
 
-                if (val == Al.AL_PLAYING)
+                if (val == (int)ALSourceState.Playing)
                     return SoundState.Playing;
-                if (val == Al.AL_PAUSED)
+                if (val == (int)ALSourceState.Paused)
                     return SoundState.Paused;
 
                 return SoundState.Stopped;

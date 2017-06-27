@@ -20,7 +20,7 @@ namespace Gk3Main.Sound.AudioEngine
         public override void Dispose()
         {
             _disposed = true;
-            Tao.OpenAl.Al.alDeleteBuffers(1, ref _buffer);
+            OpenTK.Audio.OpenAL.AL.DeleteBuffers(1, ref _buffer);
             _buffer = 0;
         }
 

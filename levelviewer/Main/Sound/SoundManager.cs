@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 #if !SOUND_DISABLED
-using Tao.OpenAl;
+using OpenTK.Audio.OpenAL;
 #endif
 
 namespace Gk3Main.Sound
@@ -45,25 +45,25 @@ namespace Gk3Main.Sound
                 WavFile wav = new WavFile(stream);
 
                 int buffer;
-                Al.alGenBuffers(1, out buffer);
+                AL.GenBuffers(1, out buffer);
 
-                int format;
+                ALFormat format;
                 if (wav.Channels == 1)
                 {
                     if (wav.SampleSize == 8)
-                        format = Al.AL_FORMAT_MONO8;
+                        format = ALFormat.Mono8;
                     else
-                        format = Al.AL_FORMAT_MONO16;
+                        format = ALFormat.Mono16;
                 }
                 else
                 {
                     if (wav.SampleSize == 8)
-                        format = Al.AL_FORMAT_STEREO8;
+                        format = ALFormat.Stereo8;
                     else
-                        format = Al.AL_FORMAT_STEREO16;
+                        format = ALFormat.Stereo16;
                 }
 
-                Al.alBufferData(buffer, format, wav.PcmData, wav.Length, wav.SampleRate);
+                AL.BufferData(buffer, format, wav.PcmData, wav.Length, wav.SampleRate);
 
                 return buffer;
             }
@@ -154,7 +154,7 @@ namespace Gk3Main.Sound
                 Math.Vector3 forward = camera.Orientation * -Math.Vector3.Forward;
                 Math.Vector3 up = camera.Orientation * Math.Vector3.Up;
 
-                Al.alListener3f(Al.AL_POSITION, position.X, position.Y, position.Z);
+                AL.Listener(ALListener3f.Position, position.X, position.Y, position.Z);
 
                 _listenerOrientation[0] = forward.X;
                 _listenerOrientation[1] = forward.Y;
@@ -162,7 +162,7 @@ namespace Gk3Main.Sound
                 _listenerOrientation[3] = up.X;
                 _listenerOrientation[4] = up.Y;
                 _listenerOrientation[5] = up.Z;
-                Al.alListenerfv(Al.AL_ORIENTATION, _listenerOrientation);
+                AL.Listener(ALListenerfv.Orientation, ref _listenerOrientation);
             }
         }
     }

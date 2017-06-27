@@ -19,9 +19,9 @@ namespace Gk3Main.Sound
             get
             {
                 int state;
-                Tao.OpenAl.Al.alGetSourcei(_source, Tao.OpenAl.Al.AL_SOURCE_STATE, out state);
+                OpenTK.Audio.OpenAL.AL.GetSource(_source, OpenTK.Audio.OpenAL.ALGetSourcei.SourceState, out state);
 
-                return state == Tao.OpenAl.Al.AL_STOPPED || state == Tao.OpenAl.Al.AL_INITIAL;
+                return state == (int)OpenTK.Audio.OpenAL.ALSourceState.Stopped || state == (int)OpenTK.Audio.OpenAL.ALSourceState.Initial;
             }
             set
             {

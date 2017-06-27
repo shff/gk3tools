@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Tao.OpenAl;
+using OpenTK.Audio.OpenAL;
 
 namespace Gk3Main.Sound.AudioEngine
 {
@@ -16,14 +16,14 @@ namespace Gk3Main.Sound.AudioEngine
         private const int _maxSources = 16;
         private static SourceAndOwner[] _sources = new SourceAndOwner[_maxSources];
         private static IntPtr _device;
-        private static IntPtr _context;
+        private static OpenTK.ContextHandle _context;
 
         public static void Init()
         {
-            _device = Tao.OpenAl.Alc.alcOpenDevice(null);
-            _context = Tao.OpenAl.Alc.alcCreateContext(_device, IntPtr.Zero);
-            Alc.alcMakeContextCurrent(_context);
-            Al.alDistanceModel(Al.AL_INVERSE_DISTANCE_CLAMPED);
+            _device = Alc.OpenDevice(null);
+            _context = Alc.CreateContext(_device, (int[])null);
+            Alc.MakeContextCurrent(_context);
+            AL.DistanceModel(ALDistanceModel.InverseDistanceClamped);
 
             for (int i = 0; i < _maxSources; i++)
             {
@@ -40,8 +40,8 @@ namespace Gk3Main.Sound.AudioEngine
                 _sources[i].Owner = null;
             }
 
-            Alc.alcDestroyContext(_context);
-            Alc.alcCloseDevice(_device);
+            Alc.DestroyContext(_context);
+            Alc.CloseDevice(_device);
         }
 
         public static AudioSource GetFreeSource(object owner)
