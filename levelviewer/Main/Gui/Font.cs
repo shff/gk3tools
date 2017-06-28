@@ -60,8 +60,21 @@ namespace Gk3Main.Gui
             }
 
             // load the images
-            _texture = content.Load<Graphics.TextureResource>(bitmap);
-        
+            Graphics.BitmapSurface colorPixels, alphaPixels;
+            System.IO.Stream colorStream = FileSystem.Open(bitmap + ".BMP");
+
+            colorPixels = new Graphics.BitmapSurface(colorStream);
+            if (alpha != null)
+            {
+                System.IO.Stream alphaStream = FileSystem.Open(alpha + ".BMP");
+                alphaPixels = new Graphics.BitmapSurface(alphaStream);
+                colorPixels.MergeAlpha(alphaPixels);
+                alphaStream.Close();
+            }
+
+            _texture = Graphics.RendererManager.CurrentRenderer.CreateTexture(bitmap + ".BMP", colorPixels, false);
+            colorStream.Close();
+
             buildCharacterInfo();
         }
 

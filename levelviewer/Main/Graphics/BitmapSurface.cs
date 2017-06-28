@@ -89,6 +89,18 @@ namespace Gk3Main.Graphics
             }
         }
 
+        public void MergeAlpha(BitmapSurface alphaSurface)
+        {
+            if (alphaSurface == null || alphaSurface.Width != _width || alphaSurface.Height != _height)
+                throw new ArgumentException();
+
+            // merge color and alpha info
+            for (int i = 0; i < _width * _height; i++)
+            {
+                _pixels[i * 4 + 3] = alphaSurface.Pixels[i * 4 + 0];
+            }
+        }
+
         public static void Copy(int destX, int destY, BitmapSurface destSurface, 
             int sourceX, int sourceY, int sourceWidth, int sourceHeight, BitmapSurface srcSurface)
         {
@@ -194,6 +206,8 @@ namespace Gk3Main.Graphics
             reader.BaseStream.Seek(startingPosition + pixelOffset, System.IO.SeekOrigin.Begin);
             pixels = new byte[width * height * 4];
 
+            int padding = (4 - width * bitsPerPixel / 8 % 4) % 4;
+
             for (int y = height - 1; y >= 0; y--)
             //for (int y = 0; y < height; y++)
             {
@@ -244,7 +258,7 @@ namespace Gk3Main.Graphics
                 }
 
                 // skip any extra bytes
-                reader.ReadBytes(width % 4);
+                reader.ReadBytes(padding);
             }
         }
 

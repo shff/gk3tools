@@ -59,7 +59,8 @@ namespace Gk3Main.Gui
                     using (Stream alpha = FileSystem.Open(alphaTexture + ".BMP"))
                     {
                         Graphics.BitmapSurface alphaSurface = new Graphics.BitmapSurface(alpha);
-                        _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, cursor, alphaSurface, false);
+                        cursor.MergeAlpha(alphaSurface);
+                        _cursor = Graphics.RendererManager.CurrentRenderer.CreateTexture(name, cursor, false);
                     }
                 }
             }

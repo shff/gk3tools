@@ -494,7 +494,7 @@ namespace Gk3Main.Graphics
         SamplerState CreateSampler(SamplerStateDesc desc);
 
         TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha);
-        TextureResource CreateTexture(string name, BitmapSurface surface, BitmapSurface alpha, bool mipmapped);
+        TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped);
         UpdatableTexture CreateUpdatableTexture(string name, int width, int height);
 
         CubeMapResource CreateCubeMap(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,

@@ -48,8 +48,8 @@ namespace Gk3Main.Graphics.OpenGl
             //Gl.glTexImage2D(TextureTarget.Texture2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, _pixels); 
         }
 
-        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface colorSurface, BitmapSurface alphaSurface)
-            : base(name, colorSurface, alphaSurface)
+        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface colorSurface)
+            : base(name, colorSurface)
         {
             _renderer = renderer;
 

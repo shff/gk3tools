@@ -31,31 +31,13 @@ namespace Gk3Main.Graphics
             // nothing... hopefully the child class is handling things
         }
 
-        protected TextureResource(string name, BitmapSurface surface)
+        internal TextureResource(string name, BitmapSurface surface)
             : base(name, true)
         {
             _width = surface.Width;
             _height = surface.Height;
             _pixels = surface.Pixels;
         }
-
-        protected TextureResource(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface)
-            : base(name, true)
-        {
-            if (alphaSurface.Width != colorSurface.Width || alphaSurface.Height != colorSurface.Height)
-                throw new Resource.InvalidResourceFileFormat("Color and alpha map dimensions do not match");
-
-            _width = colorSurface.Width;
-            _height = colorSurface.Height;
-            _pixels = colorSurface.Pixels;
-
-            // merge color and alpha info
-            for (int i = 0; i < _width * _height; i++)
-            {
-                _pixels[i * 4 + 3] = alphaSurface.Pixels[i * 4 + 0];
-            }
-        }
-
         
         public override void Dispose()
         {

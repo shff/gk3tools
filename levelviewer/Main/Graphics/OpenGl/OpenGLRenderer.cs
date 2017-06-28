@@ -221,9 +221,9 @@ namespace Gk3Main.Graphics.OpenGl
 
         #region Texture creation
 
-        public TextureResource CreateTexture(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface, bool mipmapped)
+        public TextureResource CreateTexture(string name, BitmapSurface colorSurface, bool mipmapped)
         {
-            return new GlTexture(this, name, colorSurface, alphaSurface);
+            return new GlTexture(this, name, colorSurface);
         }
 
         public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha)

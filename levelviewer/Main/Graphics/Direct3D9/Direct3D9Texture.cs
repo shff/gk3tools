@@ -25,8 +25,8 @@ namespace Gk3Main.Graphics.Direct3D9
             convertToDirect3D9Texture(false, true);
         }
 
-        public Direct3D9Texture(string name, BitmapSurface colorSurface, BitmapSurface alphaSurface)
-            : base(name, colorSurface, alphaSurface)
+        public Direct3D9Texture(string name, BitmapSurface colorSurface)
+            : base(name, colorSurface)
         {
             convertToDirect3D9Texture(true, true);
         }
