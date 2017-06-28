@@ -440,67 +440,46 @@ namespace Gk3Main.Graphics
         internal event SamplerChangedHandler SamplerChanged;
     }
 
-    public struct SamplerState
+    public struct SamplerStateDesc
     {
-        private TextureAddressMode _addressU;
-        private TextureAddressMode _addressV;
-        private TextureAddressMode _addressW;
-        private TextureFilter _filter;
-        private int _maxAnisotropy;
+        public TextureAddressMode AddressU;
+        public TextureAddressMode AddressV;
+        public TextureAddressMode AddressW;
+        public TextureFilter Filter;
+        public int MaxAnisotropy;
+    }
 
-        public SamplerState(TextureAddressMode addressU, TextureAddressMode addressV, TextureAddressMode addressW, TextureFilter filter)
+
+    public class SamplerState
+    {
+        private SamplerStateDesc _desc;
+        private int _glHandleMipped;
+        private int _glHandle;
+
+        public SamplerState(int glHandle, int glHandleMipped, SamplerStateDesc desc)
         {
-            _addressU = addressU;
-            _addressV = addressV;
-            _addressW = addressW;
-            _filter = filter;
-            _maxAnisotropy = 4;
+            _glHandle = glHandle;
+            _glHandleMipped = glHandleMipped;
+            _desc = desc;
         }
 
-        public TextureAddressMode AddressU
+        public int GLHandle { get { return _glHandle; } }
+        public int GLHandleMipped {  get { return _glHandleMipped; } }
+
+        public SamplerStateDesc Desc
         {
-            get { return _addressU; }
-            set { _addressU = value; }
+            get { return _desc; }
         }
 
-        public TextureAddressMode AddressV
-        {
-            get { return _addressV; }
-            set { _addressV = value; }
-        }
-
-        public TextureAddressMode AddressW
-        {
-            get { return _addressW; }
-            set { _addressW = value; }
-        }
-
-        public TextureFilter Filter
-        {
-            get { return _filter; }
-            set { _filter = value; }
-        }
-
-        public int MaxAnisotropy
-        {
-            get { return _maxAnisotropy; }
-            set { _maxAnisotropy = value; }
-        }
-
-        public static SamplerState PointWrap =
-            new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Point);
-        public static SamplerState PointClamp =
-            new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Point);
-        public static SamplerState LinearWrap =
-            new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Linear);
-        public static SamplerState LinearClamp =
-            new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Linear);
-        public static SamplerState AnisotropicWrap =
-            new SamplerState(TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureAddressMode.Wrap, TextureFilter.Anisoptropic);
-        public static SamplerState AnisotropicClamp =
-            new SamplerState(TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureAddressMode.Clamp, TextureFilter.Anisoptropic);
+        public static SamplerState PointWrap;
+        public static SamplerState PointClamp;
+        public static SamplerState LinearWrap;
+        public static SamplerState LinearClamp;
+        public static SamplerState AnisotropicWrap;
+        public static SamplerState AnisotropicClamp;
     }
     #endregion
+
 
     public interface IRenderer
     {
@@ -511,6 +490,8 @@ namespace Gk3Main.Graphics
         bool DepthWriteEnabled { get; set; }
         CullMode CullMode { get; set; }
         Viewport Viewport { get; set; }
+
+        SamplerState CreateSampler(SamplerStateDesc desc);
 
         TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha);
         TextureResource CreateTexture(string name, BitmapSurface surface, BitmapSurface alpha, bool mipmapped);

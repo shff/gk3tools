@@ -73,8 +73,8 @@ namespace Gk3Main.Graphics.OpenGl
         {
             GL.BindTexture(TextureTarget.Texture2D, _glTexture);
 
-            SamplerState current = _renderer.SamplerStates[index];
-            ApplySamplerState(current, _hasMipmaps, TextureType.TwoD);
+            //SamplerState current = _renderer.SamplerStates[index];
+            //ApplySamplerState(current, _hasMipmaps, TextureType.TwoD);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }
@@ -120,17 +120,20 @@ namespace Gk3Main.Graphics.OpenGl
 
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, _actualPixelWidth, _actualPixelHeight,
                 0, PixelFormat.Rgba, PixelType.UnsignedByte, pixels);
+
             if (mipmapped)
                 GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            else
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
 
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.LinearMipmapLinear);
+          /*  GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.LinearMipmapLinear);
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
 
             if (clamp)
             {
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)All.ClampToEdge);
                 GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)All.ClampToEdge);
-            }
+            }*/
         }
 
         internal enum TextureType
@@ -140,8 +143,10 @@ namespace Gk3Main.Graphics.OpenGl
             CubeMap
         }
 
+        [Obsolete("Not needed since we're using sampler objects")]
         internal static void ApplySamplerState(SamplerState current, bool textureHasMipmaps, TextureType type)
         {
+           /*
             TextureTarget target;
             if (type == TextureType.TwoD)
                 target = TextureTarget.Texture2D;
@@ -216,7 +221,7 @@ namespace Gk3Main.Graphics.OpenGl
             else
             {
                 GL.TexParameter(target, (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, 1.0f);
-            }
+            }*/
         }
 
         private static int convertTextureAddressMode(TextureAddressMode mode)
@@ -248,8 +253,9 @@ namespace Gk3Main.Graphics.OpenGl
             GL.GenTextures(1, out _glTexture);
 
             GL.BindTexture(TextureTarget.Texture2D, _glTexture);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+            //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)All.Linear);
+           // GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)All.Linear);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, 0);
         }
 
         public override void Update(byte[] pixels)
@@ -268,8 +274,8 @@ namespace Gk3Main.Graphics.OpenGl
         {
             GL.BindTexture(TextureTarget.Texture2D, _glTexture);
 
-            SamplerState current = _renderer.SamplerStates[index];
-            GlTexture.ApplySamplerState(current, false, GlTexture.TextureType.TwoD);
+           // SamplerState current = _renderer.SamplerStates[index];
+            //GlTexture.ApplySamplerState(current, false, GlTexture.TextureType.TwoD);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }

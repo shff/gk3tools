@@ -241,6 +241,13 @@ namespace Gk3Main.Graphics.Direct3D9
 
             _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
 
+            SamplerState.PointWrap = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, Filter = TextureFilter.Point, MaxAnisotropy = 4 });
+            SamplerState.PointClamp = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, Filter = TextureFilter.Point, MaxAnisotropy = 4 });
+            SamplerState.LinearWrap = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, Filter = TextureFilter.Linear, MaxAnisotropy = 4 });
+            SamplerState.LinearClamp = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, Filter = TextureFilter.Linear, MaxAnisotropy = 4 });
+            SamplerState.AnisotropicWrap = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, Filter = TextureFilter.Anisoptropic, MaxAnisotropy = 4 });
+            SamplerState.AnisotropicClamp = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, Filter = TextureFilter.Anisoptropic, MaxAnisotropy = 4 });
+
             // set default render states
             _device.SetRenderState(RenderState.CullMode, Cull.None);
             SamplerStates[0] = SamplerState.LinearWrap;
@@ -260,6 +267,13 @@ namespace Gk3Main.Graphics.Direct3D9
         }
 
         #region Render states
+
+        public SamplerState CreateSampler(SamplerStateDesc desc)
+        {
+            var newSamplerObject = new SamplerState(0, 0, desc);
+            return newSamplerObject;
+        }
+
         public bool BlendEnabled
         {
             get { return _device.GetRenderState(RenderState.AlphaBlendEnable) != 0; }
@@ -336,13 +350,14 @@ namespace Gk3Main.Graphics.Direct3D9
 
         private void samplerStateChanged(SamplerState newSampler, SamplerState oldSampler, int index)
         {
+            var desc = newSampler.Desc;
             // TODO: only modify the changed states
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressU, convertTextureAddress(newSampler.AddressU));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressV, convertTextureAddress(newSampler.AddressV));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressW, convertTextureAddress(newSampler.AddressW));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MinFilter, convertTextureFilter(newSampler.Filter, FilterType.Min));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MagFilter, convertTextureFilter(newSampler.Filter, FilterType.Mag));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MipFilter, convertTextureFilter(newSampler.Filter, FilterType.Mip));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressU, convertTextureAddress(desc.AddressU));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressV, convertTextureAddress(desc.AddressV));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressW, convertTextureAddress(desc.AddressW));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MinFilter, convertTextureFilter(desc.Filter, FilterType.Min));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MagFilter, convertTextureFilter(desc.Filter, FilterType.Mag));
+            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MipFilter, convertTextureFilter(desc.Filter, FilterType.Mip));
         }
 
         #endregion Render states

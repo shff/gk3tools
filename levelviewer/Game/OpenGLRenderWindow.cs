@@ -29,11 +29,11 @@ namespace Game
                 throw new InvalidOperationException("A renderer has already been created");
 
             OpenTK.Graphics.GraphicsMode mode = new OpenTK.Graphics.GraphicsMode(new OpenTK.Graphics.ColorFormat(32), _depth, 0, 0);
-            _window = new OpenTK.NativeWindow(_width, _height, "FreeGeeKayThree - OpenGL 3.0 renderer", _fullscreen ? OpenTK.GameWindowFlags.Fullscreen : OpenTK.GameWindowFlags.FixedWindow, mode, OpenTK.DisplayDevice.Default);
+            _window = new OpenTK.NativeWindow(_width, _height, "FreeGeeKayThree - OpenGL 3.3 renderer", _fullscreen ? OpenTK.GameWindowFlags.Fullscreen : OpenTK.GameWindowFlags.FixedWindow, mode, OpenTK.DisplayDevice.Default);
             _window.Visible = true;
             _window.Closed += (x,y) => _closed = true;
 
-            _context = new OpenTK.Graphics.GraphicsContext(mode, _window.WindowInfo, 3, 0, OpenTK.Graphics.GraphicsContextFlags.Default);
+            _context = new OpenTK.Graphics.GraphicsContext(mode, _window.WindowInfo, 3, 3, OpenTK.Graphics.GraphicsContextFlags.ForwardCompatible | OpenTK.Graphics.GraphicsContextFlags.Debug);
             _context.MakeCurrent(_window.WindowInfo);
             _context.LoadAll();
 

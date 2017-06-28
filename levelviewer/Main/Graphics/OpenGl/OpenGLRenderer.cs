@@ -81,6 +81,14 @@ namespace Gk3Main.Graphics.OpenGl
             }
 
             _currentSamplerStates.SamplerChanged += new SamplerStateCollection.SamplerChangedHandler(samplerStateChanged);
+            SamplerState.PointWrap = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, Filter = TextureFilter.Point, MaxAnisotropy = 4 });
+            SamplerState.PointClamp = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, Filter = TextureFilter.Point, MaxAnisotropy = 4 });
+            SamplerState.LinearWrap = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, Filter = TextureFilter.Linear, MaxAnisotropy = 4 });
+            SamplerState.LinearClamp = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, Filter = TextureFilter.Linear, MaxAnisotropy = 4 });
+            SamplerState.AnisotropicWrap = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Wrap, AddressV = TextureAddressMode.Wrap, AddressW = TextureAddressMode.Wrap, Filter = TextureFilter.Anisoptropic, MaxAnisotropy = 4 });
+            SamplerState.AnisotropicClamp = CreateSampler(new SamplerStateDesc() { AddressU = TextureAddressMode.Clamp, AddressV = TextureAddressMode.Clamp, AddressW = TextureAddressMode.Clamp, Filter = TextureFilter.Anisoptropic, MaxAnisotropy = 4 });
+
+           
             SamplerStates[0] = SamplerState.LinearWrap;
             SamplerStates[1] = SamplerState.LinearClamp;
 
@@ -92,6 +100,22 @@ namespace Gk3Main.Graphics.OpenGl
         }
 
         #region Render states
+
+        public SamplerState CreateSampler(SamplerStateDesc desc)
+        {
+            int sampler;
+
+            GL.GenSamplers(1, out sampler);
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapS, convertTextureAddressMode(desc.AddressU));
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapT, convertTextureAddressMode(desc.AddressV));
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureWrapR, convertTextureAddressMode(desc.AddressW));
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMinFilter, convertTextureFilter(desc.Filter, true, true));
+            GL.SamplerParameter(sampler, SamplerParameterName.TextureMagFilter, convertTextureFilter(desc.Filter, false, true));
+
+            var newSamplerObject = new SamplerState(sampler, 0, desc);
+            return newSamplerObject;
+        }
+
         public bool BlendEnabled
         {
             get { return GL.IsEnabled(EnableCap.Blend) == true; }
@@ -169,11 +193,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         private void samplerStateChanged(SamplerState newSampler, SamplerState oldSampler, int index)
         {
-           // TODO: only modify the changed states
-            GL.ActiveTexture(TextureUnit.Texture0 + index);
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, convertTextureAddressMode(newSampler.AddressU));
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, convertTextureAddressMode(newSampler.AddressV));
-            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapR, convertTextureAddressMode(newSampler.AddressW));
+            GL.BindSampler(index, newSampler.GLHandle);
         }
 
         #endregion Render states
@@ -531,6 +551,62 @@ namespace Gk3Main.Graphics.OpenGl
                 return (int)All.MirroredRepeat;
             else
                 return (int)All.Repeat;
+        }
+
+        private static int convertTextureFilter(TextureFilter filter, bool min, bool mipmap)
+        {
+            if (mipmap)
+            {
+                if (filter == TextureFilter.Point)
+                {
+                    if (min) return (int)All.NearestMipmapNearest;
+                    else return (int)All.Nearest;
+                }
+                else if (filter == TextureFilter.Linear ||
+                    filter == TextureFilter.Anisoptropic)
+                {
+                    if (min) return (int)All.LinearMipmapLinear;
+                    else return (int)All.Linear;
+                }
+                else if (filter == TextureFilter.PointMipLinear)
+                {
+                    if (min) return (int)All.NearestMipmapLinear;
+                   else return (int)All.Nearest;
+                }
+                else if (filter == TextureFilter.LinearMipPoint)
+                {
+                    if (min) return (int)All.LinearMipmapNearest;
+                    else return (int)All.Linear;
+                }
+                else
+                {
+                    // TODO: implement the rest!
+                    if (min) return (int)All.LinearMipmapLinear;
+                    else return (int)All.Linear;
+                }
+            }
+            else
+            {
+                if (filter == TextureFilter.Point ||
+                    filter == TextureFilter.PointMipLinear)
+                {
+                    if (min) return (int)All.Nearest;
+                    else return (int)All.Nearest;
+                }
+                else if (filter == TextureFilter.Linear ||
+                    filter == TextureFilter.LinearMipPoint ||
+                    filter == TextureFilter.Anisoptropic)
+                {
+                    if (min) return (int)All.Linear;
+                    else return (int)All.Linear;
+                }
+                else
+                {
+                    // TODO: implement the rest!
+                    if (min) return (int)All.Linear;
+                    else return (int)All.Linear;
+                }
+            }
         }
 
         private static void glDebugLog(int source, int type, uint id, int severity, int length, string message, IntPtr userParam)
