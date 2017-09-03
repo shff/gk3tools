@@ -137,7 +137,6 @@
     <Compile Include="Graphics\OpenGl\GlslEffect.cs" />
     <Compile Include="Graphics\OpenGl\GlTexture.cs" />
     <Compile Include="Graphics\OpenGl\GlVertexBuffer.cs" />
-    <Compile Include="Graphics\OpenGl\OpenGLInterop.cs" />
     <Compile Include="Graphics\OpenGl\OpenGLRenderer.cs" />
     <Compile Include="Graphics\RenderWindow.cs" />
     <Compile Include="Graphics\SkyBox.cs" />
@@ -191,6 +190,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
     <None Include="Shaders\2d.fx.glsl">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
