@@ -1,11 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheepc", "sheepc2008.vcproj", "{4F22E178-74CD-44D4-89FC-04359219473B}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheepc", "sheepc2015.vcxproj", "{4F22E178-74CD-44D4-89FC-04359219473B}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheep", "sheep2008.vcproj", "{91B41B87-3404-4D66-A842-ADC31948CA9F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheep", "sheep2015.vcxproj", "{91B41B87-3404-4D66-A842-ADC31948CA9F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheep_test", "sheep_test\sheep_test.vcproj", "{1C8B3FC6-974A-4454-B9C2-4526D8E61BA4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sheep_test", "sheep_test\sheep_test2015.vcxproj", "{1C8B3FC6-974A-4454-B9C2-4526D8E61BA4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
