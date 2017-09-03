@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>mod2obj</ProjectName>
-    <ProjectGuid>{0C21300E-7059-4A7D-B5DF-D124F958F045}</ProjectGuid>
+    <ProjectGuid>{55C6964B-A922-41B1-A25F-AD2707551309}</ProjectGuid>
     <RootNamespace>mod2obj</RootNamespace>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
