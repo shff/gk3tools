@@ -92,7 +92,7 @@
     <Compile Include="VerbPickerManager.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Main\Main.csproj">
+    <ProjectReference Include="..\Main\Main2015.csproj">
       <Project>{CC878405-3C13-4940-A18C-9C035E91311C}</Project>
       <Name>Main</Name>
     </ProjectReference>

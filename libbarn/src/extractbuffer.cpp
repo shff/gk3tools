@@ -29,8 +29,7 @@
 #include "lzo/minilzo.h"
 #endif
 #ifndef DISABLE_ZLIB
-#define ZLIB_WINAPI 
-#include <zlib.h>
+#include "miniz/miniz.h"
 #endif
 
 namespace Barn

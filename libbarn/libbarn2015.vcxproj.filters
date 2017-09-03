@@ -6,6 +6,9 @@
     <ClCompile Include="src\lzo\minilzo.c">
       <Filter>lzo</Filter>
     </ClCompile>
+    <ClCompile Include="src\miniz\miniz.c">
+      <Filter>miniz</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\barn.h" />
@@ -19,10 +22,16 @@
     <ClInclude Include="src\lzo\minilzo.h">
       <Filter>lzo</Filter>
     </ClInclude>
+    <ClInclude Include="src\miniz\miniz.h">
+      <Filter>miniz</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lzo">
       <UniqueIdentifier>{51509fc8-bbb9-4d74-aee4-c3ff596ac361}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="miniz">
+      <UniqueIdentifier>{c480e0ca-196c-404d-bd7b-9e9d70263cd7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
