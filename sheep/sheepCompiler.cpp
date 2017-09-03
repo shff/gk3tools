@@ -198,14 +198,11 @@ void SHP_SetEndWaitCallback(SheepVM* vm, SHP_EndWaitCallback callback)
 	SM(vm)->SetEndWaitCallback((Sheep::EndWaitCallback)callback);
 }
 
-SHP_Version shp_GetVersion()
+void shp_GetVersion(unsigned short* major, unsigned short* minor, unsigned short* revision)
 {
-	SHP_Version v;
-	v.Major = SHEEP_VERSION_MAJOR;
-	v.Minor = SHEEP_VERSION_MINOR;
-	v.Revision = SHEEP_VERSION_REVISION;
-
-	return v;
+	if (major) *major = SHEEP_VERSION_MAJOR;
+	if (minor) *minor = SHEEP_VERSION_MINOR;
+	if (revision) *revision = SHEEP_VERSION_REVISION;
 }
 
 

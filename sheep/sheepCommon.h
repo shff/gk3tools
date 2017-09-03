@@ -69,6 +69,7 @@
 
 extern "C"
 {
+#pragma pack(push, 1)
 	struct SHP_Version
 	{
 		/// The major version
@@ -80,9 +81,10 @@ extern "C"
 		/// The revision number
 		unsigned short Revision;
 	};
+#pragma pack(pop)
 
 	/// Gets the version of the Sheep library
-	SHP_DECLSPEC SHP_Version shp_GetVersion();
+	SHP_DECLSPEC void SHP_LIB_CALL shp_GetVersion(unsigned short* major, unsigned short* minor, unsigned short* revision);
 }
 
 #endif // SHEEPCOMMON_H

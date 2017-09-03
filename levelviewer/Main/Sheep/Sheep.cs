@@ -386,11 +386,13 @@ namespace Gk3Main.Sheep
 
         public static void GetVersion(out int major, out int minor, out int rev)
         {
-            SHP_Version v = shp_GetVersion();
+            ushort maj, min, revv;
 
-            major = v.Major;
-            minor = v.Minor;
-            rev = v.Revision;
+            shp_GetVersion(out maj, out min, out revv);
+
+            major = maj;
+            minor = min;
+            rev = revv;
         }
 
         private static IntPtr _vm;
@@ -451,115 +453,116 @@ namespace Gk3Main.Sheep
         const int SHEEP_ERROR = -1;
         const int SHEEP_SUSPENDED = 2;
 
+        [StructLayout(LayoutKind.Sequential, Pack=1)]
         private struct SHP_Version
         {
-            public short Major;
-            public short Minor;
-            public short Revision;
+            public ushort Major;
+            public ushort Minor;
+            public ushort Revision;
         }
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr SHP_CreateNewVM(int languageVersion);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_DestroyVM(IntPtr vm);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_SetImportCallback(IntPtr vm, string name, IntPtr callback);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_AddImportParameter(IntPtr import, SymbolType parameterType);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_GetVMContextState(IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void shp_ReleaseVMContext(IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_PopIntFromStack(IntPtr context, out int result);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_PopFloatFromStack(IntPtr context, out float result);
         
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_PopStringFromStack(IntPtr context, out IntPtr result);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_PushIntOntoStack(IntPtr context, int i);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_RunSnippet(IntPtr vm, string snippet, out int result);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_RunNounVerbSnippet(IntPtr vm, string snippet, int noun, int verb, out int result);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_PrepareScriptForExecution(IntPtr vm, IntPtr script, string function, out IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_PrepareScriptForExecutionWithParent(IntPtr vm, IntPtr script, string function, IntPtr parent, out IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_GetNumVariables(IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_GetVariableName(IntPtr context, int index, out string name);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_GetVariableI(IntPtr context, int index, out int value);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_GetVariableF(IntPtr context, int index, out float value);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_SetVariableI(IntPtr context, int index, int value);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_SetVariableF(IntPtr context, int index, float value);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_SetOutputCallback(IntPtr vm, IntPtr callback);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_IsInWaitSection(IntPtr vm);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int SHP_Suspend(IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_Execute(IntPtr context);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_SetEndWaitCallback(IntPtr vm, IntPtr callback);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_SetVerbosity(IntPtr vm, int verbosity);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void SHP_PrintStackTrace(IntPtr vm);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern IntPtr shp_CreateNewCompiler(int languageVersion);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void shp_DestroyCompiler(IntPtr compiler);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_DefineImportFunction(IntPtr compiler, string name, SymbolType returnType, SymbolType[] parameters, int numParameters);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_CompileScript(IntPtr compiler, string script, out IntPtr result);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern int shp_LoadScriptFromBytecode(byte[] bytecode, int length, out IntPtr result);
 
-        [DllImport("sheep")]
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
         private static extern void shp_ReleaseSheepScript(IntPtr script);
 
 
-        [DllImport("sheep")]
-        private static extern SHP_Version shp_GetVersion();
+        [DllImport("sheep", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void shp_GetVersion(out ushort major, out ushort minor, out ushort revision);
 
         #endregion Interops
     }
