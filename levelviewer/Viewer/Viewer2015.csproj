@@ -204,8 +204,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(ProjectDir)..\..\sheep\Debug\sheep.dll" "$(ProjectDir)$(OutDir)"
-xcopy /Y "$(ProjectDir)..\..\libbarn\Debug\barn.dll" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+    <PostBuildEvent>xcopy /Y "$(ProjectDir)..\..\sheep\$(Configuration)\sheep.dll" "$(ProjectDir)$(OutDir)"
+xcopy /Y "$(ProjectDir)..\..\libbarn\$(Configuration)\barn.dll" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
