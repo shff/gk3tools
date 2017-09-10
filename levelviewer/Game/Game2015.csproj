@@ -125,11 +125,10 @@
   <Target Name="BeforeBuild">
   </Target> -->
   <Target Name="AfterBuild">
-    <!-- <Copy SourceFiles="$(ProjectDir)..\..\sheep\$(ConfigurationName)\sheep.dll;$(ProjectDir)..\..\libbarn\$(ConfigurationName)\barn.dll" DestinationFolder="$(OutDir)" /> -->
+    <Copy SourceFiles="$(ProjectDir)..\..\sheep\$(Configuration)\sheep.dll;$(ProjectDir)..\..\libbarn\$(Configuration)\barn.dll" DestinationFolder="$(ProjectDir)$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\Lib\mpg123\libmpg123-0.dll" DestinationFolder="$(ProjectDir)$(OutDir)" ContinueOnError="true" />
   </Target>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(ProjectDir)..\..\sheep\$(Configuration)\sheep.dll" "$(ProjectDir)$(OutDir)"
-xcopy /Y "$(ProjectDir)..\..\libbarn\$(Configuration)\barn.dll" "$(ProjectDir)$(OutDir)"
-xcopy /Y /C "$(ProjectDir)..\..\Lib\mpg123\libmpg123-0.dll" "$(ProjectDir)$(OutDir)"</PostBuildEvent>
+    <PostBuildEvent></PostBuildEvent>
   </PropertyGroup>
 </Project>
