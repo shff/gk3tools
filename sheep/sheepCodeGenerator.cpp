@@ -581,7 +581,7 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclaration
 	}
 
 	// write "store" instructions for the parameters
-	for (int i = func.Parameters.size() - 1; i >= 0; i--)
+	for (int i = (int)func.Parameters.size() - 1; i >= 0; i--)
 	{
 		if (func.Parameters[i].Type == SheepSymbolType::Int)
 			func.Code->WriteSheepInstruction(StoreArgI);
@@ -608,7 +608,7 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclaration
 	// now we have to go back and update all the GOTOs
 	for (int i = 0; i < func.Gotos.size(); i++)
 	{
-		func.Code->WriteIntAt(func.Gotos[i].second + func.CodeOffset, func.Gotos[i].first);
+		func.Code->WriteIntAt((int)func.Gotos[i].second + func.CodeOffset, func.Gotos[i].first);
 	}
 
 	return func;
