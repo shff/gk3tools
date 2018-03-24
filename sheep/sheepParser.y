@@ -215,7 +215,7 @@ function_parameter_list:
 	;
 	
 statement_list:
-	statement { $$ = $1 }
+	statement { $$ = $1; }
 	| statement_list statement { $1->AttachSibling($2); $$ = $1; }
 	;
 	
@@ -226,7 +226,7 @@ simple_statement:
 	| expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Expression, currentLine); $$->SetChild(0, $1); }
 	| RETURN SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Return, currentLine); }
 	| RETURN expr SEMICOLON { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Return, currentLine); $$->SetChild(0, $2); }
-	| wait_statement { $$ = $1 }
+	| wait_statement { $$ = $1; }
 	| local_identifier BECOMES expr { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::Assignment, currentLine); $$->SetChild(0, $1); $$->SetChild(1, $3); }
 	;
 
@@ -239,8 +239,8 @@ wait_statement:
 /* this "open" and "closed" stuff can be found here:
 http://www.parsifalsoft.com/ifelse.html */
 statement:
-	open_statement { $$ = $1 }
-	| closed_statement { $$ = $1 }
+	open_statement { $$ = $1; }
+	| closed_statement { $$ = $1; }
 	;
 	
 open_statement:
@@ -249,9 +249,9 @@ open_statement:
 	;
 	
 closed_statement:
-	simple_statement { $$ = $1 }
+	simple_statement { $$ = $1; }
 	| LBRACE RBRACE { $$ = NULL; }
-	| LBRACE statement_list RBRACE { $$ = $2 }
+	| LBRACE statement_list RBRACE { $$ = $2; }
 	| IF LPAREN expr RPAREN closed_statement ELSE closed_statement { $$ = SheepCodeTreeNode::CreateKeywordStatement(CodeTreeKeywordStatementType::If, currentLine); $$->SetChild(0, $3); $$->SetChild(1, $5); $$->SetChild(2, $7); }
 	;
 	
@@ -279,24 +279,24 @@ constant:
 	;
 
 global_function_call:
-	global_identifier LPAREN RPAREN { $$ = $1 }
+	global_identifier LPAREN RPAREN { $$ = $1; }
 	| global_identifier LPAREN parameter_list RPAREN { $$ = $1; $$->SetChild(0, $3); }
 	;
 	
 global_function_call_list:
-	global_function_call { $$ = $1 }
+	global_function_call { $$ = $1; }
 	| global_function_call_list SEMICOLON global_function_call { $$ = $1; $$->AttachSibling($3); }
 	;
 
 parameter_list:
-	expr { $$ = $1 }
+	expr { $$ = $1; }
 	| parameter_list COMMA expr { $$->AttachSibling($3); }
 	;
 
 expr:
 	constant { $$ = $1; }
-	| global_function_call { $$ = $1 }
-	| local_identifier { $$ = $1 }
+	| global_function_call { $$ = $1; }
+	| local_identifier { $$ = $1; }
 	| LPAREN expr RPAREN { $$ = $2; }
 	| NOT expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Not, currentLine); $$->SetChild(0, $2); }
 	| MINUS expr { $$ = SheepCodeTreeNode::CreateOperation(CodeTreeOperationType::Negate, currentLine); $$->SetChild(0, $2); }
