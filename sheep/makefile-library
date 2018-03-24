@@ -1,11 +1,11 @@
 CC=gcc
 CPPC=g++
 LINKER=g++
-COMPILER_FLAGS= -g -fPIC
-LINKER_FLAGS=-shared -Wl
+COMPILER_FLAGS= -g -fPIC --std=c++11
+LINKER_FLAGS=-shared -Wl,-rpath=.
 EXECUTABLE=libsheep.so
 
-SOURCES = sheepScanner.cpp sheepParser.cpp sheepCodeGenerator.cpp sheepCodeTree.cpp sheepFileWriter.cpp sheepFileReader.cpp sheepMachine.cpp sheepMain.cpp sheepCompiler.cpp sheepDisassembler.cpp sheepMemoryAllocator.cpp
+SOURCES = sheepScanner.cpp sheepParser.cpp sheepCodeGenerator.cpp sheepCodeTree.cpp sheepFileWriter.cpp sheepFileReader.cpp sheepMachine.cpp sheepCompiler.cpp sheepDisassembler.cpp sheepMemoryAllocator.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 $(EXECUTABLE): $(OBJECTS)

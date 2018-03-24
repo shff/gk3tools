@@ -1,5 +1,5 @@
 #include "virtualmachine.h"
-#include "..\sheepMachine.h"
+#include "../sheepMachine.h"
 
 namespace Sheep
 {

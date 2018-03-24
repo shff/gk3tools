@@ -6,6 +6,10 @@
 #include <string>
 #include "sheepCaseInsensitiveStringCompare.h"
 
+#ifndef _WIN32
+#include <strings.h>
+#endif
+
 
 template <typename T>
 class StringDictionary
