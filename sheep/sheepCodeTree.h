@@ -53,50 +53,57 @@ private:
 	std::map<std::string, StringConst> m_stringConstants;
 };
 
-SHEEP_ENUM(CodeTreeNodeType)
+enum class CodeTreeNodeType
+{
 	Invalid = 0,
 	Section,
 	Declaration,
 	Statement,
 	Expression,
 	TypeReference
-END_SHEEP_ENUM(CodeTreeNodeType)
+};
 
-SHEEP_ENUM(CodeTreeSectionType)
+enum class CodeTreeSectionType
+{
 	Symbols,
 	Code
-END_SHEEP_ENUM(CodeTreeSectionType)
+};
 
 
-SHEEP_ENUM(CodeTreeDeclarationNodeType)
+enum class CodeTreeDeclarationNodeType
+{
 	Variable,
 	Function,
 	Label
-END_SHEEP_ENUM(CodeTreeDeclarationNodeType)
+};
 
-SHEEP_ENUM(CodeTreeExpressionType)
+enum class CodeTreeExpressionType
+{
 	Operation,
 	Identifier,
 	Constant
-END_SHEEP_ENUM(CodeTreeExpressionType)
+};
 
-SHEEP_ENUM(CodeTreeTypeReferenceType)
+enum class CodeTreeTypeReferenceType
+{
 	Int,
 	Float,
 	String,
 	Handle,
 	Custom
-END_SHEEP_ENUM(CodeTreeTypeReferenceType)
+};
 
-SHEEP_ENUM(CodeTreeExpressionValueType)
+enum class CodeTreeExpressionValueType
+{
 	Unknown,
 	Void,
 	Int,
 	Float,
 	String
-END_SHEEP_ENUM(CodeTreeExpressionValueType)
+};
 
-SHEEP_ENUM(CodeTreeOperationType)
+enum class CodeTreeOperationType
+{
 	Add,
 	Minus,
 	Times,
@@ -113,16 +120,17 @@ SHEEP_ENUM(CodeTreeOperationType)
 	Not,
 	And,
 	Or
-END_SHEEP_ENUM(CodeTreeOperationType)
+};
 
-SHEEP_ENUM(CodeTreeKeywordStatementType)
+enum class CodeTreeKeywordStatementType
+{
 	Expression,
 	Assignment,
 	Return,
 	Wait,
 	Goto,
 	If
-END_SHEEP_ENUM(CodeTreeKeywordStatementType)
+};
 
 class SheepCodeTreeNode
 {

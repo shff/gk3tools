@@ -134,7 +134,7 @@ const char* SheepContext::GetVariableName(int index)
 	if (index < 0 || index >= m_function->ParentCode->Symbols.size())
 		return nullptr;
 
-	m_function->ParentCode->Symbols[index].Name.c_str();
+	return m_function->ParentCode->Symbols[index].Name.c_str();
 }
 
 int SheepContext::PopStringFromStack(const char** result)
