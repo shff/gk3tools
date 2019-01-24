@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SlimDX.Direct3D9;
+using SharpDX.Direct3D9;
 
 namespace Gk3Main.Graphics.Direct3D9
 {
@@ -37,9 +37,10 @@ namespace Gk3Main.Graphics.Direct3D9
             }
             
             Surface s = _texture.GetSurfaceLevel(0);
-            SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
+            SharpDX.DataStream stream;
+            SharpDX.DataRectangle r = s.LockRectangle(LockFlags.None, out stream);
 
-            Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixels, _width, _height);
+            Direct3D9Texture.WritePixelsToTextureDataStream(stream, pixels, _width, _height);
 
             s.UnlockRectangle();
         }
@@ -52,7 +53,7 @@ namespace Gk3Main.Graphics.Direct3D9
 
     public class Direct3D9CubeMap : CubeMapResource
     {
-        private SlimDX.Direct3D9.CubeTexture _cubeMap;
+        private SharpDX.Direct3D9.CubeTexture _cubeMap;
 
         public Direct3D9CubeMap(Device device, string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,
             BitmapSurface up, BitmapSurface down)
@@ -97,9 +98,10 @@ namespace Gk3Main.Graphics.Direct3D9
                 pixelsWithAlpha[i * 4 + 3] = pixels[i * 4 + 3];
             }
 
-            SlimDX.DataRectangle r = _cubeMap.LockRectangle(face, 0, LockFlags.None);
+            SharpDX.DataStream stream;
+            SharpDX.DataRectangle r = _cubeMap.LockRectangle(face, 0, LockFlags.None, out stream);
 
-            Direct3D9Texture.WritePixelsToTextureDataStream(r.Data, pixelsWithAlpha, width, height);
+            Direct3D9Texture.WritePixelsToTextureDataStream(stream, pixelsWithAlpha, width, height);
 
             _cubeMap.UnlockRectangle(face, 0);
         }
@@ -107,21 +109,21 @@ namespace Gk3Main.Graphics.Direct3D9
 
     public class Direct3D9VertexBuffer : VertexBuffer
     {
-        private SlimDX.Direct3D9.VertexBuffer _buffer;
+        private SharpDX.Direct3D9.VertexBuffer _buffer;
         private int _numVertices;
 
-        internal static Direct3D9VertexBuffer CreateBuffer<T>(VertexBufferUsage usage, SlimDX.Direct3D9.Device device, 
+        internal static Direct3D9VertexBuffer CreateBuffer<T>(VertexBufferUsage usage, SharpDX.Direct3D9.Device device, 
             T[] data, int numVertices, VertexElementSet vertexElements) where T: struct
         {
             Direct3D9VertexBuffer buffer = new Direct3D9VertexBuffer();
             buffer._declaration = vertexElements;
             buffer._numVertices = numVertices;
-            buffer._buffer = new SlimDX.Direct3D9.VertexBuffer(device, numVertices * vertexElements.Stride, SlimDX.Direct3D9.Usage.WriteOnly, VertexFormat.None, Pool.Managed);
+            buffer._buffer = new SharpDX.Direct3D9.VertexBuffer(device, numVertices * vertexElements.Stride, SharpDX.Direct3D9.Usage.WriteOnly, VertexFormat.None, Pool.Managed);
             buffer._usage = usage;
 
             if (data != null)
             {
-                SlimDX.DataStream ds = buffer._buffer.Lock(0, numVertices * vertexElements.Stride, LockFlags.None);
+                SharpDX.DataStream ds = buffer._buffer.Lock(0, numVertices * vertexElements.Stride, LockFlags.None);
 
                 for (int i = 0; i < data.Length; i++)
                     ds.Write(data[i]);
@@ -148,14 +150,14 @@ namespace Gk3Main.Graphics.Direct3D9
                 throw new Exception("Cannot update a VertexBuffer that's Static");
 
             int size = System.Runtime.InteropServices.Marshal.SizeOf(typeof(T));
-            SlimDX.DataStream ds = _buffer.Lock(0, size * elementCount, LockFlags.None);
+            SharpDX.DataStream ds = _buffer.Lock(0, size * elementCount, LockFlags.None);
 
             ds.WriteRange(data, startIndex, elementCount); 
 
             _buffer.Unlock();
         }
 
-        internal SlimDX.Direct3D9.VertexBuffer InternalBuffer
+        internal SharpDX.Direct3D9.VertexBuffer InternalBuffer
         {
             get { return _buffer; }
         }
@@ -164,14 +166,14 @@ namespace Gk3Main.Graphics.Direct3D9
     public class Direct3D9IndexBuffer : IndexBuffer
     {
         private int _length;
-        private SlimDX.Direct3D9.IndexBuffer _buffer;
+        private SharpDX.Direct3D9.IndexBuffer _buffer;
 
-        internal Direct3D9IndexBuffer(SlimDX.Direct3D9.Device device, uint[] data)
+        internal Direct3D9IndexBuffer(SharpDX.Direct3D9.Device device, uint[] data)
         {
             _length = data.Length;
-            _buffer = new SlimDX.Direct3D9.IndexBuffer(device, data.Length * sizeof(uint), Usage.WriteOnly, Pool.Managed, false);
+            _buffer = new SharpDX.Direct3D9.IndexBuffer(device, data.Length * sizeof(uint), Usage.WriteOnly, Pool.Managed, false);
 
-            SlimDX.DataStream ds = _buffer.Lock(0, _length * sizeof(uint), LockFlags.None);
+            SharpDX.DataStream ds = _buffer.Lock(0, _length * sizeof(uint), LockFlags.None);
 
             for (int i = 0; i < data.Length; i++)
                 ds.Write(data[i]);
@@ -189,7 +191,7 @@ namespace Gk3Main.Graphics.Direct3D9
             get { return _length; }
         }
 
-        internal SlimDX.Direct3D9.IndexBuffer InternalBuffer
+        internal SharpDX.Direct3D9.IndexBuffer InternalBuffer
         {
             get { return _buffer; }
         }
@@ -220,6 +222,7 @@ namespace Gk3Main.Graphics.Direct3D9
             _pp.DeviceWindowHandle = windowHandle;
             _pp.EnableAutoDepthStencil = true;
             _pp.AutoDepthStencilFormat = Format.D16;
+            _pp.Windowed = true;
             if (hosted)
             {
                 _pp.SwapEffect = SwapEffect.Flip;
@@ -298,7 +301,7 @@ namespace Gk3Main.Graphics.Direct3D9
             {
                 Cull cullMode = (Cull)_device.GetRenderState(RenderState.CullMode);
 
-                if (cullMode == SlimDX.Direct3D9.Cull.None)
+                if (cullMode == SharpDX.Direct3D9.Cull.None)
                     return CullMode.None;
                 if (cullMode == Cull.Clockwise)
                     return CullMode.Clockwise;
@@ -352,12 +355,12 @@ namespace Gk3Main.Graphics.Direct3D9
         {
             var desc = newSampler.Desc;
             // TODO: only modify the changed states
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressU, convertTextureAddress(desc.AddressU));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressV, convertTextureAddress(desc.AddressV));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.AddressW, convertTextureAddress(desc.AddressW));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MinFilter, convertTextureFilter(desc.Filter, FilterType.Min));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MagFilter, convertTextureFilter(desc.Filter, FilterType.Mag));
-            _device.SetSamplerState(index, SlimDX.Direct3D9.SamplerState.MipFilter, convertTextureFilter(desc.Filter, FilterType.Mip));
+            _device.SetSamplerState(index, SharpDX.Direct3D9.SamplerState.AddressU, convertTextureAddress(desc.AddressU));
+            _device.SetSamplerState(index, SharpDX.Direct3D9.SamplerState.AddressV, convertTextureAddress(desc.AddressV));
+            _device.SetSamplerState(index, SharpDX.Direct3D9.SamplerState.AddressW, convertTextureAddress(desc.AddressW));
+            _device.SetSamplerState(index, SharpDX.Direct3D9.SamplerState.MinFilter, convertTextureFilter(desc.Filter, FilterType.Min));
+            _device.SetSamplerState(index, SharpDX.Direct3D9.SamplerState.MagFilter, convertTextureFilter(desc.Filter, FilterType.Mag));
+            _device.SetSamplerState(index, SharpDX.Direct3D9.SamplerState.MipFilter, convertTextureFilter(desc.Filter, FilterType.Mip));
         }
 
         #endregion Render states
@@ -472,14 +475,14 @@ namespace Gk3Main.Graphics.Direct3D9
 
         public void Clear()
         {
-            _device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, 0, 1.0f, 0);
+            _device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, new SharpDX.Mathematics.Interop.RawColorBGRA(0, 0, 0, 0), 1.0f, 0);
         }
 
         public Viewport Viewport
         {
             get
             {
-                SlimDX.Direct3D9.Viewport vp = _device.Viewport;
+                SharpDX.Mathematics.Interop.RawViewport vp = _device.Viewport;
 
                 Viewport v = new Viewport();
                 v.X = vp.X;
@@ -491,13 +494,13 @@ namespace Gk3Main.Graphics.Direct3D9
             }
             set
             {
-                SlimDX.Direct3D9.Viewport vp = new SlimDX.Direct3D9.Viewport();
+                SharpDX.Mathematics.Interop.RawViewport vp = new SharpDX.Mathematics.Interop.RawViewport();
                 vp.X = value.X;
                 vp.Y = value.Y;
                 vp.Width = value.Width;
                 vp.Height = value.Height;
-                vp.MinZ = 0;
-                vp.MaxZ = 1.0f;
+                vp.MinDepth = 0;
+                vp.MaxDepth = 1.0f;
 
                 _device.Viewport = vp;
             }
@@ -526,55 +529,55 @@ namespace Gk3Main.Graphics.Direct3D9
             {
                 _device.Indices = indexBuffer.InternalBuffer;
 
-                _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.NumVertices / 3, 0, indices.Length / 3);
+                _device.DrawIndexedPrimitive(SharpDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, vertexBuffer.NumVertices / 3, 0, indices.Length / 3);
             }
             else
             {
-                _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, vertexBuffer.NumVertices / 3);
+                _device.DrawPrimitives(SharpDX.Direct3D9.PrimitiveType.TriangleList, 0, vertexBuffer.NumVertices / 3);
             }
         }
 
         public void DrawIndexed(PrimitiveType primitiveType, int baseVertex, int minVertexIndex, int numVertices, int startIndex, int indexCount)
         {
-            SlimDX.Direct3D9.PrimitiveType type;
+            SharpDX.Direct3D9.PrimitiveType type;
             int primitiveCount;
             switch (primitiveType)
             {
                 case PrimitiveType.Triangles:
-                    type = SlimDX.Direct3D9.PrimitiveType.TriangleList;
+                    type = SharpDX.Direct3D9.PrimitiveType.TriangleList;
                     primitiveCount = indexCount / 3;
                     break;
                 case PrimitiveType.Lines:
-                    type = SlimDX.Direct3D9.PrimitiveType.LineList;
+                    type = SharpDX.Direct3D9.PrimitiveType.LineList;
                     primitiveCount = indexCount / 2;
                     break;
                 case PrimitiveType.LineStrip:
-                    type = SlimDX.Direct3D9.PrimitiveType.LineStrip;
+                    type = SharpDX.Direct3D9.PrimitiveType.LineStrip;
                     primitiveCount = indexCount - 1;
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
-            _device.DrawIndexedPrimitives(type, baseVertex, minVertexIndex, numVertices, startIndex, primitiveCount);
+            _device.DrawIndexedPrimitive(type, baseVertex, minVertexIndex, numVertices, startIndex, primitiveCount);
         }
 
         public void Draw(PrimitiveType primitiveType, int startVertex, int vertexCount)
         {
-            SlimDX.Direct3D9.PrimitiveType type;
+            SharpDX.Direct3D9.PrimitiveType type;
             int primitiveCount;
             switch (primitiveType)
             {
                 case PrimitiveType.Triangles:
-                    type = SlimDX.Direct3D9.PrimitiveType.TriangleList;
+                    type = SharpDX.Direct3D9.PrimitiveType.TriangleList;
                     primitiveCount = vertexCount / 3;
                     break;
                 case PrimitiveType.Lines:
-                    type = SlimDX.Direct3D9.PrimitiveType.LineList;
+                    type = SharpDX.Direct3D9.PrimitiveType.LineList;
                     primitiveCount = vertexCount / 2;
                     break;
                 case PrimitiveType.LineStrip:
-                    type = SlimDX.Direct3D9.PrimitiveType.LineStrip;
+                    type = SharpDX.Direct3D9.PrimitiveType.LineStrip;
                     primitiveCount = vertexCount - 1;
                     break;
                 default:
@@ -663,7 +666,7 @@ namespace Gk3Main.Graphics.Direct3D9
             Mip
         }
 
-        private static SlimDX.Direct3D9.TextureFilter convertTextureFilter(TextureFilter filter, FilterType type)
+        private static SharpDX.Direct3D9.TextureFilter convertTextureFilter(TextureFilter filter, FilterType type)
         {
             if (type == FilterType.Mip)
             {
@@ -672,14 +675,14 @@ namespace Gk3Main.Graphics.Direct3D9
                     filter == TextureFilter.MinLinearMagPointMipPoint ||
                     filter == TextureFilter.MinPointMagLinearMipPoint)
                 {
-                    return SlimDX.Direct3D9.TextureFilter.Point;
+                    return SharpDX.Direct3D9.TextureFilter.Point;
                 }
                 else if (filter == TextureFilter.Linear ||
                     filter == TextureFilter.PointMipLinear ||
                     filter == TextureFilter.MinLinearMagPointMipLinear ||
                     filter == TextureFilter.MinPointMagLinearMipLinear)
                 {
-                    return SlimDX.Direct3D9.TextureFilter.Linear;
+                    return SharpDX.Direct3D9.TextureFilter.Linear;
                 }
             }
             else if (type == FilterType.Min)
@@ -689,14 +692,14 @@ namespace Gk3Main.Graphics.Direct3D9
                     filter == TextureFilter.MinPointMagLinearMipPoint ||
                     filter == TextureFilter.PointMipLinear)
                 {
-                    return SlimDX.Direct3D9.TextureFilter.Point;
+                    return SharpDX.Direct3D9.TextureFilter.Point;
                 }
                 else if (filter == TextureFilter.Linear ||
                     filter == TextureFilter.LinearMipPoint ||
                     filter == TextureFilter.MinLinearMagPointMipLinear ||
                     filter == TextureFilter.MinLinearMagPointMipPoint)
                 {
-                    return SlimDX.Direct3D9.TextureFilter.Linear;
+                    return SharpDX.Direct3D9.TextureFilter.Linear;
                 }
             }
             else if (type == FilterType.Mag)
@@ -706,18 +709,18 @@ namespace Gk3Main.Graphics.Direct3D9
                     filter == TextureFilter.MinLinearMagPointMipPoint ||
                     filter == TextureFilter.PointMipLinear)
                 {
-                    return SlimDX.Direct3D9.TextureFilter.Point;
+                    return SharpDX.Direct3D9.TextureFilter.Point;
                 }
                 else if (filter == TextureFilter.Linear ||
                     filter == TextureFilter.LinearMipPoint ||
                     filter == TextureFilter.MinPointMagLinearMipLinear ||
                     filter == TextureFilter.MinPointMagLinearMipPoint)
                 {
-                    return SlimDX.Direct3D9.TextureFilter.Linear;
+                    return SharpDX.Direct3D9.TextureFilter.Linear;
                 }
             }
 
-            return SlimDX.Direct3D9.TextureFilter.None;
+            return SharpDX.Direct3D9.TextureFilter.None;
         }
     }
 }

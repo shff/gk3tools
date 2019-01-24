@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using SlimDX.Direct3D9;
+using SharpDX.Direct3D9;
 
 namespace Gk3Main.Graphics.Direct3D9
 {
@@ -45,7 +45,7 @@ namespace Gk3Main.Graphics.Direct3D9
             get { return _texture; }
         }
 
-        internal static void WritePixelsToTextureDataStream(SlimDX.DataStream stream, byte[] pixels, int actualWidth, int actualHeight)
+        internal static void WritePixelsToTextureDataStream(SharpDX.DataStream stream, byte[] pixels, int actualWidth, int actualHeight)
         {
             for (int i = 0; i < actualHeight; i++)
             {
@@ -85,9 +85,10 @@ namespace Gk3Main.Graphics.Direct3D9
             _texture = new Texture(renderer.Direct3D9Device, _actualPixelWidth, _actualPixelHeight, 0, Usage.AutoGenerateMipMap, Format.A8R8G8B8, Pool.Managed);
 
             Surface s = _texture.GetSurfaceLevel(0);
-            SlimDX.DataRectangle r = s.LockRectangle(LockFlags.None);
+            SharpDX.DataStream stream;
+            SharpDX.DataRectangle r = s.LockRectangle(LockFlags.None, out stream);
 
-            WritePixelsToTextureDataStream(r.Data, pixels, _actualPixelWidth, _actualPixelHeight);
+            WritePixelsToTextureDataStream(stream, pixels, _actualPixelWidth, _actualPixelHeight);
 
             s.UnlockRectangle();
         }

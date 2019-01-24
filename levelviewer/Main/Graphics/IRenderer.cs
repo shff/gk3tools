@@ -255,42 +255,42 @@ namespace Gk3Main.Graphics
 
             if (renderer != null)
             {
-                SlimDX.Direct3D9.VertexElement[] d3d9Elements = new SlimDX.Direct3D9.VertexElement[elements.Length + 1];
+                SharpDX.Direct3D9.VertexElement[] d3d9Elements = new SharpDX.Direct3D9.VertexElement[elements.Length + 1];
                 for (int i = 0; i < elements.Length; i++)
                 {
                     d3d9Elements[i].Offset = (short)elements[i].Offset;
 
                     if (elements[i].Format == VertexElementFormat.Float)
-                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float1;
+                        d3d9Elements[i].Type = SharpDX.Direct3D9.DeclarationType.Float1;
                     else if (elements[i].Format == VertexElementFormat.Float2)
-                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float2;
+                        d3d9Elements[i].Type = SharpDX.Direct3D9.DeclarationType.Float2;
                     else if (elements[i].Format == VertexElementFormat.Float3)
-                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float3;
+                        d3d9Elements[i].Type = SharpDX.Direct3D9.DeclarationType.Float3;
                     else if (elements[i].Format == VertexElementFormat.Float4)
-                        d3d9Elements[i].Type = SlimDX.Direct3D9.DeclarationType.Float4;
+                        d3d9Elements[i].Type = SharpDX.Direct3D9.DeclarationType.Float4;
 
                     if (elements[i].Usage == VertexElementUsage.Position)
-                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.Position;
+                        d3d9Elements[i].Usage = SharpDX.Direct3D9.DeclarationUsage.Position;
                     else if (elements[i].Usage == VertexElementUsage.TexCoord)
-                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.TextureCoordinate;
+                        d3d9Elements[i].Usage = SharpDX.Direct3D9.DeclarationUsage.TextureCoordinate;
                     else if (elements[i].Usage == VertexElementUsage.Normal)
-                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.Normal;
+                        d3d9Elements[i].Usage = SharpDX.Direct3D9.DeclarationUsage.Normal;
                     else if (elements[i].Usage == VertexElementUsage.Color)
-                        d3d9Elements[i].Usage = SlimDX.Direct3D9.DeclarationUsage.Color;
+                        d3d9Elements[i].Usage = SharpDX.Direct3D9.DeclarationUsage.Color;
 
                     d3d9Elements[i].Stream = 0;
                     d3d9Elements[i].UsageIndex = (byte)elements[i].UsageIndex;
-                    d3d9Elements[i].Method = SlimDX.Direct3D9.DeclarationMethod.Default;
+                    d3d9Elements[i].Method = SharpDX.Direct3D9.DeclarationMethod.Default;
                 }
-                d3d9Elements[d3d9Elements.Length - 1] = SlimDX.Direct3D9.VertexElement.VertexDeclarationEnd;
-                D3D9Declaration = new SlimDX.Direct3D9.VertexDeclaration(renderer.Direct3D9Device, d3d9Elements);
+                d3d9Elements[d3d9Elements.Length - 1] = SharpDX.Direct3D9.VertexElement.VertexDeclarationEnd;
+                D3D9Declaration = new SharpDX.Direct3D9.VertexDeclaration(renderer.Direct3D9Device, d3d9Elements);
             }
 #endif
         }
 
         public VertexElement[] Elements;
 #if !D3D_DISABLED
-        public SlimDX.Direct3D9.VertexDeclaration D3D9Declaration;
+        public SharpDX.Direct3D9.VertexDeclaration D3D9Declaration;
 #endif
         public int Stride;
     }
