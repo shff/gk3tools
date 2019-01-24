@@ -534,45 +534,55 @@ namespace Gk3Main.Graphics.Direct3D9
             }
         }
 
-        public void RenderPrimitives(int firstVertex, int vertexCount)
+        public void DrawIndexed(PrimitiveType primitiveType, int baseVertex, int minVertexIndex, int numVertices, int startIndex, int indexCount)
         {
-            _device.DrawPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, firstVertex, vertexCount / 3);
-        }
-
-        public void RenderIndexedPrimitives(int startIndex, int numPrimitives)
-        {
-            _device.DrawIndexedPrimitives(SlimDX.Direct3D9.PrimitiveType.TriangleList, 0, 0, _currentVertexBuffer.NumVertices, startIndex, numPrimitives);
-        }
-
-        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct
-        {
-            if (declaration != _currentDeclaration)
-            {
-                VertexDeclaration = declaration;
-            }
-
-            SlimDX.Direct3D9.PrimitiveType d3dType;
-
+            SlimDX.Direct3D9.PrimitiveType type;
             int primitiveCount;
-            if (type == PrimitiveType.LineStrip)
+            switch (primitiveType)
             {
-                d3dType = SlimDX.Direct3D9.PrimitiveType.LineStrip;
-                primitiveCount = vertexCount - 1;
-            }
-            else
-            {
-                d3dType = SlimDX.Direct3D9.PrimitiveType.TriangleList;
-                primitiveCount = vertexCount / 3;
+                case PrimitiveType.Triangles:
+                    type = SlimDX.Direct3D9.PrimitiveType.TriangleList;
+                    primitiveCount = indexCount / 3;
+                    break;
+                case PrimitiveType.Lines:
+                    type = SlimDX.Direct3D9.PrimitiveType.LineList;
+                    primitiveCount = indexCount / 2;
+                    break;
+                case PrimitiveType.LineStrip:
+                    type = SlimDX.Direct3D9.PrimitiveType.LineStrip;
+                    primitiveCount = indexCount - 1;
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
 
-            _device.DrawUserPrimitives(d3dType, primitiveCount, vertices);
+            _device.DrawIndexedPrimitives(type, baseVertex, minVertexIndex, numVertices, startIndex, primitiveCount);
         }
 
-        public void RenderIndices(PrimitiveType type, int startIndex, int vertexCount, int[] indices)
+        public void Draw(PrimitiveType primitiveType, int startVertex, int vertexCount)
         {
+            SlimDX.Direct3D9.PrimitiveType type;
+            int primitiveCount;
+            switch (primitiveType)
+            {
+                case PrimitiveType.Triangles:
+                    type = SlimDX.Direct3D9.PrimitiveType.TriangleList;
+                    primitiveCount = vertexCount / 3;
+                    break;
+                case PrimitiveType.Lines:
+                    type = SlimDX.Direct3D9.PrimitiveType.LineList;
+                    primitiveCount = vertexCount / 2;
+                    break;
+                case PrimitiveType.LineStrip:
+                    type = SlimDX.Direct3D9.PrimitiveType.LineStrip;
+                    primitiveCount = vertexCount - 1;
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
 
+            _device.DrawPrimitives(type, startVertex, primitiveCount);
         }
-
 
         #endregion
 

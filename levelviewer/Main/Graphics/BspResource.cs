@@ -877,7 +877,7 @@ namespace Gk3Main.Graphics
 
             effect.CommitParams();
 
-            RendererManager.CurrentRenderer.RenderPrimitives(surface.VertexIndex, surface.VertexCount);
+            RendererManager.CurrentRenderer.Draw(PrimitiveType.Triangles, surface.VertexIndex, surface.VertexCount);
         }
 
         private int findParent(BspNode[] nodes, int index)

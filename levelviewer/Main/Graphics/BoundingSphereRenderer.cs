@@ -62,9 +62,10 @@ namespace Gk3Main.Graphics
             _effect.Begin();
             
             int count = (_resolution + 1);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, 0, count, _vertices, _declaration);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count, count, _vertices, _declaration);
-            RendererManager.CurrentRenderer.RenderPrimitives(PrimitiveType.LineStrip, count * 2, count, _vertices, _declaration);
+            // TODO: get this working again
+            //RendererManager.CurrentRenderer.Draw(PrimitiveType.LineStrip, 0, count, _vertices, _declaration);
+           // RendererManager.CurrentRenderer.Draw(PrimitiveType.LineStrip, count, count, _vertices, _declaration);
+            //RendererManager.CurrentRenderer.Draw(PrimitiveType.LineStrip, count * 2, count, _vertices, _declaration);
             _effect.End();
         }
     }

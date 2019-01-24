@@ -166,7 +166,7 @@ namespace Gk3Main.Graphics
 
                 RendererManager.CurrentRenderer.SetVertexBuffer(_vertexBuffer);
                 RendererManager.CurrentRenderer.Indices = _indexBuffer;
-                renderer.RenderIndexedPrimitives(0, 2);
+                renderer.DrawIndexed(PrimitiveType.Triangles, 0, 0, _vertexBuffer.NumVertices, 0, 6);
                 //renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices);
                 //renderer.RenderIndices(PrimitiveType.Triangles, 0, 4, _indices, _workingVertices, _vertexDeclaration);
             }

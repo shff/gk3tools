@@ -513,11 +513,8 @@ namespace Gk3Main.Graphics
         IndexBuffer Indices { get; set; }
         void SetVertexBuffer(VertexBuffer buffer);
 
-        void RenderPrimitives(int startVertex, int numVertices);
-        void RenderIndexedPrimitives(int startIndex, int numPrimitives);
-
-        [Obsolete]
-        void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct;
+        void DrawIndexed(PrimitiveType primitiveType, int baseVertex, int minVertexIndex, int numVertices, int startIndex, int indexCount);
+        void Draw(PrimitiveType primitiveType, int startVertex, int vertexCount);
 
         void BeginScene();
         void EndScene();

@@ -309,120 +309,53 @@ namespace Gk3Main.Graphics.OpenGl
             _currentVertexBuffer = glVertices;
         }
 
-        public void RenderPrimitives(int firstVertex, int vertexCount)
+        public void DrawIndexed(PrimitiveType primitiveType, int baseVertex, int minVertexIndex, int numVertices, int startIndex, int indexCount)
         {
-            GL.GetError();
-
             if (_vertexPointersNeedSetup)
                 setupVertexBufferPointers();
 
-            GL.DrawArrays(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, firstVertex, vertexCount);
-            GlException.ThrowExceptionIfErrorExists();
+            OpenTK.Graphics.OpenGL.PrimitiveType type;
+            switch (primitiveType)
+            {
+                case PrimitiveType.Triangles:
+                    type = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
+                    break;
+                case PrimitiveType.Lines:
+                    type = OpenTK.Graphics.OpenGL.PrimitiveType.Lines;
+                    break;
+                case PrimitiveType.LineStrip:
+                    type = OpenTK.Graphics.OpenGL.PrimitiveType.LineStrip;
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            GL.DrawElements(type, indexCount, DrawElementsType.UnsignedInt,
+                Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, startIndex * sizeof(int)));
         }
 
-        public void RenderIndexedPrimitives(int firstIndex, int primitiveCount)
+        public void Draw(PrimitiveType primitiveType, int startVertex, int vertexCount)
         {
-            GL.GetError();
-
             if (_vertexPointersNeedSetup)
                 setupVertexBufferPointers();
 
-            GL.DrawElements(OpenTK.Graphics.OpenGL.PrimitiveType.Triangles, primitiveCount * 3, DrawElementsType.UnsignedInt,
-                Gk3Main.Utils.IncrementIntPtr(IntPtr.Zero, firstIndex * sizeof(int)));
-
-            GlException.ThrowExceptionIfErrorExists();
-        }
-
-        public void RenderPrimitives<T>(PrimitiveType type, int startIndex, int vertexCount, T[] vertices, VertexElementSet declaration) where T: struct
-        {
-            _vertexDeclaration = declaration;
-
-            if (_currentVertexBuffer != null)
+            OpenTK.Graphics.OpenGL.PrimitiveType type;
+            switch (primitiveType)
             {
-                _currentVertexBuffer.Unbind();
-                _currentVertexBuffer = null;
+                case PrimitiveType.Triangles:
+                    type = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
+                    break;
+                case PrimitiveType.Lines:
+                    type = OpenTK.Graphics.OpenGL.PrimitiveType.Lines;
+                    break;
+                case PrimitiveType.LineStrip:
+                    type = OpenTK.Graphics.OpenGL.PrimitiveType.LineStrip;
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
 
-            unsafe
-            {
-                System.Runtime.InteropServices.GCHandle ptrptr=
-                    System.Runtime.InteropServices.GCHandle.Alloc(vertices,
-                    System.Runtime.InteropServices.GCHandleType.Pinned);
-
-                IntPtr verticesptr = ptrptr.AddrOfPinnedObject();
-
-                try
-                {
-                    for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
-                    {
-                        GlslEffect.Attribute attrib = _currentEffect.GetAttribute(_vertexDeclaration.Elements[i].Usage, _vertexDeclaration.Elements[i].UsageIndex);
-                        if (GlslEffect.Attribute.IsValidAttribute(attrib) == false)
-                            continue;
-
-                        GL.EnableVertexAttribArray(i);
-                        GL.VertexAttribPointer(attrib.GlHandle, (int)_vertexDeclaration.Elements[i].Format, VertexAttribPointerType.Float, false, _vertexDeclaration.Stride,
-                            Gk3Main.Utils.IncrementIntPtr(verticesptr, _vertexDeclaration.Elements[i].Offset));
-                    }
-                }
-                finally
-                {
-                    ptrptr.Free();
-                }
-            }
-
-            OpenTK.Graphics.OpenGL.PrimitiveType glType;
-            if (type == PrimitiveType.LineStrip)
-            {
-                glType = OpenTK.Graphics.OpenGL.PrimitiveType.LineStrip;
-            }
-            else
-            {
-                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
-            }
-
-
-            GL.DrawArrays(glType, startIndex, vertexCount);
-
-            for (int i = 0; i < _vertexDeclaration.Elements.Length; i++)
-            {
-                GL.DisableVertexAttribArray(i);
-            }
-        }
-
-        public void RenderIndices(PrimitiveType type, int startIndex, int vertexCount, int[] indices)
-        {
-            OpenTK.Graphics.OpenGL.PrimitiveType glType;
-            if (type == PrimitiveType.Triangles)
-            {
-                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Triangles;
-            }
-            else if (type == PrimitiveType.Lines)
-            {
-                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Lines;
-            }
-            else
-            {
-                glType = OpenTK.Graphics.OpenGL.PrimitiveType.Points;
-            }
-
-            unsafe
-            {
-                System.Runtime.InteropServices.GCHandle indicesHandle =
-                    System.Runtime.InteropServices.GCHandle.Alloc(indices,
-                    System.Runtime.InteropServices.GCHandleType.Pinned);
-
-                IntPtr indicesptr = indicesHandle.AddrOfPinnedObject();
-
-                try
-                {
-                    GL.DrawElements(glType, indices.Length - startIndex, DrawElementsType.UnsignedInt,
-                        Gk3Main.Utils.IncrementIntPtr(indicesptr, startIndex * sizeof(int)));
-                }
-                finally
-                {
-                    indicesHandle.Free();
-                }
-            }
+            GL.DrawArrays(type, startVertex, vertexCount);
         }
 
         public void BeginScene()

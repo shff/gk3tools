@@ -195,7 +195,7 @@ namespace Gk3Main.Graphics
 
                 shader.Begin();
 
-                RendererManager.CurrentRenderer.RenderIndexedPrimitives(i * 6, 2);
+                RendererManager.CurrentRenderer.DrawIndexed(PrimitiveType.Triangles, 0, 0, _vertices.NumVertices, i * 6, 6);
 
                 shader.End();
             }

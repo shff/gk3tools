@@ -138,7 +138,7 @@ namespace Gk3Main.Graphics
             
             _skyboxEffect.Begin();
 
-            Graphics.RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, _indices.Length / 3);
+            Graphics.RendererManager.CurrentRenderer.DrawIndexed(PrimitiveType.Triangles, 0, 0, _vertices.NumVertices, 0, _indices.Length);
 
             _skyboxEffect.End();
 

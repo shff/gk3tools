@@ -434,7 +434,7 @@ namespace Gk3Main.Graphics
 
                         RendererManager.CurrentRenderer.SetVertexBuffer(section.vertexBuffer);
                         RendererManager.CurrentRenderer.Indices = section.indexBuffer;
-                        RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
+                        RendererManager.CurrentRenderer.DrawIndexed(PrimitiveType.Triangles, 0, 0, section.vertexBuffer.NumVertices, 0, section.indices.Length);
                     }
 
                 }
@@ -465,7 +465,7 @@ namespace Gk3Main.Graphics
 
                         RendererManager.CurrentRenderer.SetVertexBuffer(section.vertexBuffer);
                         RendererManager.CurrentRenderer.Indices = section.indexBuffer;
-                        RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
+                        RendererManager.CurrentRenderer.DrawIndexed(PrimitiveType.Triangles, 0, 0, section.vertexBuffer.NumVertices, 0, section.indices.Length);
                     }
                 }
             }
@@ -514,7 +514,7 @@ namespace Gk3Main.Graphics
 
                     RendererManager.CurrentRenderer.SetVertexBuffer(vertices);
                     RendererManager.CurrentRenderer.Indices = section.indexBuffer;
-                    RendererManager.CurrentRenderer.RenderIndexedPrimitives(0, section.indices.Length / 3);
+                    RendererManager.CurrentRenderer.DrawIndexed(PrimitiveType.Triangles, 0, 0, vertices.NumVertices, 0, section.indices.Length);
                 }
             }
         }
