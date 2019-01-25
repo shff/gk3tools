@@ -75,7 +75,7 @@ int SheepMachine::PrepareScriptForExecution(Sheep::IScript* script, const char* 
 	// find the requsted function
 	SheepFunction* sheepfunction = NULL;
 	for (std::vector<SheepFunction>::iterator itr = code->Functions.begin();
-		itr != code->Functions.end(); itr++)
+		itr != code->Functions.end(); ++itr)
 	{
 		if (CIEqual((*itr).Name, function))
 		{
@@ -434,8 +434,6 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 
 void SheepMachine::Execute(SheepContext* context)
 {
-	std::vector<SheepImport> imports = context->GetFunction()->ParentCode->Imports;
-
 	SheepCodeBuffer* code = context->GetFunction()->Code;
 
 	code->SeekFromStart(context->InstructionOffset);
@@ -462,7 +460,7 @@ void SheepMachine::s_call(Sheep::IExecutionContext* context)
 	// find the requsted function
 	SheepFunction* sheepfunction = NULL;
 	for (std::vector<SheepFunction>::iterator itr = fullCode->Functions.begin();
-		itr != fullCode->Functions.end(); itr++)
+		itr != fullCode->Functions.end(); ++itr)
 	{
 		if ((*itr).Name == function)
 		{

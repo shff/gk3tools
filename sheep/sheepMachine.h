@@ -282,7 +282,7 @@ private:
 	static void addI(SheepStack* stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2, AddI);
+		get2Ints(stack, i1, i2, SheepInstruction::AddI);
 
 		stack->push(StackItem(SheepSymbolType::Int, i1 + i2));
 	}
@@ -298,7 +298,7 @@ private:
 	static void subI(SheepStack* stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2, SubtractI);
+		get2Ints(stack, i1, i2, SheepInstruction::SubtractI);
 
 		stack->push(StackItem(SheepSymbolType::Int, i1 - i2));
 	}
@@ -314,7 +314,7 @@ private:
 	static void mulI(SheepStack* stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2, MultiplyI);
+		get2Ints(stack, i1, i2, SheepInstruction::MultiplyI);
 
 		stack->push(StackItem(SheepSymbolType::Int, i1 * i2));
 	}
@@ -330,7 +330,7 @@ private:
 	static void divI(SheepStack* stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2, DivideI);
+		get2Ints(stack, i1, i2, SheepInstruction::DivideI);
 
 		stack->push(StackItem(SheepSymbolType::Int, i1 / i2));
 	}
@@ -416,7 +416,7 @@ private:
 	static void andi(SheepStack* stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2, And);
+		get2Ints(stack, i1, i2, SheepInstruction::And);
 
 		stack->push(StackItem(SheepSymbolType::Int, i1 && i2 ? 1 : 0));
 	}
@@ -424,7 +424,7 @@ private:
 	static void ori(SheepStack* stack)
 	{
 		int i1, i2;
-		get2Ints(stack, i1, i2, Or);
+		get2Ints(stack, i1, i2, SheepInstruction::Or);
 
 		stack->push(StackItem(SheepSymbolType::Int, i1 || i2 ? 1 : 0));
 	}
