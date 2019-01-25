@@ -119,12 +119,12 @@ namespace Sheep
 		memcpy(&op, code, 1);
 		unsigned int iop = op;
 
-		if (op == SitnSpin)
+		if (op == (unsigned char)SheepInstruction::SitnSpin)
 		{
 			printDisassembly(output, op, "SitnSpin");
 			return 1;
 		}
-		else if (op == CallSysFunctionV)
+		else if (op == (unsigned char)SheepInstruction::CallSysFunctionV)
 		{
 			memcpy(param, &code[1], 4);
 
@@ -135,7 +135,7 @@ namespace Sheep
 
 			return 5;
 		}
-		else if (op == CallSysFunctionI)
+		else if (op == (unsigned char)SheepInstruction::CallSysFunctionI)
 		{
 			memcpy(param, &code[1], 4);
 
@@ -146,7 +146,7 @@ namespace Sheep
 			
 			return 5;
 		}
-		else if (op == CallSysFunctionF)
+		else if (op == (unsigned char)SheepInstruction::CallSysFunctionF)
 		{
 			memcpy(param, &code[1], 4);
 
@@ -157,7 +157,7 @@ namespace Sheep
 			
 			return 5;
 		}
-		else if (op == CallSysFunctionS)
+		else if (op == (unsigned char)SheepInstruction::CallSysFunctionS)
 		{
 			memcpy(param, &code[1], 4);
 
@@ -168,106 +168,106 @@ namespace Sheep
 			
 			return 5;
 		}
-		else if (op == Branch)
+		else if (op == (unsigned char)SheepInstruction::Branch)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3],
 				"Branch");
 			return 5;
 		}
-		else if (op == BranchGoto)
+		else if (op == (unsigned char)SheepInstruction::BranchGoto)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3],
 				"BranchGoto");
 			return 5;
 		}
-		else if (op == BranchIfZero)
+		else if (op == (unsigned char)SheepInstruction::BranchIfZero)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3],
 				"BranchIfZero");
 			return 5;
 		}
-		else if (op == BeginWait)
+		else if (op == (unsigned char)SheepInstruction::BeginWait)
 		{
 			printDisassembly(output, op, "BeginWait");
 			return 1;
 		}
-		else if (op == EndWait)
+		else if (op == (unsigned char)SheepInstruction::EndWait)
 		{
 			printDisassembly(output, op, "EndWait");
 			return 1;
 		}
-		else if (op == ReturnV)
+		else if (op == (unsigned char)SheepInstruction::ReturnV)
 		{
 			printDisassembly(output, op, "ReturnV");
 			return 1;
 		}
-		else if (op == ReturnI)
+		else if (op == (unsigned char)SheepInstruction::ReturnI)
 		{
 			printDisassembly(output, op, "ReturnI");
 			return 1;
 		}
-		else if (op == ReturnF)
+		else if (op == (unsigned char)SheepInstruction::ReturnF)
 		{
 			printDisassembly(output, op, "ReturnF");
 			return 1;
 		}
-		else if (op == ReturnS)
+		else if (op == (unsigned char)SheepInstruction::ReturnS)
 		{
 			printDisassembly(output, op, "ReturnS");
 			return 1;
 		}
-		else if (op == StoreI)
+		else if (op == (unsigned char)SheepInstruction::StoreI)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "StoreI");
 			return 5;
 		}
-		else if (op == StoreF)
+		else if (op == (unsigned char)SheepInstruction::StoreF)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "StoreF");
 			return 5;
 		}
-		else if (op == StoreS)
+		else if (op == (unsigned char)SheepInstruction::StoreS)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "StoreS");
 			return 5;
 		}
-		else if (op == LoadI)
+		else if (op == (unsigned char)SheepInstruction::LoadI)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "LoadI");
 			return 5;
 		}
-		else if (op == LoadF)
+		else if (op == (unsigned char)SheepInstruction::LoadF)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "LoadF");
 			return 5;
 		}
-		else if (op == LoadS)
+		else if (op == (unsigned char)SheepInstruction::LoadS)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "LoadS");
 			return 5;
 		}
-		else if (op == PushI)
+		else if (op == (unsigned char)SheepInstruction::PushI)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "PushI");
 			return 5;
 		}
-		else if (op == PushF)
+		else if (op == (unsigned char)SheepInstruction::PushF)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "PushF");
 			return 5;
 		}
-		else if (op == PushS)
+		else if (op == (unsigned char)SheepInstruction::PushS)
 		{
 			memcpy(param, &code[1], 4);
 
@@ -286,149 +286,149 @@ namespace Sheep
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "PushS", constant);
 			return 5;
 		}
-		else if (op == Pop)
+		else if (op == (unsigned char)SheepInstruction::Pop)
 		{
 			printDisassembly(output, op, "Pop");
 			return 1;
 		}
-		else if (op == AddI)
+		else if (op == (unsigned char)SheepInstruction::AddI)
 		{
 			printDisassembly(output, op, "AddI");
 			return 1;
 		}
-		else if (op == AddF)
+		else if (op == (unsigned char)SheepInstruction::AddF)
 		{
 			printDisassembly(output, op, "AddF");
 			return 1;
 		}
-		else if (op == SubtractI)
+		else if (op == (unsigned char)SheepInstruction::SubtractI)
 		{
 			printDisassembly(output, op, "SubtractI");
 			return 1;
 		}
-		else if (op == SubtractF)
+		else if (op == (unsigned char)SheepInstruction::SubtractF)
 		{
 			printDisassembly(output, op, "SubtractF");
 			return 1;
 		}
-		else if (op == MultiplyI)
+		else if (op == (unsigned char)SheepInstruction::MultiplyI)
 		{
 			printDisassembly(output, op, "MultiplyI");
 			return 1;
 		}
-		else if (op == MultiplyF)
+		else if (op == (unsigned char)SheepInstruction::MultiplyF)
 		{
 			printDisassembly(output, op, "MultiplyF");
 			return 1;
 		}
-		else if (op == DivideI)
+		else if (op == (unsigned char)SheepInstruction::DivideI)
 		{
 			printDisassembly(output, op, "DivideI");
 			return 1;
 		}
-		else if (op == DivideF)
+		else if (op == (unsigned char)SheepInstruction::DivideF)
 		{
 			printDisassembly(output, op, "DivideF");
 			return 1;
 		}
-		else if (op == NegateI)
+		else if (op == (unsigned char)SheepInstruction::NegateI)
 		{
 			printDisassembly(output, op, "NegateI");
 			return 1;
 		}
-		else if (op == NegateF)
+		else if (op == (unsigned char)SheepInstruction::NegateF)
 		{
 			printDisassembly(output, op, "NegateF");
 			return 1;
 		}
-		else if (op == IsEqualI)
+		else if (op == (unsigned char)SheepInstruction::IsEqualI)
 		{
 			printDisassembly(output, op, "IsEqualI");
 			return 1;
 		}
-		else if (op == IsEqualF)
+		else if (op == (unsigned char)SheepInstruction::IsEqualF)
 		{
 			printDisassembly(output, op, "IsEqualF");
 			return 1;
 		}
-		else if (op == NotEqualI)
+		else if (op == (unsigned char)SheepInstruction::NotEqualI)
 		{
 			printDisassembly(output, op, "NotEqualI");
 			return 1;
 		}
-		else if (op == NotEqualF)
+		else if (op == (unsigned char)SheepInstruction::NotEqualF)
 		{
 			printDisassembly(output, op, "NotEqualF");
 			return 1;
 		}
-		else if (op == IsGreaterI)
+		else if (op == (unsigned char)SheepInstruction::IsGreaterI)
 		{
 			printDisassembly(output, op, "IsGreaterI");
 			return 1;
 		}
-		else if (op == IsGreaterF)
+		else if (op == (unsigned char)SheepInstruction::IsGreaterF)
 		{
 			printDisassembly(output, op, "IsGreaterF");
 			return 1;
 		}
-		else if (op == IsLessI)
+		else if (op == (unsigned char)SheepInstruction::IsLessI)
 		{
 			printDisassembly(output, op, "IsLessI");
 			return 1;
 		}
-		else if (op == IsLessF)
+		else if (op == (unsigned char)SheepInstruction::IsLessF)
 		{
 			printDisassembly(output, op, "IsLessF");
 			return 1;
 		}
-		else if (op == IsGreaterEqualI)
+		else if (op == (unsigned char)SheepInstruction::IsGreaterEqualI)
 		{
 			printDisassembly(output, op, "IsGreaterEqualI");
 			return 1;
 		}
-		else if (op == IsGreaterEqualF)
+		else if (op == (unsigned char)SheepInstruction::IsGreaterEqualF)
 		{
 			printDisassembly(output, op, "IsGreaterEqualF");
 			return 1;
 		}
-		else if (op == IsLessEqualI)
+		else if (op == (unsigned char)SheepInstruction::IsLessEqualI)
 		{
 			printDisassembly(output, op, "IsLessEqualI");
 			return 1;
 		}
-		else if (op == IsLessEqualF)
+		else if (op == (unsigned char)SheepInstruction::IsLessEqualF)
 		{
 			printDisassembly(output, op, "IsLessEqualF");
 			return 1;
 		}
-		else if (op == IToF)
+		else if (op == (unsigned char)SheepInstruction::IToF)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "IToF");
 			return 5;
 		}
-		else if (op == FToI)
+		else if (op == (unsigned char)SheepInstruction::FToI)
 		{
 			memcpy(param, &code[1], 4);
 			printDisassembly(output, op, param[0], param[1], param[2], param[3], "FToI");
 			return 5;
 		}
-		else if (op == And)
+		else if (op == (unsigned char)SheepInstruction::And)
 		{
 			printDisassembly(output, op, "And");
 			return 1;
 		}
-		else if (op == Or)
+		else if (op == (unsigned char)SheepInstruction::Or)
 		{
 			printDisassembly(output, op, "Or");
 			return 1;
 		}
-		else if (op == Not)
+		else if (op == (unsigned char)SheepInstruction::Not)
 		{
 			printDisassembly(output, op, "Not");
 			return 1;
 		}
-		else if (op == GetString)
+		else if (op == (unsigned char)SheepInstruction::GetString)
 		{
 			printDisassembly(output, op, "GetString");
 			return 1;

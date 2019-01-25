@@ -584,11 +584,11 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclaration
 	for (int i = (int)func.Parameters.size() - 1; i >= 0; i--)
 	{
 		if (func.Parameters[i].Type == SheepSymbolType::Int)
-			func.Code->WriteSheepInstruction(StoreArgI);
+			func.Code->WriteSheepInstruction(SheepInstruction::StoreArgI);
 		else if (func.Parameters[i].Type == SheepSymbolType::Float)
-			func.Code->WriteSheepInstruction(StoreArgF);
+			func.Code->WriteSheepInstruction(SheepInstruction::StoreArgF);
 		else if (func.Parameters[i].Type == SheepSymbolType::String)
-			func.Code->WriteSheepInstruction(StoreArgS);
+			func.Code->WriteSheepInstruction(SheepInstruction::StoreArgS);
 
 		func.Code->WriteInt(i);
 	}
@@ -598,11 +598,11 @@ SheepFunction SheepCodeGenerator::writeFunction(SheepCodeTreeFunctionDeclaration
 	if (type == nullptr)
 	{
 		// add one last bit (the GK3 compiler seems to always do this)
-		func.Code->WriteSheepInstruction(ReturnV);
-		func.Code->WriteSheepInstruction(SitnSpin);
-		func.Code->WriteSheepInstruction(SitnSpin);
-		func.Code->WriteSheepInstruction(SitnSpin);
-		func.Code->WriteSheepInstruction(SitnSpin);
+		func.Code->WriteSheepInstruction(SheepInstruction::ReturnV);
+		func.Code->WriteSheepInstruction(SheepInstruction::SitnSpin);
+		func.Code->WriteSheepInstruction(SheepInstruction::SitnSpin);
+		func.Code->WriteSheepInstruction(SheepInstruction::SitnSpin);
+		func.Code->WriteSheepInstruction(SheepInstruction::SitnSpin);
 	}
 
 	// now we have to go back and update all the GOTOs
@@ -650,7 +650,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 
 		assert(itemsOnStack >= 0);
 		for (int i = 0; i < itemsOnStack; i++)
-			function.Code->WriteSheepInstruction(Pop);
+			function.Code->WriteSheepInstruction(SheepInstruction::Pop);
 	}
 	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Return)
 	{
@@ -665,7 +665,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			if (expr != nullptr)
 				throw SheepCompilerException(expr->GetLineNumber(), "Unexpected return expression in a void function");
 
-			function.Code->WriteSheepInstruction(ReturnV);
+			function.Code->WriteSheepInstruction(SheepInstruction::ReturnV);
 		}
 		else
 		{
@@ -675,42 +675,42 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			if (returnType->GetRefType() == CodeTreeTypeReferenceType::Int)
 			{
 				if (exprType == CodeTreeExpressionValueType::Float)
-					function.Code->WriteSheepInstruction(FToI);
+					function.Code->WriteSheepInstruction(SheepInstruction::FToI);
 				else if (exprType != CodeTreeExpressionValueType::Int)
 					throw SheepCompilerException(expr->GetLineNumber(), "Expected an integer");
 
-				function.Code->WriteSheepInstruction(ReturnI);
+				function.Code->WriteSheepInstruction(SheepInstruction::ReturnI);
 			}
 			else if (returnType->GetRefType() == CodeTreeTypeReferenceType::Float)
 			{
 				if (exprType == CodeTreeExpressionValueType::Int)
-					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteSheepInstruction(SheepInstruction::IToF);
 				else if (exprType != CodeTreeExpressionValueType::Float)
 					throw SheepCompilerException(expr->GetLineNumber(), "Expected a float");
 
-				function.Code->WriteSheepInstruction(ReturnF);
+				function.Code->WriteSheepInstruction(SheepInstruction::ReturnF);
 			}
 			else if (returnType->GetRefType() == CodeTreeTypeReferenceType::String)
 			{
 				if (exprType != CodeTreeExpressionValueType::String)
 					throw SheepCompilerException(expr->GetLineNumber(), "Expected a string");
 
-				function.Code->WriteSheepInstruction(ReturnS);
+				function.Code->WriteSheepInstruction(SheepInstruction::ReturnS);
 			}
 		}
 	}
 	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Wait)
 	{
-		function.Code->WriteSheepInstruction(BeginWait);
+		function.Code->WriteSheepInstruction(SheepInstruction::BeginWait);
 
 		writeCode(function, statement->GetChild(0));
 
-		function.Code->WriteSheepInstruction(EndWait);
+		function.Code->WriteSheepInstruction(SheepInstruction::EndWait);
 	}
 	else if (statement->GetStatementType() == CodeTreeKeywordStatementType::Goto)
 	{
 		// write the goto instruction
-		function.Code->WriteSheepInstruction(BranchGoto);
+		function.Code->WriteSheepInstruction(SheepInstruction::BranchGoto);
 
 		// go get the label to which this GOTO refers and remember it
 		SheepCodeTreeIdentifierReferenceNode* label = static_cast<SheepCodeTreeIdentifierReferenceNode*>(statement->GetChild(0));
@@ -728,7 +728,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			static_cast<SheepCodeTreeExpressionNode*>(statement->GetChild(0));
 		writeExpression(function, condition);
 
-		function.Code->WriteSheepInstruction(BranchIfZero);
+		function.Code->WriteSheepInstruction(SheepInstruction::BranchIfZero);
 		int ifBranchOffset = (int)function.Code->Tell();
 		function.Code->WriteInt(0xdddddddd);
 
@@ -738,7 +738,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		// if there's an else clause...
 		if (statement->GetChild(2) != NULL)
 		{
-			function.Code->WriteSheepInstruction(Branch);
+			function.Code->WriteSheepInstruction(SheepInstruction::Branch);
 			size_t elseBranchOffset = function.Code->Tell();
 			function.Code->WriteInt(0xdddddddd);
 
@@ -769,12 +769,12 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			if (child1->GetValueType() == CodeTreeExpressionValueType::Int &&
 				child2->GetValueType() == CodeTreeExpressionValueType::Float)
 			{
-				function.Code->WriteSheepInstruction(FToI);
+				function.Code->WriteSheepInstruction(SheepInstruction::FToI);
 				function.Code->WriteUInt(0);
 			}
 			else
 			{
-				function.Code->WriteSheepInstruction(IToF);
+				function.Code->WriteSheepInstruction(SheepInstruction::IToF);
 				function.Code->WriteUInt(0);
 			}
 		}
@@ -823,17 +823,17 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 		if (child1->GetValueType() == CodeTreeExpressionValueType::Int)
 		{
 			if (isGlobalVariable)
-				function.Code->WriteSheepInstruction(StoreI);
+				function.Code->WriteSheepInstruction(SheepInstruction::StoreI);
 			else
-				function.Code->WriteSheepInstruction(StoreArgI);
+				function.Code->WriteSheepInstruction(SheepInstruction::StoreArgI);
 			function.Code->WriteInt(symbolIndex);
 		}
 		else if (child1->GetValueType() == CodeTreeExpressionValueType::Float)
 		{
 			if (isGlobalVariable)
-				function.Code->WriteSheepInstruction(StoreF);
+				function.Code->WriteSheepInstruction(SheepInstruction::StoreF);
 			else
-				function.Code->WriteSheepInstruction(StoreArgF);
+				function.Code->WriteSheepInstruction(SheepInstruction::StoreArgF);
 			function.Code->WriteInt(symbolIndex);
 		}
 		else
@@ -841,7 +841,7 @@ void SheepCodeGenerator::writeStatement(SheepFunction& function, SheepCodeTreeSt
 			assert(child1->GetValueType() == CodeTreeExpressionValueType::String);
 
 			if (isGlobalVariable)
-				function.Code->WriteSheepInstruction(StoreS);
+				function.Code->WriteSheepInstruction(SheepInstruction::StoreS);
 			else
 			{
 				// TODO: support string parameters
@@ -864,19 +864,19 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 		itemsOnStack++;
 		if (constant->GetValueType() == CodeTreeExpressionValueType::Int)
 		{
-			function.Code->WriteSheepInstruction(PushI);
+			function.Code->WriteSheepInstruction(SheepInstruction::PushI);
 			function.Code->WriteInt(constant->GetIntValue());
 		}
 		else if (constant->GetValueType() == CodeTreeExpressionValueType::Float)
 		{
-			function.Code->WriteSheepInstruction(PushF);
+			function.Code->WriteSheepInstruction(SheepInstruction::PushF);
 			function.Code->WriteFloat(constant->GetFloatValue());
 		}
 		else if (constant->GetValueType() == CodeTreeExpressionValueType::String)
 		{
-			function.Code->WriteSheepInstruction(PushS);
+			function.Code->WriteSheepInstruction(SheepInstruction::PushS);
 			function.Code->WriteInt(constant->GetStringValue());
-			function.Code->WriteSheepInstruction(GetString);
+			function.Code->WriteSheepInstruction(SheepInstruction::GetString);
 		}
 		else
 		{
@@ -930,28 +930,28 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			{
 				if (params[i] == CodeTreeExpressionValueType::Int && import.Parameters[i] == SheepSymbolType::Float)
 				{
-					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteSheepInstruction(SheepInstruction::IToF);
 					function.Code->WriteUInt((int)params.size() - 1 - i);
 				}
 				else if (params[i] == CodeTreeExpressionValueType::Float && import.Parameters[i] == SheepSymbolType::Int)
 				{
-					function.Code->WriteSheepInstruction(FToI);
+					function.Code->WriteSheepInstruction(SheepInstruction::FToI);
 					function.Code->WriteUInt((int)params.size() - 1 - i);
 				}
 			}
 
 			// write the number of parameters
-			function.Code->WriteSheepInstruction(PushI);
+			function.Code->WriteSheepInstruction(SheepInstruction::PushI);
 			function.Code->WriteInt((int)params.size());
 
 			if (import.ReturnType == SheepSymbolType::Void)
-				function.Code->WriteSheepInstruction(CallSysFunctionV);
+				function.Code->WriteSheepInstruction(SheepInstruction::CallSysFunctionV);
 			else if (import.ReturnType == SheepSymbolType::Int)
-				function.Code->WriteSheepInstruction(CallSysFunctionI);
+				function.Code->WriteSheepInstruction(SheepInstruction::CallSysFunctionI);
 			else if (import.ReturnType == SheepSymbolType::Float)
-				function.Code->WriteSheepInstruction(CallSysFunctionF);
+				function.Code->WriteSheepInstruction(SheepInstruction::CallSysFunctionF);
 			else if (import.ReturnType == SheepSymbolType::String)
-				function.Code->WriteSheepInstruction(CallSysFunctionS);
+				function.Code->WriteSheepInstruction(SheepInstruction::CallSysFunctionS);
 			else
 				throw SheepCompilerException(identifier->GetLineNumber(), "Unsupported import return type");
 			
@@ -1001,31 +1001,31 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			if (variable.Type == SheepSymbolType::Int)
 			{
 				if (isGlobalVariable)
-					function.Code->WriteSheepInstruction(LoadI);
+					function.Code->WriteSheepInstruction(SheepInstruction::LoadI);
 				else
-					function.Code->WriteSheepInstruction(LoadArgI);
+					function.Code->WriteSheepInstruction(SheepInstruction::LoadArgI);
 				function.Code->WriteInt(symbolIndex);
 			}
 			else if (variable.Type == SheepSymbolType::Float)
 			{
 				if (isGlobalVariable)
-					function.Code->WriteSheepInstruction(LoadF);
+					function.Code->WriteSheepInstruction(SheepInstruction::LoadF);
 				else
-					function.Code->WriteSheepInstruction(LoadArgF);
+					function.Code->WriteSheepInstruction(SheepInstruction::LoadArgF);
 				function.Code->WriteInt(symbolIndex);
 			}
 			else
 			{
 				assert(variable.Type == SheepSymbolType::String);
 				if (isGlobalVariable)
-					function.Code->WriteSheepInstruction(LoadS);
+					function.Code->WriteSheepInstruction(SheepInstruction::LoadS);
 				else
 				{
 					// TODO: support string parameters
 					throw SheepCompilerException(identifier->GetLineNumber(), "String parameters are not supported yet");
 				}
 				function.Code->WriteInt(symbolIndex);
-				function.Code->WriteSheepInstruction(GetString);
+				function.Code->WriteSheepInstruction(SheepInstruction::GetString);
 			}
 		}
 	}
@@ -1042,12 +1042,12 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 
 			if (operation->GetValueType() == CodeTreeExpressionValueType::Int)
 			{
-				function.Code->WriteSheepInstruction(NegateI);
+				function.Code->WriteSheepInstruction(SheepInstruction::NegateI);
 			}
 			else // assume float
 			{
 				assert(operation->GetValueType() == CodeTreeExpressionValueType::Float);
-				function.Code->WriteSheepInstruction(NegateF);
+				function.Code->WriteSheepInstruction(SheepInstruction::NegateF);
 			}
 		}
 		else
@@ -1059,56 +1059,56 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 			switch(operation->GetOperationType())
 			{
 			case CodeTreeOperationType::Add:
-				intOp = AddI;
-				floatOp = AddF;
+				intOp = SheepInstruction::AddI;
+				floatOp = SheepInstruction::AddF;
 				break;
 			case CodeTreeOperationType::Minus:
-				intOp = SubtractI;
-				floatOp = SubtractF;
+				intOp = SheepInstruction::SubtractI;
+				floatOp = SheepInstruction::SubtractF;
 				break;
 			case CodeTreeOperationType::Times:
-				intOp = MultiplyI;
-				floatOp = MultiplyF;
+				intOp = SheepInstruction::MultiplyI;
+				floatOp = SheepInstruction::MultiplyF;
 				break;
 			case CodeTreeOperationType::Divide:
-				intOp = DivideI;
-				floatOp = DivideF;
+				intOp = SheepInstruction::DivideI;
+				floatOp = SheepInstruction::DivideF;
 				break;
 			case CodeTreeOperationType::GreaterThan:
-				intOp = IsGreaterI;
-				floatOp = IsGreaterF;
+				intOp = SheepInstruction::IsGreaterI;
+				floatOp = SheepInstruction::IsGreaterF;
 				break;
 			case CodeTreeOperationType::LessThan:
-				intOp = IsLessI;
-				floatOp = IsLessF;
+				intOp = SheepInstruction::IsLessI;
+				floatOp = SheepInstruction::IsLessF;
 				break;
 			case CodeTreeOperationType::GreaterThanEqual:
-				intOp = IsGreaterEqualI;
-				floatOp = IsGreaterEqualF;
+				intOp = SheepInstruction::IsGreaterEqualI;
+				floatOp = SheepInstruction::IsGreaterEqualF;
 				break;
 			case CodeTreeOperationType::LessThanEqual:
-				intOp = IsLessEqualI;
-				floatOp = IsLessEqualF;
+				intOp = SheepInstruction::IsLessEqualI;
+				floatOp = SheepInstruction::IsLessEqualF;
 				break;
 			case CodeTreeOperationType::Equal:
-				intOp = IsEqualI;
-				floatOp = IsEqualF;
+				intOp = SheepInstruction::IsEqualI;
+				floatOp = SheepInstruction::IsEqualF;
 				break;
 			case CodeTreeOperationType::NotEqual:
-				intOp = NotEqualI;
-				floatOp = NotEqualF;
+				intOp = SheepInstruction::NotEqualI;
+				floatOp = SheepInstruction::NotEqualF;
 				break;
 			case CodeTreeOperationType::Not:
-				intOp = Not;
-				floatOp = Not;
+				intOp = SheepInstruction::Not;
+				floatOp = SheepInstruction::Not;
 				break;
 			case CodeTreeOperationType::And:
-				intOp = And;
-				floatOp = And;
+				intOp = SheepInstruction::And;
+				floatOp = SheepInstruction::And;
 				break;
 			case CodeTreeOperationType::Or:
-				intOp = Or;
-				floatOp = Or;
+				intOp = SheepInstruction::Or;
+				floatOp = SheepInstruction::Or;
 				break;
 			default:
 				throw SheepException("Unknown operator type!", SHEEP_UNKNOWN_ERROR_PROBABLY_BUG);
@@ -1126,13 +1126,13 @@ int SheepCodeGenerator::writeExpression(SheepFunction& function, SheepCodeTreeEx
 				// TODO: shouldn't type be determined by the parent's type (the operator)?
 				if (child1->GetValueType() == CodeTreeExpressionValueType::Int && child2->GetValueType() == CodeTreeExpressionValueType::Float)
 				{
-					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteSheepInstruction(SheepInstruction::IToF);
 					function.Code->WriteUInt(1);
 				}
 				
 				if (child1->GetValueType() == CodeTreeExpressionValueType::Float && child2->GetValueType() == CodeTreeExpressionValueType::Int)
 				{
-					function.Code->WriteSheepInstruction(IToF);
+					function.Code->WriteSheepInstruction(SheepInstruction::IToF);
 					function.Code->WriteUInt(0);
 				}
 			}

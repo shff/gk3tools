@@ -178,15 +178,15 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 	
 	switch(instruction)
 	{
-		case SitnSpin:
+		case (unsigned char)SheepInstruction::SitnSpin:
 			break;
-		case Yield:
+		case (unsigned char)SheepInstruction::Yield:
 			throw SheepMachineInstructionException("Yield instruction not supported yet.");
-		case CallSysFunctionV:
+		case (unsigned char)SheepInstruction::CallSysFunctionV:
 			context->InstructionOffset += 4;
 			callVoidFunction(context, code->ReadInt());
 			break;
-		case CallSysFunctionI:
+		case (unsigned char)SheepInstruction::CallSysFunctionI:
 			context->InstructionOffset += 4;
 			callIntFunction(context, code->ReadInt());
 			if (context->GetStack()->top().Type != SheepSymbolType::Int)
@@ -194,14 +194,14 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				throw SheepMachineException("CallSysFunctionI instruction requires integer on stack afterwards", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 			}
 			break;
-		case CallSysFunctionF:
-		case CallSysFunctionS:
+		case (unsigned char)SheepInstruction::CallSysFunctionF:
+		case (unsigned char)SheepInstruction::CallSysFunctionS:
 			throw SheepMachineInstructionException("Function calling not supported yet.");
-		case Branch:
-		case BranchGoto:
+		case (unsigned char)SheepInstruction::Branch:
+		case (unsigned char)SheepInstruction::BranchGoto:
 			context->InstructionOffset = code->ReadInt() - context->GetFunction()->CodeOffset;
 			break;
-		case BranchIfZero:
+		case (unsigned char)SheepInstruction::BranchIfZero:
 			if (stack->top().Type == SheepSymbolType::Int)
 			{
 				if (stack->top().IValue == 0)
@@ -218,214 +218,214 @@ void SheepMachine::executeNextInstruction(SheepContext* context)
 				throw SheepMachineException("BranchIfZero instruction expected integer on stack", SHEEP_ERR_WRONG_TYPE_ON_STACK);
 			}
 			break;
-		case BeginWait:
+		case (unsigned char)SheepInstruction::BeginWait:
 			assert(context->InWaitSection == false);
 			context->InWaitSection = true;
 			break;
-		case EndWait:
+		case (unsigned char)SheepInstruction::EndWait:
 			assert(context->InWaitSection == true);
 			context->InWaitSection = false;
 			context->ChildSuspended = context->AreAnyChildrenSuspended();
 			if (m_endWaitCallback) m_endWaitCallback(this, context);
 			break;
-		case ReturnV:
+		case (unsigned char)SheepInstruction::ReturnV:
 			return;
-		case StoreI:
+		case (unsigned char)SheepInstruction::StoreI:
 			storeI(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case StoreF:
+		case (unsigned char)SheepInstruction::StoreF:
 			storeF(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case StoreS:
+		case (unsigned char)SheepInstruction::StoreS:
 			storeS(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case StoreArgI:
+		case (unsigned char)SheepInstruction::StoreArgI:
 			storeArgI(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case StoreArgF:
+		case (unsigned char)SheepInstruction::StoreArgF:
 			storeArgF(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case StoreArgS:
+		case (unsigned char)SheepInstruction::StoreArgS:
 			throw SheepMachineInstructionException("String parameters not supported yet.");
-		case LoadI:
+		case (unsigned char)SheepInstruction::LoadI:
 			loadI(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case LoadF:
+		case (unsigned char)SheepInstruction::LoadF:
 			loadF(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case LoadS:
+		case (unsigned char)SheepInstruction::LoadS:
 			loadS(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case LoadArgI:
+		case (unsigned char)SheepInstruction::LoadArgI:
 			loadArgI(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case LoadArgF:
+		case (unsigned char)SheepInstruction::LoadArgF:
 			loadArgF(context, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case LoadArgS:
+		case (unsigned char)SheepInstruction::LoadArgS:
 			throw SheepMachineInstructionException("String parameters not supported yet.");
 			break;
-		case PushI:
+		case (unsigned char)SheepInstruction::PushI:
 			stack->push(StackItem(SheepSymbolType::Int, code->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
-		case PushF:
+		case (unsigned char)SheepInstruction::PushF:
 			stack->push(StackItem(SheepSymbolType::Float, code->ReadFloat()));
 			context->InstructionOffset += 4;
 			break;
-		case PushS:
+		case (unsigned char)SheepInstruction::PushS:
 			stack->push(StackItem(SheepSymbolType::String, code->ReadInt()));
 			context->InstructionOffset += 4;
 			break;
-		case Pop:
+		case (unsigned char)SheepInstruction::Pop:
 			stack->pop();
 			break;
-		case AddI:
+		case (unsigned char)SheepInstruction::AddI:
 			addI(stack);
 			break;
-		case AddF:
+		case (unsigned char)SheepInstruction::AddF:
 			addF(stack);
 			break;
-		case SubtractI:
+		case (unsigned char)SheepInstruction::SubtractI:
 			subI(stack);
 			break;
-		case SubtractF:
+		case (unsigned char)SheepInstruction::SubtractF:
 			subF(stack);
 			break;
-		case MultiplyI:
+		case (unsigned char)SheepInstruction::MultiplyI:
 			mulI(stack);
 			break;
-		case MultiplyF:
+		case (unsigned char)SheepInstruction::MultiplyF:
 			mulF(stack);
 			break;
-		case DivideI:
+		case (unsigned char)SheepInstruction::DivideI:
 			divI(stack);
 			break;
-		case DivideF:
+		case (unsigned char)SheepInstruction::DivideF:
 			divF(stack);
 			break;
-		case NegateI:
+		case (unsigned char)SheepInstruction::NegateI:
 			negI(stack);
 			break;
-		case NegateF:
+		case (unsigned char)SheepInstruction::NegateF:
 			negF(stack);
 			break;
-		case IsEqualI:
-			get2Ints(stack, iparam1, iparam2, IsEqualI);
+		case (unsigned char)SheepInstruction::IsEqualI:
+			get2Ints(stack, iparam1, iparam2, SheepInstruction::IsEqualI);
 			if (iparam1 == iparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsEqualF:
+		case (unsigned char)SheepInstruction::IsEqualF:
 			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 == fparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case NotEqualI:
-			get2Ints(stack, iparam1, iparam2, NotEqualI);
+		case (unsigned char)SheepInstruction::NotEqualI:
+			get2Ints(stack, iparam1, iparam2, SheepInstruction::NotEqualI);
 			if (iparam1 != iparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case NotEqualF:
+		case (unsigned char)SheepInstruction::NotEqualF:
 			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 != fparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsGreaterI:
-			get2Ints(stack, iparam1, iparam2, IsGreaterI);
+		case (unsigned char)SheepInstruction::IsGreaterI:
+			get2Ints(stack, iparam1, iparam2, SheepInstruction::IsGreaterI);
 			if (iparam1 > iparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsGreaterF:
+		case (unsigned char)SheepInstruction::IsGreaterF:
 			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 > fparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsLessI:
-			get2Ints(stack, iparam1, iparam2, IsLessI);
+		case (unsigned char)SheepInstruction::IsLessI:
+			get2Ints(stack, iparam1, iparam2, SheepInstruction::IsLessI);
 			if (iparam1 < iparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsLessF:
+		case (unsigned char)SheepInstruction::IsLessF:
 			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 < fparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsGreaterEqualI:
-			get2Ints(stack, iparam1, iparam2, IsGreaterEqualI);
+		case (unsigned char)SheepInstruction::IsGreaterEqualI:
+			get2Ints(stack, iparam1, iparam2, SheepInstruction::IsGreaterEqualI);
 			if (iparam1 >= iparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsGreaterEqualF:
+		case (unsigned char)SheepInstruction::IsGreaterEqualF:
 			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 >= fparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsLessEqualI:
-			get2Ints(stack, iparam1, iparam2, IsLessEqualI);
+		case (unsigned char)SheepInstruction::IsLessEqualI:
+			get2Ints(stack, iparam1, iparam2, SheepInstruction::IsLessEqualI);
 			if (iparam1 <= iparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IsLessEqualF:
+		case (unsigned char)SheepInstruction::IsLessEqualF:
 			get2Floats(stack, fparam1, fparam2);
 			if (fparam1 <= fparam2)
 				stack->push(StackItem(SheepSymbolType::Int, 1));
 			else
 				stack->push(StackItem(SheepSymbolType::Int, 0));
 			break;
-		case IToF:
+		case (unsigned char)SheepInstruction::IToF:
 			itof(stack, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case FToI:
+		case (unsigned char)SheepInstruction::FToI:
 			ftoi(stack, code->ReadInt());
 			context->InstructionOffset += 4;
 			break;
-		case And:
+		case (unsigned char)SheepInstruction::And:
 			andi(stack);
 			break;
-		case Or:
+		case (unsigned char)SheepInstruction::Or:
 			ori(stack);
 			break;
-		case Not:
+		case (unsigned char)SheepInstruction::Not:
 			noti(stack);
 			break;
-		case GetString:
+		case (unsigned char)SheepInstruction::GetString:
 			if (stack->top().Type != SheepSymbolType::String)
 				throw SheepMachineException("Expected string on stack");
 			break;
-		case DebugBreakpoint:
+		case (unsigned char)SheepInstruction::DebugBreakpoint:
 			throw SheepMachineInstructionException("DebugBreakpoint instruction not supported yet.");
 		default:
 			throw SheepMachineInstructionException("Unknown instruction");

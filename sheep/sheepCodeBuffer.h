@@ -3,7 +3,7 @@
 
 #include "rbuffer.h"
 
-enum SheepInstruction
+enum class SheepInstruction
 {
 	SitnSpin             = 0x00,
 	Yield                = 0x01,
