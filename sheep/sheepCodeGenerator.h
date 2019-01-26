@@ -44,52 +44,50 @@ public:
 class SheepCodeTree;
 class SheepImportTable;
 
-struct CompilerContext
-{
-	std::vector<CompilerOutput> Output;
-};
-
 class SheepCodeGenerator
 {
 public:
-
-	SheepCodeGenerator(SheepCodeTree* tree, SheepImportTable* imports, Sheep::SheepLanguageVersion languageVersion);
-
-	IntermediateOutput* BuildIntermediateOutput();
+	static IntermediateOutput* BuildIntermediateOutput(SheepCodeTree* tree, SheepImportTable* imports, Sheep::SheepLanguageVersion languageVersion);
 
 private:
 	typedef std::map<std::string, size_t, ci_less> LabelMap;
 
-	void loadStringConstants(IntermediateOutput* output);
-	void buildSymbolMap(SheepCodeTreeNode* node);
-	void gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNode* node);
-	void determineExpressionTypes(SheepFunction& function, SheepCodeTreeNode* node);
-	SheepFunction writeFunction(SheepCodeTreeFunctionDeclarationNode* function, int codeOffset, CompilerContext& context);
-	void writeCode(SheepFunction& function, SheepCodeTreeNode* node);
-	void writeStatement(SheepFunction& function, SheepCodeTreeStatementNode* statement);
-	int writeExpression(SheepFunction& function, SheepCodeTreeExpressionNode* expression);
-	void writeBinaryOperator(SheepFunction& function, SheepCodeTreeOperationNode* operation);
+	struct InternalContext
+	{
+		Sheep::SheepLanguageVersion LanguageVersion;
+
+		std::vector<SheepSymbol> Variables;
+
+		typedef std::map<std::string, SheepSymbol, ci_less> SymbolMap;
+		SymbolMap Symbols;
+
+		typedef std::map<SheepCodeTreeDeclarationNode*, LabelMap> FunctionLabelMap;
+		FunctionLabelMap Labels;
+		
+		SheepImportTable* Imports;
+		std::vector<SheepImport> UsedImports;
+
+		std::vector<CompilerOutput> Output;
+
+		int GetIndexOfVariable(SheepSymbol& symbol);
+		int GetIndexOfImport(SheepImport& import);
+		
+		/// Gets the type of symbol. Throws a SheepCompilerException if the symbol doesn't exist.
+		SheepSymbolType GetSymbolType(int lineNumber, const std::string& name);
+	};
+
+	static void loadStringConstants(SheepCodeTree* tree, IntermediateOutput* output);
+	static void buildSymbolMap(InternalContext* ctx, SheepCodeTreeNode* node);
+	static void gatherFunctionLabels(LabelMap& labels, SheepCodeTreeNode* node);
+	static void determineExpressionTypes(InternalContext* ctx, SheepFunction& function, SheepCodeTreeNode* node);
+	static SheepFunction writeFunction(InternalContext* ctx, SheepCodeTreeFunctionDeclarationNode* function, int codeOffset);
+	static void writeCode(InternalContext* ctx, SheepFunction& function, SheepCodeTreeNode* node);
+	static void writeStatement(InternalContext* ctx, SheepFunction& function, SheepCodeTreeStatementNode* statement);
+	static int writeExpression(InternalContext* ctx, SheepFunction& function, SheepCodeTreeExpressionNode* expression);
+	static void writeBinaryOperator(SheepFunction& function, SheepCodeTreeOperationNode* operation);
 
 	static CodeTreeExpressionValueType convertToExpressionValueType(SheepSymbolType type);
-
-	Sheep::SheepLanguageVersion m_languageVersion;
-	SheepCodeTree* m_tree;
-	SheepImportTable* m_imports;
-
-	std::vector<SheepImport> m_usedImports;
-	std::vector<SheepSymbol> m_variables;
 	
-	int getIndexOfImport(SheepImport& import);
-	int getIndexOfVariable(SheepSymbol& symbol);
-
-	typedef std::map<std::string, SheepSymbol, ci_less> SymbolMap;
-	SymbolMap m_symbolMap;
-
-	typedef std::map<SheepCodeTreeDeclarationNode*, LabelMap> FunctionLabelMap;
-	FunctionLabelMap m_labels;
-	
-	/// Gets the type of symbol. Throws a SheepCompilerException if the symbol doesn't exist.
-	SheepSymbolType getSymbolType(int lineNumber, const std::string& name);
 };
 
 #endif // SHEEPCODEGENERATOR_H
