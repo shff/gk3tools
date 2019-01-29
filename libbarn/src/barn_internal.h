@@ -30,10 +30,11 @@
 #include <vector>
 #include <cassert>
 #include <memory.h>
+#include "fs.h"
 
 namespace Barn
 {
-	enum Compression
+	enum class Compression
 	{
 		None = 0,
 		ZLib = 1,
@@ -55,7 +56,7 @@ namespace Barn
 		{
 			size = 0;
 			uncompressedSize = 0;
-			compression = None;
+			compression = Compression::None;
 			index = -1;
 			offset = 0;
 		}
@@ -125,42 +126,6 @@ namespace Barn
 	private:
 	
 		void load(const std::string& filename, const std::string& path);
-
-		static unsigned char readByte(std::ifstream& file);
-		static unsigned short readUInt16(std::ifstream& file);
-		static unsigned int readUInt32(std::ifstream& file);
-		static void readString(std::ifstream& file, unsigned int length, char* output);
-		
-		template<typename T>
-		static T readRaw(std::ifstream& file)
-		{
-			// TODO: endian switching!
-			
-			int size = sizeof(T);
-
-			T data;
-			
-			if (size == 1)
-			{
-				file.read((char*)&data, 1);
-			}
-			else if (size == 2)
-			{
-				file.read((char*)&data, 2);
-			}
-			else if (size == 4)
-			{
-				file.read((char*)&data, 4);
-			}
-			else
-			{
-				// BAD BAD BAD! No endian switching is being done!
-				// This better be throw away data!!
-				file.read((char*)&data, size);
-			}
-
-			return data;
-		}
 	
 		std::string m_name;
 		std::string m_path;
@@ -183,7 +148,7 @@ namespace Barn
 		FileMap m_fileMap;
 		unsigned int m_dataOffset;
 		
-		std::ifstream m_file;
+		File m_file;
 	};
 
 }

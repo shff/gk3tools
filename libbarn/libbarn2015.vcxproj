@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -190,12 +190,14 @@
   <ItemGroup>
     <ClCompile Include="src\barn.cpp" />
     <ClCompile Include="src\extractbuffer.cpp" />
+    <ClCompile Include="src\fs.cpp" />
     <ClCompile Include="src\lzo\minilzo.c" />
     <ClCompile Include="src\miniz\miniz.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\barn.h" />
     <ClInclude Include="src\barn_internal.h" />
+    <ClInclude Include="src\fs.h" />
     <ClInclude Include="src\lzo\lzoconf.h" />
     <ClInclude Include="src\lzo\lzodefs.h" />
     <ClInclude Include="src\lzo\minilzo.h" />

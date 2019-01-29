@@ -37,7 +37,7 @@ extern "C" {
 
 #define BARN_VERSION_MAJOR 0
 #define BARN_VERSION_MINOR 3
-#define BARN_VERSION_REVISION 0
+#define BARN_VERSION_REVISION 1
 
 #define BARN_SUCCESS            0
 #define BARNERR_INVALID_BARN   -1
@@ -88,7 +88,7 @@ DECLSPEC int BARN_CALL brn_GetDecompressedFileSize(BarnHandle barn, int index);
 DECLSPEC int BARN_CALL brn_GetFileCompression(BarnHandle barn, int index);
 
 /// Reads the file with the specified name into the given buffer. This does NOT decompress any data.
-// bufferSize is the maximum size to read. The function returns the number of bytes read, or
+/// bufferSize is the maximum size to read. The function returns the number of bytes read, or
 /// -1 on error.
 DECLSPEC int BARN_CALL brn_ReadFileRaw(BarnHandle barn, int index, char* buffer, int bufferSize);
 

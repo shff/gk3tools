@@ -20,10 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "barn.h"
 #include "barn_internal.h"
+#include "fs.h"
 #include <vector>
-#include <iostream>
 #include <sstream>
 #include <memory>
 
@@ -42,7 +46,7 @@ BarnHandle brn_OpenBarn(const char* filename)
 	catch(Barn::BarnException& ex)
 	{
 		std::cout << "BARN ERROR: "  << ex.Message << std::endl;
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -67,6 +71,7 @@ int brn_GetFileName(BarnHandle barn, int index, char* buffer, int size)
 	try
 	{
 		strncpy(buffer, brn->GetFileName(index), size);
+		if (size > 0) buffer[size - 1] = 0;
 
 		return BARN_SUCCESS;
 	}
@@ -125,6 +130,7 @@ int brn_GetFileBarn(BarnHandle barn, int index, char* buffer, int size)
 	try
 	{
 		strncpy(buffer, brn->GetFileBarn(index), size);
+		if (size > 0) buffer[size - 1] = 0;
 	}
 	catch(Barn::BarnException& ex)
 	{
@@ -140,7 +146,7 @@ int brn_GetFileCompression(BarnHandle barn, int index)
 	
 	try
 	{
-		return brn->GetFileCompression(index);
+		return (int)brn->GetFileCompression(index);
 	}
 	catch(Barn::BarnException& ex)
 	{
@@ -193,6 +199,7 @@ void brn_GetLibInfo(char* buffer, int size)
 		<< "Compiled on " << __DATE__ << " at " << __TIME__;
 	
 	strncpy(buffer, ss.str().c_str(), size);
+	if (size > 0) buffer[size - 1] = 0;
 }
 
 
@@ -232,7 +239,7 @@ namespace Barn
 
 	Barn::~Barn()
 	{
-		m_file.close();
+		FileSystem::Close(&m_file);
 	}
 
 	int Barn::GetFileIndex(const char* name)
@@ -269,7 +276,7 @@ namespace Barn
 		BarnFile& barn = m_fileList[index];
 
 		// just use the regular size if the file isn't compressed
-		if (barn.compression == None)
+		if (barn.compression == Compression::None)
 			return barn.size;
 
 		// if we already know the uncompressed size then don't go get it
@@ -281,8 +288,11 @@ namespace Barn
 			throw BarnException("Function doesn't support opening child barns", BARNERR_UNABLE_TO_OPEN_CHILD_BARN);
 
 		// go get the uncompressed size
-		m_file.seekg(m_fileList[index].offset + m_dataOffset);
-		m_file.read((char*)&barn.uncompressedSize, 4);
+		FileReader reader;
+		FileReader::Create(&m_file, &reader);
+		reader.Seek(m_fileList[index].offset + m_dataOffset, true);
+
+		barn.uncompressedSize = reader.ReadUInt32();
 
 		return barn.uncompressedSize;
 	}
@@ -320,11 +330,13 @@ namespace Barn
 
 		if (file.barn.empty())
 		{
-			std::streamoff offset = file.offset + m_dataOffset + (file.compression != None ? 8 : 0);
-			std::streamsize bytesToRead = MIN(bufferSize, file.size);
+			size_t offset = file.offset + m_dataOffset + (file.compression != Compression::None ? 8 : 0);
+			size_t bytesToRead = MIN(bufferSize, file.size);
 
-			m_file.seekg(offset, std::ios::beg);
-			m_file.read(buffer, bufferSize);
+			if (offset + bytesToRead > m_file.FileSize)
+				bytesToRead = m_file.FileSize - offset;
+
+			memcpy(buffer, (unsigned char*)m_file.Memory + offset, bytesToRead);
 
 			return (unsigned int)bytesToRead;
 		}
@@ -341,17 +353,20 @@ namespace Barn
 		BarnFile file = m_fileList[index];
 
 		// just use a regular read if this is uncompressed
-		if (file.compression == None)
+		if (file.compression == Compression::None)
 			return ReadRaw(index, buffer, bufferSize);
 
 		if (file.barn.empty())
 		{
-			std::streamoff offset = file.offset + m_dataOffset;
+			unsigned int offset = file.offset + m_dataOffset;
+			if (offset + 8 + file.size > m_file.FileSize)
+				throw BarnException("Invalid barn file", BARNERR_INVALID_BARN);
 
-			m_file.seekg(offset, std::ios::beg);
+			FileReader reader;
+			FileReader::Create(&m_file, &reader);
+			reader.Seek(offset, true);
 
-			unsigned int uncompressedSize;
-			m_file.read((char*)&uncompressedSize, 4);
+			unsigned int uncompressedSize = reader.ReadUInt32();
 			file.uncompressedSize = uncompressedSize; // don't know why this wouldn't match (or not be set... unless the client doesn't know how to use the API)
 
 			// make sure the output buffer can hold all the uncompressed data
@@ -359,11 +374,10 @@ namespace Barn
 			if (file.uncompressedSize > bufferSize)
 				throw BarnException("The output buffer must be big enough to hold the entire uncompressed file", BARNERR_DECOMPRESSION_ERROR);
 
-			char* compressedBuffer = new char[file.size];
-			m_file.seekg(offset + 8, std::ios::beg);
-			m_file.read(compressedBuffer, file.size);
+			// skip compressed size (we already know it)
+			reader.Seek(4, false);
 
-			ExtractBuffer::Decompress(file.compression, compressedBuffer, file.size, buffer, file.uncompressedSize);
+			ExtractBuffer::Decompress(file.compression, (char*)reader.Position, file.size, buffer, file.uncompressedSize);
 
 			// return the number of *uncompressed* bytes
 			return file.uncompressedSize;
@@ -380,32 +394,33 @@ namespace Barn
 		std::string fullpath = path + filename;
 
 		// TODO: attempt various case versions (all caps, etc) if this fails
-		m_file.open(fullpath.c_str(), std::ios::in | std::ios::binary);
-		
-		if (m_file.good() == false)
+		if (FileSystem::OpenRead(fullpath.c_str(), &m_file) == false)
 		{
 			throw BarnException("Unable to open barn file", BARNERR_FILE_NOT_FOUND);
 		}
 		
-		if (readUInt32(m_file) != Magic1 || readUInt32(m_file) != Magic2)
+		FileReader reader;
+		FileReader::Create(&m_file, &reader);
+
+		if (reader.ReadUInt32() != Magic1 || reader.ReadUInt32() != Magic2)
 		{
-			m_file.close();
+			FileSystem::Close(&m_file);
 			throw BarnException("Barn is not valid", BARNERR_INVALID_BARN);
 		}
 		
 		// read some boring stuff
-		readUInt16(m_file);
-		readUInt16(m_file);
-		readUInt16(m_file);
-		readUInt16(m_file);
-		readUInt32(m_file);
+		reader.ReadUInt16();
+		reader.ReadUInt16();
+		reader.ReadUInt16();
+		reader.ReadUInt16();
+		reader.ReadUInt32();
 			
-		unsigned int dirOffset = readUInt32(m_file);
+		unsigned int dirOffset = reader.ReadUInt32();
 		
 		// seek to the directory section
-		m_file.seekg(dirOffset);
+		reader.Seek(dirOffset, true);
 		
-		unsigned int numDirectories = readUInt32(m_file);
+		unsigned int numDirectories = reader.ReadUInt32();
 
 		// load all the DDir offsets
 		std::vector<unsigned int> headerOffsets;
@@ -416,16 +431,16 @@ namespace Barn
 		
 		for (unsigned int i = 0; i < numDirectories; i++)
 		{
-			unsigned int type = readUInt32(m_file);
+			unsigned int type = reader.ReadUInt32();
 			
-			readUInt16(m_file);
-			readUInt16(m_file);
-			readUInt32(m_file);
-			readUInt32(m_file);
-			readUInt32(m_file);
+			reader.ReadUInt16();
+			reader.ReadUInt16();
+			reader.ReadUInt32();
+			reader.ReadUInt32();
+			reader.ReadUInt32();
 			
-			unsigned int headerOffset = readUInt32(m_file);
-			unsigned int dataOffset = readUInt32(m_file);
+			unsigned int headerOffset = reader.ReadUInt32();
+			unsigned int dataOffset = reader.ReadUInt32();
 			
 			if (type == DDir)
 			{
@@ -442,41 +457,41 @@ namespace Barn
 		m_numFiles = 0;
 		for (unsigned int i = 0; i < headerOffsets.size(); i++)
 		{
-			m_file.seekg(headerOffsets[i]);
+			reader.Seek(headerOffsets[i], true);
 			
 			char barnName[33];
-			readString(m_file, 32, barnName);
+			reader.Read(barnName, 32);
 			barnName[32] = 0;
 
-			readUInt32(m_file);
+			reader.ReadUInt32();
 			char dummy[40];
-			readString(m_file, 40, dummy);
-			readUInt32(m_file);
+			reader.Read(dummy, 40);
+			reader.ReadUInt32();
 			
-			unsigned int numFiles = readUInt32(m_file);
+			unsigned int numFiles = reader.ReadUInt32();
 			
-			m_file.seekg(dataOffsets[i]);
+			reader.Seek(dataOffsets[i], true);
 			
 			for (unsigned int j = 0; j < numFiles; j++)
 			{
 				BarnFile file;
 				file.barn = barnName;
-				file.size = readUInt32(m_file);
-				file.offset = readUInt32(m_file);
+				file.size = reader.ReadUInt32();
+				file.offset = reader.ReadUInt32();
 
-				readUInt32(m_file);
-				readByte(m_file);
-				file.compression = (Compression)readByte(m_file);
+				reader.ReadUInt32();
+				reader.ReadByte();
+				file.compression = (Compression)reader.ReadByte();
 
 				// for some reason there can be files with an invalid compression value (3, to be specific).
 				// treat those as uncompressed.
-				if (file.compression == 3)
-					file.compression = None;
+				if ((int)file.compression == 3)
+					file.compression = Compression::None;
 
-				unsigned char len = readByte(m_file);
+				unsigned char len = reader.ReadByte();
 
 				char nameBuffer[257];
-				readString(m_file, len + 1, nameBuffer);
+				reader.Read(nameBuffer, len + 1);
 				file.name = nameBuffer;
 
 				file.index = m_fileList.size();
@@ -486,23 +501,5 @@ namespace Barn
 				m_numFiles++;
 			}
 		}
-	}
-
-	unsigned char Barn::readByte(std::ifstream& file)
-	{
-		return readRaw<unsigned char>(file);
-	}
-	unsigned short Barn::readUInt16(std::ifstream& file)
-	{
-		return readRaw<unsigned short>(file);
-	}
-	unsigned int Barn::readUInt32(std::ifstream& file)
-	{
-		return readRaw<unsigned int>(file);
-	}
-	
-	void Barn::readString(std::ifstream& file, unsigned int length, char* output)
-	{
-		file.read(output, length);
 	}
 };

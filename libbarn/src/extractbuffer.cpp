@@ -36,7 +36,7 @@ namespace Barn
 {
 	void ExtractBuffer::Decompress(Compression compressionType, const char* input, unsigned int inputSize, char* output, unsigned int uncompressedSize)
 	{
-		if (compressionType == LZO)
+		if (compressionType == Compression::LZO)
 		{
 #ifdef DISABLE_LZO
 			throw BarnException("This version of LibBarn does not have support for LZO", BARNERR_UNABLE_TO_INIT_LZO);
@@ -50,13 +50,13 @@ namespace Barn
 			lzo_uint outputSize = uncompressedSize;
 
 			// decompress the data
-			if (lzo1x_decompress((unsigned char*)input, inputSize, (unsigned char*)output, &outputSize, NULL) != LZO_E_OK && false)
+			if (lzo1x_decompress((unsigned char*)input, inputSize, (unsigned char*)output, &outputSize, nullptr) != LZO_E_OK && false)
 			{
 				throw BarnException("Error while decompressing LZO-compressed data", BARNERR_DECOMPRESSION_ERROR);
 			}
 #endif
 		}
-		else if (compressionType == ZLib)
+		else if (compressionType == Compression::ZLib)
 		{
 #ifdef DISABLE_ZLIB
 			throw BarnException("This version of LibBarn does not have support for ZLib", BARNERR_UNABLE_TO_INIT_ZLIB);

@@ -9,6 +9,7 @@
     <ClCompile Include="src\miniz\miniz.c">
       <Filter>miniz</Filter>
     </ClCompile>
+    <ClCompile Include="src\fs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\barn.h" />
@@ -25,6 +26,7 @@
     <ClInclude Include="src\miniz\miniz.h">
       <Filter>miniz</Filter>
     </ClInclude>
+    <ClInclude Include="src\fs.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="lzo">
