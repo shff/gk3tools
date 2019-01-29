@@ -20,7 +20,7 @@ class StringDictionary
 	{
 		bool operator()(const std::pair<std::string, T>& a, const std::pair<std::string, T>& b)
 		{
-			return CIEqual(a.first, b.first);
+			return CICompare(a.first, b.first) < 0;
 		}
 	};
 

@@ -174,7 +174,15 @@ int shp_Execute(SheepVMContext* context)
 	if (context == nullptr)
 		return SHEEP_ERR_INVALID_ARGUMENT;
 
-	return ((SheepContext*)context)->Execute();
+	try
+	{
+		return ((SheepContext*)context)->Execute();
+	}
+	catch (SheepException& ex)
+	{
+		printf(ex.GetMessage().c_str());
+		return ex.GetErrorNum();
+	}
 }
 
 void shp_ReleaseVMContext(SheepVMContext* context)
