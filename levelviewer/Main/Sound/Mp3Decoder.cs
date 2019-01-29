@@ -171,37 +171,37 @@ namespace Gk3Main.Sound
         const int MPG123_NEW_FORMAT = -11;
         const int MPG123_DONE = -12;
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern int mpg123_init();
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern IntPtr mpg123_new(IntPtr dummy, out int error);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern void mpg123_delete(IntPtr handle);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern int mpg123_format_none(IntPtr handle);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern int mpg123_format(IntPtr handle, int rate, int channels, int encodings);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern int mpg123_getformat(IntPtr handle, out int rate, out int channels, out int encoding);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern uint mpg123_outblock(IntPtr handle);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe int mpg123_read(IntPtr handle, byte* outmemory, uint outmemsize, out uint done);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe int mpg123_decode(IntPtr handle, byte* inmemory, uint inmemsize, byte* outmemory, uint outmemsize, out uint done);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern int mpg123_open_feed(IntPtr handle);
 
-        [DllImport("libmpg123-0")]
+        [DllImport("libmpg123-0", CallingConvention = CallingConvention.Cdecl)]
         static extern unsafe int mpg123_feed(IntPtr handle, byte* input, uint size);
     }
 }
