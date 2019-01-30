@@ -12,27 +12,51 @@ namespace Gk3Main.Graphics
         private bool _containsAlpha;
 
         private const uint Gk3BitmapHeader = 0x4D6E3136;
+        private const uint PngHeader = 0x474E5089;
+
+        public enum SourceType
+        {
+            Unknown,
+            GK3Bitmap,
+            WindowsBitmap,
+            Png
+        }
+
 
         public BitmapSurface(Stream stream)
-            : this(stream, true)
+            : this(stream, SourceType.Unknown, true)
         {
         }
 
-        public BitmapSurface(Stream stream, bool convertFromIndexed)
+        public BitmapSurface(Stream stream, SourceType type, bool convertFromIndexed)
         {
             int currentStreamPosition = (int)stream.Position;
             System.IO.BinaryReader reader = new System.IO.BinaryReader(stream);
 
-            // determine whether this is a GK3 bitmap or a Windows bitmap
-            uint header = reader.ReadUInt32();
+            if (type == SourceType.Unknown)
+            {
+                // determine whether this is a GK3 bitmap or a Windows bitmap
+                uint header = reader.ReadUInt32();
 
-            // rewind the stream to where it was when we first got it
-            reader.BaseStream.Seek(currentStreamPosition, System.IO.SeekOrigin.Begin);
+                // rewind the stream to where it was when we first got it
+                reader.BaseStream.Seek(currentStreamPosition, System.IO.SeekOrigin.Begin);
 
-            if (header == Gk3BitmapHeader)
+                if (header == Gk3BitmapHeader)
+                    type = SourceType.GK3Bitmap;
+                else if (header == PngHeader)
+                    type = SourceType.Png;
+                else
+                    type = SourceType.WindowsBitmap;
+            }
+
+            if (type == SourceType.GK3Bitmap)
                 loadGk3Bitmap(reader, out _pixels, out _width, out _height, out _containsAlpha);
-            else
+            else if (type == SourceType.WindowsBitmap)
                 loadWindowsBitmap(reader, convertFromIndexed, out _pixels, out _width, out _height, out _is8bit);
+            else if (type == SourceType.Png)
+                loadPng(reader, out _pixels, out _width, out _height, out _containsAlpha);
+            else
+                throw new InvalidOperationException("Unable to determine format of image data");
         }
 
         public BitmapSurface(int width, int height, byte[] pixels)
@@ -260,6 +284,31 @@ namespace Gk3Main.Graphics
                 // skip any extra bytes
                 reader.ReadBytes(padding);
             }
+        }
+
+        private static void loadPng(System.IO.BinaryReader reader, out byte[] pixels, out int width, out int height, out bool containsAlpha)
+        {
+            var bmp = (System.Drawing.Bitmap)System.Drawing.Bitmap.FromStream(reader.BaseStream);
+            var bmpData = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            pixels = new byte[bmp.Width * bmp.Height * 4];
+            width = bmp.Width;
+            height = bmp.Height;
+
+            System.Runtime.InteropServices.Marshal.Copy(bmpData.Scan0, pixels, 0, pixels.Length);
+
+            bmp.UnlockBits(bmpData);
+            bmp.Dispose();
+
+            // swap blue and red channels
+            for (int i = 0; i < pixels.Length / 4; i++)
+            {
+                var r = pixels[i * 4 + 0];
+                pixels[i * 4 + 0] = pixels[i * 4 + 2];
+                pixels[i * 4 + 2] = r;
+            }
+
+            containsAlpha = true;
         }
 
         private static void convert565(ushort pixel, out byte r, out byte g, out byte b)

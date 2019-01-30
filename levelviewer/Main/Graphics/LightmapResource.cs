@@ -34,7 +34,7 @@ namespace Gk3Main.Graphics
             _maps = new BitmapSurface[numMaps];
 
             for (int i = 0; i < numMaps; i++)
-                _maps[i] = new BitmapSurface(stream, false);
+                _maps[i] = new BitmapSurface(stream, BitmapSurface.SourceType.Unknown, false);
 
             GenTextureAtlas();
         }

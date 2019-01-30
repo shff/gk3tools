@@ -34,7 +34,7 @@ namespace Gk3Main.Game
             {
                 // apparently the color doesn't matter, the weights are
                 // stored as indices. So we don't want to convert!
-                map = new Gk3Main.Graphics.BitmapSurface(stream, false);
+                map = new Gk3Main.Graphics.BitmapSurface(stream, Graphics.BitmapSurface.SourceType.Unknown, false);
             }
 
             // temporary

@@ -219,7 +219,7 @@ namespace Gk3Main.Graphics
 
                 System.IO.Stream stream = FileSystem.Open(name);
 
-                BitmapSurface surface = new BitmapSurface(stream);
+                BitmapSurface surface = new BitmapSurface(stream, BitmapSurface.SourceType.Unknown, true);
                 Resource.Resource resource = RendererManager.CurrentRenderer.CreateTexture(name, surface, true, true);
 
                 stream.Close();
