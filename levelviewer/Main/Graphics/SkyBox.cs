@@ -17,7 +17,7 @@ namespace Gk3Main.Graphics
         private const int _stride = 3;
         private const float _size = 500.0f;
 
-        public static void Init(Resource.ResourceManager globalContent)
+        public static void Init()
         {
             VertexElementSet declaration = new VertexElementSet(new VertexElement[]
             {
@@ -92,7 +92,7 @@ namespace Gk3Main.Graphics
             _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Static, vertices, 8, declaration);
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
-            _skyboxEffect = globalContent.Load<Effect>("skybox.fx");
+            _skyboxEffect = Resource.ResourceManager.Global.Load<Effect>("skybox.fx");
         }
 
         public SkyBox(string name, BitmapSurface front, BitmapSurface back, BitmapSurface left, BitmapSurface right,

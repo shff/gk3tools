@@ -126,9 +126,9 @@ namespace Gk3Main.Graphics
             });
         }
 
-        public static void LoadGlobalContent(Resource.ResourceManager globalContent)
+        public static void LoadGlobalContent()
         {
-            _effect = globalContent.Load<Effect>("basic_textured.fx");
+            _effect = Resource.ResourceManager.Global.Load<Effect>("basic_textured.fx");
         }
 
         public ModelResource(string name, Resource.ResourceManager content)

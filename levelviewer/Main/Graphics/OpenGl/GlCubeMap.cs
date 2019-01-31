@@ -14,6 +14,8 @@ namespace Gk3Main.Graphics.OpenGl
         {
             _renderer = renderer;
 
+            GL.GetError();
+
             GL.GenTextures(1, out _glTexture);
             GL.BindTexture(TextureTarget.TextureCubeMap, _glTexture);
 

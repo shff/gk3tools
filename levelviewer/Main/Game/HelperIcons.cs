@@ -10,11 +10,12 @@ namespace Gk3Main.Game
         private static Graphics.TextureResource _flag;
         private static Graphics.TextureResource _bulb;
 
-        public static void Load(Resource.ResourceManager content)
+        public static void Load()
         {
-            _camera = content.Load<Graphics.TextureResource>("Icons/camera.png");
-            _flag = content.Load<Graphics.TextureResource>("Icons/flag.png");
-            _bulb = content.Load<Graphics.TextureResource>("Icons/bulb.png");
+            var global = Gk3Main.Resource.ResourceManager.Global;
+            _camera = global.Load<Graphics.TextureResource>("Icons/camera.png");
+            _flag = global.Load<Graphics.TextureResource>("Icons/flag.png");
+            _bulb = global.Load<Graphics.TextureResource>("Icons/bulb.png");
         }
 
         public static Graphics.TextureResource Camera

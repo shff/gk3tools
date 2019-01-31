@@ -8,9 +8,16 @@ namespace Game
     {
         private static Console _instance;
         private static System.Text.StringBuilder _command = new System.Text.StringBuilder();
-        private static List<string> _lines = new List<string>();
+
+        struct ConsoleLine
+        {
+            public string Text;
+            public Gk3Main.ConsoleSeverity Severity;
+        }
+
+        private static List<ConsoleLine> _lines = new List<ConsoleLine>();
         private static string _prevCommand;
-        private static Gk3Main.Gui.Font _font;
+        private static Gk3Main.Gui.FontInstance _font;
         private static bool _wrap;
         private static float _wrapWidth;
         private static bool _visible = true;
@@ -46,9 +53,9 @@ namespace Game
             set { _visible = value; }
         }
 
-        public static void Load(Gk3Main.Resource.ResourceManager content)
+        public static void Load()
         {
-            _font = content.Load<Gk3Main.Gui.Font>("f_courier");
+            _font = Gk3Main.Gui.Font.Load(Gk3Main.Resource.ResourceManager.Global.Load<Gk3Main.Gui.FontSpec>("f_courier"));
         }
 
         public static void Render(Gk3Main.Graphics.SpriteBatch spriteBatch)
@@ -57,36 +64,54 @@ namespace Game
             {
                 spriteBatch.Begin();
 
+                // draw a background
+                {
+                    var renderer = Gk3Main.Graphics.RendererManager.CurrentRenderer;
+                    var bg = Gk3Main.Graphics.RendererManager.CurrentRenderer.DefaultTexture;
+                    var r = new Gk3Main.Graphics.Rect(0, 0, renderer.Viewport.Width, (_numVisibleLines + 1) * _font.Font.LineHeight);
+                    spriteBatch.Draw(bg, r, null, new Gk3Main.Graphics.Color(0, 0, 0, 0.7f), 0);
+                }
+
                 int startLine = Math.Max(0, _lines.Count - _numVisibleLines);
 
                 int cursorY = 0;
                 for (int i = startLine; i < _lines.Count; i++)
                 {
-                    _font.Print(spriteBatch, 0, cursorY, _lines[i]);
+                    Gk3Main.Graphics.Color color;
+                    if (_lines[i].Severity == Gk3Main.ConsoleSeverity.Error)
+                        color = Gk3Main.Graphics.Color.Red;
+                    else if (_lines[i].Severity == Gk3Main.ConsoleSeverity.Warning)
+                        color = Gk3Main.Graphics.Color.Orange;
+                    else
+                        color = Gk3Main.Graphics.Color.White;
 
-                    cursorY += _font.LineHeight;
+                    var f = _font;
+                    f.Color = color;
+                    Gk3Main.Gui.Font.Print(spriteBatch, f, 0, cursorY, _lines[i].Text);
+
+                    cursorY += _font.Font.LineHeight;
                 }
 
-                _font.Print(spriteBatch, 0, cursorY, _command.ToString());
+                Gk3Main.Gui.Font.Print(spriteBatch, _font, 0, cursorY, _command.ToString());
 
                 spriteBatch.End();
             }
         }
 
-        public override void Write(Gk3Main.ConsoleVerbosity verbosity, string text, params object[] arg)
+        public override void Write(Gk3Main.ConsoleSeverity severity, string text, params object[] arg)
         {
             string result = string.Format(text, arg);
 
-            if (_wrap && _font != null)
+            if (_wrap)
             {
-                if (_font.MeasureString(result).X > _wrapWidth)
-                    wrapLine(result);
+                if (Gk3Main.Gui.Font.MeasureString(_font, result).X > _wrapWidth)
+                    wrapLine(result, severity);
                 else
-                    _lines.Add(string.Format(text, arg));
+                    _lines.Add(new ConsoleLine() { Severity = severity, Text = string.Format(text, arg) });
             }
             else
             {
-                _lines.Add(string.Format(text, arg));
+                _lines.Add(new ConsoleLine() { Severity = severity, Text = string.Format(text, arg) });
             }
             
             System.Console.WriteLine(result);
@@ -111,18 +136,19 @@ namespace Game
 
         public static void AppendToCurrentCommand(char c)
         {
-            if (c == '\b')
+            if (c == '\b') // backspace
             {
-                if (_command.Length > 2)
+                if (_command.Length > 0)
                     _command.Remove(_command.Length - 1, 1);
             }
-            else if (c == 10)
+            else if (c == 10) // enter
             {
-                _prevCommand = _command.ToString();
+                var command = _command.ToString();
+                _prevCommand = command;
 
-                _instance.Write(Gk3Main.ConsoleVerbosity.Polite, _prevCommand);
+                _instance.Write(Gk3Main.ConsoleSeverity.Normal, command);
 
-                _instance.RunCommand(_prevCommand);
+                _instance.RunCommand(command);
 
                 _command.Length = 0;
             }
@@ -136,10 +162,10 @@ namespace Game
             {
                 _command.Length = 0;
                 _command.Append(_prevCommand);
-            }
+            } 
         }
 
-        private static void wrapLine(string lineToWrap)
+        private static void wrapLine(string lineToWrap, Gk3Main.ConsoleSeverity severity)
         {
             string currentString = lineToWrap;
             StringBuilder currentLine = new StringBuilder();
@@ -150,7 +176,7 @@ namespace Game
 
                 int prevSpace = -1;
                 currentLine.Length = 0;
-                while (_font.MeasureString(currentLine).X < lineWidth && index < currentString.Length)
+                while (Gk3Main.Gui.Font.MeasureString(_font.Font.Instance, currentLine).X < lineWidth && index < currentString.Length)
                 {
                     if (currentString[index] == ' ')
                         prevSpace = currentLine.Length;
@@ -166,20 +192,20 @@ namespace Game
                         // no spaces found, so just break in the middle of the line
                         string line = currentLine.ToString();
                         line = line.Substring(0, line.Length - 1);
-                        _lines.Add(line);
+                        _lines.Add(new ConsoleLine() { Text = line, Severity = severity });
                         index--;
                     }
                     else
                     {
                         string line = currentLine.ToString().Substring(0, prevSpace);
-                        _lines.Add(line);
+                        _lines.Add(new ConsoleLine() { Text = line, Severity = severity });
                         index -= (currentLine.Length - prevSpace - 1);
                     }
                 }
                 else
                 {
                     // apparently we're done! add this last line and exit
-                    _lines.Add(currentLine.ToString());
+                    _lines.Add(new ConsoleLine() { Text = currentLine.ToString(), Severity = severity });
                     break;
                 }
             }

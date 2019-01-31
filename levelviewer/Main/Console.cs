@@ -6,31 +6,32 @@ namespace Gk3Main
 {
     public delegate bool ConsoleCommand(string[] args, Console console);
 
-    public enum ConsoleVerbosity
+    public enum ConsoleSeverity
     {
-        Extreme = 0,
         Debug = 1,
-        Polite = 2,
-        Silent = 3
+        Info = 2,
+        Normal = 3,
+        Warning = 4,
+        Error = 5
     }
 
     public abstract class Console
     {
-        public void WriteLine(ConsoleVerbosity verbosity, string text, params object[] args)
+        public void WriteLine(ConsoleSeverity severity, string text, params object[] args)
         {
-            Write(verbosity, text, args);
+            Write(severity, text, args);
         }
 
         public void WriteLine(string text, params object[] arg)
         {
-            Write(ConsoleVerbosity.Polite, text + Environment.NewLine, arg);
+            Write(ConsoleSeverity.Normal, text + Environment.NewLine, arg);
         }
 
-        public abstract void Write(ConsoleVerbosity verbosity, string text, params object[] arg);
+        public abstract void Write(ConsoleSeverity severity, string text, params object[] arg);
 
         public virtual void ReportError(string error)
         {
-            WriteLine("Error: " + error);
+            WriteLine(ConsoleSeverity.Error, "Error: " + error);
         }
 
         public void AddCommand(string command, ConsoleCommand callback)
@@ -76,12 +77,6 @@ namespace Gk3Main
             }
         }
 
-        public ConsoleVerbosity Verbosity
-        {
-            get { return _verbosity; }
-            set { _verbosity = value; }
-        }
-        
         public string PreviousCommand
         {
             get { return _previousCommand; }
@@ -122,7 +117,6 @@ namespace Gk3Main
         }
 
         protected Dictionary<string, ConsoleCommand> _commands = new Dictionary<string, ConsoleCommand>(StringComparer.OrdinalIgnoreCase);
-        private ConsoleVerbosity _verbosity;
         private string _previousCommand;
 
         public static Console CurrentConsole
@@ -136,7 +130,7 @@ namespace Gk3Main
 
     public class NullConsole : Console
     {
-        public override void Write(ConsoleVerbosity verbosity, string text, params object[] arg)
+        public override void Write(ConsoleSeverity severity, string text, params object[] arg)
         {
             // do nothing
         }

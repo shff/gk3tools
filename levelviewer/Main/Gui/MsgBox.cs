@@ -25,7 +25,7 @@ namespace Gk3Main.Gui
     public class MsgBox : IButtonContainer, IGuiLayer
     {
         private MsgBoxType _type;
-        private Font _font;
+        private FontInstance _font;
         private Button _yes;
         private Button _no;
         private Button _ok;
@@ -69,7 +69,7 @@ namespace Gk3Main.Gui
                 }
             }
 
-            _font = globalContent.Load<Font>(layoutInfo["Font"]);
+            _font = Font.Load(globalContent.Load<FontSpec>(layoutInfo["Font"]));
 
             _yes = new Button(this, globalContent, layoutInfo["yesSpriteDown"], layoutInfo["yesSpriteHov"], layoutInfo["yesSpriteUp"], null, null);
             _no = new Button(this, globalContent, layoutInfo["noSpriteDown"], layoutInfo["noSpriteHov"], layoutInfo["noSpriteUp"], null, null);
@@ -132,7 +132,7 @@ namespace Gk3Main.Gui
             float posY = _rect.Y + _textOffsetY;
             foreach (string line in _lines)
             {
-                _font.Print(sb, (int)(_rect.X + _textOffsetX), (int)posY, line);
+                Font.Print(sb, _font, (int)(_rect.X + _textOffsetX), (int)posY, line);
                 posY += _fontHeight;
             }
 
@@ -250,7 +250,7 @@ namespace Gk3Main.Gui
 
         private Graphics.Rect calculateBoxSize(string text, Graphics.Rect minSize)
         {
-            Math.Vector2 textSize = _font.MeasureString(text);
+            Math.Vector2 textSize = Font.MeasureString(_font, text);
             float area = textSize.X * textSize.Y;
 
             const float goalRatio = 3.0f;
@@ -276,11 +276,11 @@ namespace Gk3Main.Gui
             float currentLineWidth = 0;
             string currentLine = string.Empty;
             float maxFontHeight = float.MinValue;
-            float spaceWidth = _font.MeasureString(" ").X;
+            float spaceWidth = Font.MeasureString(_font, " ").X;
             bool needSpace = false;
             foreach (string word in words)
             {
-                Math.Vector2 size = _font.MeasureString(word);
+                Math.Vector2 size = Font.MeasureString(_font, word);
                 if (currentLineWidth + size.X > width)
                 {
                     _lines.Add(currentLine);

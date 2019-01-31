@@ -163,7 +163,7 @@ namespace Gk3Main.Gui
         {
             VerbButton button = (VerbButton)sender;
 
-            Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Clicked verb: {0}", button.Verb);
+            Console.CurrentConsole.WriteLine(ConsoleSeverity.Debug, "Clicked verb: {0}", button.Verb);
             
             // TODO: this is temporary. Eventually we have to handle the approach
             // correctly. But for now we'll just teleport the actor to the location.

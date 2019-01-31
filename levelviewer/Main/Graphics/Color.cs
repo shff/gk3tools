@@ -62,6 +62,7 @@ namespace Gk3Main.Graphics
         public static Color Green { get { return new Color(0, 255, 0); } }
         public static Color Red { get { return new Color(255, 0, 0); } }
         public static Color Yellow { get { return new Color(255, 255, 0); } }
+        public static Color Orange { get { return new Color(255, 128, 0);  } }
         public static Color Purple { get { return new Color(255, 0, 255); } }
         public static Color Gray { get { return new Color(128, 128, 128); } }
         public static Color Teal { get { return new Color(0, 255, 255); } }

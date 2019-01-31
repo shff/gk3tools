@@ -159,16 +159,16 @@ namespace Viewer
                 // BUG: this code runs the first time the user tries
                 // to open a SCN or SIF or MOD, and never runs again.
                 // But meanwhile the search paths might change.
-                Gk3Main.Graphics.BspResource.Init(_globalContent);
-                Gk3Main.Graphics.SpriteBatch.Init(_globalContent);
-                Gk3Main.Graphics.SkyBox.Init(_globalContent);
-                Gk3Main.Graphics.BillboardManager.Init(_globalContent);
-                Gk3Main.Graphics.AxisAlignedBoundingBox.Init(_globalContent);
+                Gk3Main.Graphics.BspResource.Init();
+                Gk3Main.Graphics.SpriteBatch.Init();
+                Gk3Main.Graphics.SkyBox.Init();
+                Gk3Main.Graphics.BillboardManager.Init();
+                Gk3Main.Graphics.AxisAlignedBoundingBox.Init();
                 Gk3Main.Sound.SoundManager.Init();
-                Gk3Main.Graphics.ModelResource.LoadGlobalContent(_globalContent);
-                Gk3Main.SceneManager.Initialize(_globalContent);
+                Gk3Main.Graphics.ModelResource.LoadGlobalContent();
+                Gk3Main.SceneManager.Initialize();
                 Gk3Main.Game.GameManager.Load();
-                Gk3Main.Game.HelperIcons.Load(_globalContent);
+                Gk3Main.Game.HelperIcons.Load();
             }
 
             _initialDataLoaded = true;

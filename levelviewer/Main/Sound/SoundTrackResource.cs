@@ -158,7 +158,7 @@ namespace Gk3Main.Sound
                 {
                     // for some reason it seems like it's possible for requested sounds
                     // not to exist!
-                    Console.CurrentConsole.WriteLine(ConsoleVerbosity.Polite, 
+                    Console.CurrentConsole.WriteLine(ConsoleSeverity.Warning, 
                         "Unable to load sound referenced in STK: {0}", fileToLoad);
                 }
             }

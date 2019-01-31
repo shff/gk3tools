@@ -48,7 +48,11 @@ namespace Gk3Main.Game
         public float PitchDegrees, YawDegrees;
         public float X, Y, Z;
 
-        public Graphics.Camera Camera;
+        public void Update(Graphics.Camera camera)
+        {
+            camera.SetPitchYaw(Utils.DegreesToRadians(PitchDegrees), Utils.DegreesToRadians(YawDegrees));
+            camera.Position = new Math.Vector3(X, Y, Z);
+        }
     }
 
     public struct SifPosition
@@ -172,10 +176,6 @@ namespace Gk3Main.Game
 
                         camera.YawDegrees += 180.0f;
 
-                        camera.Camera = GameManager.CreateCameraWithDefaults();
-                        camera.Camera.Position = new Gk3Main.Math.Vector3(camera.X, camera.Y, camera.Z);
-                        camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
-
                         _cameras.Add(camera);
                     }
                 }
@@ -201,10 +201,6 @@ namespace Gk3Main.Game
 
                         camera.YawDegrees += 180.0f;
 
-                        camera.Camera = GameManager.CreateCameraWithDefaults(Utils.DegreesToRadians(ffov));
-                        camera.Camera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
-                        camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
-
                         _cameras.Add(camera);
                     }
                 }
@@ -228,10 +224,6 @@ namespace Gk3Main.Game
                             ffov = 60.0f;
 
                         camera.YawDegrees += 180.0f;
-
-                        camera.Camera = GameManager.CreateCameraWithDefaults(Utils.DegreesToRadians(ffov));
-                        camera.Camera.Position = new Math.Vector3(camera.X, camera.Y, camera.Z);
-                        camera.Camera.SetPitchYaw(Utils.DegreesToRadians(camera.PitchDegrees), Utils.DegreesToRadians(camera.YawDegrees));
 
                         _cameras.Add(camera);
                     }

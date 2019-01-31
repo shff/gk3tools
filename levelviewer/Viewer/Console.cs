@@ -51,9 +51,9 @@ namespace Viewer
             _console = console;
         }
 
-        public override void Write(Gk3Main.ConsoleVerbosity verbosity, string text, params object[] arg)
+        public override void Write(Gk3Main.ConsoleSeverity severity, string text, params object[] arg)
         {
-            if (verbosity >= Verbosity)
+            if (severity >= MinSeverity)
                 _console.Write(text, arg);
         }
 
@@ -62,6 +62,11 @@ namespace Viewer
             base.ReportError(error);
 
             MessageBox.Show(error, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
+        public Gk3Main.ConsoleSeverity MinSeverity
+        {
+            get; set;
         }
 
         private ConsoleForm _console;

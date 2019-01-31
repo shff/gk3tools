@@ -49,9 +49,9 @@ namespace Gk3Main.Gui
             return mouseIntercepted;
         }
 
-        public static MainMenu ShowMainMenu(Resource.ResourceManager globalContent)
+        public static MainMenu ShowMainMenu()
         {
-            _mainMenu = new MainMenu(globalContent);
+            _mainMenu = new MainMenu();
 
             _layers.Add(_mainMenu);
 

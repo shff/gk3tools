@@ -223,7 +223,7 @@ namespace Gk3Main.Graphics.OpenGl
 
         public TextureResource CreateTexture(string name, BitmapSurface colorSurface, bool mipmapped)
         {
-            return new GlTexture(this, name, colorSurface);
+            return new GlTexture(this, name, colorSurface, mipmapped, false);
         }
 
         public TextureResource CreateTexture(string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha)

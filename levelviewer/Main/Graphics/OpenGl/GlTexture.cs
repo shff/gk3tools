@@ -48,20 +48,10 @@ namespace Gk3Main.Graphics.OpenGl
             //Gl.glTexImage2D(TextureTarget.Texture2D, 0, Gl.GL_RGBA, width, height, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, _pixels); 
         }
 
-        public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface colorSurface)
-            : base(name, colorSurface)
-        {
-            _renderer = renderer;
-
-            convertToOpenGlTexture(true, true, true);
-        }
-
         public GlTexture(OpenGLRenderer renderer, string name, BitmapSurface surface, bool mipmapped, bool premultiplyAlpha)
             : base(name, surface)
         {
             _renderer = renderer;
-
-            // TODO: we aren't generating 
 
             if (premultiplyAlpha)
                 this.premultiplyAlpha();
@@ -72,9 +62,6 @@ namespace Gk3Main.Graphics.OpenGl
         public void Bind(int index)
         {
             GL.BindTexture(TextureTarget.Texture2D, _glTexture);
-
-            //SamplerState current = _renderer.SamplerStates[index];
-            //ApplySamplerState(current, _hasMipmaps, TextureType.TwoD);
         }
 
         public int OpenGlTexture { get { return _glTexture; } }

@@ -115,15 +115,16 @@ namespace Gk3Main.Graphics
 
     public class BspResource : Resource.Resource
     {
-        public static void Init(Resource.ResourceManager content)
+        public static void Init()
         {
-            _basicTexturedEffect = content.Load<Effect>("basic_textured.fx");
-            _lightmapEffect = content.Load<Effect>("basic_lightmapped.fx");
-            _lightmapNoTextureEffect = content.Load<Effect>("basic_lightmapped_notexture.fx");
+            var global = Resource.ResourceManager.Global;
+            _basicTexturedEffect = global.Load<Effect>("basic_textured.fx");
+            _lightmapEffect = global.Load<Effect>("basic_lightmapped.fx");
+            _lightmapNoTextureEffect = global.Load<Effect>("basic_lightmapped_notexture.fx");
 
             try
             {
-                _radiosityEffect = content.Load<Effect>("radiosity.fx");
+                _radiosityEffect = global.Load<Effect>("radiosity.fx");
             }
             catch (System.IO.FileNotFoundException)
             {

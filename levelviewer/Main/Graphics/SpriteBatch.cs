@@ -12,6 +12,7 @@ namespace Gk3Main.Graphics
             public TextureResource Texture;
             public Rect Source;
             public Rect Destination;
+            public Color Color;
         }
 
         private List<Sprite> _sprites = new List<Sprite>();
@@ -22,7 +23,7 @@ namespace Gk3Main.Graphics
         private static VertexBuffer _vertexBuffer;
         private static IndexBuffer _indexBuffer;
 
-        public static void Init(Resource.ResourceManager content)
+        public static void Init()
         {
             if (_vertexDeclaration == null)
             {
@@ -34,7 +35,7 @@ namespace Gk3Main.Graphics
 
             if (_2dEffect == null)
             {
-                _2dEffect = content.Load<Effect>("2d.fx");
+                _2dEffect = Resource.ResourceManager.Global.Load<Effect>("2d.fx");
             }
 
             if (_vertexBuffer == null)
@@ -105,6 +106,32 @@ namespace Gk3Main.Graphics
             s.Texture = texture;
             s.Source = (source.HasValue ? source.Value : new Rect(0, 0, texture.Width, texture.Height));
             s.Destination = destination;
+            s.Color = Color.White;
+
+            _sprites.Add(s);
+        }
+
+        public void Draw(TextureResource texture, Math.Vector2 destination, Rect? source, Color color, float layerDepth)
+        {
+            Sprite s;
+            s.Texture = texture;
+            s.Source = (source.HasValue ? source.Value : new Rect(0, 0, texture.Width, texture.Height));
+            s.Destination.X = destination.X;
+            s.Destination.Y = destination.Y;
+            s.Destination.Width = s.Source.Width;
+            s.Destination.Height = s.Source.Height;
+            s.Color = color;
+
+            _sprites.Add(s);
+        }
+
+        public void Draw(TextureResource texture, Rect destination, Rect? source, Color color, float layerDepth)
+        {
+            Sprite s;
+            s.Texture = texture;
+            s.Source = (source.HasValue ? source.Value : new Rect(0, 0, texture.Width, texture.Height));
+            s.Destination = destination;
+            s.Color = color;
 
             _sprites.Add(s);
         }
@@ -155,7 +182,7 @@ namespace Gk3Main.Graphics
 
                 _vertexBuffer.SetData(_workingVertices, 0, 4 * stride);
 
-                Math.Vector4 color = new Gk3Main.Math.Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                Math.Vector4 color = new Math.Vector4(s.Color.R / 255.0f, s.Color.G / 255.0f, s.Color.B / 255.0f, s.Color.A / 255.0f);
 
 
                 _2dEffect.SetParameter("Color", color);

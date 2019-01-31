@@ -49,7 +49,7 @@ namespace Gk3Main
         public static void WriteError(string error, params object[] args)
         {
             if (_streams[(int)LoggerStream.Normal].LocalEcho) 
-                Console.CurrentConsole.WriteLine(error, args);
+                Console.CurrentConsole.WriteLine(ConsoleSeverity.Error, error, args);
 
             _writer.WriteLine(error, args);
         }

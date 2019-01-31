@@ -7,7 +7,7 @@ namespace Gk3Main.Gui
     class Dropdown : IButtonContainer
     {
         private bool _down;
-        private Font _font;
+        private FontInstance _font;
         private Button _downArrow;
         private Graphics.TextureResource _top;
         private Graphics.TextureResource _side;
@@ -28,7 +28,7 @@ namespace Gk3Main.Gui
         {
             _container = container;
             _downArrow = new Button(this, globalContent, arrowDownSprite, arrowHoverSprite, arrowUpSprite, null, null);
-            _font = globalContent.Load<Font>("F_ARIAL_T8");
+            _font = Gk3Main.Gui.Font.Load(globalContent.Load<FontSpec>("F_ARIAL_T8"));
             _top = globalContent.Load<Graphics.TextureResource>("RC_BOX_TOP");
             _side = globalContent.Load<Graphics.TextureResource>("RC_BOX_SIDE");
             _blCorner = globalContent.Load<Graphics.TextureResource>("RC_BOX_CORNER_BL");
@@ -51,7 +51,7 @@ namespace Gk3Main.Gui
             _downArrow.Render(sb, tickCount);
 
             if (_selectedIndex >= 0)
-                _font.Print(sb, left, top, _items[_selectedIndex].Value);
+                Gk3Main.Gui.Font.Print(sb, _font, left, top, _items[_selectedIndex].Value);
 
             if (_down)
             {
@@ -74,9 +74,9 @@ namespace Gk3Main.Gui
                 int texty = _screenY + _downArrow.Height;
                 foreach (KeyValuePair<string, string> item in _items)
                 {
-                    _font.Print(sb, (int)_boxRect.X + 1, texty + _itemVerticalPadding, item.Value);
+                    Gk3Main.Gui.Font.Print(sb, _font, (int)_boxRect.X + 1, texty + _itemVerticalPadding, item.Value);
 
-                    texty += _font.LineHeight + _itemVerticalPadding;
+                    texty += _font.Font.LineHeight + _itemVerticalPadding;
                 }
             }
         }
@@ -212,13 +212,13 @@ namespace Gk3Main.Gui
             float width = _width;
             foreach (KeyValuePair<string, string> item in _items)
             {
-                float itemWidth = _font.MeasureString(item.Value).X;
+                float itemWidth = Gk3Main.Gui.Font.MeasureString(_font, item.Value).X;
                 if (itemWidth > width)
                     width = itemWidth;
             }
 
             float boxLeft = _screenX - width + _downArrow.Width;
-            int height = _items.Count * (_font.LineHeight + _itemVerticalPadding);
+            int height = _items.Count * (_font.Font.LineHeight + _itemVerticalPadding);
 
             _boxRect = new Gk3Main.Graphics.Rect(boxLeft + 1, _screenY + _downArrow.Height + 1, width - 2, height - 2);
         }
@@ -232,7 +232,7 @@ namespace Gk3Main.Gui
             if (rmx >= 0 && rmx < _boxRect.Width &&
                 rmy >= 0 && rmy < _boxRect.Height)
             {
-                return rmy / (_font.LineHeight + _itemVerticalPadding);
+                return rmy / (_font.Font.LineHeight + _itemVerticalPadding);
             }
 
             return -1;

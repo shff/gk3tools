@@ -199,6 +199,11 @@ namespace Gk3Main.Resource
 
         #endregion
 
+        public static ResourceManager Global
+        {
+            get { return _global; }
+        }
+
         public static void AddResourceLoader(IResourceLoader loader, Type type)
         {
             string[] supportedExtensions = loader.SupportedExtensions;
@@ -230,6 +235,7 @@ namespace Gk3Main.Resource
             return null;
         }
 
+        private static ResourceManager _global = new ResourceManager();
         private static Dictionary<string, IResourceLoader> _loaders = new Dictionary<string,IResourceLoader>();
         private static Dictionary<Type, IResourceLoader> _loadersByType = new Dictionary<Type, IResourceLoader>();
         //private static Dictionary<string, Resource> _resources = new Dictionary<string, Resource>();

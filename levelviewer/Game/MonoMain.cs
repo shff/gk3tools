@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 class MyConsole : Gk3Main.Console
 {
-    public override void Write(Gk3Main.ConsoleVerbosity verbosity, string text, params object[] arg)
+    public override void Write(Gk3Main.ConsoleSeverity severity, string text, params object[] arg)
     {
-        if (verbosity >= Verbosity)
+        if (severity >= MinSeverity)
         {
             Console.WriteLine(text, arg);
             System.Diagnostics.Trace.WriteLine(string.Format(text, arg));
@@ -26,6 +26,12 @@ class MyConsole : Gk3Main.Console
         }
         base.ReportError(error);
     }
+
+    public Gk3Main.ConsoleSeverity MinSeverity
+    {
+        get; set;
+    }
+
 
     private const int MB_OK = 0x0;
     private const int MB_ICONERROR = 0x10;
@@ -57,7 +63,6 @@ class MonoMain
     private static GameState _state;
     private static bool _isDemo;
     private static Gk3Main.Graphics.SpriteBatch _spriteBatch;
-    private static Gk3Main.Resource.ResourceManager _globalContent;
     private static System.Diagnostics.Stopwatch _clock = new System.Diagnostics.Stopwatch();
 
 	public static void Main(string[] args)
@@ -158,7 +163,7 @@ class MonoMain
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ModelResourceLoader(), typeof(Gk3Main.Graphics.ModelResource));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.ActResourceLoader(), typeof(Gk3Main.Graphics.ActResource));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Graphics.EffectLoader(), typeof(Gk3Main.Graphics.Effect));
-        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader(), typeof(Gk3Main.Gui.Font));
+        Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.FontResourceLoader(), typeof(Gk3Main.Gui.FontSpec));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Gui.CursorResourceLoader(), typeof(Gk3Main.Gui.CursorResource));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundLoader(), typeof(Gk3Main.Sound.AudioEngine.SoundEffect));
         Gk3Main.Resource.ResourceManager.AddResourceLoader(new Gk3Main.Sound.SoundTrackLoader(), typeof(Gk3Main.Sound.SoundTrackResource));
@@ -188,8 +193,6 @@ class MonoMain
             Gk3Main.Console.CurrentConsole.ReportError("Unable to initialize Sheep VM: " + ex.Message);
             return null;
         }
-
-        _globalContent = new Gk3Main.Resource.ResourceManager();
 
         try
         {
@@ -223,16 +226,16 @@ class MonoMain
             return null;
         }
 
-        Game.Console.Load(_globalContent);
+        Game.Console.Load();
         Game.Console.Wrap = true;
         Game.Console.WrapWidth = Gk3Main.Settings.ScreenWidth;
 
-        Gk3Main.Graphics.BspResource.Init(_globalContent);
-        Gk3Main.Graphics.SpriteBatch.Init(_globalContent);
-        Gk3Main.Graphics.SkyBox.Init(_globalContent);
-        Gk3Main.Graphics.BillboardManager.Init(_globalContent);
-        Gk3Main.Graphics.AxisAlignedBoundingBox.Init(_globalContent);
-        Gk3Main.Graphics.ModelResource.LoadGlobalContent(_globalContent);
+        Gk3Main.Graphics.BspResource.Init();
+        Gk3Main.Graphics.SpriteBatch.Init();
+        Gk3Main.Graphics.SkyBox.Init();
+        Gk3Main.Graphics.BillboardManager.Init();
+        Gk3Main.Graphics.AxisAlignedBoundingBox.Init();
+        Gk3Main.Graphics.ModelResource.LoadGlobalContent();
 
         _spriteBatch = new Gk3Main.Graphics.SpriteBatch();
 
@@ -244,11 +247,11 @@ class MonoMain
         try
         {
             Gk3Main.Game.GameManager.Load();
-            Gk3Main.Game.HelperIcons.Load(_globalContent);
-            Gk3Main.Gui.CursorResource waitCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_WAIT.CUR");
-            _pointCursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_POINT.CUR");
-            _zoom1Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM.CUR");
-            Gk3Main.Gui.CursorResource zoom2Cursor = _globalContent.Load<Gk3Main.Gui.CursorResource>("C_ZOOM_2.CUR");
+            Gk3Main.Game.HelperIcons.Load();
+            Gk3Main.Gui.CursorResource waitCursor = Gk3Main.Resource.ResourceManager.Global.Load<Gk3Main.Gui.CursorResource>("C_WAIT.CUR");
+            _pointCursor = Gk3Main.Resource.ResourceManager.Global.Load<Gk3Main.Gui.CursorResource>("C_POINT.CUR");
+            _zoom1Cursor = Gk3Main.Resource.ResourceManager.Global.Load<Gk3Main.Gui.CursorResource>("C_ZOOM.CUR");
+            Gk3Main.Gui.CursorResource zoom2Cursor = Gk3Main.Resource.ResourceManager.Global.Load<Gk3Main.Gui.CursorResource>("C_ZOOM_2.CUR");
         }
         catch(System.IO.FileNotFoundException ex)
         {
@@ -263,7 +266,7 @@ class MonoMain
 
         if (_state == GameState.MainMenu)
         {
-            Gk3Main.Gui.MainMenu menu = Gk3Main.Gui.GuiMaster.ShowMainMenu(_globalContent);
+            Gk3Main.Gui.MainMenu menu = Gk3Main.Gui.GuiMaster.ShowMainMenu();
             menu.OnPlayClicked += new EventHandler(menu_OnPlayClicked);
             menu.OnQuitClicked += new EventHandler(menu_OnQuitClicked);
         }
@@ -416,14 +419,14 @@ class MonoMain
         Gk3Main.Game.GameTimer? timer;
         while ((timer = Gk3Main.Game.GameManager.GetNextExpiredGameTimer()).HasValue)
         {
-            Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
+            Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleSeverity.Debug,
                 "Timer expired- noun: {0} verb: {1}", timer.Value.Noun, timer.Value.Verb);
 
             List<Gk3Main.Game.NounVerbCase> nvcs = Gk3Main.Game.NvcManager.GetNounVerbCases(timer.Value.Noun, timer.Value.Verb, true);
 
             foreach(Gk3Main.Game.NounVerbCase nvc in nvcs)
             {
-                Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleVerbosity.Extreme,
+                Gk3Main.Console.CurrentConsole.WriteLine(Gk3Main.ConsoleSeverity.Debug,
                     "Executing timer NVC: {0}", nvc.Script);
 
                 Gk3Main.Sheep.SheepMachine.RunCommand(nvc.Script);
@@ -438,7 +441,7 @@ class MonoMain
         _state = GameState.Game;
         _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
 
-        Gk3Main.SceneManager.Initialize(_globalContent);
+        Gk3Main.SceneManager.Initialize();
         if (_isDemo)
         {
 
@@ -468,9 +471,9 @@ class MonoMain
         Gk3Main.Gui.TimeBlockSplash splash;
 
         if (_isDemo)
-            splash = Gk3Main.Gui.GuiMaster.ShowTimeBlockSplash(_globalContent, Gk3Main.Game.Timeblock.Day2_12PM);
+            splash = Gk3Main.Gui.GuiMaster.ShowTimeBlockSplash(Gk3Main.Resource.ResourceManager.Global, Gk3Main.Game.Timeblock.Day2_12PM);
         else
-            splash = Gk3Main.Gui.GuiMaster.ShowTimeBlockSplash(_globalContent, Gk3Main.Game.Timeblock.Day1_10AM);
+            splash = Gk3Main.Gui.GuiMaster.ShowTimeBlockSplash(Gk3Main.Resource.ResourceManager.Global, Gk3Main.Game.Timeblock.Day1_10AM);
 
         _state = GameState.TimeBlockSplash;
         _timeAtLastStateChange = Gk3Main.Game.GameManager.TickCount;
@@ -531,7 +534,7 @@ class MonoMain
             Gk3Main.Graphics.Camera camera = Gk3Main.SceneManager.CurrentCamera;
             if (camera != null)
             {
-                Gk3Main.Gui.GuiMaster.ToggleOptionsMenu(_globalContent, mx, my);
+                Gk3Main.Gui.GuiMaster.ToggleOptionsMenu(Gk3Main.Resource.ResourceManager.Global, mx, my);
             }
         }
 
@@ -590,13 +593,13 @@ class MonoMain
 			else if (args[i] == "-scn")
 			{
                 _state = GameState.Game;
-                Gk3Main.SceneManager.Initialize(_globalContent);
+                Gk3Main.SceneManager.Initialize();
 				Gk3Main.SceneManager.LoadScene(args[++i]);
 			}
 			else if (args[i] == "-sif")
 			{
                 _state = GameState.Game;
-                Gk3Main.SceneManager.Initialize(_globalContent);
+                Gk3Main.SceneManager.Initialize();
                 Gk3Main.SceneManager.LoadSif(args[++i]);
 			}
 			else if (args[i] == "-mod")
@@ -633,11 +636,11 @@ class MonoMain
 
     private static void renderStats()
     {
-        Gk3Main.Gui.Font font = _globalContent.Load<Gk3Main.Gui.Font>("F_CONSOLE_DISPLAY.FON");
+        var font = Gk3Main.Gui.Font.Load(Gk3Main.Resource.ResourceManager.Global.Load<Gk3Main.Gui.FontSpec>("F_CONSOLE_DISPLAY.FON"));
 
         _spriteBatch.Begin();
 
-        font.Print(_spriteBatch, 0, 0, "FPS: " + (1.0f / Gk3Main.Game.GameManager.SecsPerFrame));
+        Gk3Main.Gui.Font.Print(_spriteBatch, font, 0, 0, "FPS: " + (1.0f / Gk3Main.Game.GameManager.SecsPerFrame));
 
         _spriteBatch.End();
     }

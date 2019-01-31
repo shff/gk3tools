@@ -68,10 +68,10 @@ namespace Gk3Main
             get { return _sceneCustomizer; }
         }
 
-        public static void Initialize(Resource.ResourceManager globalContent)
+        public static void Initialize()
         {
             ///_verbs = new Gk3Main.Game.Verbs("verbs.txt", FileSystem.Open("verbs.txt"));
-            loadGlobalNvc(globalContent);
+            loadGlobalNvc(Gk3Main.Resource.ResourceManager.Global);
 
             _sceneContentManager = new Resource.ResourceManager();
         }
@@ -608,7 +608,7 @@ namespace Gk3Main
             }*/
 
             SifRoomCamera camera = _cameras[name];
-            _currentCamera = camera.Camera;
+            camera.Update(_currentCamera);
         }
 
         public static void PlaySoundTrack(string name)

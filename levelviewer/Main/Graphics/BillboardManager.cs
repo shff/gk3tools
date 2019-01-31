@@ -33,7 +33,7 @@ namespace Gk3Main.Graphics
         private static IndexBuffer _indices;
         private static float[] _workingVertices = new float[_maxBillboards * _billboardVertexStride];
 
-        public static void Init(Resource.ResourceManager globalContent)
+        public static void Init()
         {
             // create the indices
             uint[] indices = new uint[_maxBillboards * 6];
@@ -58,11 +58,12 @@ namespace Gk3Main.Graphics
             _vertices = RendererManager.CurrentRenderer.CreateVertexBuffer(VertexBufferUsage.Dynamic, (float[])null, _maxBillboards * _billboardVertexStride, _elements);
             _indices = RendererManager.CurrentRenderer.CreateIndexBuffer(indices);
 
-            _shader = globalContent.Load<Effect>("texturedBillboard.fx");
+            var global = Resource.ResourceManager.Global;
+            _shader = global.Load<Effect>("texturedBillboard.fx");
 
             try
             {
-                _alphaShader = globalContent.Load<Effect>("radiosity_omnilight.fx");
+                _alphaShader = global.Load<Effect>("radiosity_omnilight.fx");
             }
             catch (System.IO.FileNotFoundException)
             {

@@ -6,8 +6,11 @@ namespace Gk3Main.Gui
 {
     public class MainMenu : IGuiLayer
     {
-        public MainMenu(Resource.ResourceManager globalContent)
+        public MainMenu()
         {
+            // TODO: I don't think we should be using the global content manager for this since it's pretty short lived...
+            var globalContent = Gk3Main.Resource.ResourceManager.Global;
+
             _isActive = true;
             _theme = globalContent.Load<Gk3Main.Sound.AudioEngine.SoundEffect>("THEME.WAV");
             _background = globalContent.Load<Gk3Main.Graphics.TextureResource>("TITLE.BMP");

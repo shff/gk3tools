@@ -37,7 +37,7 @@ namespace Gk3Main.Gui
             _tooltip = tooltip;
             if (tooltip != null)
             {
-                _tooltipFont = content.Load<Gui.Font>("F_TOOLTIP.FON");
+                _tooltipFont = Gui.Font.Load(content.Load<Gui.FontSpec>("F_TOOLTIP.FON"));
             }
 
             _container = container;
@@ -101,17 +101,19 @@ namespace Gk3Main.Gui
             else
                 sb.Draw(_disabledImage, new Math.Vector2(_screenX, _screenY));
 
-            if (_tooltipVisible && _tooltipFont != null)
+            if (_tooltipVisible)
             {
-                Graphics.Rect tooltipRect = _tooltipFont.GetPrintedRect(_tooltip);
+                var size = Gui.Font.MeasureString(_tooltipFont, _tooltip);
+                Graphics.Rect tooltipRect;
                 tooltipRect.X = _mouseX - 2;
                 tooltipRect.Y = _mouseY + 32;
-                tooltipRect.Width += 4;
+                tooltipRect.Width = size.X + 4;
+                tooltipRect.Height = size.Y;
 
                 Graphics.TextureResource defaultWhite = Graphics.RendererManager.CurrentRenderer.DefaultTexture;
                 sb.Draw(defaultWhite, tooltipRect, null, 0);
 
-                _tooltipFont.Print(sb, _mouseX, _mouseY + 32, _tooltip);
+                Gui.Font.Print(sb, _tooltipFont, _mouseX, _mouseY + 32, _tooltip);
             }
         }
 
@@ -173,7 +175,7 @@ namespace Gk3Main.Gui
         private bool _enabled;
 
         private IButtonContainer _container;
-        private Gui.Font _tooltipFont;
+        private Gui.FontInstance _tooltipFont;
         private Graphics.TextureResource _downImage;
         private Graphics.TextureResource _hoverImage;
         private Graphics.TextureResource _upImage;

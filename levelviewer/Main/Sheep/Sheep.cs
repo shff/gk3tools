@@ -175,7 +175,7 @@ namespace Gk3Main.Sheep
 
                 _output.Clear();
 
-                Console.CurrentConsole.WriteLine(ConsoleVerbosity.Extreme, "Executing snippet: {0}", snippet);
+                Console.CurrentConsole.WriteLine(ConsoleSeverity.Debug, "Executing snippet: {0}", snippet);
 
                 string script = string.Format("symbols {{ int result$; int n$; int v$; }} code {{ main$() {{ result$ = {0}; }} }}", snippet);
 

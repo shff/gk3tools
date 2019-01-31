@@ -14,7 +14,7 @@ namespace Gk3Main.Graphics
         private static Effect _effect;
         private static VertexElementSet _declaration;
 
-        public static void Init(Resource.ResourceManager globalContent)
+        public static void Init()
         {
             _indices = new int[]
             {
@@ -37,7 +37,7 @@ namespace Gk3Main.Graphics
                 3, 7
             };
 
-            _effect = globalContent.Load<Effect>("wireframe.fx");
+            _effect = Resource.ResourceManager.Global.Load<Effect>("wireframe.fx");
 
             _declaration = new VertexElementSet(new VertexElement[] {
                 new VertexElement(0, VertexElementFormat.Float3, VertexElementUsage.Position, 0)
